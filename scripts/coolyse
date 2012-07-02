@@ -68,7 +68,7 @@ my $home    = $system eq "Darwin"? "/Users/kuehl/src/coolyser": "/home/dkuhl/src
 my $lib     = "$home/$system-$compiler-$version/coolyser.$suffix";
 #system("ls -l $lib");
 my $flags   = "-I$llvm -I. -D_DEBUG -D_GNU_SOURCE -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS";
-my $lflags  = "-std=c++0x -fcxx-exceptions";
+my $lflags  = "-fcxx-exceptions";
 my $wflags  = $version eq "SVN"? "-Weverything": "";
 my $pflags  = "$tool $debug $config";
 my $command = "$llvm/bin/clang -cc1 -load $lib -plugin coolyse $pflags $flags $lflags $wflags " . join(" ", @ARGV);

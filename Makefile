@@ -7,7 +7,7 @@
 # $Id$
 
 default:  check-current
-CURRENT = csatr/csatr_componentprefix.v.cpp
+CURRENT = csabase/csabase_diagnosticfilter.t.cpp
 
 #  ----------------------------------------------------------------------------
 
@@ -38,35 +38,36 @@ TSTCXXFILES +=                                                                \
 	groups/csa/csamisc/csamisc_memberdefinitioninclassdefinition.cpp      \
 	groups/csa/csamisc/csamisc_thrownonstdexception.cpp                   \
 	groups/csa/csamisc/csamisc_verifysameargumentnames.cpp                \
+	groups/csa/csamisc/csamisc_calls.cpp                                  \
 	groups/csa/csamisc/csamisc_stringadd.cpp                              \
 
 TODO =                                                                        \
-	groups/csa/csamisc/csamisc_calls.cpp                                  \
 	groups/csa/csatr/csatr_includefiles.cpp                               \
 	groups/csa/csamisc/csamisc_selfinitialization.cpp                     \
 	groups/csa/csamisc/csamisc_includeguard.cpp                           \
 	groups/csa/csamisc/csamisc_superfluoustemporary.cpp                   \
 
 LIBCXXFILES +=                                                                \
-	groups/csa/csabase/csabase_config.cpp                                 \
-	groups/csa/csabase/csabase_debug.cpp                                  \
-	groups/csa/csabase/csabase_location.cpp                               \
-	groups/csa/csabase/csabase_format.cpp                                 \
-	groups/csa/csabase/csabase_attachments.cpp                            \
 	groups/csa/csabase/csabase_abstractvisitor.cpp                        \
-	groups/csa/csabase/csabase_ppobserver.cpp                             \
-	groups/csa/csabase/csabase_checkregistry.cpp                          \
-	groups/csa/csabase/csabase_visitor.cpp                                \
 	groups/csa/csabase/csabase_analyser.cpp                               \
+	groups/csa/csabase/csabase_attachments.cpp                            \
+	groups/csa/csabase/csabase_checkregistry.cpp                          \
+	groups/csa/csabase/csabase_config.cpp                                 \
 	groups/csa/csabase/csabase_coolyse.cpp                                \
+	groups/csa/csabase/csabase_debug.cpp                                  \
+	groups/csa/csabase/csabase_diagnosticfilter.cpp                       \
+	groups/csa/csabase/csabase_format.cpp                                 \
+	groups/csa/csabase/csabase_location.cpp                               \
+	groups/csa/csabase/csabase_ppobserver.cpp                             \
 	groups/csa/csabase/csabase_registercheck.cpp                          \
+	groups/csa/csabase/csabase_visitor.cpp                                \
 	$(TSTCXXFILES)
 
 # -----------------------------------------------------------------------------
 
 SYSTEM   = $(shell uname -s)
 ECHON    = echo
-COMPILER = gcc
+COMPILER = clang
 LLVM     = /opt/swt/install/llvm-2.9-64
 CLANGVER = 2.9
 # CLANGVER = SVN
@@ -104,7 +105,7 @@ endif
 CPPFLAGS += $(INCFLAGS) $(DEFFLAGS) $(STDFLAGS)
 CPPFLAGS += -Igroups/csa/csabase
 PFLAGS   += -fcxx-exceptions -fdiagnostics-show-option
-CXXFLAGS += -g -fno-exceptions -fno-rtti -fno-common -fno-strict-aliasing
+CXXFLAGS += -fno-exceptions -fno-rtti -fno-common -fno-strict-aliasing
 WARNFLAGS = \
 	-Wcast-qual \
 	-Wno-long-long \
@@ -149,10 +150,11 @@ PLUGIN   = -cc1 -load $(OBJ)/$(TARGET).$(SOSUFFIX) -plugin coolyse
 OFILES = $(LIBCXXFILES:%.cpp=$(OBJ)/%.o)
 POSTPROCESS = sed -e 's/\([^:]*:[0-9][0-9]*\):[^:]*:/\1:0:/' \
 	    | sed -e '/\^/s/ //g'
+#EXPECT      = `echo $$f | sed -E 's/((test)|(\.[vt]))\.cpp$$/.exp/'`
 EXPECT      = `echo $$f | \
-               sed -e 's/test\.cpp$$/.exp/' | \
-               sed -e 's/\.t\.cpp$$/.exp/' | \
-               sed -e 's/\.v\.cpp$$/.exp/'`
+	       sed -e 's/test\.cpp$$/.exp/' | \
+	       sed -e 's/\.t.cpp$$/.exp/' | \
+	       sed -e 's/\.v.cpp$$/.exp/'`
 
 # -----------------------------------------------------------------------------
 

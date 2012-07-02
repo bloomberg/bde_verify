@@ -1,6 +1,6 @@
 // -*-c++-*- checks/include_files.cpp 
 // -----------------------------------------------------------------------------
-// Copyright 2011 Dietmar Kuehl http://www.dietmar-kuehl.de              
+// Copyright 2012 Dietmar Kuehl http://www.dietmar-kuehl.de              
 // Distributed under the Boost Software License, Version 1.0. (See file  
 // LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt).     
 // -----------------------------------------------------------------------------
@@ -22,6 +22,7 @@ static std::string const check_name("include_files");
 
 // -----------------------------------------------------------------------------
 
+#if 0
 namespace
 {
     struct include_files
@@ -68,6 +69,9 @@ check_declref(cool::csabase::Analyser& analyser, clang::Decl const* decl, clang:
     ::include_files& context(analyser.attachment<include_files>());
     std::set<std::string> const& includes(context.includes_[file]);
 
+    analyser.report(declref, ::check_name, "declref")
+        << declref
+        ;
     std::string header(analyser.get_location(declref).file());
     if (file != header
         && includes.find(header) == includes.end()
@@ -339,3 +343,17 @@ static cool::csabase::RegisterCheck register_check2(check_name, &::on_valuedecl)
 static cool::csabase::RegisterCheck register_check3(check_name, &::on_functiondecl);
 static cool::csabase::RegisterCheck register_check4(check_name, &::on_expr);
 static cool::csabase::RegisterCheck register_observer(check_name, &::subscribe);
+#else
+static void
+on_declref(cool::csabase::Analyser& analyser, clang::DeclRefExpr const* expr)
+{
+    clang::ValueDecl const* decl(expr->getDecl());
+    analyser.report(decl, ::check_name, "declaration")
+        << decl->getSourceRange()
+        ;
+    analyser.report(expr, ::check_name, "declref")
+        << expr->getSourceRange()
+        ;
+}
+static cool::csabase::RegisterCheck register_check0(check_name, &::on_declref);
+#endif

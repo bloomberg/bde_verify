@@ -132,6 +132,13 @@ cool::csabase::Analyser::toplevel() const
 }
 
 std::string const&
+cool::csabase::Analyser::directory() const
+{
+    return this->directory_;
+}
+
+
+std::string const&
 cool::csabase::Analyser::prefix() const
 {
     return this->prefix_;
@@ -141,6 +148,12 @@ std::string const&
 cool::csabase::Analyser::package() const
 {
     return this->package_;
+}
+
+std::string const&
+cool::csabase::Analyser::group() const
+{
+    return this->group_;
 }
 
 std::string const&
@@ -158,10 +171,15 @@ cool::csabase::Analyser::toplevel(std::string const& path)
     this->prefix_ = it == cool::end(::source_suffixes)? path: path.substr(0, path.size() - it->size());
     std::string const& prefix(this->prefix_);
     std::string::size_type slash(prefix.rfind('/'));
+    this->directory_ = prefix.substr(0, slash == prefix.npos? 0: slash + 1);
     std::string            fileroot(slash == prefix.npos? prefix: prefix.substr(slash + 1));
     std::string::size_type under(fileroot.find('_'));
+    under = under != fileroot.npos && under == 1? fileroot.find('_', 2): under;
     this->package_   = fileroot.substr(0, under);
     under = under == fileroot.npos? 0: under + 1;
+    if (1u == under || fileroot[1] != '_') {
+        this->group_ = fileroot.substr(0, std::min<std::string::size_type>(3u, fileroot.size()));
+    }
     std::string::size_type period(fileroot.find('.', under));
     this->component_ = fileroot.substr(under,
                                        period == fileroot.npos
@@ -170,7 +188,7 @@ cool::csabase::Analyser::toplevel(std::string const& path)
 }
 
 bool
-cool::csabase::Analyser::is_component_header(std::string const& name)
+cool::csabase::Analyser::is_component_header(std::string const& name) const
 {
     std::string::size_type separator(name.rfind('.'));
     std::string            suffix(name.substr(name.npos == separator? name.size(): separator));
@@ -186,17 +204,23 @@ cool::csabase::Analyser::is_component_header(std::string const& name)
 }
 
 bool
-cool::csabase::Analyser::is_component_source(std::string const& file)
+cool::csabase::Analyser::is_component_source(std::string const& file) const
 {
     std::string::size_type pos(file.find(this->toplevel()));
     return pos != file.npos && pos + this->toplevel().size() == file.size();
 }
 
 bool
-cool::csabase::Analyser::is_component(std::string const& file)
+cool::csabase::Analyser::is_component(std::string const& file) const
 {
     return this->is_component_source(file)
         || this->is_component_header(file);
+}
+
+bool
+cool::csabase::Analyser::is_component(clang::SourceLocation loc) const
+{
+    return this->is_component(this->get_location(loc).file());
 }
 
 bool

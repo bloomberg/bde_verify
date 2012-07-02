@@ -8,6 +8,7 @@
 #include <csabase_coolyse.h>
 #include <csabase_analyser.h>
 #include <csabase_debug.h>
+#include <csabase_diagnosticfilter.h>
 #include <clang/Frontend/FrontendPluginRegistry.h>
 #include <clang/AST/ASTConsumer.h>
 #include <clang/Sema/SemaConsumer.h>
@@ -80,6 +81,10 @@ AnalyseConsumer::AnalyseConsumer(clang::CompilerInstance& compiler,
     this->compiler_.getLangOpts().CPlusPlus     = true;
     this->compiler_.getLangOpts().Exceptions    = true;
     this->compiler_.getLangOpts().CXXExceptions = true;
+
+    compiler.getDiagnostics().setClient(new cool::csabase::DiagnosticFilter(this->analyser_, compiler.getDiagnosticOpts()));
+    compiler.getDiagnostics().getClient()->BeginSourceFile(compiler.getLangOpts(),
+                                                           compiler.hasPreprocessor()? &compiler.getPreprocessor(): 0);
 }
 
 // -----------------------------------------------------------------------------

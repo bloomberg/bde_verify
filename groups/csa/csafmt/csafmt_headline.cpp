@@ -1,9 +1,9 @@
 // csafmt_headline.cpp                                                -*-C++-*-
-// -----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // Copyright 2012 Dietmar Kuehl http://www.dietmar-kuehl.de              
 // Distributed under the Boost Software License, Version 1.0. (See file  
 // LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt).     
-// -----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 #include <csabase_analyser.h>
 #include <csabase_registercheck.h>
@@ -13,7 +13,7 @@
 
 static std::string const check_name("headline");
 
-// -----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 namespace
 {
@@ -43,7 +43,7 @@ namespace
     };
 }
 
-// -----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 static void
 open_file(cool::csabase::Analyser& analyser,
@@ -62,7 +62,7 @@ open_file(cool::csabase::Analyser& analyser,
             std::string expect("// " + filename);
             expect.resize(70, ' ');
             expect += "-*-C++-*-";
-            if (line != expect && line.find("GENERATED") == line.npos) {
+            if (line != expect && line.npos == line.find("GENERATED")) {
                 analyser.report(where,
                                 ::check_name,
                                 "file headline incorrect",
@@ -76,7 +76,7 @@ open_file(cool::csabase::Analyser& analyser,
     }
 }
 
-// -----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 static void
 subscribe(cool::csabase::Analyser& analyser,
@@ -87,7 +87,7 @@ subscribe(cool::csabase::Analyser& analyser,
                                                                  analyser);
 }
 
-// -----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck register_observer(check_name, &::subscribe);
+static cool::csabase::RegisterCheck register_observer(check_name,&::subscribe);
 

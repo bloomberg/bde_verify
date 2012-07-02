@@ -63,13 +63,16 @@ public:
     clang::Sema&             sema();
         
     std::string const& toplevel() const;
+    std::string const& directory() const;
     std::string const& prefix() const;
+    std::string const& group() const;
     std::string const& package() const;
     std::string const& component() const;
     void               toplevel(std::string const&);
-    bool               is_component_header(std::string const&);
-    bool               is_component_source(std::string const&);
-    bool               is_component(std::string const&);
+    bool               is_component_header(std::string const&) const;
+    bool               is_component_source(std::string const&) const;
+    bool               is_component(clang::SourceLocation) const;
+    bool               is_component(std::string const&) const;
     template <typename T> bool is_component(T const*);
     template <typename T> bool is_component_header(T const*);
     template <typename T> bool is_component_source(T const*);
@@ -105,7 +108,9 @@ private:
     cool::csabase::PPObserver*            pp_observer_;
     clang::ASTContext*                    context_;
     std::string                           toplevel_;
+    std::string                           directory_;
     std::string                           prefix_;
+    std::string                           group_;
     std::string                           package_;
     std::string                           component_;
 };
