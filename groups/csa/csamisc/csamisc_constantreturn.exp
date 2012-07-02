@@ -1,0 +1,21 @@
+groups/csa/csamisc/csamisc_constantreturn.t.cpp:12:0: warning: function constantreturn_f() has only one statement which returns the constant '0'
+    return 0;
+^
+groups/csa/csamisc/csamisc_constantreturn.t.cpp:10:0: warning: declaration of constantreturn_f() (which always returns the constant 0)
+int cool::csamisc::constantreturn_f()
+^
+In file included from groups/csa/csamisc/csamisc_constantreturn.t.cpp:8:
+groups/csa/csamisc/csamisc_constantreturn.t.hpp:19:0: warning: declaration of constantreturn_f() (which always returns the constant 0)
+        extern int constantreturn_f();
+^
+groups/csa/csamisc/csamisc_constantreturn.t.cpp:17:0: warning: function constantreturn_g() has only one statement which returns the constant '13'
+    return 5 + 8;
+^
+groups/csa/csamisc/csamisc_constantreturn.t.cpp:15:0: warning: declaration of constantreturn_g() (which always returns the constant 13)
+int cool::csamisc::constantreturn_g()
+^
+In file included from groups/csa/csamisc/csamisc_constantreturn.t.cpp:8:
+groups/csa/csamisc/csamisc_constantreturn.t.hpp:20:0: warning: declaration of constantreturn_g() (which always returns the constant 13)
+        extern int constantreturn_g();
+^
+6 warnings generated.

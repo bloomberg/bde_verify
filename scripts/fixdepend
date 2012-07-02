@@ -1,0 +1,44 @@
+#!/usr/bin/perl -w
+#  -*-perl-*- check
+#  -----------------------------------------------------------------------------
+#  Copyright 2012 Dietmar Kuehl http://www.dietmar-kuehl.de              
+#  Distributed under the Boost Software License, Version 1.0. (See file  
+#  LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt).     
+#  -----------------------------------------------------------------------------
+# $Id$
+
+use strict;
+
+if ($#ARGV != 0)
+  {
+    die("usage: $0 <object-dir>");
+  }
+
+my $prefix = shift;
+my $line = "";
+
+while (<>)
+{
+  chomp;
+  if (/(.*)\\\s*$/)
+    {
+      $line .= "$1 ";
+    }
+  else
+    {
+      $line .= "$_ ";
+      if ($line =~ /^(.*)\.o:/)
+        {
+          my $file = $1;
+          if ($line =~ /:.*\s(\S*\/)$file\.[cC]/)
+            {
+              my $dir = $1;
+              $line =~ s/^/$dir/;
+            }
+        }
+      $line =~ s/\s*$//;
+      $line =~ s/\s+/ \\\n  /g;
+      print "$prefix/$line\n";
+      $line = "";
+    }
+}

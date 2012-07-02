@@ -1,0 +1,7 @@
+groups/csa/csamisc/csamisc_cstylecastused.t.cpp:27:0: warning: C-style cast is used
+            return (char*)0;
+^~~~~~~~
+groups/csa/csamisc/csamisc_cstylecastused.t.cpp:20:0: warning: C-style cast is used
+                return (T*)0;
+^~~~~
+2 warnings generated.

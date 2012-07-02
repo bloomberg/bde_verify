@@ -1,0 +1,4 @@
+groups/csa/csamisc/csamisc_contiguousswitch.t.cpp:39:0: warning: unexpected gap in case labels: expected 6, got 100
+    case 100:
+^~~~
+1 warning generated.

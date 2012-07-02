@@ -1,0 +1,24 @@
+groups/csa/csamisc/csamisc_charvsstring.t.cpp:37:0: warning: passing address of char 'value' where probably a null-terminated string is expected
+    f(&value); // not OK
+^
+groups/csa/csamisc/csamisc_charvsstring.t.cpp:41:0: warning: passing address of char 'value' where probably a null-terminated string is expected
+    f(0, &value); // not OK
+^
+groups/csa/csamisc/csamisc_charvsstring.t.cpp:45:0: warning: passing address of char 'value' where probably a null-terminated string is expected
+    f(0, &value, 1); // not OK
+^
+groups/csa/csamisc/csamisc_charvsstring.t.cpp:50:0: warning: passing address of char 'value' where probably a null-terminated string is expected
+    g g3(&value); // not OK
+^
+groups/csa/csamisc/csamisc_charvsstring.t.cpp:50:0: warning: passing address of char 'value' where probably a null-terminated string is expected
+groups/csa/csamisc/csamisc_charvsstring.t.cpp:54:0: warning: passing address of char 'value' where probably a null-terminated string is expected
+    g g7(0, &value); // not OK
+^
+groups/csa/csamisc/csamisc_charvsstring.t.cpp:54:0: warning: passing address of char 'value' where probably a null-terminated string is expected
+groups/csa/csamisc/csamisc_charvsstring.t.cpp:59:0: warning: passing address of char 'value' where probably a null-terminated string is expected
+    g3(&value); // not OK
+^
+groups/csa/csamisc/csamisc_charvsstring.t.cpp:63:0: warning: passing address of char 'value' where probably a null-terminated string is expected
+    g7(0, &value); // not OK
+^
+9 warnings generated.

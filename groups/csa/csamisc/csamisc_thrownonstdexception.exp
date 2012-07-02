@@ -1,0 +1,4 @@
+groups/csa/csamisc/csamisc_thrownonstdexception.t.cpp:33:0: warning: Object of type 'int' not derived from std::exception is thrown.
+                throw 17;
+^
+1 warning generated.

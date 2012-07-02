@@ -1,0 +1,5 @@
+groups/csa/csatr/csatr_filestest.cpp:1:0: warning: TR03: header file 'groups/csa/csatr/csatr_filestest.h' not accessible
+// csatr_filestest.cpp                                                -*-C++-*-
+^
+groups/csa/csatr/csatr_filestest.cpp:1:0: warning: TR03: test file 'groups/csa/csatr/csatr_filestest.t.cpp' not accessible
+2 warnings generated.

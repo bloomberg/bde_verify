@@ -1,0 +1,10 @@
+groups/csa/csatr/csatr_globaltypeonlyinsource.v.cpp:17:0: warning: TR10: globally visible type 'cool::csatr::s_extern' is not declared in header.
+                         struct s_extern { int member; };
+^
+groups/csa/csatr/csatr_globaltypeonlyinsource.v.cpp:22:0: warning: TR10: globally visible type 'cool::csatr::c_extern' is not declared in header.
+                         class  c_extern { int member; };
+^
+groups/csa/csatr/csatr_globaltypeonlyinsource.v.cpp:27:0: warning: TR10: globally visible type 'cool::csatr::e_extern' is not declared in header.
+                         enum   e_extern { e2_member   };
+^
+3 warnings generated.

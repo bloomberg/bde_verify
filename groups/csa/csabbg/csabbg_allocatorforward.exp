@@ -1,0 +1,16 @@
+groups/csa/csabbg/csabbg_allocatorforward.t.cpp:49:0: warning: allocator not passed to base class cool::csabbg::allocatorforward_alloc_used
+    allocatorforward_alloc_used(i),
+^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+groups/csa/csabbg/csabbg_allocatorforward.t.cpp:50:0: warning: allocator not passed to member used0_
+    used0_(i),
+^~~~~~~~~
+groups/csa/csabbg/csabbg_allocatorforward.t.cpp:48:0: warning: allocator not passed to member used2_
+cool::csabbg::test::test(int i, BloombergLP::bslma_Allocator* alloc):
+^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+groups/csa/csabbg/csabbg_allocatorforward.t.cpp:74:0: warning: allocator not passed to member used0_
+    used0_(cool::csabbg::dummy(alloc)),
+^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+groups/csa/csabbg/csabbg_allocatorforward.t.cpp:92:0: warning: allocator not passed to member used0_
+                explicit tbase(BloombergLP::bslma_Allocator*);
+^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5 warnings generated.

@@ -1,0 +1,5 @@
+groups/csa/csatr/csbtx_groupname.v.cpp:1:0: warning: TR01: component 'csbtx_groupname' doesn't seems to be in package group 'csb'
+// csbtx_groupname.v.cpp                                              -*-C++-*-
+^
+groups/csa/csatr/csbtx_groupname.v.cpp:1:0: warning: TR02: component 'csbtx_groupname' doesn't seems to be in package 'csbtx'
+2 warnings generated.

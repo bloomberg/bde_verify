@@ -1,0 +1,4 @@
+groups/csa/csafmt/csafmt_headline.t.cpp:1:0: warning: file headline incorrect
+// wrong file header
+^
+1 warning generated.

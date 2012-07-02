@@ -1,0 +1,87 @@
+#!/usr/bin/perl -w
+#  -*-perl-*- check
+#  -----------------------------------------------------------------------------
+#  Copyright 2012 Dietmar Kuehl http://www.dietmar-kuehl.de              
+#  Distributed under the Boost Software License, Version 1.0. (See file  
+#  LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt).     
+#  -----------------------------------------------------------------------------
+# $Id$
+
+use strict;
+
+my $debug    = "";
+my $compiler = "clang";
+my $version  = "2.9";
+my $tool     = "";
+my $config   = "";
+
+while (0 <= $#ARGV)
+{
+    if ($ARGV[0] eq "-debug")
+    {
+        $debug = " -plugin-arg-coolyse debug-on";
+        shift @ARGV;
+    }
+    elsif ($ARGV[0] eq "-clang")
+    {
+        $compiler = "clang";
+        shift @ARGV;
+    }
+    elsif ($ARGV[0] eq "-gcc")
+    {
+        $compiler = "g++";
+        shift @ARGV;
+    }
+    elsif ($ARGV[0] eq "-head" || $ARGV[0] eq "-svn")
+    {
+        $version = "SVN";
+        shift @ARGV;
+    }
+    elsif ($ARGV[0] =~ /-tool=(.*)/)
+    {
+        $tool = "-plugin-arg-coolyse tool=$1";
+        shift @ARGV;
+    }
+    elsif ($ARGV[0] =~ /-config=(.*)/)
+    {
+        $config = "-plugin-arg-coolyse config=$1";
+        shift @ARGV;
+    }
+    else
+    {
+        last;
+    }
+}
+
+if ($#ARGV < 0)
+{
+    die("usage: $0 ... <filename>");
+}
+
+my $system = `uname`;
+$system =~ s/\s*//g;
+my $suffix = $system eq "Darwin"? "dylib": "so";
+
+my $llvm    = $system eq "Darwin"? "/opt/llvm-$version": "/opt/swt/install/llvm-2.9-64";
+# my $llvm    = $system eq "Darwin"? "/opt/llvm": "/opt/swt/install/llvm-2.9-64";
+my $home    = $system eq "Darwin"? "/Users/kuehl/src/coolyser": "/home/dkuhl/src/coolyser";
+my $lib     = "$home/$system-$compiler-$version/coolyser.$suffix";
+#system("ls -l $lib");
+my $flags   = "-I$llvm -I. -D_DEBUG -D_GNU_SOURCE -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS";
+my $lflags  = "-std=c++0x -fcxx-exceptions";
+my $wflags  = $version eq "SVN"? "-Weverything": "";
+my $pflags  = "$tool $debug $config";
+my $command = "$llvm/bin/clang -cc1 -load $lib -plugin coolyse $pflags $flags $lflags $wflags " . join(" ", @ARGV);
+
+my $gcclib = "/opt/swt/install/gcc-4.3.5/lib/sparcv9";
+$ENV{"LD_LIBRARY_PATH"}    = $gcclib;
+$ENV{"LD_LIBRARY_PATH_64"} = $gcclib;
+
+open(PIPE, "$command 2>&1 |") || die("can't execute command '$command'");
+while (<PIPE>)
+{
+    chomp;
+    print "$_\n";
+}
+close(PIPE);
+exit $$;
