@@ -10,6 +10,7 @@
 #ident "$Id$"
 
 #include <clang/Basic/Diagnostic.h>
+#include <memory>
 
 // ----------------------------------------------------------------------------
 

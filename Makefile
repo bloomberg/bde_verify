@@ -38,10 +38,10 @@ TSTCXXFILES +=                                                                \
 	groups/csa/csamisc/csamisc_memberdefinitioninclassdefinition.cpp      \
 	groups/csa/csamisc/csamisc_thrownonstdexception.cpp                   \
 	groups/csa/csamisc/csamisc_verifysameargumentnames.cpp                \
-	groups/csa/csamisc/csamisc_calls.cpp                                  \
 	groups/csa/csamisc/csamisc_stringadd.cpp                              \
 
 TODO =                                                                        \
+	groups/csa/csamisc/csamisc_calls.cpp                                  \
 	groups/csa/csatr/csatr_includefiles.cpp                               \
 	groups/csa/csamisc/csamisc_selfinitialization.cpp                     \
 	groups/csa/csamisc/csamisc_includeguard.cpp                           \
@@ -67,7 +67,7 @@ LIBCXXFILES +=                                                                \
 
 SYSTEM   = $(shell uname -s)
 ECHON    = echo
-COMPILER = clang
+COMPILER = gcc
 LLVM     = /opt/swt/install/llvm-2.9-64
 CLANGVER = 2.9
 # CLANGVER = SVN
@@ -146,7 +146,9 @@ ifeq ($(SYSTEM),Darwin)
   LDFLAGS  += -mmacosx-version-min=10.6
 endif
 
-PLUGIN   = -cc1 -load $(OBJ)/$(TARGET).$(SOSUFFIX) -plugin coolyse
+PLUGIN   = -cc1 -load $(OBJ)/$(TARGET).$(SOSUFFIX) \
+	   -plugin coolyse -plugin-arg-coolyse config=coolyser.cfg
+
 OFILES = $(LIBCXXFILES:%.cpp=$(OBJ)/%.o)
 POSTPROCESS = sed -e 's/\([^:]*:[0-9][0-9]*\):[^:]*:/\1:0:/' \
 	    | sed -e '/\^/s/ //g'
@@ -161,7 +163,7 @@ EXPECT      = `echo $$f | \
 check-current: $(OBJ)/$(TARGET).$(SOSUFFIX)
 	$(CLANG) $(PLUGIN) \
 	    -plugin-arg-coolyse debug-$(DEBUG) \
-	    -plugin-arg-coolyse config=foobar \
+	    -plugin-arg-coolyse config=coolyser.cfg \
 	    -plugin-arg-coolyse tool=bdechk \
 	    $(CPPFLAGS) $(PFLAGS) groups/csa/$(CURRENT)
 

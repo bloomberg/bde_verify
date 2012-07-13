@@ -1,0 +1,151 @@
+#!/usr/bin/perl -w
+#  -*-perl-*- check
+#  ----------------------------------------------------------------------------
+#  Copyright 2011 Dietmar Kuehl http://www.dietmar-kuehl.de              
+#  Distributed under the Boost Software License, Version 1.0. (See file  
+#  LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt).     
+#  ----------------------------------------------------------------------------
+# $Id: coolyse 161 2011-12-28 00:20:28Z kuehl $
+use strict;
+
+#  ----------------------------------------------------------------------------
+
+my $debug = "";
+my $compiler = "clang";
+if (0 <= $#ARGV && $ARGV[0] eq "-debug")
+{
+    $debug = " -plugin-arg-coolyse debug-on";
+    shift @ARGV;
+}
+if (0 <= $#ARGV && $ARGV[0] eq "-clang")
+{
+    $compiler = "clang";
+    shift @ARGV;
+}
+
+if (0 <= $#ARGV && $ARGV[0] eq "-gcc")
+{
+    $compiler = "g++";
+    shift @ARGV;
+}
+
+@ARGV = grep {
+           !/-pipe/
+        && !/-fno-strict-aliasing/
+        && !/-march=pentium2/
+        && !/-mtune=opteron/
+        && !/-m32/
+        && !/-c/
+        && !/-Wp,-MMD,/
+        ;
+} @ARGV;
+
+my $system = `uname`;
+$system =~ s/\s*//g;
+my $suffix = $system eq "Darwin"? "dylib": "so";
+
+if ($system ne "Linux" && $system ne "Darwin")
+{
+    print "bdechk is currently only supported on Linux: please run on a Linux machine!\n";
+    exit(1);
+}
+
+my @clangoptions = (
+    "-cc1",
+    "-load /home/dkuhl/bin/coolyser/Linux-g++/coolyser.so",
+    "-plugin coolyse",
+    "-plugin-arg-coolyse tool=bdechk",
+    );
+
+my @bdeoptions = (
+    "-fcxx-exceptions",
+    "-Wcast-align",
+    "-Wcast-qual",
+    "-Wall",
+    "-Wextra",
+    "-Wformat-security",
+    "-Wformat-y2k",
+    "-Winit-self",
+    "-Wno-long-long",
+    "-Wno-unknown-pragmas",
+    "-Wpacked",
+    "-Wpointer-arith",
+    "-Wwrite-strings",
+    "-Wdeprecated-writable-strings",
+    "-Wunused-value",
+    "-Wchar-subscripts",
+    "-Wsign-compare",
+    "-Wparentheses",
+    "-Wstrict-overflow",
+    "-Wvla",
+    "-Wvolatile-register-var",
+    "-Wunused-function",
+    "-Wunused-variable",
+    "-Wunused-parameter",
+    "-Wignored-qualifiers",
+    "-fdiagnostics-show-option",
+    "-D__linux__",
+    "-D__i386__",
+    "-D__CLANG_GNUC__=4",
+    "-D__CLANG_GNUC_MINOR__=4",
+    "-D__CLANG_GNUC_PATCHLEVEL__=6",
+    "-DBDE_BUILD_CHK",
+    "-isystem /opt/swt/install/gcc-4.4.6/include/c++/4.4.6",
+    "-isystem /opt/swt/install/gcc-4.4.6/include/c++/4.4.6/x86_64-unknown-linux-gnu/32",
+    "-isystem /opt/swt/install/gcc-4.4.6/include/c++/4.4.6/backward",
+    "-I.",
+    #"-I/home16/dkuhl/src/git-bde/include/bsl",
+    #"-I/home16/dkuhl/src/git-bde/include/bde",
+    #"-I/home16/dkuhl/src/git-bde/include/bae",
+    #"-I/home16/dkuhl/src/git-bde/include/bce",
+    "-I/home16/dkuhl/src/git-bde/include/fixes",
+    "-I/bbsrc/source/proot/include/stlport",
+    "-I/bbsrc/source/proot/include/00depbuild",
+    "-I/bbsrc/source/proot/include/00deployed",
+    "-I/bbsrc/source/proot/include/00offlonly",
+    "-DBDE_BUILD_TARGET_DBG",
+    "-DBDE_BUILD_TARGET_EXC",
+    "-DBDE_BUILD_TARGET_MT",
+#"-D__i386",
+#"-U__x86_64",
+#"-U__x86_64__",
+    "-fexceptions",
+    "-g",
+    "-D_POSIX_PTHREAD_SEMANTICS",
+    "-D_REENTRANT",
+    "-DBSLS_IDENT_OFF",
+    "-DBSL_OVERRIDES_STD",
+    );
+my $bdeflags = join(" ", @bdeoptions);
+
+# my $llvm    = $system eq "Darwin"? "/opt/llvm-2.9": "/opt/swt/install/llvm-2.9-64";
+my $llvm    = $system eq "Darwin"? "/opt/llvm": "/opt/swt/install/llvm-2.9-64";
+my $home    = $system eq "Darwin"? "/Users/kuehl/src/cool/coolyser": "/home/dkuhl/bin/coolyser";
+my $lib     = "$home/$system-$compiler/coolyser.$suffix";
+my $flags   = "-I$llvm -I. -D_DEBUG -D_GNU_SOURCE -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS";
+$flags = $bdeflags;
+my $lflags  = "-fcxx-exceptions";
+my $cflags  = join(" ", @clangoptions);
+my $iflags  = "-I/home16/dkuhl/src/git-bde/include/fixes "
+    . join(" ", grep { /^-I/ } @ARGV);
+my $uflags  = join(" ", grep { !/^-I/ } @ARGV);
+my $command = "$llvm/bin/clang $debug $cflags $iflags $flags $lflags $uflags";
+
+my $gcclib = "/opt/swt/install/gcc-4.3.5/lib/sparcv9";
+$ENV{"LD_LIBRARY_PATH"}    = $gcclib;
+$ENV{"LD_LIBRARY_PATH_64"} = $gcclib;
+
+my $tty = -t STDOUT;
+#print "$command\n";
+open(PIPE, "$command 2>&1 |") || die("can't execute command '$command'");
+while (<PIPE>)
+{
+    chomp;
+    if ($tty) {
+        s/warning/\x1b[31mwarning\x1b[0m/;
+    }
+    print "$_\n";
+}
+close(PIPE);
+exit 0;
+# exit $$;

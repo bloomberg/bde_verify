@@ -69,7 +69,7 @@ namespace
                 if (std::find_if(package.begin(), package.end(), &::not_packagechar) != package.end()
                     || isdigit(static_cast<unsigned char>(package[3]))) {
                     analyser.report(where, ::check_name,
-                                    "TR02: page names most consist of lower case alphanumeric characters only: '%0'", true)
+                                    "TR02: package names most consist of lower case alphanumeric characters only: '%0'", true)
                         << package;
                 }
                 std::string path(directory + ".");
