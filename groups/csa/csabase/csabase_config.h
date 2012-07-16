@@ -12,6 +12,7 @@
 #include <iosfwd>
 #include <map>
 #include <string>
+#include <vector>
 
 // -----------------------------------------------------------------------------
 
@@ -41,8 +42,10 @@ public:
     std::map<std::string, Status> const& checks() const;
 
 private:
-    std::string                   d_toplevel_namespace;
-    std::map<std::string, Status> d_checks;
+    std::string                                      d_toplevel_namespace;
+    std::vector<std::string>                         d_loadpath;
+    std::map<std::string, Status>                    d_checks;
+    std::map<std::string, std::vector<std::string> > d_groups;
 };
 
 // -----------------------------------------------------------------------------

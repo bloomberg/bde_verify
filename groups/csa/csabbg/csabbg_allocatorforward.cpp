@@ -85,7 +85,7 @@ uses_allocator(cool::csabase::Analyser& analyser, clang::CXXConstructorDecl cons
     }
     clang::QualType bslma_allocator(bslma_allocator_type->getTypeForDecl()->getCanonicalTypeInternal());
     
-    // std::for_each(decl->param_begin(), decl->param_end(), ::print_parameter);
+    std::for_each(decl->param_begin(), decl->param_end(), ::print_parameter);
     return std::find_if(decl->param_begin(), decl->param_end(), std::bind1st(std::ptr_fun(::is_allocator), bslma_allocator))
         != decl->param_end();
 }

@@ -7,67 +7,68 @@
 # $Id$
 
 default:  check-current
-CURRENT = csabase/csabase_diagnosticfilter.t.cpp
+CURRENT = csatr/csatr_includefiles.t.cpp
 
 #  ----------------------------------------------------------------------------
 
 TARGET = coolyser
 
 TSTCXXFILES +=                                                                \
-	groups/csa/csabbg/csabbg_allocatorforward.cpp                         \
-	groups/csa/csabbg/csabbg_allocatornewwithpointer.cpp                  \
-	groups/csa/csafmt/csafmt_headline.cpp                                 \
-	groups/csa/csatr/csatr_groupname.cpp                                  \
-	groups/csa/csatr/csatr_componentprefix.cpp                            \
-	groups/csa/csatr/csatr_packagename.cpp                                \
-	groups/csa/csatr/csatr_files.cpp                                      \
-	groups/csa/csatr/csatr_friendship.cpp                                 \
-	groups/csa/csatr/csatr_globaltypeonlyinsource.cpp                     \
-	groups/csa/csatr/csatr_globalfunctiononlyinsource.cpp                 \
-	groups/csa/csatr/csatr_componentheaderinclude.cpp                     \
-	groups/csa/csatr/csatr_nesteddeclarations.cpp                         \
-	groups/csa/csatr/csatr_usingdeclarationinheader.cpp                   \
-	groups/csa/csatr/csatr_usingdirectiveinheader.cpp                     \
-	groups/csa/csastil/csastil_implicitctor.cpp                           \
-	groups/csa/csamisc/csamisc_charvsstring.cpp                           \
-	groups/csa/csamisc/csamisc_arrayinitialization.cpp                    \
-	groups/csa/csamisc/csamisc_anonymousnamespaceinheader.cpp             \
-	groups/csa/csamisc/csamisc_cstylecastused.cpp                         \
-	groups/csa/csamisc/csamisc_constantreturn.cpp                         \
-	groups/csa/csamisc/csamisc_contiguousswitch.cpp                       \
-	groups/csa/csamisc/csamisc_memberdefinitioninclassdefinition.cpp      \
-	groups/csa/csamisc/csamisc_thrownonstdexception.cpp                   \
-	groups/csa/csamisc/csamisc_verifysameargumentnames.cpp                \
-	groups/csa/csamisc/csamisc_stringadd.cpp                              \
+        groups/csa/csabbg/csabbg_allocatorforward.cpp                         \
+        groups/csa/csabbg/csabbg_allocatornewwithpointer.cpp                  \
+        groups/csa/csafmt/csafmt_headline.cpp                                 \
+        groups/csa/csatr/csatr_groupname.cpp                                  \
+        groups/csa/csatr/csatr_componentprefix.cpp                            \
+        groups/csa/csatr/csatr_packagename.cpp                                \
+        groups/csa/csatr/csatr_files.cpp                                      \
+        groups/csa/csatr/csatr_friendship.cpp                                 \
+        groups/csa/csatr/csatr_globaltypeonlyinsource.cpp                     \
+        groups/csa/csatr/csatr_globalfunctiononlyinsource.cpp                 \
+        groups/csa/csatr/csatr_componentheaderinclude.cpp                     \
+        groups/csa/csatr/csatr_nesteddeclarations.cpp                         \
+        groups/csa/csatr/csatr_usingdeclarationinheader.cpp                   \
+        groups/csa/csatr/csatr_usingdirectiveinheader.cpp                     \
+        groups/csa/csastil/csastil_implicitctor.cpp                           \
+        groups/csa/csamisc/csamisc_charvsstring.cpp                           \
+        groups/csa/csamisc/csamisc_arrayinitialization.cpp                    \
+        groups/csa/csamisc/csamisc_anonymousnamespaceinheader.cpp             \
+        groups/csa/csamisc/csamisc_boolcomparison.cpp                         \
+        groups/csa/csamisc/csamisc_cstylecastused.cpp                         \
+        groups/csa/csamisc/csamisc_constantreturn.cpp                         \
+        groups/csa/csamisc/csamisc_contiguousswitch.cpp                       \
+        groups/csa/csamisc/csamisc_memberdefinitioninclassdefinition.cpp      \
+        groups/csa/csamisc/csamisc_thrownonstdexception.cpp                   \
+        groups/csa/csamisc/csamisc_verifysameargumentnames.cpp                \
+        groups/csa/csamisc/csamisc_stringadd.cpp                              \
 
 TODO =                                                                        \
-	groups/csa/csamisc/csamisc_calls.cpp                                  \
-	groups/csa/csatr/csatr_includefiles.cpp                               \
-	groups/csa/csamisc/csamisc_selfinitialization.cpp                     \
-	groups/csa/csamisc/csamisc_includeguard.cpp                           \
-	groups/csa/csamisc/csamisc_superfluoustemporary.cpp                   \
+        groups/csa/csatr/csatr_includefiles.cpp                               \
+        groups/csa/csamisc/csamisc_calls.cpp                                  \
+        groups/csa/csamisc/csamisc_selfinitialization.cpp                     \
+        groups/csa/csamisc/csamisc_includeguard.cpp                           \
+        groups/csa/csamisc/csamisc_superfluoustemporary.cpp                   \
 
 LIBCXXFILES +=                                                                \
-	groups/csa/csabase/csabase_abstractvisitor.cpp                        \
-	groups/csa/csabase/csabase_analyser.cpp                               \
-	groups/csa/csabase/csabase_attachments.cpp                            \
-	groups/csa/csabase/csabase_checkregistry.cpp                          \
-	groups/csa/csabase/csabase_config.cpp                                 \
-	groups/csa/csabase/csabase_coolyse.cpp                                \
-	groups/csa/csabase/csabase_debug.cpp                                  \
-	groups/csa/csabase/csabase_diagnosticfilter.cpp                       \
-	groups/csa/csabase/csabase_format.cpp                                 \
-	groups/csa/csabase/csabase_location.cpp                               \
-	groups/csa/csabase/csabase_ppobserver.cpp                             \
-	groups/csa/csabase/csabase_registercheck.cpp                          \
-	groups/csa/csabase/csabase_visitor.cpp                                \
-	$(TSTCXXFILES)
+        groups/csa/csabase/csabase_abstractvisitor.cpp                        \
+        groups/csa/csabase/csabase_analyser.cpp                               \
+        groups/csa/csabase/csabase_attachments.cpp                            \
+        groups/csa/csabase/csabase_checkregistry.cpp                          \
+        groups/csa/csabase/csabase_config.cpp                                 \
+        groups/csa/csabase/csabase_coolyse.cpp                                \
+        groups/csa/csabase/csabase_debug.cpp                                  \
+        groups/csa/csabase/csabase_diagnosticfilter.cpp                       \
+        groups/csa/csabase/csabase_format.cpp                                 \
+        groups/csa/csabase/csabase_location.cpp                               \
+        groups/csa/csabase/csabase_ppobserver.cpp                             \
+        groups/csa/csabase/csabase_registercheck.cpp                          \
+        groups/csa/csabase/csabase_visitor.cpp                                \
+        $(TSTCXXFILES)
 
 # -----------------------------------------------------------------------------
 
 SYSTEM   = $(shell uname -s)
 ECHON    = echo
-COMPILER = gcc
+COMPILER = g++
 LLVM     = /opt/swt/install/llvm-2.9-64
 CLANGVER = 2.9
 # CLANGVER = SVN
@@ -107,28 +108,28 @@ CPPFLAGS += -Igroups/csa/csabase
 PFLAGS   += -fcxx-exceptions -fdiagnostics-show-option
 CXXFLAGS += -fno-exceptions -fno-rtti -fno-common -fno-strict-aliasing
 WARNFLAGS = \
-	-Wcast-qual \
-	-Wno-long-long \
-	-Wall \
-	-W \
-	-Wno-unused-parameter \
-	-Wno-overloaded-virtual \
-	-Wwrite-strings
+        -Wcast-qual \
+        -Wno-long-long \
+        -Wall \
+        -W \
+        -Wno-unused-parameter \
+        -Wno-overloaded-virtual \
+        -Wwrite-strings
 LDFLAGS = -L$(LLVM)/lib
 LDLIBS += \
-	-lclangFrontend \
-	-lclangDriver \
-	-lclangSerialization \
-	-lclangSema \
-	-lclangAnalysis \
-	-lclangParse \
-	-lclangAST \
-	-lclangLex \
-	-lclangBasic \
-	-lLLVMSupport \
-	-lLLVMMC \
-	-lpthread \
-	-lm 
+        -lclangFrontend \
+        -lclangDriver \
+        -lclangSerialization \
+        -lclangSema \
+        -lclangAnalysis \
+        -lclangParse \
+        -lclangAST \
+        -lclangLex \
+        -lclangBasic \
+        -lLLVMSupport \
+        -lLLVMMC \
+        -lpthread \
+        -lm 
 
 ifeq ($(SYSTEM),Linux)
   CXXFLAGS += -fpic
@@ -147,23 +148,22 @@ ifeq ($(SYSTEM),Darwin)
 endif
 
 PLUGIN   = -cc1 -load $(OBJ)/$(TARGET).$(SOSUFFIX) \
-	   -plugin coolyse -plugin-arg-coolyse config=coolyser.cfg
-
+           -plugin coolyse -plugin-arg-coolyse config=test.cfg
 OFILES = $(LIBCXXFILES:%.cpp=$(OBJ)/%.o)
 POSTPROCESS = sed -e 's/\([^:]*:[0-9][0-9]*\):[^:]*:/\1:0:/' \
-	    | sed -e '/\^/s/ //g'
+            | sed -e '/\^/s/ //g'
 #EXPECT      = `echo $$f | sed -E 's/((test)|(\.[vt]))\.cpp$$/.exp/'`
 EXPECT      = `echo $$f | \
-	       sed -e 's/test\.cpp$$/.exp/' | \
-	       sed -e 's/\.t.cpp$$/.exp/' | \
-	       sed -e 's/\.v.cpp$$/.exp/'`
+               sed -e 's/test\.cpp$$/.exp/' | \
+               sed -e 's/\.t.cpp$$/.exp/' | \
+               sed -e 's/\.v.cpp$$/.exp/'`
 
 # -----------------------------------------------------------------------------
 
 check-current: $(OBJ)/$(TARGET).$(SOSUFFIX)
 	$(CLANG) $(PLUGIN) \
 	    -plugin-arg-coolyse debug-$(DEBUG) \
-	    -plugin-arg-coolyse config=coolyser.cfg \
+	    -plugin-arg-coolyse config=test.cfg \
 	    -plugin-arg-coolyse tool=bdechk \
 	    $(CPPFLAGS) $(PFLAGS) groups/csa/$(CURRENT)
 

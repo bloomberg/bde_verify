@@ -21,6 +21,129 @@
 static std::string const check_name("include_files");
 
 // -----------------------------------------------------------------------------
+// check_type() determines if the type argument needs a declaration.
+// If so, it returns true.
+
+static bool
+check_type(cool::csabase::Analyser& analyser,
+           clang::Decl const*       decl,
+           clang::Type const* type)
+{
+    switch (type->getTypeClass())
+    {
+    case clang::Type::Builtin:           // Built-in types are alwyas there.
+    case clang::Type::Complex:           // C-style complex not in C++.
+    case clang::Type::BlockPointer:      // don't know what these are...
+    case clang::Type::ObjCObject:        // don't care about Objective C
+    case clang::Type::ObjCInterface:     // don't care about Objective C
+    case clang::Type::ObjCObjectPointer: // don't care about Objective C
+    case clang::Type::TypeOfExpr:        // gcc extension
+    case clang::Type::TypeOf:            // gcc extension
+        return false;
+    case clang::Type::Pointer:
+        ::check_type(analyser, decl, llvm::dyn_cast<clang::PointerType>(type)->getPointeeType().getTypePtr());
+        break;
+    case clang::Type::LValueReference:
+    case clang::Type::RValueReference:
+        ::check_type(analyser, decl, llvm::dyn_cast<clang::ReferenceType>(type)->getPointeeType().getTypePtr());
+        break;
+    case clang::Type::MemberPointer:
+        {
+            clang::MemberPointerType const* member(llvm::dyn_cast<clang::MemberPointerType>(type));
+            ::check_type(analyser, decl, member->getPointeeType().getTypePtr());
+            ::check_type(analyser, decl,  member->getClass());
+        }
+        break;
+    case clang::Type::ConstantArray:
+        {
+            clang::ConstantArrayType const* array(llvm::dyn_cast<clang::ConstantArrayType>(type));
+            ::check_type(analyser, decl, array->getElementType().getTypePtr());
+            //-dk:TODO check where the size is coming from!
+        }
+        break;
+    case clang::Type::IncompleteArray:
+        ::check_type(analyser, decl, llvm::dyn_cast<clang::IncompleteArrayType>(type)->getElementType().getTypePtr());
+        break;
+    case clang::Type::VariableArray:
+        {
+            clang::VariableArrayType const* array(llvm::dyn_cast<clang::VariableArrayType>(type));
+            ::check_type(analyser, decl, array->getElementType().getTypePtr());
+            //-dk:TODO ::check_expr(analyser, decl, array->getSizeExpr());
+        }
+        break;
+    case clang::Type::DependentSizedArray:
+        {
+            clang::DependentSizedArrayType const* array(llvm::dyn_cast<clang::DependentSizedArrayType>(type));
+            ::check_type(analyser, decl, array->getElementType().getTypePtr());
+            //-dk:TODO ::check_expr(analyser, decl, array->getSizeExpr());
+        }
+        break;
+    case clang::Type::DependentSizedExtVector:
+    case clang::Type::Vector:
+    case clang::Type::ExtVector:
+        break; //-dk:TODO
+    case clang::Type::FunctionProto: // fall through
+    case clang::Type::FunctionNoProto:
+        {
+            clang::FunctionType const* function(llvm::dyn_cast<clang::FunctionType>(type));
+            ::check_type(analyser, decl, function->getResultType().getTypePtr());
+        }
+        break;
+    case clang::Type::UnresolvedUsing:
+        break; //-dk:TODO
+    case clang::Type::Paren:
+        ::check_type(analyser, decl, llvm::dyn_cast<clang::ParenType>(type)->getInnerType().getTypePtr());
+        break;
+    case clang::Type::Typedef:
+        //-dk:TODO ::check_declref(analyser, decl, llvm::dyn_cast<clang::TypedefType>(type)->getDecl());
+        break;
+    case clang::Type::Decltype:
+        break; //-dk:TODO C++0x
+    case clang::Type::Record: // fall through
+    case clang::Type::Enum:
+        analyser.report(decl, ::check_name, "enum");
+        //-dk:TODO ::check_declref(analyser, decl, llvm::dyn_cast<clang::TagType>(type)->getDecl());
+        break;
+    case clang::Type::Elaborated:
+        ::check_type(analyser, decl, llvm::dyn_cast<clang::ElaboratedType>(type)->getNamedType().getTypePtr());
+        break;
+    case clang::Type::SubstTemplateTypeParm:
+        break; // the substituted template type parameter needs to be already declared
+    case clang::Type::Attributed:
+    case clang::Type::TemplateTypeParm:
+    case clang::Type::SubstTemplateTypeParmPack:
+        analyser.report(decl, ::check_name, "TODO type class: %0") << cool::csabase::format(type->getTypeClass());
+        break;
+    case clang::Type::TemplateSpecialization:
+        {
+            clang::TemplateSpecializationType const* templ(llvm::dyn_cast<clang::TemplateSpecializationType>(type));
+            //-dk:TODO ::check_declref(analyser, decl, templ->getTemplateName().getAsTemplateDecl());
+            for (clang::TemplateSpecializationType::iterator it(templ->begin()), end(templ->end()); it != end; ++it)
+            {
+                if (it->getKind() == clang::TemplateArgument::Type)
+                {
+                    ::check_type(analyser, decl, it->getAsType().getTypePtr());
+                }
+            }
+        }
+        break;
+    case clang::Type::Auto:
+    case clang::Type::InjectedClassName:
+    case clang::Type::DependentName:
+    case clang::Type::DependentTemplateSpecialization:
+    case clang::Type::PackExpansion:
+        analyser.report(decl, ::check_name, "TODO type class: %0") << cool::csabase::format(type->getTypeClass());
+        break;
+        break; // don't care about objective C
+    default:
+        analyser.report(decl, ::check_name, "unknown type class: %0") << cool::csabase::format(type->getTypeClass());
+        break;
+    }
+
+    return true;
+}
+
+// -----------------------------------------------------------------------------
 
 #if 0
 namespace
@@ -124,132 +247,6 @@ check_type(cool::csabase::Analyser& analyser, clang::Decl const* decl, clang::Qu
     }
 }
 
-static void
-check_type(cool::csabase::Analyser& analyser, clang::Decl const* decl, clang::Type const* type)
-{
-    switch (type->getTypeClass())
-    {
-    case clang::Type::Builtin:
-        break; // built-in types are alwyas there
-    case clang::Type::Complex:
-        break; // C-style complex types are enabled by a header: check for this...?
-    case clang::Type::Pointer:
-        ::check_type(analyser, decl, llvm::dyn_cast<clang::PointerType>(type)->getPointeeType());
-        break;
-    case clang::Type::BlockPointer:
-        break; // don't know what these are...
-    case clang::Type::LValueReference:
-    case clang::Type::RValueReference:
-        ::check_type(analyser, decl, llvm::dyn_cast<clang::ReferenceType>(type)->getPointeeType());
-        break;
-    case clang::Type::MemberPointer:
-        {
-            clang::MemberPointerType const* member(llvm::dyn_cast<clang::MemberPointerType>(type));
-            ::check_type(analyser, decl, member->getPointeeType());
-            ::check_type(analyser, decl,  member->getClass());
-        }
-        break;
-    case clang::Type::ConstantArray:
-        {
-            clang::ConstantArrayType const* array(llvm::dyn_cast<clang::ConstantArrayType>(type));
-            ::check_type(analyser, decl, array->getElementType());
-            //-dk:TODO check where the size is coming from!
-        }
-        break;
-    case clang::Type::IncompleteArray:
-        ::check_type(analyser, decl, llvm::dyn_cast<clang::IncompleteArrayType>(type)->getElementType());
-        break;
-    case clang::Type::VariableArray:
-        {
-            clang::VariableArrayType const* array(llvm::dyn_cast<clang::VariableArrayType>(type));
-            ::check_type(analyser, decl, array->getElementType());
-            ::check_expr(analyser, decl, array->getSizeExpr());
-        }
-        break;
-    case clang::Type::DependentSizedArray:
-        {
-            clang::DependentSizedArrayType const* array(llvm::dyn_cast<clang::DependentSizedArrayType>(type));
-            ::check_type(analyser, decl, array->getElementType());
-            ::check_expr(analyser, decl, array->getSizeExpr());
-        }
-        break;
-    case clang::Type::DependentSizedExtVector:
-    case clang::Type::Vector:
-    case clang::Type::ExtVector:
-        break; //-dk:TODO
-    case clang::Type::FunctionProto: // fall through
-    case clang::Type::FunctionNoProto:
-        {
-            clang::FunctionType const* function(llvm::dyn_cast<clang::FunctionType>(type));
-            ::check_type(analyser, decl, function->getResultType());
-        }
-        break;
-    case clang::Type::UnresolvedUsing:
-        break; //-dk:TODO
-    case clang::Type::Paren:
-        ::check_type(analyser, decl, llvm::dyn_cast<clang::ParenType>(type)->getInnerType());
-        break;
-    case clang::Type::Typedef:
-        ::check_declref(analyser, decl, llvm::dyn_cast<clang::TypedefType>(type)->getDecl());
-        break;
-    case clang::Type::TypeOfExpr:
-        break; // gcc extension - this shouldn't be used in the first place
-    case clang::Type::TypeOf:
-        break; // gcc extension - this shouldn't be used in the first place
-    case clang::Type::Decltype:
-        break; //-dk:TODO C++0x
-    case clang::Type::Record: // fall through
-    case clang::Type::Enum:
-        ::check_declref(analyser, decl, llvm::dyn_cast<clang::TagType>(type)->getDecl());
-        break;
-    case clang::Type::Elaborated:
-        ::check_type(analyser, decl, llvm::dyn_cast<clang::ElaboratedType>(type)->getNamedType());
-        break;
-    case clang::Type::SubstTemplateTypeParm:
-        break; // the substituted template type parameter needs to be already declared
-    case clang::Type::Attributed:
-    case clang::Type::TemplateTypeParm:
-    case clang::Type::SubstTemplateTypeParmPack:
-        analyser.report(decl, ::check_name, "TODO type class: %0") << cool::csabase::format(type->getTypeClass());
-        break;
-    case clang::Type::TemplateSpecialization:
-        {
-            clang::TemplateSpecializationType const* templ(llvm::dyn_cast<clang::TemplateSpecializationType>(type));
-            ::check_declref(analyser, decl, templ->getTemplateName().getAsTemplateDecl());
-            for (clang::TemplateSpecializationType::iterator it(templ->begin()), end(templ->end()); it != end; ++it)
-            {
-                if (it->getKind() == clang::TemplateArgument::Type)
-                {
-                    ::check_type(analyser, decl, it->getAsType());
-                }
-            }
-        }
-        break;
-    case clang::Type::Auto:
-    case clang::Type::InjectedClassName:
-    case clang::Type::DependentName:
-    case clang::Type::DependentTemplateSpecialization:
-    case clang::Type::PackExpansion:
-        analyser.report(decl, ::check_name, "TODO type class: %0") << cool::csabase::format(type->getTypeClass());
-        break;
-    case clang::Type::ObjCObject:
-    case clang::Type::ObjCInterface:
-    case clang::Type::ObjCObjectPointer:
-        break; // don't care about objective C
-    default:
-        analyser.report(decl, ::check_name, "unknown type class: %0") << cool::csabase::format(type->getTypeClass());
-        break;
-    }
-}
-
-// -----------------------------------------------------------------------------
-
-static void
-on_valuedecl(cool::csabase::Analyser& analyser, clang::ValueDecl const* decl)
-{
-    ::check_type(analyser, decl, decl->getType());
-}
-
 // -----------------------------------------------------------------------------
 
 static void
@@ -339,11 +336,9 @@ subscribe(cool::csabase::Analyser& analyser, cool::csabase::Visitor&, cool::csab
 
 static cool::csabase::RegisterCheck register_check0(check_name, &::on_decl);
 static cool::csabase::RegisterCheck register_check1(check_name, &::on_cxxrecorddecl);
-static cool::csabase::RegisterCheck register_check2(check_name, &::on_valuedecl);
 static cool::csabase::RegisterCheck register_check3(check_name, &::on_functiondecl);
 static cool::csabase::RegisterCheck register_check4(check_name, &::on_expr);
 static cool::csabase::RegisterCheck register_observer(check_name, &::subscribe);
-#else
 static void
 on_declref(cool::csabase::Analyser& analyser, clang::DeclRefExpr const* expr)
 {
@@ -356,4 +351,19 @@ on_declref(cool::csabase::Analyser& analyser, clang::DeclRefExpr const* expr)
         ;
 }
 static cool::csabase::RegisterCheck register_check0(check_name, &::on_declref);
+#else
+// -----------------------------------------------------------------------------
+
+static void
+on_valuedecl(cool::csabase::Analyser& analyser, clang::DeclaratorDecl const* decl)
+{
+    if (::check_type(analyser, decl, decl->getType().getTypePtr()))
+    {
+        analyser.report(decl, ::check_name, "value decl");
+    }
+}
+
+// -----------------------------------------------------------------------------
+
+static cool::csabase::RegisterCheck register_check2(check_name, &::on_valuedecl);
 #endif
