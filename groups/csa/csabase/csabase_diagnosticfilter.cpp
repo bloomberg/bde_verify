@@ -52,7 +52,11 @@ CB::DiagnosticFilter::IncludeInDiagnosticCount() const
 static std::string
 get_filename(clang::DiagnosticInfo const& d)
 {
-    clang::FileID           f(d.getSourceManager().getFileID(d.getLocation()));
+    clang::FileID            f(d.getSourceManager().getFileID(d.getLocation()));
+    clang::SrcMgr::SLocEntry entry(d.getSourceManager().getSLocEntry(f));
+    if (!entry.isFile()) {
+        return "";
+    }
     clang::FileEntry const* fentry(d.getSourceManager().getFileEntryForID(f));
     return fentry->getName();
 }

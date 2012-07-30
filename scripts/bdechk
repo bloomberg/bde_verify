@@ -52,9 +52,10 @@ if ($system ne "Linux" && $system ne "Darwin")
 
 my @clangoptions = (
     "-cc1",
-    "-load /home/dkuhl/bin/coolyser/Linux-g++/coolyser.so",
+    "-load /home/dkuhl/src/coolyser/Linux-g++-2.9/coolyser.so",
     "-plugin coolyse",
     "-plugin-arg-coolyse tool=bdechk",
+    "-plugin-arg-coolyse config=/home/dkuhl/bin/coolyser/bdechk.cfg",
     );
 
 my @bdeoptions = (
@@ -77,6 +78,7 @@ my @bdeoptions = (
     "-Wsign-compare",
     "-Wparentheses",
     "-Wstrict-overflow",
+    # "-Wdelete-non-virtual-dtor", -dk:TODO
     "-Wvla",
     "-Wvolatile-register-var",
     "-Wunused-function",
