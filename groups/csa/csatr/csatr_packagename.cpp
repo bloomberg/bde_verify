@@ -55,12 +55,26 @@ namespace
                 std::string directory(name.substr(0, slash == name.npos? 0: slash));
                 std::string::size_type period(name.find('.', slash));
                 std::string component(slash == name.npos? 0: name.substr(slash, period == name.npos? name.npos: (period - slash)));
-                std::string::size_type underscore(component.rfind('_'));
+                std::string::size_type underscore(component.find('_'));
                 if (underscore == component.npos) {
                     analyser.report(where, ::check_name, "TR02: component file name '%0' doesn't contain an underscore", true)
                         << component;
+                    return;
                 }
-                std::string package(component.substr(0, underscore));
+                else if (underscore == 1u
+                         && ((underscore = component.find('_',
+                                                          underscore + 1))
+                             == component.npos)) {
+                    analyser.report(where, ::check_name,
+                                    "TR02: component file name '%0' "
+                                    "in standalone component "
+                                    "contains only one underscore", true)
+                        << component;
+                    return;
+                }
+
+                std::string::size_type offset(2u < underscore && component[1] == '_'? 2: 0);
+                std::string package(component.substr(offset, underscore - offset));
                 if (!(3 < package.size() && package.size() < 8)) {
                     analyser.report(where, ::check_name,
                                     "TR02: package names must consist of 1 to 4 characters preceded by the group name: '%0'", true)
@@ -69,11 +83,12 @@ namespace
                 if (std::find_if(package.begin(), package.end(), &::not_packagechar) != package.end()
                     || isdigit(static_cast<unsigned char>(package[3]))) {
                     analyser.report(where, ::check_name,
-                                    "TR02: page names most consist of lower case alphanumeric characters only: '%0'", true)
+                                    "TR02: package names must consist of lower case alphanumeric characters only: '%0'", true)
                         << package;
                 }
                 std::string path(directory + ".");
                 
+                package = component.substr(0, underscore);
                 struct stat direct;
                 if (!::stat(path.c_str(), &direct)) {
                     std::string expect(name.substr(0, slash) + "../" + package);

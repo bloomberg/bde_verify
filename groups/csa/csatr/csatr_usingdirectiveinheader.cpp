@@ -22,7 +22,9 @@ using_directive_in_header(cool::csabase::Analyser&         analyser,
 {
     clang::DeclContext const* context(decl->getLexicalDeclContext());
     if (context->isFileContext()
-        && analyser.get_location(decl).file() != analyser.toplevel())
+        && analyser.get_location(decl).file() != analyser.toplevel()
+        && !decl->getNominatedNamespace()->isAnonymousNamespace()
+        )
     {
         clang::NamedDecl const* name(decl->getNominatedNamespaceAsWritten());
         analyser.report(decl, check_name,

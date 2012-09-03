@@ -50,9 +50,11 @@ if ($system ne "Linux" && $system ne "Darwin")
     exit(1);
 }
 
+my $version="3.1";
 my @clangoptions = (
     "-cc1",
-    "-load /home/dkuhl/src/coolyser/Linux-g++-2.9/coolyser.so",
+    # "-load /home/dkuhl/src/coolyser/Linux-g++-$version/coolyser.so",
+    "-load /home/dkuhl/bin/coolyser/Linux-g++-$version/coolyser.so",
     "-plugin coolyse",
     "-plugin-arg-coolyse tool=bdechk",
     "-plugin-arg-coolyse config=/home/dkuhl/bin/coolyser/bdechk.cfg",
@@ -105,6 +107,8 @@ my @bdeoptions = (
     "-I/bbsrc/source/proot/include/00depbuild",
     "-I/bbsrc/source/proot/include/00deployed",
     "-I/bbsrc/source/proot/include/00offlonly",
+    "-I/usr/include",
+    "-I/opt/swt/install/llvm-$version-64/lib/clang/$version/include",
     "-DBDE_BUILD_TARGET_DBG",
     "-DBDE_BUILD_TARGET_EXC",
     "-DBDE_BUILD_TARGET_MT",
@@ -120,8 +124,7 @@ my @bdeoptions = (
     );
 my $bdeflags = join(" ", @bdeoptions);
 
-# my $llvm    = $system eq "Darwin"? "/opt/llvm-2.9": "/opt/swt/install/llvm-2.9-64";
-my $llvm    = $system eq "Darwin"? "/opt/llvm": "/opt/swt/install/llvm-2.9-64";
+my $llvm    = $system eq "Darwin"? "/opt/llvm": "/opt/swt/install/llvm-$version-64";
 my $home    = $system eq "Darwin"? "/Users/kuehl/src/cool/coolyser": "/home/dkuhl/bin/coolyser";
 my $lib     = "$home/$system-$compiler/coolyser.$suffix";
 my $flags   = "-I$llvm -I. -D_DEBUG -D_GNU_SOURCE -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS";

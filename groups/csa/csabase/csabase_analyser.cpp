@@ -41,7 +41,11 @@ cool::csabase::Analyser::Analyser(clang::CompilerInstance& compiler,
     std::auto_ptr<cool::csabase::PPObserver> observer(new cool::csabase::PPObserver(&this->compiler_.getSourceManager()));
     this->pp_observer_ = observer.get();
     cool::csabase::CheckRegistry::attach(*this, *this->visitor_, *observer);
+#if defined(CLANG_SVN)
+    this->compiler_.getPreprocessor().addCommentHandler(observer->get_comment_handler());
+#else
     this->compiler_.getPreprocessor().AddCommentHandler(observer->get_comment_handler());
+#endif
     this->compiler_.getPreprocessor().addPPCallbacks(observer.release());
 }
 
@@ -249,7 +253,7 @@ cool::csabase::Analyser::report(clang::SourceLocation where, std::string const& 
     if (always || this->is_component(location.file()))
     {
         clang::FullSourceLoc location(where, this->compiler_.getSourceManager());
-#if defined(CLANG_SVN)
+#if !defined(CLANG_29)
         unsigned int id(this->compiler_.getDiagnostics().getCustomDiagID(clang::DiagnosticsEngine::Warning,
                                                                          this->tool_name() + message));
 #else

@@ -3,5 +3,5 @@ groups/csa/csamisc/csamisc_arrayinitialization.t.cpp:42:0: warning: incomplete i
 ^~~~
 groups/csa/csamisc/csamisc_arrayinitialization.t.cpp:48:0: warning: incomplete initialization with non-defaulted last value
     int array09[5] = { ' ', int(' ') };
-^~~~~~~~~
+^~~~~~
 2 warnings generated.

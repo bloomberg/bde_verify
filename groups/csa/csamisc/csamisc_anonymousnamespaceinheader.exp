@@ -2,5 +2,4 @@ In file included from groups/csa/csamisc/csamisc_anonymousnamespaceinheader.t.cp
 groups/csa/csamisc/csamisc_anonymousnamespaceinheader.t.hpp:16:0: warning: anonymous namespace in header
         namespace { void anonymousnamespaceinheader_in_header(); }
 ^
-groups/csa/csamisc/csamisc_anonymousnamespaceinheader.t.hpp:16:0: warning: TR16: namespace level using directive for 'cool::csamisc::<anonymous>' in header file
-2 warnings generated.
+1 warning generated.

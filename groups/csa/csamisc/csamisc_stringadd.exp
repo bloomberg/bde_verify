@@ -1,22 +1,22 @@
 groups/csa/csamisc/csamisc_stringadd.t.cpp:49:0: warning: adding integer to string literal
     cool::csamisc::use("0123" + ac);
-~~~~~~~^~~~
+~~~~~^~~~
 groups/csa/csamisc/csamisc_stringadd.t.cpp:53:0: warning: adding integer to string literal
     cool::csamisc::use(ac + "0123");
-~~~^~~~~~~~
+~~~^~~~~~
 groups/csa/csamisc/csamisc_stringadd.t.cpp:57:0: warning: subtracting integer from string literal
     cool::csamisc::use("0123" - ac);
-~~~~~~~^~~~
+~~~~~^~~~
 groups/csa/csamisc/csamisc_stringadd.t.cpp:63:0: warning: adding integer to string literal
     cool::csamisc::use("0123" + -1);
-~~~~~~~^~~~
+~~~~~^~~~
 groups/csa/csamisc/csamisc_stringadd.t.cpp:69:0: warning: adding integer to string literal
     cool::csamisc::use("0123" + 5);
-~~~~~~~^~~
+~~~~~^~~
 groups/csa/csamisc/csamisc_stringadd.t.cpp:71:0: warning: subtracting integer from string literal
     cool::csamisc::use("0123" - 1);
-~~~~~~~^~~
+~~~~~^~~
 groups/csa/csamisc/csamisc_stringadd.t.cpp:77:0: warning: subtracting integer from string literal
     cool::csamisc::use("0123" - -5);
-~~~~~~~^~~~
+~~~~~^~~~
 7 warnings generated.

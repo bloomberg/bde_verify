@@ -1,1 +1,24 @@
 Cool Check - A Static Checker for C++
+
+There is no autoconf support to create a Makefile, yet. The
+location of the clang root directory and the version of clang need
+to be set up manually in the Makefile.
+
+    LLVM      = <path-to-llvm-root-directory>
+    CLANGVERS = <clang-version>
+
+Currently, the clang versions 2.9, 3.1, and SVN (for a recent head
+of the development tree) are supported.
+
+To build the source, use gmake:
+
+    gmake               # build the code
+    gmake check         # run test cases exercising the checks
+
+Some of the output is filtered to make it more readable. For example,
+the compiler invokation isn't shown. Similarily, the cheks only report
+if they were successful rather than more details where they went wrong.
+To get more detail, set the make variable VERBOSE to be empty, for
+example:
+
+    gmake check VERBOSE=

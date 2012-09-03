@@ -7,7 +7,12 @@
 # $Id$
 
 default:  check-current
-CURRENT = csatr/csatr_includefiles.t.cpp
+CLANGVER = 3.1
+LLVM     = /opt/swt/install/llvm-$(CLANGVER)-64
+LLVM     = /opt/swt/source/build/llvm-3.1
+LLVMBLD  = $(LLVM)-build
+
+CURRENT  = m_csatest/m_csatest_standalone.v.cpp
 
 #  ----------------------------------------------------------------------------
 
@@ -69,24 +74,45 @@ LIBCXXFILES +=                                                                \
 SYSTEM   = $(shell uname -s)
 ECHON    = echo
 COMPILER = g++
-LLVM     = /opt/swt/install/llvm-2.9-64
-CLANGVER = 2.9
+BITS     = 64
 # CLANGVER = SVN
 
+ifeq ($(CLANGVER),2.9)
+  CPPFLAGS += -DCLANG_29
+endif
+ifeq ($(CLANGVER),3.1)
+  CPPFLAGS += -DCLANG_31
+endif
 ifeq ($(SYSTEM),Darwin)
+  LLVM     = /opt/llvm
   ifeq ($(CLANGVER),2.9)
     LLVM     = /opt/llvm-2.9
-  else
+  endif
+  ifeq ($(CLANGVER),3.1)
+    LLVM     = /opt/llvm-3.1
+    PFLAGS   = -Wno-string-plus-int
+  endif
+  ifeq ($(CLANGVER),SVN)
     CPPFLAGS += -DCLANG_SVN
     CXXFLAGS += -fvisibility-inlines-hidden 
     LDLIBS   += -lclangEdit
-    LLVM     = /opt/llvm
     PFLAGS   = -Wno-string-plus-int
   endif
 endif
-CLANG    = $(LLVM)/bin/clang
+ifeq ($(SYSTEM),SunOS)
+	INCFLAGS = \
+	  -I$(LLVM)/tools/clang/include \
+	  -I$(LLVMBLD)/tools/clang/include \
+	  -I$(LLVMBLD)/include
+    GCCPATH = /opt/swt/install/gcc-4.6.1
+    LDFLAGS += -L$(LLVMBLD)/Release+Asserts/lib -L$(GCCPATH)/lib
+	BITS     = 32
+	CXXFLAGS = -m32
+endif
+
+CLANG    = $(LLVMBLD)/Release+Asserts/bin/clang
 SOSUFFIX = so
-CXX      = g++
+CXX      = $(GCCPATH)/bin/g++
 ifeq ($(COMPILER),clang)
 CXX      = $(CLANG)
 endif
@@ -98,14 +124,15 @@ ifeq ($(DEBUG),off)
 endif
 REDIRECT = $(VERBOSE:@=>/dev/null 2>&1)
 
-INCFLAGS = -I$(LLVM)/include -I.
+INCFLAGS += -I$(LLVM)/include -I.
 DEFFLAGS = -D_DEBUG -D_GNU_SOURCE -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS
 ifeq ($(STD),CXX2011)
   STDFLAGS = -std=c++0x -DCOOL_CXX2011
 endif
 CPPFLAGS += $(INCFLAGS) $(DEFFLAGS) $(STDFLAGS)
 CPPFLAGS += -Igroups/csa/csabase
-PFLAGS   += -fcxx-exceptions -fdiagnostics-show-option
+# PFLAGS   += -fdiagnostics-show-option
+PFLAGS   += -fcxx-exceptions
 CXXFLAGS += -fno-exceptions -fno-rtti -fno-common -fno-strict-aliasing
 WARNFLAGS = \
         -Wcast-qual \
@@ -115,7 +142,11 @@ WARNFLAGS = \
         -Wno-unused-parameter \
         -Wno-overloaded-virtual \
         -Wwrite-strings
-LDFLAGS = -L$(LLVM)/lib
+LDFLAGS += -L$(LLVM)/lib
+
+ifeq ($(CLANGVER),3.1)
+LDLIBS += -lclangEdit
+endif
 LDLIBS += \
         -lclangFrontend \
         -lclangDriver \
@@ -138,7 +169,7 @@ ifeq ($(SYSTEM),Linux)
 endif
 ifeq ($(SYSTEM),SunOS)
   CXXFLAGS += -R -fpic
-  LDFLAGS  += -Wl,-undefined -m64 -Wl,-G
+  LDFLAGS  += -Wl,-undefined -m$(BITS) -Wl,-G
 endif
 ifeq ($(SYSTEM),Darwin)
   SOSUFFIX = dylib
@@ -151,7 +182,10 @@ PLUGIN   = -cc1 -load $(OBJ)/$(TARGET).$(SOSUFFIX) \
            -plugin coolyse -plugin-arg-coolyse config=test.cfg
 OFILES = $(LIBCXXFILES:%.cpp=$(OBJ)/%.o)
 POSTPROCESS = sed -e 's/\([^:]*:[0-9][0-9]*\):[^:]*:/\1:0:/' \
-            | sed -e '/\^/s/ //g'
+            | sed -e '/\^/s/ //g' \
+            | sed -e 's/~~~~~\(~*\)/~~~~~/g' \
+            | sed -e '/^$$/d'
+
 #EXPECT      = `echo $$f | sed -E 's/((test)|(\.[vt]))\.cpp$$/.exp/'`
 EXPECT      = `echo $$f | \
                sed -e 's/test\.cpp$$/.exp/' | \
