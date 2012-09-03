@@ -35,7 +35,7 @@ static bool isDefaultValue(cool::csabase::Analyser& analyser,
     do
     {
         orig = init;
-#if 0
+#if !defined(CLANG_29)
         init = const_cast<clang::Expr*>(init)->IgnoreImplicit();
 #else
         init = const_cast<clang::Expr*>(init)->IgnoreParenNoopCasts(*analyser.context());
@@ -45,7 +45,7 @@ static bool isDefaultValue(cool::csabase::Analyser& analyser,
         {
             init = cast->getSubExpr();
         }
-#if 0
+#if !defined(CLANG_29)
         else if (clang::CXXConstructExpr const* ctor = llvm::dyn_cast<clang::CXXConstructExpr>(init))
         {
             if (ctor->getNumArgs() == 1

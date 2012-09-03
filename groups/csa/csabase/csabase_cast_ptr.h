@@ -1,36 +1,67 @@
-// -*-c++-*- framework/cast_ptr.hpp 
-// -----------------------------------------------------------------------------
-// Copyright 2011 Dietmar Kuehl http://www.dietmar-kuehl.de              
+// csabase_cast_ptr.hpp                                               -*-C++-*-
+// ----------------------------------------------------------------------------
+// Copyright 2012 Dietmar Kuehl http://www.dietmar-kuehl.de              
 // Distributed under the Boost Software License, Version 1.0. (See file  
 // LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt).     
-// -----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
-#if !defined(FRAMEWORK_CAST_PTR_HPP)
-#define FRAMEWORK_CAST_PTR_HPP 1
-#ident "$Id: cast_ptr.hpp 141 2011-09-29 18:59:08Z kuehl $"
+#if !defined(INLCUDES_CSABASE_CAST_PTR)
+#define INLCUDES_CSABASE_CAST_PTR 1
 
-// -----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 namespace cool
 {
-    template <typename T> class cast_ptr;
+    namespace csabase
+    {
+        template <typename T> class cast_ptr;
+    }
 }
 
-// -----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 template <typename T>
-class cool::cast_ptr
+class cool::csabase::cast_ptr
 {
 public:
-    template <typename P> cast_ptr(P* p): ptr_(clang::dyn_cast<T>(p)) {}
-    operator bool() const { return this->ptr_; }
-    T& operator*() const  { return *this->ptr_; }
-    T* operator->() const { return this->ptr_; }
+    template <typename P> cast_ptr(P const* p);
+    operator bool() const;
+    T const& operator*() const;
+    T const* operator->() const;
 
 private:
-    T* ptr_;
+    T const* d_pointer;
 };
 
-// -----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
-#endif /* FRAMEWORK_CAST_PTR_HPP */
+template <typename T>
+    template <typename P>
+cool::csabase::cast_ptr<T>::cast_ptr(P const* p)
+  : d_pointer(llvm::dyn_cast<T>(p))
+{
+}
+
+template <typename T>
+cool::csabase::cast_ptr<T>::operator bool() const
+{
+    return this->d_pointer;
+}
+
+template <typename T>
+T const&
+cool::csabase::cast_ptr<T>::operator*() const
+{
+    return *this->d_pointer;
+}
+
+template <typename T>
+T const*
+cool::csabase::cast_ptr<T>::operator->() const
+{
+    return this->d_pointer;
+}
+
+// ----------------------------------------------------------------------------
+
+#endif /* INLCUDES_CSABASE_CAST_PTR */

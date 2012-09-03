@@ -70,7 +70,9 @@ public:
     std::string const& component() const;
     void               toplevel(std::string const&);
     bool               is_component_header(std::string const&) const;
+    bool               is_component_header(clang::SourceLocation) const;
     bool               is_component_source(std::string const&) const;
+    bool               is_component_source(clang::SourceLocation) const;
     bool               is_component(clang::SourceLocation) const;
     bool               is_component(std::string const&) const;
     template <typename T> bool is_component(T const*);

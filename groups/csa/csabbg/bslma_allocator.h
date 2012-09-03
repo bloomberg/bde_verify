@@ -5,8 +5,8 @@
 // LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt).     
 // -----------------------------------------------------------------------------
 
-#if !defined(INCLUDED_CSABBG_ALLOCATORNEWWITHPOINTER)
-#define INCLUDED_CSABBG_ALLOCATORNEWWITHPOINTER 1
+#if !defined(INCLUDED_BSLMA_ALLOCATOR)
+#define INCLUDED_BSLMA_ALLOCATOR 1
 #ident "$Id$"
 
 // -----------------------------------------------------------------------------

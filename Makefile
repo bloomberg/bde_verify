@@ -7,12 +7,11 @@
 # $Id$
 
 default:  check-current
+LLVM     = /opt/swt/install/llvm-2.9-64
 CLANGVER = 3.1
-LLVM     = /opt/swt/install/llvm-$(CLANGVER)-64
-LLVM     = /opt/swt/source/build/llvm-3.1
-LLVMBLD  = $(LLVM)-build
 
-CURRENT  = m_csatest/m_csatest_standalone.v.cpp
+CURRENT  = csatr/csatr_includeguard3.t.cpp
+CURRENT  = csabase/csabase_diagnosticfilter.t.cpp
 
 #  ----------------------------------------------------------------------------
 
@@ -29,6 +28,7 @@ TSTCXXFILES +=                                                                \
         groups/csa/csatr/csatr_friendship.cpp                                 \
         groups/csa/csatr/csatr_globaltypeonlyinsource.cpp                     \
         groups/csa/csatr/csatr_globalfunctiononlyinsource.cpp                 \
+        groups/csa/csatr/csatr_includeguard.cpp                               \
         groups/csa/csatr/csatr_componentheaderinclude.cpp                     \
         groups/csa/csatr/csatr_nesteddeclarations.cpp                         \
         groups/csa/csatr/csatr_usingdeclarationinheader.cpp                   \
@@ -47,11 +47,12 @@ TSTCXXFILES +=                                                                \
         groups/csa/csamisc/csamisc_stringadd.cpp                              \
 
 TODO =                                                                        \
-        groups/csa/csatr/csatr_includefiles.cpp                               \
         groups/csa/csamisc/csamisc_calls.cpp                                  \
         groups/csa/csamisc/csamisc_selfinitialization.cpp                     \
         groups/csa/csamisc/csamisc_includeguard.cpp                           \
         groups/csa/csamisc/csamisc_superfluoustemporary.cpp                   \
+        groups/csa/csadep/csadep_dependencies.cpp                             \
+        groups/csa/csadep/csadep_types.cpp                                    \
 
 LIBCXXFILES +=                                                                \
         groups/csa/csabase/csabase_abstractvisitor.cpp                        \
@@ -73,8 +74,7 @@ LIBCXXFILES +=                                                                \
 
 SYSTEM   = $(shell uname -s)
 ECHON    = echo
-COMPILER = g++
-BITS     = 64
+COMPILER = clang
 # CLANGVER = SVN
 
 ifeq ($(CLANGVER),2.9)
@@ -99,20 +99,10 @@ ifeq ($(SYSTEM),Darwin)
     PFLAGS   = -Wno-string-plus-int
   endif
 endif
-ifeq ($(SYSTEM),SunOS)
-	INCFLAGS = \
-	  -I$(LLVM)/tools/clang/include \
-	  -I$(LLVMBLD)/tools/clang/include \
-	  -I$(LLVMBLD)/include
-    GCCPATH = /opt/swt/install/gcc-4.6.1
-    LDFLAGS += -L$(LLVMBLD)/Release+Asserts/lib -L$(GCCPATH)/lib
-	BITS     = 32
-	CXXFLAGS = -m32
-endif
 
-CLANG    = $(LLVMBLD)/Release+Asserts/bin/clang
+CLANG    = $(LLVM)/bin/clang
 SOSUFFIX = so
-CXX      = $(GCCPATH)/bin/g++
+CXX      = g++
 ifeq ($(COMPILER),clang)
 CXX      = $(CLANG)
 endif
@@ -124,13 +114,13 @@ ifeq ($(DEBUG),off)
 endif
 REDIRECT = $(VERBOSE:@=>/dev/null 2>&1)
 
-INCFLAGS += -I$(LLVM)/include -I.
+INCFLAGS = -I$(LLVM)/include -I.
 DEFFLAGS = -D_DEBUG -D_GNU_SOURCE -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS
 ifeq ($(STD),CXX2011)
   STDFLAGS = -std=c++0x -DCOOL_CXX2011
 endif
 CPPFLAGS += $(INCFLAGS) $(DEFFLAGS) $(STDFLAGS)
-CPPFLAGS += -Igroups/csa/csabase
+CPPFLAGS += -Igroups/csa/csabase -Igroups/csa/csadep
 # PFLAGS   += -fdiagnostics-show-option
 PFLAGS   += -fcxx-exceptions
 CXXFLAGS += -fno-exceptions -fno-rtti -fno-common -fno-strict-aliasing
@@ -142,7 +132,7 @@ WARNFLAGS = \
         -Wno-unused-parameter \
         -Wno-overloaded-virtual \
         -Wwrite-strings
-LDFLAGS += -L$(LLVM)/lib
+LDFLAGS = -L$(LLVM)/lib
 
 ifeq ($(CLANGVER),3.1)
 LDLIBS += -lclangEdit
@@ -169,7 +159,7 @@ ifeq ($(SYSTEM),Linux)
 endif
 ifeq ($(SYSTEM),SunOS)
   CXXFLAGS += -R -fpic
-  LDFLAGS  += -Wl,-undefined -m$(BITS) -Wl,-G
+  LDFLAGS  += -Wl,-undefined -m64 -Wl,-G
 endif
 ifeq ($(SYSTEM),Darwin)
   SOSUFFIX = dylib

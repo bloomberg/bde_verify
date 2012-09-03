@@ -208,10 +208,22 @@ cool::csabase::Analyser::is_component_header(std::string const& name) const
 }
 
 bool
+cool::csabase::Analyser::is_component_header(clang::SourceLocation loc) const
+{
+    return this->is_component_header(this->get_location(loc).file());
+}
+
+bool
 cool::csabase::Analyser::is_component_source(std::string const& file) const
 {
     std::string::size_type pos(file.find(this->toplevel()));
     return pos != file.npos && pos + this->toplevel().size() == file.size();
+}
+
+bool
+cool::csabase::Analyser::is_component_source(clang::SourceLocation loc) const
+{
+    return this->is_component_source(this->get_location(loc).file());
 }
 
 bool

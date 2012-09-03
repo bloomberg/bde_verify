@@ -1,4 +1,4 @@
-groups/csa/csatr/csatr_componentheaderinclude.v.cpp:13:0: warning: TR09: declarations precede component header
+groups/csa/csatr/csatr_componentheaderinclude.v.cpp:15:0: warning: TR09: declarations precede component header
         static int local(0);
 ^
 1 warning generated.

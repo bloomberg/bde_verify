@@ -6,7 +6,7 @@
 // -----------------------------------------------------------------------------
 
 #if !defined(INCLUDED_CSABBG_ALLOCATORFORWARD)
-#define CSABBG_ALLOCATORFORWARD 1
+#define INCLUDED_CSABBG_ALLOCATORFORWARD 1
 #ident "$Id$"
 
 // -----------------------------------------------------------------------------

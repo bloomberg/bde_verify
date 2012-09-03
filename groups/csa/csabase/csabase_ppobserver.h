@@ -46,12 +46,12 @@ public:
     cool::event<void(clang::Token const&, clang::MacroInfo const*)>                  onMacroExpands;
     cool::event<void(clang::Token const&, clang::MacroInfo const*)>                  onMacroDefined;
     cool::event<void(clang::Token const&, clang::MacroInfo const*)>                  onMacroUndefined;
-    cool::event<void(clang::SourceRange)>                                            onIf;
-    cool::event<void(clang::SourceRange)>                                            onElif;
-    cool::event<void(clang::Token const&)>                                           onIfdef;
-    cool::event<void(clang::Token const&)>                                           onIfndef;
-    cool::event<void()>                                                              onElse;
-    cool::event<void()>                                                              onEndif;
+    cool::event<void(clang::SourceLocation, clang::SourceRange)>                     onIf;
+    cool::event<void(clang::SourceLocation, clang::SourceRange)>                     onElif;
+    cool::event<void(clang::SourceLocation, clang::Token const&)>                    onIfdef;
+    cool::event<void(clang::SourceLocation, clang::Token const&)>                    onIfndef;
+    cool::event<void(clang::SourceLocation, clang::SourceLocation)>                  onElse;
+    cool::event<void(clang::SourceLocation, clang::SourceLocation)>                  onEndif;
     cool::event<void(clang::SourceRange)>                                            onComment;
     cool::event<void()>                                                              onContext;
 
@@ -76,6 +76,14 @@ public:
     void Ifndef(clang::Token const&);
     void Else();
     void Endif();
+
+    void If(clang::SourceLocation, clang::SourceRange);
+    void Elif(clang::SourceLocation, clang::SourceRange);
+    void Ifdef(clang::SourceLocation, clang::Token const&);
+    void Ifndef(clang::SourceLocation, clang::Token const&);
+    void Else(clang::SourceLocation, clang::SourceLocation);
+    void Endif(clang::SourceLocation, clang::SourceLocation);
+
     void HandleComment(clang::SourceRange);
     void Context();
 
@@ -108,12 +116,12 @@ private:
     void do_macro_expands(clang::Token const&, clang::MacroInfo const*);
     void do_macro_defined(clang::Token const&, clang::MacroInfo const*);
     void do_macro_undefined(clang::Token const&, clang::MacroInfo const*);
-    void do_if(clang::SourceRange);
-    void do_elif(clang::SourceRange);
-    void do_ifdef(clang::Token const&);
-    void do_ifndef(clang::Token const&);
-    void do_else();
-    void do_endif();
+    void do_if(clang::SourceLocation, clang::SourceRange);
+    void do_elif(clang::SourceLocation, clang::SourceRange);
+    void do_ifdef(clang::SourceLocation, clang::Token const&);
+    void do_ifndef(clang::SourceLocation, clang::Token const&);
+    void do_else(clang::SourceLocation, clang::SourceLocation);
+    void do_endif(clang::SourceLocation, clang::SourceLocation);
     void do_comment(clang::SourceRange);
     void do_context();
 

@@ -32,8 +32,11 @@ wrong_prefix(cool::csabase::Analyser& analyser,
              std::string              name)
 {
     std::transform(name.begin(), name.end(), name.begin(), &to_lower);
-    return name.size() < analyser.component().size()
-        || name.substr(0, analyser.component().size()) != analyser.component();
+    return (name.size() < analyser.component().size()
+            || name.substr(0, analyser.component().size()) != analyser.component())
+        && (false //-dk:TODO !analyser.package_legacy()
+            || name.find(analyser.package() + '_' + analyser.component()))
+        ;
 }
 
 // ----------------------------------------------------------------------------
@@ -68,12 +71,12 @@ component_prefix(cool::csabase::Analyser&  analyser,
             || !(llvm::dyn_cast<clang::FunctionTemplateDecl>(named)->getTemplatedDecl()->isOverloadedOperator()
                  || named->getNameAsString() == "swap")
             )
-        && !llvm::dyn_cast<clang::ClassTemplateSpecializationDecl>(named)
         ) {
         analyser.report(decl, ::check_name,
                         "TR05: globally visible identifier '%0' "
                         "without component prefix")
-            << named->getQualifiedNameAsString();
+            << named->getQualifiedNameAsString()
+            ;
     }
 }
 

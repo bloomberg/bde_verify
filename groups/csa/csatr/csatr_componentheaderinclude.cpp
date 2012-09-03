@@ -77,6 +77,7 @@ include_file(cool::csabase::Analyser& analyser,
                  && analyser.toplevel() != name
                  && ::builtin != name
                  && ::command_line != name
+                 && "bdes_ident.h" != name
                  && !analyser.is_main())
         {
             analyser.report(where,

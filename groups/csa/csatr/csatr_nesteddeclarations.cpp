@@ -58,11 +58,14 @@ check(cool::csabase::Analyser& analyser, clang::Decl const* decl)
         if (space && named->getNameAsString() != std::string())
         {
             clang::NamespaceDecl const* outer(llvm::dyn_cast<clang::NamespaceDecl>(space->getDeclContext()));
-            if (
-                !llvm::dyn_cast<clang::ClassTemplateSpecializationDecl>(named)
-                && (space->getNameAsString() != analyser.package()
-                    || !outer
-                    || outer->getNameAsString() != analyser.config()->toplevel_namespace()))
+            if ((space->getNameAsString() != analyser.package()
+                 || !outer
+                 || outer->getNameAsString() != analyser.config()->toplevel_namespace())
+                && (false //-dk:TODO !analyser.package_legacy()
+                    || space->getNameAsString() != analyser.config()->toplevel_namespace()
+                    || named->getNameAsString().find(analyser.package() + '_') != 0
+                    )
+                )
             {
                 //-dk:TODO check if this happens in the correct namespace
                 analyser.report(decl, check_name, "TR04: declaration of '%0' not within package namespace '%1'", true)

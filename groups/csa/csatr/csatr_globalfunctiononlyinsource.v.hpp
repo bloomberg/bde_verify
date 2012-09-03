@@ -6,8 +6,8 @@
 // ----------------------------------------------------------------------------
 #ident "$Id$"
 
-#ifndef INCLUDED_CSAMISC_GLOBALFUNCTIONONLYINSOURCE
-#define INCLUDED_CSAMISC_GLOBALFUNCTIONONLYINSOURCE
+#ifndef INCLUDED_CSATR_GLOBALFUNCTIONONLYINSOURCE
+#define INCLUDED_CSATR_GLOBALFUNCTIONONLYINSOURCE
 
 namespace cool
 {

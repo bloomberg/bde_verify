@@ -5,8 +5,8 @@
 // LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt).     
 // -----------------------------------------------------------------------------
 
-#if !defined(INCLUDED_GROUPS_CSA_CSATR_CSATR_NESTEDDECLARATIONS_T)
-#define INCLUDED_GROUPS_CSA_CSATR_CSATR_NESTEDDECLARATIONS_T 1
+#if !defined(INCLUDED_CSATR_NESTEDDECLARATIONS)
+#define INCLUDED_CSATR_NESTEDDECLARATIONS 1
 #ident "$Id$"
 
 #include "csatr_others.hpp"

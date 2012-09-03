@@ -9,7 +9,7 @@
 #define INCLUDED_CSABASE_LOCATION
 #ident "$Id$"
 
-#include "llvm/Support/raw_ostream.h"
+#include <llvm/Support/raw_ostream.h>
 #include <iosfwd>
 #include <string>
 #include <stddef.h>

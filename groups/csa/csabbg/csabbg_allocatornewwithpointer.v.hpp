@@ -5,8 +5,8 @@
 // LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt).     
 // -----------------------------------------------------------------------------
 
-#if !defined(INCLUDED_GROUPS_CSA_CSABBG_CSABBG_ALLOCATORNEWWITHPOINTER_V)
-#define INCLUDED_GROUPS_CSA_CSABBG_CSABBG_ALLOCATORNEWWITHPOINTER_V 1
+#if !defined(INCLUDED_CSABBG_ALLOCATORNEWWITHPOINTER)
+#define INCLUDED_CSABBG_ALLOCATORNEWWITHPOINTER 1
 #ident "$Id$"
 
-#endif /* INCLUDED_GROUPS_CSA_CSABBG_CSABBG_ALLOCATORNEWWITHPOINTER_V */
+#endif

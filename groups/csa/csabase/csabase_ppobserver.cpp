@@ -143,45 +143,51 @@ cool::csabase::PPObserver::do_macro_undefined(clang::Token const& token, clang::
 }
 
 void
-cool::csabase::PPObserver::do_if(clang::SourceRange range)
+cool::csabase::PPObserver::do_if(clang::SourceLocation where,
+                                 clang::SourceRange range)
 {
     cool::csabase::Debug d("do_if");
-    this->onIf(range);
+    this->onIf(where, range);
 }
 
 void
-cool::csabase::PPObserver::do_elif(clang::SourceRange range)
+cool::csabase::PPObserver::do_elif(clang::SourceLocation where,
+                                   clang::SourceRange range)
 {
     cool::csabase::Debug d("do_elif");
-    this->onElif(range);
+    this->onElif(where, range);
 }
 
 void
-cool::csabase::PPObserver::do_ifdef(clang::Token const& token)
+cool::csabase::PPObserver::do_ifdef(clang::SourceLocation where,
+                                    clang::Token const& token)
 {
     cool::csabase::Debug d("do_ifdef");
-    this->onIfdef(token);
+    this->onIfdef(where, token);
 }
 
 void
-cool::csabase::PPObserver::do_ifndef(clang::Token const& token)
+cool::csabase::PPObserver::do_ifndef(clang::SourceLocation where,
+                                     clang::Token const& token)
 {
     cool::csabase::Debug d("do_ifndef");
-    this->onIfndef(token);
+    this->onIfndef(where, token);
 }
 
 void
-cool::csabase::PPObserver::do_else()
+cool::csabase::PPObserver::do_else(clang::SourceLocation where,
+                                   clang::SourceLocation what)
 {
     cool::csabase::Debug d("do_else");
-    this->onElse();
+    this->onElse(where, what);
 }
 
 void
-cool::csabase::PPObserver::do_endif()
+cool::csabase::PPObserver::do_endif(clang::SourceLocation where,
+                                    clang::SourceLocation what)
 {
     cool::csabase::Debug d("do_endif");
-    this->onEndif();
+    this->onEndif(where, what);
 }
 
 void
@@ -301,41 +307,89 @@ cool::csabase::PPObserver::MacroUndefined(clang::Token const& token, clang::Macr
     this->do_macro_undefined(token, macro);
 }
 
+// ----------------------------------------------------------------------------
+
 void
 cool::csabase::PPObserver::If(clang::SourceRange range)
 {
-    this->do_if(range);
+    this->do_if(clang::SourceLocation(), range);
 }
 
 void
 cool::csabase::PPObserver::Elif(clang::SourceRange range)
 {
-    this->do_elif(range);
+    this->do_elif(clang::SourceLocation(), range);
 }
 
 void
 cool::csabase::PPObserver::Ifdef(clang::Token const& token)
 {
-    this->do_ifdef(token);
+    this->do_ifdef(clang::SourceLocation(), token);
 }
 
 void
 cool::csabase::PPObserver::Ifndef(clang::Token const& token)
 {
-    this->do_ifndef(token);
+    this->do_ifndef(clang::SourceLocation(), token);
 }
 
 void
 cool::csabase::PPObserver::Else()
 {
-    this->do_else();
+    this->do_else(clang::SourceLocation(), clang::SourceLocation());
 }
 
 void
 cool::csabase::PPObserver::Endif()
 {
-    this->do_endif();
+    this->do_endif(clang::SourceLocation(), clang::SourceLocation());
 }
+
+// ----------------------------------------------------------------------------
+
+void
+cool::csabase::PPObserver::If(clang::SourceLocation where,
+                              clang::SourceRange range)
+{
+    this->do_if(where, range);
+}
+
+void
+cool::csabase::PPObserver::Elif(clang::SourceLocation where,
+                                clang::SourceRange range)
+{
+    this->do_elif(where, range);
+}
+
+void
+cool::csabase::PPObserver::Ifdef(clang::SourceLocation where,
+                                 clang::Token const& token)
+{
+    this->do_ifdef(where, token);
+}
+
+void
+cool::csabase::PPObserver::Ifndef(clang::SourceLocation where,
+                                  clang::Token const& token)
+{
+    this->do_ifndef(where, token);
+}
+
+void
+cool::csabase::PPObserver::Else(clang::SourceLocation where,
+                                clang::SourceLocation what)
+{
+    this->do_else(where, what);
+}
+
+void
+cool::csabase::PPObserver::Endif(clang::SourceLocation where,
+                                 clang::SourceLocation what)
+{
+    this->do_endif(where, what);
+}
+
+// ----------------------------------------------------------------------------
 
 void
 cool::csabase::PPObserver::HandleComment(clang::SourceRange range)
