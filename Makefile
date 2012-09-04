@@ -7,8 +7,8 @@
 # $Id$
 
 default:  check-current
-LLVM     = /opt/swt/install/llvm-2.9-64
 CLANGVER = 3.1
+LLVM     = /opt/swt/install/llvm-$(CLANGVER)-64
 
 CURRENT  = csatr/csatr_includeguard3.t.cpp
 CURRENT  = csabase/csabase_diagnosticfilter.t.cpp
@@ -74,7 +74,7 @@ LIBCXXFILES +=                                                                \
 
 SYSTEM   = $(shell uname -s)
 ECHON    = echo
-COMPILER = clang
+COMPILER = g++
 # CLANGVER = SVN
 
 ifeq ($(CLANGVER),2.9)
