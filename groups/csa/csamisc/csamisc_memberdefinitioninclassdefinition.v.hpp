@@ -26,10 +26,10 @@ namespace cool
             void g() {}
         };
 
-        void memberdefinitioninclassdefinition_g();
         struct base;
         struct foobar;
-        void memberdefinitioninclassdefinition_update();
+        void operator+(base&);
+        void operator-(base&);
     }
 }
 #endif

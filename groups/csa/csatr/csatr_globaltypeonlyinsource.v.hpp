@@ -17,7 +17,6 @@ namespace cool
     {
         struct globaltypeonlyinsource_s_ok { int member; };
         class  globaltypeonlyinsource_c_ok { int member; };
-        enum   globaltypeonlyinsource_e_ok { globaltypeonlyinsource_e_member };
     }
 }
 

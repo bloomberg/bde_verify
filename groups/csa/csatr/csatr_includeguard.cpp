@@ -3,7 +3,6 @@
 #include <csabase_analyser.h>
 #include <csabase_ppobserver.h>
 #include <csabase_registercheck.h>
-#include <llvm/Support/raw_ostream.h>
 #include <cctype>
 
 // ----------------------------------------------------------------------------

@@ -9,8 +9,8 @@
 
 // ----------------------------------------------------------------------------
 
-int*
-cool::csabase::diagnosticFilterSourceDummy(int value)
+cool::csabase::DiagnosticFilterType*
+cool::csabase::operator-(cool::csabase::DiagnosticFilterType value)
 {
     return &value;
 }

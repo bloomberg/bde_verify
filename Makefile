@@ -10,8 +10,7 @@ default:  check-current
 CLANGVER = 3.1
 LLVM     = /opt/swt/install/llvm-$(CLANGVER)-64
 
-CURRENT  = csatr/csatr_includeguard3.t.cpp
-CURRENT  = csabase/csabase_diagnosticfilter.t.cpp
+CURRENT  = csatr/csatr_entityrestrictions.t.cpp
 
 #  ----------------------------------------------------------------------------
 
@@ -33,6 +32,7 @@ TSTCXXFILES +=                                                                \
         groups/csa/csatr/csatr_nesteddeclarations.cpp                         \
         groups/csa/csatr/csatr_usingdeclarationinheader.cpp                   \
         groups/csa/csatr/csatr_usingdirectiveinheader.cpp                     \
+        groups/csa/csatr/csatr_entityrestrictions.cpp                         \
         groups/csa/csastil/csastil_implicitctor.cpp                           \
         groups/csa/csamisc/csamisc_charvsstring.cpp                           \
         groups/csa/csamisc/csamisc_arrayinitialization.cpp                    \

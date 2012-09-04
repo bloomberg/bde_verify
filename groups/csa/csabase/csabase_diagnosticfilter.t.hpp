@@ -16,15 +16,16 @@ namespace cool
 {
     namespace csabase
     {
-        int* diagnosticFilterInlineDummy(int);
-        int* diagnosticFilterSourceDummy(int);
+        struct DiagnosticFilterType {};
+        DiagnosticFilterType* operator+(DiagnosticFilterType);
+        DiagnosticFilterType* operator-(DiagnosticFilterType);
     }
 }
 
 // ----------------------------------------------------------------------------
 
-inline int*
-cool::csabase::diagnosticFilterInlineDummy(int value)
+inline cool::csabase::DiagnosticFilterType*
+cool::csabase::operator+(DiagnosticFilterType value)
 {
     return &value;
 }

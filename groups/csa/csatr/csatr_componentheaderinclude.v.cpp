@@ -19,4 +19,4 @@ namespace cool
 #include "csatr_componentheaderinclude.v.hpp"
 #ident "$Id$"
 
-int cool::csatr::componentheaderinclude_something(17);
+int cool::csatr::componentheaderinclude::something(17);

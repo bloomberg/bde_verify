@@ -13,8 +13,8 @@ namespace cool
 {
     namespace csatr
     {
-        void globalfunctiononlyinsource_declared_in_namespace();
         class bar;
+        void operator+(bar&);
     }
 }
 

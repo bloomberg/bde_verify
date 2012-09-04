@@ -15,7 +15,6 @@
 #include <clang/AST/AST.h>
 #include <clang/AST/DeclVisitor.h>
 #include <clang/Basic/SourceManager.h>
-#include <clang/Basic/Diagnostic.h>
 #include <clang/Frontend/CompilerInstance.h>
 #include <clang/Lex/Preprocessor.h>
 #include <clang/Sema/Sema.h>

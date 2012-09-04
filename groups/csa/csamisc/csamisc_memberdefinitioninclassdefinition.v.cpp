@@ -49,7 +49,7 @@ namespace cool
             void f();
         };
 
-        void memberdefinitioninclassdefinition_update() {
+        void operator-(base&) {
             cool::csamisc::foobar u;
             cool::csamisc::foobar o(u);
             o.f();

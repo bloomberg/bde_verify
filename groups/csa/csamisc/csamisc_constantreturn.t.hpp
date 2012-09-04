@@ -15,11 +15,14 @@ namespace cool
 {
     namespace csamisc
     {
-        extern int constantreturn_x();
-        extern int constantreturn_f();
-        extern int constantreturn_g();
-        extern int constantreturn_h();
-        extern void constantreturn_v();
+        struct constantreturn
+        {
+            static int x();
+            static int f();
+            static int g();
+            static int h();
+            static void v();
+        };
     }
 }
 

@@ -9,7 +9,7 @@
 
 // -----------------------------------------------------------------------------
 
-int cool::csamisc::contiguousswitch_f(int arg)
+int cool::csamisc::contiguousswitch::f(int arg)
 {
     char const* number(0);
 

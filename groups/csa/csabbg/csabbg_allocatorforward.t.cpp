@@ -115,7 +115,7 @@ namespace cool
 }
 
 void
-cool::csabbg::allocatorforward_f()
+cool::csabbg::operator+(allocatorforward_alloc_used)
 {
     cool::csabbg::tbase<int> tb0;
     cool::csabbg::tbase<int> tb1(static_cast<BloombergLP::bslma_Allocator*>(0));

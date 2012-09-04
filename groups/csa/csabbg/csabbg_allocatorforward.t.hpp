@@ -22,7 +22,7 @@ namespace cool
     {
         class allocatorforward_alloc_unused;
         class allocatorforward_alloc_used;
-        void allocatorforward_f();
+        void operator+(allocatorforward_alloc_used);
     }
 }
 

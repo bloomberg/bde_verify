@@ -1,0 +1,29 @@
+In file included from groups/csa/csatr/csatr_entityrestrictions.t.cpp:3:
+groups/csa/csatr/csatr_entityrestrictions.t.h:22:0: warning: TR17: function 'swap' declared at global scope
+        void swap(EntityRestrictions&);
+^
+groups/csa/csatr/csatr_entityrestrictions.t.h:23:0: warning: TR17: function 'swap' declared at global scope
+        void swap(EntityRestrictions&, EntityRestrictions&, EntityRestrictions&);
+^
+groups/csa/csatr/csatr_entityrestrictions.t.h:24:0: warning: TR17: function 'swap' declared at global scope
+        void swap(EntityRestrictions&, EntityRestrictionsAux&);
+^
+groups/csa/csatr/csatr_entityrestrictions.t.h:25:0: warning: TR17: function 'swap' declared at global scope
+        void swap(EntityRestrictions, EntityRestrictions);
+^
+groups/csa/csatr/csatr_entityrestrictions.t.h:26:0: warning: TR17: function 'swap' declared at global scope
+        void swap(EntityRestrictions const&, EntityRestrictions const&);
+^
+groups/csa/csatr/csatr_entityrestrictions.t.h:31:0: warning: TR17: variable 'entityRestrictionsVar' declared at global scope
+        extern int entityRestrictionsVar;
+^
+groups/csa/csatr/csatr_entityrestrictions.t.h:32:0: warning: TR17: function 'entityRestrictionsFunction' declared at global scope
+        void entityRestrictionsFunction();
+^
+groups/csa/csatr/csatr_entityrestrictions.t.h:34:0: warning: TR17: typedef 'EntityRestrictionsTypedef' declared at global scope
+        typedef EntityRestrictions EntityRestrictionsTypedef;
+^
+groups/csa/csatr/csatr_entityrestrictions.t.h:35:0: warning: TR17: enum 'EntityRestrictionsEnum' declared at global scope
+        enum EntityRestrictionsEnum {};
+^
+9 warnings generated.

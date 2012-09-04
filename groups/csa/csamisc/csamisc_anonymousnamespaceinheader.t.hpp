@@ -13,7 +13,7 @@ namespace cool
 {
     namespace csamisc
     {
-        namespace { void anonymousnamespaceinheader_in_header(); }
+        namespace { struct anonymousnamespaceinheader_in_header; }
     }
 }
 

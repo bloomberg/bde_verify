@@ -7,26 +7,26 @@
 
 #include "csamisc_constantreturn.t.hpp"
 
-int cool::csamisc::constantreturn_f()
+int cool::csamisc::constantreturn::f()
 {
     return 0;
 }
 
-int cool::csamisc::constantreturn_g()
+int cool::csamisc::constantreturn::g()
 {
     return 5 + 8;
 }
 
-int cool::csamisc::constantreturn_h()
+int cool::csamisc::constantreturn::h()
 {
     {
         {
-            return constantreturn_x();
+            return constantreturn::x();
         }
     }
 }
 
-void cool::csamisc::constantreturn_v()
+void cool::csamisc::constantreturn::v()
 {
     return;
 }

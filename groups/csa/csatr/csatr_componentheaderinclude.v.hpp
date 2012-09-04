@@ -13,7 +13,10 @@ namespace cool
 {
     namespace csatr
     {
-        extern int componentheaderinclude_something;
+        struct componentheaderinclude
+        {
+            static int something;
+        };
     }
 }
 

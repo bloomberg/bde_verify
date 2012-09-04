@@ -15,7 +15,10 @@ namespace cool
 {
     namespace csamisc
     {
-        extern int contiguousswitch_f(int arg);
+        struct contiguousswitch
+        {
+            static int f(int arg);
+        };
     }
 }
 
