@@ -10,7 +10,7 @@ default:  check-current
 CLANGVER = 3.1
 LLVM     = /opt/swt/install/llvm-$(CLANGVER)-64
 
-CURRENT  = csatr/csatr_entityrestrictions.t.cpp
+CURRENT  = tst.cpp
 
 #  ----------------------------------------------------------------------------
 
@@ -45,6 +45,7 @@ TSTCXXFILES +=                                                                \
         groups/csa/csamisc/csamisc_thrownonstdexception.cpp                   \
         groups/csa/csamisc/csamisc_verifysameargumentnames.cpp                \
         groups/csa/csamisc/csamisc_stringadd.cpp                              \
+        groups/csa/csamisc/csamisc_templateparam.cpp                          \
 
 TODO =                                                                        \
         groups/csa/csamisc/csamisc_calls.cpp                                  \

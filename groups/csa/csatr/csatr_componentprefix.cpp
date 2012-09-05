@@ -51,6 +51,7 @@ component_prefix(cool::csabase::Analyser&  analyser,
         && !named->isCXXClassMember()
         && (named->hasLinkage()
             || llvm::dyn_cast<clang::TypedefDecl>(named))
+        && llvm::dyn_cast<clang::NamespaceDecl>(named->getDeclContext())
         && !llvm::dyn_cast<clang::NamespaceDecl>(named)
         && !llvm::dyn_cast<clang::UsingDirectiveDecl>(named)
         && !llvm::dyn_cast<clang::UsingDecl>(named)
@@ -71,6 +72,8 @@ component_prefix(cool::csabase::Analyser&  analyser,
             || !(llvm::dyn_cast<clang::FunctionTemplateDecl>(named)->getTemplatedDecl()->isOverloadedOperator()
                  || named->getNameAsString() == "swap")
             )
+        && !llvm::dyn_cast<clang::ClassTemplatePartialSpecializationDecl>(decl)
+        && !llvm::dyn_cast<clang::ClassTemplateSpecializationDecl>(decl)
         ) {
         analyser.report(decl, ::check_name,
                         "TR05: globally visible identifier '%0' "

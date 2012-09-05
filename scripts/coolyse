@@ -10,7 +10,7 @@
 use strict;
 
 my $debug    = "";
-my $compiler = "clang";
+my $compiler = "g++";
 my $version  = "3.1";
 my $tool     = "";
 my $config   = "";

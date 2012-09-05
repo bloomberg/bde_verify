@@ -9,6 +9,7 @@
 #include <csabase_config.h>
 #include <csabase_format.h>
 #include <csabase_registercheck.h>
+#include <clang/AST/DeclTemplate.h>
 #ident "$Id$"
 
 // -----------------------------------------------------------------------------
@@ -65,6 +66,8 @@ check(cool::csabase::Analyser& analyser, clang::Decl const* decl)
                     || space->getNameAsString() != analyser.config()->toplevel_namespace()
                     || named->getNameAsString().find(analyser.package() + '_') != 0
                     )
+                && !llvm::dyn_cast<clang::ClassTemplatePartialSpecializationDecl>(decl)
+                && !llvm::dyn_cast<clang::ClassTemplateSpecializationDecl>(decl)
                 )
             {
                 //-dk:TODO check if this happens in the correct namespace

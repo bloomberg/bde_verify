@@ -53,8 +53,8 @@ if ($system ne "Linux" && $system ne "Darwin")
 my $version="3.1";
 my @clangoptions = (
     "-cc1",
-    # "-load /home/dkuhl/src/coolyser/Linux-g++-$version/coolyser.so",
-    "-load /home/dkuhl/bin/coolyser/Linux-g++-$version/coolyser.so",
+    "-load /home/dkuhl/src/coolyser/Linux-g++-$version/coolyser.so",
+    # "-load /home/dkuhl/bin/coolyser/Linux-g++-$version/coolyser.so",
     "-plugin coolyse",
     "-plugin-arg-coolyse tool=bdechk",
     "-plugin-arg-coolyse config=/home/dkuhl/bin/coolyser/bdechk.cfg",
