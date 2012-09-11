@@ -9,7 +9,6 @@
 #include <csabase_config.h>
 #include <csabase_format.h>
 #include <csabase_registercheck.h>
-#include <clang/AST/DeclTemplate.h>
 #ident "$Id$"
 
 // -----------------------------------------------------------------------------
@@ -42,7 +41,12 @@ check(cool::csabase::Analyser& analyser, clang::Decl const* decl)
         clang::DeclContext const* context(decl->getDeclContext());
         if (llvm::dyn_cast<clang::TranslationUnitDecl>(context)) {
             if (named->getNameAsString() != "main"
-                && named->getNameAsString() != "RCSId") {
+                && named->getNameAsString() != "RCSId"
+                && !llvm::dyn_cast<clang::ClassTemplateSpecializationDecl>(decl)
+                && !llvm::dyn_cast<clang::ClassTemplatePartialSpecializationDecl>(decl)
+                && named->getNameAsString().find("operator new") == std::string::npos
+                && named->getNameAsString().find("operator delete") == std::string::npos
+                ) {
                 analyser.report(decl, check_name, "TR04: declaration of '%0' at global scope", true)
                     << decl->getSourceRange()
                     << named->getNameAsString();
@@ -66,8 +70,10 @@ check(cool::csabase::Analyser& analyser, clang::Decl const* decl)
                     || space->getNameAsString() != analyser.config()->toplevel_namespace()
                     || named->getNameAsString().find(analyser.package() + '_') != 0
                     )
-                && !llvm::dyn_cast<clang::ClassTemplatePartialSpecializationDecl>(decl)
                 && !llvm::dyn_cast<clang::ClassTemplateSpecializationDecl>(decl)
+                && !llvm::dyn_cast<clang::ClassTemplatePartialSpecializationDecl>(decl)
+                && named->getNameAsString().find("operator new") == std::string::npos
+                && named->getNameAsString().find("operator delete") == std::string::npos
                 )
             {
                 //-dk:TODO check if this happens in the correct namespace

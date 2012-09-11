@@ -9,7 +9,7 @@ namespace cool
 {
     namespace csamisc
     {
-        template <typename T>
+        template <class T>
         static void use(T const&)
         {
         }

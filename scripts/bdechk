@@ -29,6 +29,13 @@ if (0 <= $#ARGV && $ARGV[0] eq "-gcc")
     shift @ARGV;
 }
 
+my @FILES = grep {
+           /.mem$/
+        || /.cpp$/
+        || /.h%/
+        ;
+} @ARGV;
+
 @ARGV = grep {
            !/-pipe/
         && !/-fno-strict-aliasing/
@@ -37,6 +44,9 @@ if (0 <= $#ARGV && $ARGV[0] eq "-gcc")
         && !/-m32/
         && !/-c/
         && !/-Wp,-MMD,/
+        && !/.mem$/
+        && !/.cpp$/
+        && !/.h%/
         ;
 } @ARGV;
 
@@ -57,8 +67,9 @@ my @clangoptions = (
     # "-load /home/dkuhl/bin/coolyser/Linux-g++-$version/coolyser.so",
     "-plugin coolyse",
     "-plugin-arg-coolyse tool=bdechk",
-    "-plugin-arg-coolyse config=/home/dkuhl/bin/coolyser/bdechk.cfg",
     );
+my $checkcfg = "-plugin-arg-coolyse config=/home/dkuhl/bin/coolyser/bdechk.cfg";
+my $checktcfg = "-plugin-arg-coolyse config=/home/dkuhl/bin/coolyser/bdechk.t.cfg";
 
 my @bdeoptions = (
     "-fcxx-exceptions",
@@ -93,6 +104,7 @@ my @bdeoptions = (
     "-D__CLANG_GNUC__=4",
     "-D__CLANG_GNUC_MINOR__=4",
     "-D__CLANG_GNUC_PATCHLEVEL__=6",
+    "-D__BDECHK__",
     "-DBDE_BUILD_CHK",
     "-isystem /opt/swt/install/gcc-4.4.6/include/c++/4.4.6",
     "-isystem /opt/swt/install/gcc-4.4.6/include/c++/4.4.6/x86_64-unknown-linux-gnu/32",
@@ -134,23 +146,48 @@ my $cflags  = join(" ", @clangoptions);
 my $iflags  = "-I/home16/dkuhl/src/git-bde/include/fixes "
     . join(" ", grep { /^-I/ } @ARGV);
 my $uflags  = join(" ", grep { !/^-I/ } @ARGV);
-my $command = "$llvm/bin/clang $debug $cflags $iflags $flags $lflags $uflags";
 
 my $gcclib = "/opt/swt/install/gcc-4.3.5/lib/sparcv9";
 $ENV{"LD_LIBRARY_PATH"}    = $gcclib;
 $ENV{"LD_LIBRARY_PATH_64"} = $gcclib;
 
 my $tty = -t STDOUT;
-#print "$command\n";
-open(PIPE, "$command 2>&1 |") || die("can't execute command '$command'");
-while (<PIPE>)
+sub runClang($$)
 {
-    chomp;
-    if ($tty) {
-        s/warning/\x1b[31mwarning\x1b[0m/;
+    my $options = shift;
+    my $files = shift;
+    my $config = $files =~ /\.t\.cpp/ ? $checktcfg: $checkcfg;
+    my $command = "$llvm/bin/clang $debug $cflags $config $options $iflags $flags $lflags $uflags $files";
+    #print "$command\n";
+    open(PIPE, "$command 2>&1 |") || die("can't execute command '$command'");
+    while (<PIPE>)
+    {
+        chomp;
+        if ($tty) {
+            s/warning/\x1b[31mwarning\x1b[0m/;
+        }
+        print "$_\n";
     }
-    print "$_\n";
+    close(PIPE);
 }
-close(PIPE);
+
+for my $file (@FILES)
+{
+    if ($file =~ /(.*)\/[^\/]*\.mem$/)
+    {
+        my $path = $1;
+        open(MEM, "< $file") || die("can't open file '$file' for reading");
+        while (<MEM>)
+        {
+            chomp;
+            print "checking $_\n";
+            runClang("-I$path/.. -I$path/../..", "$path/../$_.cpp");
+        }
+    }
+    else
+    {
+        runClang("", "$file");
+    }
+}
 exit 0;
 # exit $$;

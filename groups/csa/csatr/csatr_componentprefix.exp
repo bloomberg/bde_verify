@@ -30,10 +30,10 @@ groups/csa/csatr/csatr_componentprefix.v.hpp:47:0: warning: TR05: globally visib
         class BadClass
 ^
 groups/csa/csatr/csatr_componentprefix.v.hpp:54:0: warning: TR05: globally visible identifier 'cool::csatr::BadTemplate' without component prefix
-        template <typename>
+        template <class>
 ^
 groups/csa/csatr/csatr_componentprefix.v.hpp:62:0: warning: TR05: globally visible identifier 'cool::csatr::badTemplate' without component prefix
-        template <typename>
+        template <class>
 ^
 groups/csa/csatr/csatr_componentprefix.v.hpp:69:0: warning: TR17: function 'badFunction' declared at global scope
         int badFunction()

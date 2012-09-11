@@ -19,7 +19,7 @@ namespace cool
             void g();
         };
 
-        template <typename T>
+        template <class T>
         struct memberdefinitioninclassdefinition_bar
         {
             void f();

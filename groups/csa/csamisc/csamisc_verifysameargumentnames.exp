@@ -2,39 +2,24 @@ In file included from groups/csa/csamisc/csamisc_verifysameargumentnames.t.cpp:8
 groups/csa/csamisc/csamisc_verifysameargumentnames.t.hpp:16:0: warning: TR17: function 'verifysameargumentnames_f' declared at global scope
         void verifysameargumentnames_f(int);
 ^
-groups/csa/csamisc/csamisc_verifysameargumentnames.t.hpp:17:0: warning: TR17: function 'verifysameargumentnames_f' declared at global scope
-        void verifysameargumentnames_f(int);
-^
 groups/csa/csamisc/csamisc_verifysameargumentnames.t.hpp:18:0: warning: TR17: function 'verifysameargumentnames_f' declared at global scope
         void verifysameargumentnames_f(int, int);
 ^
 groups/csa/csamisc/csamisc_verifysameargumentnames.t.hpp:20:0: warning: TR17: function 'verifysameargumentnames_g' declared at global scope
         void verifysameargumentnames_g(int, int);
 ^
-groups/csa/csamisc/csamisc_verifysameargumentnames.t.hpp:21:0: warning: TR17: function 'verifysameargumentnames_g' declared at global scope
-        void verifysameargumentnames_g(int a, int);
-^
 groups/csa/csamisc/csamisc_verifysameargumentnames.t.hpp:21:0: warning: parameter name mismatch for 1st parameter; the other declaration used 'b'.
         void verifysameargumentnames_g(int a, int);
 ^~~~~~
-groups/csa/csamisc/csamisc_verifysameargumentnames.t.hpp:22:0: warning: TR17: function 'verifysameargumentnames_g' declared at global scope
-        void verifysameargumentnames_g(int, int b);
-^
 groups/csa/csamisc/csamisc_verifysameargumentnames.t.hpp:22:0: warning: parameter name mismatch for 2nd parameter; the other declaration used 'a'.
         void verifysameargumentnames_g(int, int b);
 ^~~~~~
-groups/csa/csamisc/csamisc_verifysameargumentnames.t.hpp:23:0: warning: TR17: function 'verifysameargumentnames_g' declared at global scope
-        void verifysameargumentnames_g(int a, int b);
-^
 groups/csa/csamisc/csamisc_verifysameargumentnames.t.hpp:23:0: warning: parameter name mismatch for 1st parameter; the other declaration used 'b'.
         void verifysameargumentnames_g(int a, int b);
 ^~~~~~
 groups/csa/csamisc/csamisc_verifysameargumentnames.t.hpp:23:0: warning: parameter name mismatch for 2nd parameter; the other declaration used 'a'.
         void verifysameargumentnames_g(int a, int b);
 ^~~~~~
-groups/csa/csamisc/csamisc_verifysameargumentnames.t.hpp:24:0: warning: TR17: function 'verifysameargumentnames_g' declared at global scope
-        void verifysameargumentnames_g(int b, int a);
-^
 groups/csa/csamisc/csamisc_verifysameargumentnames.t.hpp:24:0: warning: parameter name mismatch for 1st parameter; the other declaration used 'a'.
         void verifysameargumentnames_g(int b, int a);
 ^~~~~~
@@ -95,4 +80,4 @@ groups/csa/csamisc/csamisc_verifysameargumentnames.t.cpp:24:0: warning: paramete
 groups/csa/csamisc/csamisc_verifysameargumentnames.t.cpp:24:0: warning: parameter name mismatch for 1st parameter; the other declaration used 'a'.
         void verifysameargumentnames_g(int b, int a);
 ^~~~~~
-32 warnings generated.
+27 warnings generated.

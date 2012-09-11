@@ -15,7 +15,7 @@ groups/csa/csatr/csatr_friendship.t.hpp:37:0: warning: TR19: friendship to a cla
             friend class cool::csatr::BadExtern::Nested;
 ^~~~~~
 groups/csa/csatr/csatr_friendship.t.hpp:40:0: warning: TR19: friendship to a class template can only be granted within a component
-            template <typename T> friend class BadPackageTemplate;
+            template <class T> friend class BadPackageTemplate;
 ^~~~~~
 groups/csa/csatr/csatr_friendship.t.hpp:42:0: warning: TR19: friendship to a function can only be granted within a component
             friend void cool::csatr::operator+ (BadExtern const&);

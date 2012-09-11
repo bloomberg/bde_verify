@@ -2,7 +2,8 @@ In file included from groups/csa/csamisc/csamisc_memberdefinitioninclassdefiniti
 groups/csa/csamisc/csamisc_memberdefinitioninclassdefinition.v.hpp:18:0: warning: member function 'cool::csamisc::memberdefinitioninclassdefinition_foo::f' is defined in the class definition.
             void f() {}
 ^
-groups/csa/csamisc/csamisc_memberdefinitioninclassdefinition.v.hpp:26:0: warning: member function 'cool::csamisc::memberdefinitioninclassdefinition_bar<int>::g' is defined in the class definition.
+groups/csa/csamisc/csamisc_memberdefinitioninclassdefinition.v.hpp:26:0: warning: member function 'cool::csamisc::memberdefinitioninclassdefinition_bar::g' is defined in the class definition.
             void g() {}
 ^
-2 warnings generated.
+groups/csa/csamisc/csamisc_memberdefinitioninclassdefinition.v.hpp:26:0: warning: member function 'cool::csamisc::memberdefinitioninclassdefinition_bar<int>::g' is defined in the class definition.
+3 warnings generated.

@@ -33,7 +33,7 @@ namespace cool
 
         namespace
         {
-            template <typename> struct local;
+            template <class> struct local;
             template <>
             struct local<cool::csatr::bar>
             {

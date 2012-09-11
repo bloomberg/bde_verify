@@ -21,10 +21,10 @@ namespace cool
     namespace csatr
     {
         class BadPackage;
-        template <typename> class friendship_GoodTemplate;
+        template <class> class friendship_GoodTemplate;
         class friendship_GoodDeclared;
         void operator+ (friendship_GoodDeclared const&);
-        template <typename T>
+        template <class T>
         void operator+ (friendship_GoodDeclared const&, T);
 
         class friendship_Component
@@ -37,21 +37,21 @@ namespace cool
             friend class cool::csatr::BadExtern::Nested;
             friend class cool::csatr::friendship_GoodDeclared;
             friend class GoodLocal;
-            template <typename T> friend class BadPackageTemplate;
-            template <typename T> friend class GoodTemplate;
+            template <class T> friend class BadPackageTemplate;
+            template <class T> friend class GoodTemplate;
             friend void cool::csatr::operator+ (BadExtern const&);
-            template <typename T>
+            template <class T>
             friend void cool::csatr::operator+ (BadExtern const&, T);
 
             friend void cool::csatr::operator+ (friendship_GoodDeclared const&);
-            template <typename T>
+            template <class T>
             friend void cool::csatr::operator+ (friendship_GoodDeclared const&, T);
 
-            template <typename T>
+            template <class T>
             friend void BadExtern::g(T);
         };
 
-        template <typename T>
+        template <class T>
         class friendship_GoodTemplate
         {
         };
@@ -61,14 +61,14 @@ namespace cool
         public:
             void f() const;
             class Nested;
-            template <typename T> void g(T);
+            template <class T> void g(T);
         };
 
         class friendship_GoodLocal
         {
             friend void friendship_GoodDeclared::f() const;
             friend class friendship_GoodDeclared::Nested;
-            template <typename T>
+            template <class T>
             friend void friendship_GoodDeclared::g(T);
         };
     }

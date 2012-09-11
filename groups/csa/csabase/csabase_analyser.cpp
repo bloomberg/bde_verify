@@ -314,19 +314,19 @@ cool::csabase::Analyser::get_location(clang::SourceLocation sl) const
 cool::csabase::Location
 cool::csabase::Analyser::get_location(clang::Decl const* decl) const
 {
-    return this->get_location(decl->getLocStart());
+    return decl? this->get_location(decl->getLocStart()): Location("", 0, 0);
 }
 
 cool::csabase::Location
 cool::csabase::Analyser::get_location(clang::Expr const* expr) const
 {
-    return this->get_location(expr->getLocStart());
+    return expr? this->get_location(expr->getLocStart()): Location("", 0, 0);
 }
 
 cool::csabase::Location
 cool::csabase::Analyser::get_location(clang::Stmt const* stmt) const
 {
-    return this->get_location(stmt->getLocStart());
+    return stmt? this->get_location(stmt->getLocStart()): Location("", 0, 0);
 }
 
 // -----------------------------------------------------------------------------

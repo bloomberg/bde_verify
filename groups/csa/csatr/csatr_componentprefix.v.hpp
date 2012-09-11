@@ -51,7 +51,7 @@ namespace cool
             int method();
         };
 
-        template <typename>
+        template <class>
         class BadTemplate
         {
         public:
@@ -59,7 +59,7 @@ namespace cool
             int method();
         };
 
-        template <typename>
+        template <class>
         int badTemplate()
         {
             int goodBadTemplateVariable;
@@ -101,7 +101,7 @@ namespace cool
 
         void swap(ComponentPrefixGoodClass&, ComponentPrefixGoodClass&);
 
-        template <typename>
+        template <class>
         class ComponentPrefixGoodTemplate
         {
         public:
@@ -109,11 +109,11 @@ namespace cool
             int method();
         };
 
-        template <typename T>
+        template <class T>
         void swap(ComponentPrefixGoodTemplate<T>&,
                   ComponentPrefixGoodTemplate<T>&);
 
-        template <typename>
+        template <class>
         int componentPrefixGoodTemplate()
         {
             int goodGoodTemplateVariable;
@@ -133,5 +133,12 @@ namespace cool
 }
 
 // ----------------------------------------------------------------------------
+
+inline void
+cool::csatr::swap(cool::csatr::ComponentPrefixGoodClass&,
+                  cool::csatr::ComponentPrefixGoodClass&)
+{
+    extern int someVariable;
+}
 
 #endif

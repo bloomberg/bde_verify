@@ -85,7 +85,7 @@ namespace cool
     {
         namespace
         {
-            template <typename T>
+            template <class T>
             struct tbase
             {
                 tbase();
@@ -95,17 +95,17 @@ namespace cool
                 cool::csabbg::allocatorforward_alloc_used   used0_;
             };
 
-            template <typename T>
+            template <class T>
             tbase<T>::tbase()
             {
             }
 
-            template <typename T>
+            template <class T>
             tbase<T>::tbase(BloombergLP::bslma_Allocator*)
             {
             }
 
-            template <typename T>
+            template <class T>
             tbase<T>::tbase(int i, BloombergLP::bslma_Allocator* alloc):
                 used0_(i, alloc)
             {

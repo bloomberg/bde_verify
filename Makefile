@@ -10,7 +10,7 @@ default:  check-current
 CLANGVER = 3.1
 LLVM     = /opt/swt/install/llvm-$(CLANGVER)-64
 
-CURRENT  = tst.cpp
+CURRENT  = csastil/csastil_templatetypename.t.cpp
 
 #  ----------------------------------------------------------------------------
 
@@ -34,6 +34,7 @@ TSTCXXFILES +=                                                                \
         groups/csa/csatr/csatr_usingdirectiveinheader.cpp                     \
         groups/csa/csatr/csatr_entityrestrictions.cpp                         \
         groups/csa/csastil/csastil_implicitctor.cpp                           \
+        groups/csa/csastil/csastil_templatetypename.cpp                       \
         groups/csa/csamisc/csamisc_charvsstring.cpp                           \
         groups/csa/csamisc/csamisc_arrayinitialization.cpp                    \
         groups/csa/csamisc/csamisc_anonymousnamespaceinheader.cpp             \
@@ -45,7 +46,6 @@ TSTCXXFILES +=                                                                \
         groups/csa/csamisc/csamisc_thrownonstdexception.cpp                   \
         groups/csa/csamisc/csamisc_verifysameargumentnames.cpp                \
         groups/csa/csamisc/csamisc_stringadd.cpp                              \
-        groups/csa/csamisc/csamisc_templateparam.cpp                          \
 
 TODO =                                                                        \
         groups/csa/csamisc/csamisc_calls.cpp                                  \

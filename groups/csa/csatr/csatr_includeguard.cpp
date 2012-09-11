@@ -75,7 +75,7 @@ namespace
             if (value != "!defined(" + expect + ")"
                 && value != "!defined" + expect) {
                 this->d_analyser->report(range.getBegin(), ::check_name,
-                                         "wrong include guard "
+                                         "TR14: wrong include guard "
                                          "(expected '!defined(%0)')")
                     << expect;
             }
@@ -96,7 +96,7 @@ namespace
                 std::string const& expect(data.get_expect(this->d_analyser));
                 if (value != expect) {
                     this->d_analyser->report(token.getLocation(), ::check_name,
-                                             "wrong name for include guard "
+                                             "TR14: wrong name for include guard "
                                              "(expected '%0')")
                         << expect;
                 }
@@ -125,10 +125,10 @@ namespace
                 ::include_guard const& data(this->d_analyser->attachment<include_guard>());
                 this->d_analyser->report(location, ::check_name,
                                          data.d_test
-                                         ? "missing define for include guard"
+                                         ? "TR14: missing define for include guard"
                                          : data.d_define
-                                         ? "missing test for include guard"
-                                         : "missing include guard");
+                                         ? "TR14: missing test for include guard"
+                                         : "TR14: missing include guard");
             }
         }
 

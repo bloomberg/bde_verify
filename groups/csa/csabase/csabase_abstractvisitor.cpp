@@ -139,7 +139,11 @@ process_decl(cool::csabase::AbstractVisitor* visitor, clang::FunctionDecl* decl)
 {
     //-dk:TODO deal with parameter
     //-dk:TODO deal context
-    cool::csabase::Debug d1("process definition");
+    cool::csabase::Debug d1("process definition FunctionDecl");
+    if (decl->getDescribedFunctionTemplate()) {
+        visitor->visit(decl->getDescribedFunctionTemplate());
+    }
+
     if (decl->isThisDeclarationADefinition())
     {
         visitor->visit(decl->getBody());
@@ -378,6 +382,14 @@ process_decl(cool::csabase::AbstractVisitor*, clang::ClassScopeFunctionSpecializ
     cool::csabase::Debug d("TODO ClassScopeFunctionSpecializationDecl");
 }
 #endif
+
+static void
+process_decl(cool::csabase::AbstractVisitor* visitor,
+             clang::ClassTemplateDecl* decl)
+{
+    cool::csabase::Debug d("ClassTemplateDecl");
+    visitor->visit(decl->getTemplatedDecl());
+}
 
 static void
 process_decl(cool::csabase::AbstractVisitor*, clang::Decl* decl)

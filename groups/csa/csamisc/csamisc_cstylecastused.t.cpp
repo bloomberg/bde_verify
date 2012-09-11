@@ -14,7 +14,7 @@ namespace cool
     {
         namespace
         {
-            template <typename T>
+            template <class T>
             T* t()
             {
                 return (T*)0;

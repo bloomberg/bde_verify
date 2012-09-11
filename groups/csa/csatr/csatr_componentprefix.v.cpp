@@ -22,7 +22,7 @@ namespace cool
             {
             };
 
-            template <typename>
+            template <class>
             class GoodTemplate
             {
             };
@@ -31,7 +31,7 @@ namespace cool
             {
             }
 
-            template <typename>
+            template <class>
             void goodTemplate()
             {
             }
