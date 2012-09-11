@@ -9,8 +9,9 @@
 default:  check-current
 CLANGVER = 3.1
 LLVM     = /opt/swt/install/llvm-$(CLANGVER)-64
+COMPILER = g++
 
-CURRENT  = csastil/csastil_templatetypename.t.cpp
+CURRENT  = csastil/csastil_implicitctor.t.cpp
 
 #  ----------------------------------------------------------------------------
 
@@ -74,8 +75,10 @@ LIBCXXFILES +=                                                                \
 # -----------------------------------------------------------------------------
 
 SYSTEM   = $(shell uname -s)
+ifeq ($(SYSTEM),Darwin)
+  COMPILER = clang
+endif
 ECHON    = echo
-COMPILER = g++
 # CLANGVER = SVN
 
 ifeq ($(CLANGVER),2.9)
@@ -124,7 +127,7 @@ CPPFLAGS += $(INCFLAGS) $(DEFFLAGS) $(STDFLAGS)
 CPPFLAGS += -Igroups/csa/csabase -Igroups/csa/csadep
 # PFLAGS   += -fdiagnostics-show-option
 PFLAGS   += -fcxx-exceptions
-CXXFLAGS += -fno-exceptions -fno-rtti -fno-common -fno-strict-aliasing
+CXXFLAGS += -g -fno-exceptions -fno-rtti -fno-common -fno-strict-aliasing
 WARNFLAGS = \
         -Wcast-qual \
         -Wno-long-long \

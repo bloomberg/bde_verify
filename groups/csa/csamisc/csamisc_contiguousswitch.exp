@@ -1,4 +1,37 @@
-groups/csa/csamisc/csamisc_contiguousswitch.t.cpp:39:0: warning: unexpected gap in case labels: expected 6, got 100
-    case 100:
-^~~~
-1 warning generated.
+groups/csa/csamisc/csamisc_contiguousswitch.t.cpp:34:0: warning: empty switch statement
+    switch (ac) {
+^
+groups/csa/csamisc/csamisc_contiguousswitch.t.cpp:38:0: warning: switch starts with default
+    default:
+^
+groups/csa/csamisc/csamisc_contiguousswitch.t.cpp:37:0: warning: switch doesn't end with `default:` label
+    switch (ac) { // starts with `default:` instead of `case 0:`
+^
+groups/csa/csamisc/csamisc_contiguousswitch.t.cpp:50:0: warning: switch doesn't start with `case 0:`
+    case 1: {
+^
+groups/csa/csamisc/csamisc_contiguousswitch.t.cpp:53:0: warning: case label out of order: previous=1 value=0
+    case 0: {
+^
+groups/csa/csamisc/csamisc_contiguousswitch.t.cpp:62:0: warning: `default:` label in the middle of labels
+    default: break;
+^
+groups/csa/csamisc/csamisc_contiguousswitch.t.cpp:63:0: warning: case label out of order: previous=0 value=1
+    case 1: break;
+^
+groups/csa/csamisc/csamisc_contiguousswitch.t.cpp:60:0: warning: switch doesn't end with `default:` label
+    switch (ac) { // `default:` not at end
+^
+groups/csa/csamisc/csamisc_contiguousswitch.t.cpp:69:0: warning: `default:` label in the middle of labels
+    default: break;
+^
+groups/csa/csamisc/csamisc_contiguousswitch.t.cpp:66:0: warning: switch doesn't end with `default:` label
+    switch (ac) { // `default:` not at end
+^
+groups/csa/csamisc/csamisc_contiguousswitch.t.cpp:73:0: warning: switch doesn't end with `default:` label
+    switch (ac) // missing default
+^
+groups/csa/csamisc/csamisc_contiguousswitch.t.cpp:91:0: warning: case label out of order: previous=100 value=5
+    case 5: break;
+^
+12 warnings generated.

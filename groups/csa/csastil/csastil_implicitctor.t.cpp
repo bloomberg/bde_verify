@@ -24,6 +24,23 @@ namespace cool {
                 foo(long) {} // -> warn: it is also a definition ...
                 foo(unsigned char) {}                               // IMPLICIT
             };
+
+            template <class T>
+            struct bar
+            {
+                bar(int); // -> warn
+                bar(char);                                          // IMPLICIT
+            };
+
+            template <class T>
+            bar<T>::bar(int)
+            {
+            }
+
+            template <class T>
+            bar<T>::bar(char)
+            {
+            }
         }
     }
 }
@@ -40,4 +57,6 @@ cool::csastil::foo::foo(short, bool, bool) {}
 
 int main()
 {
+    cool::csastil::bar<int> b0(0);
+    cool::csastil::bar<int> b1('c');
 }

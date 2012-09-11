@@ -1,3 +1,3 @@
-groups/csa/csatr/csatr_includeguard2.t.cpp:4:0: warning: missing define for include guard
+groups/csa/csatr/csatr_includeguard2.t.cpp:4:0: warning: TR14: missing define for include guard
 ^
 1 warning generated.

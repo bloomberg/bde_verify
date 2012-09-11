@@ -10,15 +10,15 @@ to be set up manually in the Makefile.
 Currently, the clang versions 2.9, 3.1, and SVN (for a recent head
 of the development tree) are supported.
 
-To build the source, use gmake:
+To build the source, use make:
 
-    gmake               # build the code
-    gmake check         # run test cases exercising the checks
+    make               # build the code
+    make check         # run test cases exercising the checks
 
 Some of the output is filtered to make it more readable. For example,
-the compiler invokation isn't shown. Similarily, the cheks only report
+the compiler invocation isn't shown. Similarily, the check only report
 if they were successful rather than more details where they went wrong.
 To get more detail, set the make variable VERBOSE to be empty, for
 example:
 
-    gmake check VERBOSE=
+    make check VERBOSE=

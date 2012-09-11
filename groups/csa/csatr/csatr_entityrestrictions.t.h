@@ -37,6 +37,16 @@ namespace cool
         class EntityRestrictionsClass {};
         union EntityRestrictionsUnion {};
     }
+
+    struct csatr_EntityRestrictions
+    {
+    };
+
+    void swap(csatr_EntityRestrictions&, csatr_EntityRestrictions&);
+    bool operator== (const csatr_EntityRestrictions&,
+                    const  csatr_EntityRestrictions&);
+    bool operator!= (const csatr_EntityRestrictions&,
+                    const  csatr_EntityRestrictions&);
 }
 
 inline void cool::csatr::EntityRestrictions::legalFunction()

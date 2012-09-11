@@ -10,4 +10,7 @@ groups/csa/csastil/csastil_implicitctor.t.cpp:23:0: warning: constructor suitabl
 groups/csa/csastil/csastil_implicitctor.t.cpp:24:0: warning: constructor suitable for implicit conversions
                 foo(long) {} // -> warn: it is also a definition ...
 ^~~~~~
-4 warnings generated.
+groups/csa/csastil/csastil_implicitctor.t.cpp:31:0: warning: constructor suitable for implicit conversions
+                bar(int); // -> warn
+^~~~~~
+5 warnings generated.

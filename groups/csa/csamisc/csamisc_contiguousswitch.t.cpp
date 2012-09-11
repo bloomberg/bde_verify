@@ -9,51 +9,93 @@
 
 // -----------------------------------------------------------------------------
 
-int cool::csamisc::contiguousswitch::f(int arg)
+namespace cool
 {
-    char const* number(0);
-
-    switch (arg)
+    namespace csamisc
     {
-    case 0:
-    case 5:
-        number = "five";
-        break;
-    case 4:
-        number = "four";
-        break;
-    case 3:
-        number = "three";
-        break;
-    case 2:
-        number = "two";
+        namespace
+        {
+            void f(int ac) {
+                switch (ac) {
+                case 5:
+                    break;
+                case 3:
+                    break;
+                }
+            }
+        }
+    }
+}
+
+int main(int, char*[]);
+
+int main(int ac, char* av[])
+{
+    switch (ac) {
+    }
+
+    switch (ac) { // starts with `default:` instead of `case 0:`
+    default:
+        ++ac;
         break;
     case 1:
-        number = "one";
+        {
+            ++ac;
+            ++ac;
+        }
         break;
     }
 
-    switch (arg)
+    switch (ac) { // doesn't start with `case 0:` and `case 0` in the middle
+    case 1: {
+        break; 
+    }
+    case 0: {
+        ++ac;
+        break;
+    }
+    default: ;
+    }
+
+    switch (ac) { // `default:` not at end
+    case 0:
+    default: break;
+    case 1: break;
+    }
+
+    switch (ac) { // `default:` not at end
+    case 0:
+    case 2: break;
+    default: break;
+    case 1: break;
+    }
+
+    switch (ac) // missing default
     {
     case 0:
-    case 100:
-        number = "hundred";
-        break;
-    case 5:
-        number = "five";
-        break;
+        switch (ac + 1) {
+        case 10: break;
+        case 12: break;
+        }
+    case 5: break;
     case 4:
-        number = "four";
-        break;
-    case 3:
-        number = "three";
-        break;
-    case 2:
-        number = "two";
-        break;
-    case 1:
-        number = "one";
-        break;
+    case 3: break;
+    case 2: break;
+    case 1: break;
+    }
+
+    switch (ac)
+    {
+    case 0:
+    case 100: break;
+    case 5: break;
+    case 4: break;
+    case 3: break;
+    case 2: break;
+    case 1: break;
+    case -1: break;
+    case -5: break;
+    default: break;
     }
 
     return 0;

@@ -84,15 +84,28 @@ namespace
         void operator()(clang::SourceLocation where,
                         clang::Token const& token) const // onIfndef
         {
+#if 0
+            //-dk:TODO
+            llvm::errs() << "ifndef: "
+                         << "where=" << this->d_analyser->get_location(where) << " "
+                         << "token=" << this->d_analyser->get_location(token.getLocation()) << " "
+                         << "\n";
+            if (clang::IdentifierInfo const* id = token.getIdentifierInfo())
+            {
+                llvm::errs() << "  value1='" << id->getNameStart() << "'\n";
+            }
+#endif
             if (!this->d_analyser->is_component_header(token.getLocation())) {
                 return;
             }
 
+            //-dk:TODO llvm::errs() << "  in header\n";
             include_guard& data(this->d_analyser->attachment<include_guard>());
             if (clang::IdentifierInfo const* id
                 = data.d_test? 0: token.getIdentifierInfo())
             {
                 std::string value(id->getNameStart());
+                //-dk:TODO llvm::errs() << "  vlaue='" << value << "'\n";
                 std::string const& expect(data.get_expect(this->d_analyser));
                 if (value != expect) {
                     this->d_analyser->report(token.getLocation(), ::check_name,

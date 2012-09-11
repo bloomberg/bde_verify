@@ -1,19 +1,44 @@
-// -*-c++-*- groups/csa/csatr/csatr_nesteddeclarations.cpp 
-// -----------------------------------------------------------------------------
+// groups/csa/csatr/csatr_nesteddeclarations.cpp                      -*-C++-*-
+// ----------------------------------------------------------------------------
 // Copyright 2012 Dietmar Kuehl http://www.dietmar-kuehl.de              
 // Distributed under the Boost Software License, Version 1.0. (See file  
 // LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt).     
-// -----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 #include <csabase_analyser.h>
 #include <csabase_config.h>
 #include <csabase_format.h>
+#include <csabase_cast_ptr.h>
 #include <csabase_registercheck.h>
 #ident "$Id$"
 
-// -----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 static std::string const check_name("nested-declarations");
+
+// ----------------------------------------------------------------------------
+
+static bool
+is_swap(clang::FunctionDecl const* decl)
+{
+    return decl->getNameAsString() == "swap"
+        && decl->getNumParams() == 2
+        && decl->getParamDecl(0)->getType() == decl->getParamDecl(1)->getType()
+        && decl->getParamDecl(0)->getType().getTypePtr()->isReferenceType()
+        && !decl->getParamDecl(0)->getType().getNonReferenceType().isConstQualified();
+}
+
+// ----------------------------------------------------------------------------
+
+static bool
+isSpecialFunction(clang::NamedDecl const* decl)
+{
+    cool::csabase::cast_ptr<clang::FunctionDecl> function(decl);
+    return function
+        && (function->isOverloadedOperator() || is_swap(function.get()));
+}
+
+// ----------------------------------------------------------------------------
 
 static void
 check(cool::csabase::Analyser& analyser, clang::Decl const* decl)
@@ -74,6 +99,7 @@ check(cool::csabase::Analyser& analyser, clang::Decl const* decl)
                 && !llvm::dyn_cast<clang::ClassTemplatePartialSpecializationDecl>(decl)
                 && named->getNameAsString().find("operator new") == std::string::npos
                 && named->getNameAsString().find("operator delete") == std::string::npos
+                && !::isSpecialFunction(named)
                 )
             {
                 //-dk:TODO check if this happens in the correct namespace

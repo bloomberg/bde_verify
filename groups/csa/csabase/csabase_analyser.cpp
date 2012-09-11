@@ -307,26 +307,32 @@ cool::csabase::Analyser::get_location(clang::SourceLocation sl) const
     }
     else
     {
-        return cool::csabase::Location("<unknown>", 0, 0);
+        return cool::csabase::Location();
     }
 }
 
 cool::csabase::Location
 cool::csabase::Analyser::get_location(clang::Decl const* decl) const
 {
-    return decl? this->get_location(decl->getLocStart()): Location("", 0, 0);
+    return decl
+        ? this->get_location(decl->getLocStart())
+        : cool::csabase::Location();
 }
 
 cool::csabase::Location
 cool::csabase::Analyser::get_location(clang::Expr const* expr) const
 {
-    return expr? this->get_location(expr->getLocStart()): Location("", 0, 0);
+    return expr
+        ? this->get_location(expr->getLocStart())
+        : cool::csabase::Location();
 }
 
 cool::csabase::Location
 cool::csabase::Analyser::get_location(clang::Stmt const* stmt) const
 {
-    return stmt? this->get_location(stmt->getLocStart()): Location("", 0, 0);
+    return stmt
+        ? this->get_location(stmt->getLocStart())
+        : cool::csabase::Location();
 }
 
 // -----------------------------------------------------------------------------

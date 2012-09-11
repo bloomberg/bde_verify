@@ -61,6 +61,16 @@ namespace cool
         void nesteddeclarations_good_function();
         int nesteddeclarations_good_cool_csatr_variable;
     }
+
+    struct csatr_NestedDeclarations
+    {
+    };
+
+    void swap(csatr_NestedDeclarations&, csatr_NestedDeclarations&);
+    bool operator== (const csatr_NestedDeclarations&,
+                    const  csatr_NestedDeclarations&);
+    bool operator!= (const csatr_NestedDeclarations&,
+                    const  csatr_NestedDeclarations&);
 }
 
 // -----------------------------------------------------------------------------

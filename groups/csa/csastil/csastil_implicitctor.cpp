@@ -32,7 +32,9 @@ check(cool::csabase::Analyser& analyser, clang::CXXConstructorDecl const* decl)
 {
     if (decl->isConvertingConstructor(false)
         && !decl->isCopyOrMoveConstructor()
-        && decl->isFirstDeclaration()) {
+        && decl->isFirstDeclaration()
+        && !llvm::dyn_cast<clang::ClassTemplateSpecializationDecl>(decl->getParent())
+        ) {
         analyser.attachment< ::suppressions>().reports_.push_back(decl);
     }
 }

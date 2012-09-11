@@ -30,7 +30,13 @@ namespace cool
 
 class cool::csabase::Location
 {
+private:
+    std::string d_file;
+    size_t      d_line;
+    size_t      d_column;
+
 public:
+    Location();
     Location(std::string const& file, size_t line, size_t column);
 
     std::string file() const;
@@ -38,10 +44,6 @@ public:
     size_t      column() const;
 
     bool operator< (cool::csabase::Location const& location) const;
-private:
-    std::string file_;
-    size_t      line_;
-    size_t      column_;
 };
 
 // -----------------------------------------------------------------------------

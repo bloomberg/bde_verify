@@ -11,10 +11,17 @@
 
 // -----------------------------------------------------------------------------
 
-cool::csabase::Location::Location(std::string const& file, size_t line, size_t column):
-    file_(file),
-    line_(line),
-    column_(column)
+cool::csabase::Location::Location()
+    : d_file("<unknown>")
+    , d_line(0)
+    , d_column(0)
+{
+}
+
+cool::csabase::Location::Location(std::string const& file, size_t line, size_t column)
+    : d_file(file)
+    , d_line(line)
+    , d_column(column)
 {
 }
 
@@ -23,27 +30,27 @@ cool::csabase::Location::Location(std::string const& file, size_t line, size_t c
 std::string
 cool::csabase::Location::file() const
 {
-    return this->file_;
+    return this->d_file;
 }
 
 size_t
 cool::csabase::Location::line() const
 {
-    return this->line_;
+    return this->d_line;
 }
 
 size_t
 cool::csabase::Location::column() const
 {
-    return this->column_;
+    return this->d_column;
 }
 
 bool
 cool::csabase::Location::operator< (cool::csabase::Location const& location) const
 {
-    return this->file_ != location.file_? this->file_ < location.file_
-        :  this->line_ != location.line_? this->line_ < location.line_
-        :  this->column_ < location.column_;
+    return this->d_file != location.d_file? this->d_file < location.d_file
+        :  this->d_line != location.d_line? this->d_line < location.d_line
+        :  this->d_column < location.d_column;
 }
 
 // -----------------------------------------------------------------------------

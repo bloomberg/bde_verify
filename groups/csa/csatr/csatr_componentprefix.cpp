@@ -71,7 +71,6 @@ component_prefix(cool::csabase::Analyser&  analyser,
             || !(llvm::dyn_cast<clang::FunctionTemplateDecl>(named)->getTemplatedDecl()->isOverloadedOperator()
                  || named->getNameAsString() == "swap")
             )
-        && named->getNameAsString() != "debugprint"
         && !llvm::dyn_cast<clang::ClassTemplateSpecializationDecl>(decl)
         && !llvm::dyn_cast<clang::ClassTemplatePartialSpecializationDecl>(decl)
         && !llvm::dyn_cast<clang::FunctionDecl>(decl->getDeclContext())

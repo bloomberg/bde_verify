@@ -28,6 +28,7 @@ public:
     operator bool() const;
     T const& operator*() const;
     T const* operator->() const;
+    T const* get() const;
 
 private:
     T const* d_pointer;
@@ -58,6 +59,13 @@ cool::csabase::cast_ptr<T>::operator*() const
 template <typename T>
 T const*
 cool::csabase::cast_ptr<T>::operator->() const
+{
+    return this->d_pointer;
+}
+
+template <typename T>
+T const*
+cool::csabase::cast_ptr<T>::get() const
 {
     return this->d_pointer;
 }
