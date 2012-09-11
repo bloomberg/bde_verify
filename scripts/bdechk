@@ -12,21 +12,43 @@ use strict;
 
 my $debug = "";
 my $compiler = "clang";
-if (0 <= $#ARGV && $ARGV[0] eq "-debug")
-{
-    $debug = " -plugin-arg-coolyse debug-on";
-    shift @ARGV;
-}
-if (0 <= $#ARGV && $ARGV[0] eq "-clang")
-{
-    $compiler = "clang";
-    shift @ARGV;
-}
+my $checktests = 0;
+my $checksource = 1;
+my $script = $0;
 
-if (0 <= $#ARGV && $ARGV[0] eq "-gcc")
+while (0 <= $#ARGV)
 {
-    $compiler = "g++";
-    shift @ARGV;
+    if ($ARGV[0] eq "-debug")
+    {
+        $debug = " -plugin-arg-coolyse debug-on";
+        shift @ARGV;
+    }
+    elsif ($ARGV[0] eq "-clang")
+    {
+        $compiler = "clang";
+        shift @ARGV;
+    }
+    elsif ($ARGV[0] eq "-gcc")
+    {
+        $compiler = "g++";
+        shift @ARGV;
+    }
+    elsif ($ARGV[0] eq "-tests")
+    {
+        $checktests = 1;
+        $checksource = 0;
+        shift @ARGV;
+    }
+    elsif ($ARGV[0] eq "-all")
+    {
+        $checktests = 1;
+        $checksource = 1;
+        shift @ARGV;
+    }
+    else
+    {
+        last;
+    }
 }
 
 my @FILES = grep {
@@ -61,10 +83,13 @@ if ($system ne "Linux" && $system ne "Darwin")
 }
 
 my $version="3.1";
+my $shared = $script =~ /\/scripts\/bdechk/
+    ? "/home/dkuhl/src/coolyser/Linux-g++-$version/coolyser.so"
+    : "/home/dkuhl/bin/coolyser/Linux-g++-$version/coolyser.so";
+
 my @clangoptions = (
     "-cc1",
-    "-load /home/dkuhl/src/coolyser/Linux-g++-$version/coolyser.so",
-    # "-load /home/dkuhl/bin/coolyser/Linux-g++-$version/coolyser.so",
+    "-load $shared",
     "-plugin coolyse",
     "-plugin-arg-coolyse tool=bdechk",
     );
@@ -159,6 +184,7 @@ sub runClang($$)
     my $config = $files =~ /\.t\.cpp/ ? $checktcfg: $checkcfg;
     my $command = "$llvm/bin/clang $debug $cflags $config $options $iflags $flags $lflags $uflags $files";
     #print "$command\n";
+    print "checking $files\n";
     open(PIPE, "$command 2>&1 |") || die("can't execute command '$command'");
     while (<PIPE>)
     {
@@ -180,8 +206,13 @@ for my $file (@FILES)
         while (<MEM>)
         {
             chomp;
-            print "checking $_\n";
-            runClang("-I$path/.. -I$path/../..", "$path/../$_.cpp");
+            my $file = $_;
+            if ($checksource) {
+                runClang("-I$path/.. -I$path/../..", "$path/../$file.cpp");
+            }
+            if ($checktests) {
+                runClang("-I$path/.. -I$path/../..", "$path/../$file.t.cpp");
+            }
         }
     }
     else
