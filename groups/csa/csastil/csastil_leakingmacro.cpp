@@ -59,6 +59,13 @@ to_upper(unsigned char c)
     return std::toupper(c);
 }
 
+static std::string
+toUpper(std::string value)
+{
+    std::transform(value.begin(), value.end(), value.begin(), &to_upper);
+    return value;
+}
+
 static void
 onCloseFile(cool::csabase::Analyser* analyser,
             clang::SourceLocation    location,
@@ -82,8 +89,8 @@ onCloseFile(cool::csabase::Analyser* analyser,
         cool::csabase::Location where(analyser->get_location(it->second));
         if (where.file() != "<built-in>"
             && where.file() != "<command line>"
-            && it->first != "INCLUDED_" + component
-            && it->first.find(component) != 0
+            && it->first.find("INCLUDED_") != 0
+            && ::toUpper(it->first).find(component) != 0
             && (analyser->is_component_header(it->second)
                 ? true
                 : it->first.size() < 4)
