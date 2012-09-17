@@ -1,0 +1,17 @@
+In file included from groups/csa/csastil/csastil_includeorder.t.cpp:3:
+groups/csa/csastil/csastil_includeorder.t.h:13:0: warning: package header out of order
+#include <csastil_testa.h>
+^
+groups/csa/csastil/csastil_includeorder.t.h:16:0: warning: package header coming late
+#include <csastil_testd.h>
+^
+groups/csa/csastil/csastil_includeorder.t.h:17:0: warning: group header out of order
+#include <csapkga_testb.h>
+^
+groups/csa/csastil/csastil_includeorder.t.h:21:0: warning: group header out of order
+#include <csapkgb_testb.h>
+^
+groups/csa/csastil/csastil_includeorder.t.h:26:0: warning: component header out of order
+#include <csapkga_testd.h>
+^
+5 warnings generated.

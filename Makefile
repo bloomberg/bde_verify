@@ -11,7 +11,7 @@ CLANGVER = 3.1
 LLVM     = /opt/swt/install/llvm-$(CLANGVER)-64
 COMPILER = g++
 
-CURRENT  = csastil/csastil_implicitctor.t.cpp
+CURRENT  = csastil/csastil_includeorder.t.cpp
 
 #  ----------------------------------------------------------------------------
 
@@ -35,6 +35,7 @@ TSTCXXFILES +=                                                                \
         groups/csa/csatr/csatr_usingdirectiveinheader.cpp                     \
         groups/csa/csatr/csatr_entityrestrictions.cpp                         \
         groups/csa/csastil/csastil_implicitctor.cpp                           \
+        groups/csa/csastil/csastil_includeorder.cpp                           \
         groups/csa/csastil/csastil_templatetypename.cpp                       \
         groups/csa/csamisc/csamisc_charvsstring.cpp                           \
         groups/csa/csamisc/csamisc_arrayinitialization.cpp                    \
@@ -125,6 +126,7 @@ ifeq ($(STD),CXX2011)
 endif
 CPPFLAGS += $(INCFLAGS) $(DEFFLAGS) $(STDFLAGS)
 CPPFLAGS += -Igroups/csa/csabase -Igroups/csa/csadep
+CPPFLAGS += -Iinclude
 # PFLAGS   += -fdiagnostics-show-option
 PFLAGS   += -fcxx-exceptions
 CXXFLAGS += -g -fno-exceptions -fno-rtti -fno-common -fno-strict-aliasing

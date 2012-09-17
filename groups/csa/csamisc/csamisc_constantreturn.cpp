@@ -23,7 +23,9 @@ static std::string const check_name("constant-return");
 static void
 check(cool::csabase::Analyser& analyser, clang::FunctionDecl const* decl)
 {
-    if (decl->hasBody() && decl->getIdentifier())
+    if (analyser.is_component(decl)
+        && decl->hasBody()
+        && decl->getIdentifier())
     {
         clang::Stmt* stmt(decl->getBody());
         while (llvm::dyn_cast<clang::CompoundStmt>(stmt) && std::distance(stmt->child_begin(), stmt->child_end()) == 1)
