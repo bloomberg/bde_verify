@@ -6,7 +6,7 @@
 // ----------------------------------------------------------------------------
 
 #include "csatr_globaltypeonlyinsource.v.hpp"
-#ident "$Id$"
+#include <bdes_ident.h>
 
 namespace cool
 {

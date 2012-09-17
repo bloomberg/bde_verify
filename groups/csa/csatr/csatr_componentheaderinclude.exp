@@ -1,4 +1,7 @@
 groups/csa/csatr/csatr_componentheaderinclude.v.cpp:15:0: warning: TR09: declarations precede component header
         static int local(0);
 ^
-1 warning generated.
+groups/csa/csatr/csatr_componentheaderinclude.v.cpp:8:0: warning: SHO: source doesn't include component header first
+#include <bdes_ident.h>
+^
+2 warnings generated.

@@ -1,9 +1,9 @@
 // csastil_includeorder.cpp                                           -*-C++-*-
-// -----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // Copyright 2012 Dietmar Kuehl http://www.dietmar-kuehl.de              
 // Distributed under the Boost Software License, Version 1.0. (See file  
 // LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt).     
-// -----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 #include <csabase_analyser.h>
 #include <csabase_registercheck.h>
@@ -17,11 +17,11 @@
 
 namespace CB = cool::csabase;
 
-// -----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 static std::string const check_name("include-order");
 
-// -----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 namespace
 {
@@ -47,7 +47,7 @@ namespace
     };
 }
 
-// -----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 namespace
 {
@@ -66,7 +66,7 @@ namespace
     };
 }
 
-// -----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 static bool
 first_is_greater(std::pair<std::string, clang::SourceLocation> const& entry0,
@@ -75,7 +75,7 @@ first_is_greater(std::pair<std::string, clang::SourceLocation> const& entry0,
     return entry1.first < entry0.first;
 }
 
-// -----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 static bool
 is_component(std::pair<std::string, clang::SourceLocation> const& entry)
@@ -86,7 +86,7 @@ is_component(std::pair<std::string, clang::SourceLocation> const& entry)
     return under != header.npos && 4 < under - start && under - start < 8;
 }
 
-// -----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 static void
 check_order(CB::Analyser*                              analyser,
@@ -140,12 +140,8 @@ check_order(CB::Analyser*                                                      a
         || it++ == headers.end()) {
         analyser->report(headers[0].second, ::check_name,
                          header
-                         ? "SHO: header without or with wrong include guard %0 %1 %2"
-                         : "SHO: source doesn't include component header first: %0 %1 %2")
-            << analyser->group()
-            << analyser->package()
-            << analyser->component()
-            ;
+                         ? "SHO: header without or with wrong include guard"
+                         : "SHO: source doesn't include component header first");
     }
     if (it == headers.end()
         || (it->first != "bsls_ident"
@@ -187,7 +183,7 @@ check_order(CB::Analyser*                                                      a
     return bdes_ident_location;
 }
 
-// -----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 static inline bool
 is_space(unsigned char c)
@@ -201,7 +197,7 @@ to_lower(unsigned char c)
     return std::tolower(c);
 }
 
-// -----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 namespace
 {
@@ -222,21 +218,20 @@ namespace
             if (!this->d_analyser->is_component(range.getBegin())) {
                 return;
             }
+            ::include_order& data(this->d_analyser->attachment< ::include_order>()); 
             char const* begin(this->d_analyser->manager().getCharacterData(range.getBegin()));
             char const* end(this->d_analyser->manager().getCharacterData(range.getEnd()));
             std::string value(begin, end);
-
-            value.erase(std::remove_if(value.begin(), value.end(), &::is_space),
-                        value.end());
-            std::transform(value.begin(), value.end(), value.begin(), &::to_lower);
+            value.erase(std::remove_if(value.begin(), value.end(),
+                                       &::is_space), value.end());
+            std::transform(value.begin(), value.end(), value.begin(),
+                           &::to_lower);
             if (value.find(::prefix1) == 0 && value[value.size() - 1] == ')') {
-                ::include_order& data(this->d_analyser->attachment< ::include_order>()); 
                 data.add_include(this->d_analyser->is_component_header(range.getBegin()),
-                                 value.substr(::prefix1.size()),
+                                 value.substr(::prefix1.size(), value.size() - ::prefix1.size() - 1),
                                  range.getBegin());
             }
             else if (value.find(::prefix2) == 0) {
-                ::include_order& data(this->d_analyser->attachment< ::include_order>()); 
                 data.add_include(this->d_analyser->is_component_header(range.getBegin()),
                                  value.substr(::prefix2.size()),
                                  range.getBegin());
@@ -289,7 +284,7 @@ namespace
     };
 }
 
-// -----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 static void
 subscribe(cool::csabase::Analyser& analyser, cool::csabase::Visitor&, cool::csabase::PPObserver& observer)
@@ -300,6 +295,6 @@ subscribe(cool::csabase::Analyser& analyser, cool::csabase::Visitor&, cool::csab
     observer.onIf                  += ::binder(&analyser);
 }
 
-// -----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 static cool::csabase::RegisterCheck register_observer(check_name, &::subscribe);

@@ -1,68 +1,68 @@
 In file included from groups/csa/csatr/csatr_componentprefix.v.cpp:8:
-groups/csa/csatr/csatr_componentprefix.v.hpp:18:0: warning: TR17: enum 'BadEnum' declared at global scope
+groups/csa/csatr/csatr_componentprefix.v.hpp:23:0: warning: TR17: enum 'BadEnum' declared at global scope
         enum BadEnum
 ^
-groups/csa/csatr/csatr_componentprefix.v.hpp:20:0: warning: TR05: globally visible identifier 'cool::csatr::BadEnum::badBadEnumTag' without component prefix
+groups/csa/csatr/csatr_componentprefix.v.hpp:25:0: warning: TR05: globally visible identifier 'cool::csatr::BadEnum::badBadEnumTag' without component prefix
             badBadEnumTag
 ^
-groups/csa/csatr/csatr_componentprefix.v.hpp:18:0: warning: TR05: globally visible identifier 'cool::csatr::BadEnum' without component prefix
+groups/csa/csatr/csatr_componentprefix.v.hpp:23:0: warning: TR05: globally visible identifier 'cool::csatr::BadEnum' without component prefix
         enum BadEnum
 ^
-groups/csa/csatr/csatr_componentprefix.v.hpp:23:0: warning: TR17: typedef 'BadTypedef' declared at global scope
+groups/csa/csatr/csatr_componentprefix.v.hpp:28:0: warning: TR17: typedef 'BadTypedef' declared at global scope
         typedef BadEnum BadTypedef;
 ^
-groups/csa/csatr/csatr_componentprefix.v.hpp:23:0: warning: TR05: globally visible identifier 'cool::csatr::BadTypedef' without component prefix
-groups/csa/csatr/csatr_componentprefix.v.hpp:25:0: warning: TR05: globally visible identifier 'cool::csatr::BadStruct' without component prefix
+groups/csa/csatr/csatr_componentprefix.v.hpp:28:0: warning: TR05: globally visible identifier 'cool::csatr::BadTypedef' without component prefix
+groups/csa/csatr/csatr_componentprefix.v.hpp:30:0: warning: TR05: globally visible identifier 'cool::csatr::BadStruct' without component prefix
         struct BadStruct
 ^
-groups/csa/csatr/csatr_componentprefix.v.hpp:35:0: warning: TR05: globally visible identifier 'cool::csatr::BadStruct1' without component prefix
+groups/csa/csatr/csatr_componentprefix.v.hpp:40:0: warning: TR05: globally visible identifier 'cool::csatr::BadStruct1' without component prefix
         typedef struct BadStruct1
 ^
-groups/csa/csatr/csatr_componentprefix.v.hpp:35:0: warning: TR17: typedef 'BadStruct2' declared at global scope
+groups/csa/csatr/csatr_componentprefix.v.hpp:40:0: warning: TR17: typedef 'BadStruct2' declared at global scope
         typedef struct BadStruct1
 ^
-groups/csa/csatr/csatr_componentprefix.v.hpp:35:0: warning: TR05: globally visible identifier 'cool::csatr::BadStruct2' without component prefix
-groups/csa/csatr/csatr_componentprefix.v.hpp:41:0: warning: TR17: typedef 'BadStruct3' declared at global scope
+groups/csa/csatr/csatr_componentprefix.v.hpp:40:0: warning: TR05: globally visible identifier 'cool::csatr::BadStruct2' without component prefix
+groups/csa/csatr/csatr_componentprefix.v.hpp:46:0: warning: TR17: typedef 'BadStruct3' declared at global scope
         typedef struct
 ^
-groups/csa/csatr/csatr_componentprefix.v.hpp:41:0: warning: TR05: globally visible identifier 'cool::csatr::BadStruct3' without component prefix
-groups/csa/csatr/csatr_componentprefix.v.hpp:47:0: warning: TR05: globally visible identifier 'cool::csatr::BadClass' without component prefix
+groups/csa/csatr/csatr_componentprefix.v.hpp:46:0: warning: TR05: globally visible identifier 'cool::csatr::BadStruct3' without component prefix
+groups/csa/csatr/csatr_componentprefix.v.hpp:52:0: warning: TR05: globally visible identifier 'cool::csatr::BadClass' without component prefix
         class BadClass
 ^
-groups/csa/csatr/csatr_componentprefix.v.hpp:54:0: warning: TR05: globally visible identifier 'cool::csatr::BadTemplate' without component prefix
+groups/csa/csatr/csatr_componentprefix.v.hpp:59:0: warning: TR05: globally visible identifier 'cool::csatr::BadTemplate' without component prefix
         template <class>
 ^
-groups/csa/csatr/csatr_componentprefix.v.hpp:62:0: warning: TR05: globally visible identifier 'cool::csatr::badTemplate' without component prefix
+groups/csa/csatr/csatr_componentprefix.v.hpp:67:0: warning: TR05: globally visible identifier 'cool::csatr::badTemplate' without component prefix
         template <class>
 ^
-groups/csa/csatr/csatr_componentprefix.v.hpp:69:0: warning: TR17: function 'badFunction' declared at global scope
+groups/csa/csatr/csatr_componentprefix.v.hpp:74:0: warning: TR17: function 'badFunction' declared at global scope
         int badFunction()
 ^
-groups/csa/csatr/csatr_componentprefix.v.hpp:69:0: warning: TR05: globally visible identifier 'cool::csatr::badFunction' without component prefix
-groups/csa/csatr/csatr_componentprefix.v.hpp:75:0: warning: TR17: variable 'badVariable' declared at global scope
+groups/csa/csatr/csatr_componentprefix.v.hpp:74:0: warning: TR05: globally visible identifier 'cool::csatr::badFunction' without component prefix
+groups/csa/csatr/csatr_componentprefix.v.hpp:80:0: warning: TR17: variable 'badVariable' declared at global scope
         int badVariable(0);
 ^
-groups/csa/csatr/csatr_componentprefix.v.hpp:75:0: warning: TR05: globally visible identifier 'cool::csatr::badVariable' without component prefix
-groups/csa/csatr/csatr_componentprefix.v.hpp:77:0: warning: TR17: enum 'ComponentPrefixGoodEnum' declared at global scope
+groups/csa/csatr/csatr_componentprefix.v.hpp:80:0: warning: TR05: globally visible identifier 'cool::csatr::badVariable' without component prefix
+groups/csa/csatr/csatr_componentprefix.v.hpp:82:0: warning: TR17: enum 'ComponentPrefixGoodEnum' declared at global scope
         enum ComponentPrefixGoodEnum
 ^
-groups/csa/csatr/csatr_componentprefix.v.hpp:79:0: warning: TR05: globally visible identifier 'cool::csatr::ComponentPrefixGoodEnum::badGoodEnumTag' without component prefix
+groups/csa/csatr/csatr_componentprefix.v.hpp:84:0: warning: TR05: globally visible identifier 'cool::csatr::ComponentPrefixGoodEnum::badGoodEnumTag' without component prefix
             badGoodEnumTag,
 ^
-groups/csa/csatr/csatr_componentprefix.v.hpp:83:0: warning: TR17: typedef 'ComponentPrefixGoodTypedef' declared at global scope
+groups/csa/csatr/csatr_componentprefix.v.hpp:88:0: warning: TR17: typedef 'ComponentPrefixGoodTypedef' declared at global scope
         typedef BadEnum ComponentPrefixGoodTypedef;
 ^
-groups/csa/csatr/csatr_componentprefix.v.hpp:123:0: warning: TR17: function 'componentPrefixGoodFunction' declared at global scope
+groups/csa/csatr/csatr_componentprefix.v.hpp:128:0: warning: TR17: function 'componentPrefixGoodFunction' declared at global scope
         int componentPrefixGoodFunction()
 ^
-groups/csa/csatr/csatr_componentprefix.v.hpp:129:0: warning: TR17: variable 'componentPrefixGoodVariable' declared at global scope
+groups/csa/csatr/csatr_componentprefix.v.hpp:134:0: warning: TR17: variable 'componentPrefixGoodVariable' declared at global scope
         int componentPrefixGoodVariable(0);
 ^
-groups/csa/csatr/csatr_componentprefix.v.hpp:63:0: warning: TR17: function 'badTemplate' declared at global scope
+groups/csa/csatr/csatr_componentprefix.v.hpp:68:0: warning: TR17: function 'badTemplate' declared at global scope
         int badTemplate()
 ^
-groups/csa/csatr/csatr_componentprefix.v.hpp:63:0: warning: TR05: globally visible identifier 'cool::csatr::badTemplate' without component prefix
-groups/csa/csatr/csatr_componentprefix.v.hpp:117:0: warning: TR17: function 'componentPrefixGoodTemplate' declared at global scope
+groups/csa/csatr/csatr_componentprefix.v.hpp:68:0: warning: TR05: globally visible identifier 'cool::csatr::badTemplate' without component prefix
+groups/csa/csatr/csatr_componentprefix.v.hpp:122:0: warning: TR17: function 'componentPrefixGoodTemplate' declared at global scope
         int componentPrefixGoodTemplate()
 ^
 26 warnings generated.

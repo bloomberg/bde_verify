@@ -80,7 +80,11 @@ static void
 check(cool::csabase::Analyser& analyser, clang::InitListExpr const* expr)
 {
     clang::Type const* type(expr->getType().getTypePtr());
-    if (type->isConstantArrayType())
+    if (type->isConstantArrayType()
+#if !defined(CLANG_29)
+        && !expr->isStringLiteralInit()
+#endif
+        )
     {
         clang::ConstantArrayType const* array(analyser.context()->getAsConstantArrayType(expr->getType()));
         if (0u < expr->getNumInits()

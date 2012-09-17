@@ -16,6 +16,12 @@
 
 // -----------------------------------------------------------------------------
 
+namespace clang
+{
+    class SourceLocation;
+    class SourceManager;
+}
+
 namespace cool
 {
     namespace csabase
@@ -37,7 +43,9 @@ private:
 
 public:
     Location();
-    Location(std::string const& file, size_t line, size_t column);
+    Location(clang::SourceManager const& manager,
+             clang::SourceLocation location);
+    // Location(std::string const& file, size_t line, size_t column);
 
     std::string file() const;
     size_t      line() const;

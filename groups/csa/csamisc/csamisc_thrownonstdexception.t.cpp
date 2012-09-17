@@ -6,7 +6,7 @@
 // -----------------------------------------------------------------------------
 
 #include "csamisc_thrownonstdexception.t.hpp"
-#ident "$Id$"
+#include <bdes_ident.h>
 
 #include <exception>
 

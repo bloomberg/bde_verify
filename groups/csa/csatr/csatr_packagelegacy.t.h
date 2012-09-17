@@ -2,6 +2,12 @@
 
 #ifndef INCLUDED_CSATR_PACKAGELEGACY
 #define INCLUDED_CSATR_PACKAGELEGACY
+#if !defined(INCLUDED_BDES_IDENT)
+#  include <bdes_ident.h>
+#endif
+#ifndef INCLUDED_CSASCM_VERSION
+#  include <csascm_version.h>
+#endif
 
 namespace cool
 {

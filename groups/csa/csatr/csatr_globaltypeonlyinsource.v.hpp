@@ -7,7 +7,12 @@
 
 #ifndef INCLUDED_CSATR_GLOBALTYPEONLYINSOURCE
 #define INCLUDED_CSATR_GLOBALTYPEONLYINSOURCE 1
-#ident "$Id$"
+#if !defined(INCLUDED_BDES_IDENT)
+#  include <bdes_ident.h>
+#endif
+#ifndef INCLUDED_CSASCM_VERSION
+#  include <csascm_version.h>
+#endif
 
 // ----------------------------------------------------------------------------
 

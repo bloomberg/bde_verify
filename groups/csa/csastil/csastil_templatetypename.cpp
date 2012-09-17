@@ -34,12 +34,4 @@ checkTemplate(cool::csabase::Analyser& analyser,
 
 // ----------------------------------------------------------------------------
 
-static void
-checkRecord(cool::csabase::Analyser& analyser, clang::CXXRecordDecl const* decl)
-{
-    ::checkTemplate(analyser, decl->getDescribedClassTemplate());
-}
-
-// ----------------------------------------------------------------------------
-        
 static cool::csabase::RegisterCheck register_check(check_name, &::checkTemplate);

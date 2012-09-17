@@ -1,0 +1,29 @@
+In file included from groups/csa/csastil/csastil_externalguards.t.cpp:3:
+groups/csa/csastil/csastil_externalguards.t.h:13:0: warning: SEG: include guard mismatching include file
+#ifndef INCLUDED_CSASCMVERSION
+^
+groups/csa/csastil/csastil_externalguards.t.h:23:0: warning: SEG: include guard mismatching include file
+#if !defined INCLUDED_BDES_IDENT
+^
+groups/csa/csastil/csastil_externalguards.t.h:26:0: warning: SEG: include guard mismatching include file
+#if !defined(INCLUDED_BDES_IDENT)
+^
+groups/csa/csastil/csastil_externalguards.t.h:29:0: warning: SEG: include guard mismatching include file
+#ifndef INCLUDED_BDES_IDENT
+^
+groups/csa/csastil/csastil_externalguards.t.h:32:0: warning: SEG: include guard without include file
+#ifndef INCLUDED_BDES_IDENT
+^
+groups/csa/csastil/csastil_externalguards.t.h:35:0: warning: SEG: include guard without include file
+#ifndef INCLUDED_BDES_IDENT
+^
+groups/csa/csastil/csastil_externalguards.t.h:38:0: warning: SEG: include guard without include file
+#ifndef INCLUDED_BDES_IDENT
+^
+groups/csa/csastil/csastil_externalguards.t.h:40:0: warning: SEG: include without external include guard
+#include <bdes_ident.h>
+^
+groups/csa/csastil/csastil_externalguards.t.h:42:0: warning: SEG: include without external include guard
+#  include <bdes_ident.h>
+^
+9 warnings generated.

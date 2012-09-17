@@ -1,3 +1,4 @@
 groups/csa/csatr/csatr1_packname.t.cpp:1:0: warning: TR02: component 'csatr1_packname' doesn't seems to be in package 'csatr1'
+// csatr1_packname.t.cpp                                              -*-C++-*-
 ^
 1 warning generated.

@@ -6,7 +6,7 @@
 // -----------------------------------------------------------------------------
 
 #include "csamisc_selfinitialization.t.hpp"
-#ident "$Id$"
+#include <bdes_ident.h>
 
 int main()
 {

@@ -7,9 +7,16 @@
 
 #if !defined(INCLUDED_CSATR_FRIENDSHIP)
 #define INCLUDED_CSATR_FRIENDSHIP 1
-#ident "$Id$"
+#if !defined(INCLUDED_BDES_IDENT)
+#  include <bdes_ident.h>
+#endif
+#ifndef INCLUDED_CSASCM_VERSION
+#  include <csascm_version.h>
+#endif
 
+#ifndef INCLUDED_CSATR_EXTERNFRIENDSHIP
 #include "csatr_externfriendship.t.hpp"
+#endif
 
 namespace cool
 {
@@ -70,6 +77,13 @@ namespace cool
             friend class friendship_GoodDeclared::Nested;
             template <class T>
             friend void friendship_GoodDeclared::g(T);
+        };
+
+        class FriendshipLocal
+        {
+        private:
+            struct PImpl;
+            friend struct PImpl;
         };
     }
 }

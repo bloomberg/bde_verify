@@ -7,6 +7,11 @@
 
 #if ! defined ( INCLUDED_CSAMISC_INCLUDEGUARD )
 #define INCLUDED_CSAMISC_INCLUDEGUARD 1
-#ident "$Id$"
+#if !defined(INCLUDED_BDES_IDENT)
+#  include <bdes_ident.h>
+#endif
+#ifndef INCLUDED_CSASCM_VERSION
+#  include <csascm_version.h>
+#endif
 
 #endif

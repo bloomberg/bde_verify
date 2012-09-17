@@ -11,7 +11,7 @@ use strict;
 
 my $debug    = "";
 my $compiler = "clang";
-my $version  = "3.1";
+my $version  = "SVN";
 my $tool     = "";
 my $config   = "";
 

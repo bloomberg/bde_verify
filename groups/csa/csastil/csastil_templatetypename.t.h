@@ -2,6 +2,12 @@
 
 #if !defined(INCLUDED_CSASTIL_TEMPLATETYPENAME)
 #define INCLUDED_CSASTIL_TEMPLATETYPENAME
+#if !defined(INCLUDED_BDES_IDENT)
+#  include <bdes_ident.h>
+#endif
+#ifndef INCLUDED_CSASCM_VERSION
+#  include <csascm_version.h>
+#endif
 
 namespace cool
 {

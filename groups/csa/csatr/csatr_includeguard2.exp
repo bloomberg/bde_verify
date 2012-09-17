@@ -1,3 +1,4 @@
 groups/csa/csatr/csatr_includeguard2.t.cpp:4:0: warning: TR14: missing define for include guard
+#include <bdes_ident.h>
 ^
 1 warning generated.

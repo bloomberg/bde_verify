@@ -1,3 +1,6 @@
 groups/csa/csatr/csatr_includeguard3.t.cpp:4:0: warning: TR14: missing test for include guard
 ^
-1 warning generated.
+groups/csa/csatr/csatr_includeguard3.t.cpp:3:0: warning: SHO: missing include for bdes_ident.h
+#include "csatr_includeguard3.t.h"
+^
+2 warnings generated.

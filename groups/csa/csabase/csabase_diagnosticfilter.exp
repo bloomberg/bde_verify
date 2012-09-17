@@ -1,8 +1,8 @@
 In file included from groups/csa/csabase/csabase_diagnosticfilter.t.cpp:8:
-groups/csa/csabase/csabase_diagnosticfilter.t.hpp:30:0: warning: address of stack memory associated with local variable 'value' returned
+groups/csa/csabase/csabase_diagnosticfilter.t.hpp:37:0: warning: address of stack memory associated with local variable 'value' returned
     return &value;
 ^~~~~
-groups/csa/csabase/csabase_diagnosticfilter.t.cpp:15:0: warning: address of stack memory associated with local variable 'value' returned
+groups/csa/csabase/csabase_diagnosticfilter.t.cpp:16:0: warning: address of stack memory associated with local variable 'value' returned
     return &value;
 ^~~~~
 2 warnings generated.

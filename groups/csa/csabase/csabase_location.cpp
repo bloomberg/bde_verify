@@ -6,6 +6,8 @@
 // -----------------------------------------------------------------------------
 
 #include <csabase_location.h>
+#include <clang/Basic/SourceLocation.h>
+#include <clang/Basic/SourceManager.h>
 #include <ostream>
 #ident "$Id$"
 
@@ -18,12 +20,32 @@ cool::csabase::Location::Location()
 {
 }
 
+cool::csabase::Location::Location(clang::SourceManager const& manager,
+                                  clang::SourceLocation       location)
+    : d_file()
+    , d_line(0)
+    , d_column(0)
+{
+    clang::PresumedLoc loc(manager.getPresumedLoc(location));
+    char const* filename(loc.getFilename());
+    if (filename) {
+        this->d_file   = filename;
+        this->d_line   = loc.getLine();
+        this->d_column = loc.getColumn();
+    }
+    else {
+        this->d_file = "<unknown>";
+    }
+}
+
+#if 0
 cool::csabase::Location::Location(std::string const& file, size_t line, size_t column)
     : d_file(file)
     , d_line(line)
     , d_column(column)
 {
 }
+#endif
 
 // -----------------------------------------------------------------------------
 

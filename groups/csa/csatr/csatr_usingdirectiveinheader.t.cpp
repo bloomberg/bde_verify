@@ -6,7 +6,7 @@
 // ----------------------------------------------------------------------------
 
 #include "csatr_usingdirectiveinheader.t.hpp"
-#ident "$Id$"
+#include <bdes_ident.h>
 
 using namespace cool;
 namespace cool

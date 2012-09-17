@@ -7,6 +7,7 @@
 
 #include <csabase_ppobserver.h>
 #include <csabase_debug.h>
+#include <csabase_location.h>
 #include <clang/Basic/FileManager.h>
 #include <clang/Basic/SourceManager.h>
 #include <llvm/Support/raw_ostream.h>

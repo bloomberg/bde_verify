@@ -6,7 +6,7 @@
 // ----------------------------------------------------------------------------
 
 #include "csatr_usingdeclarationinheader.t.hpp"
-#ident "$Id$"
+#include <bdes_ident.h>
 
 using cool::csamisc::foo;
 namespace cool

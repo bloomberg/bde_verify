@@ -6,6 +6,7 @@
 // -----------------------------------------------------------------------------
 
 #include "csamisc_constantreturn.t.hpp"
+#include <bdes_ident.h>
 
 int cool::csamisc::constantreturn::f()
 {

@@ -6,7 +6,7 @@
 // -----------------------------------------------------------------------------
 
 #include "csamisc_verifysameargumentnames.t.hpp"
-#ident "$Id$"
+#include <bdes_ident.h>
 
 namespace cool
 {

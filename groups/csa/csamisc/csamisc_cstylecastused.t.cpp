@@ -6,7 +6,7 @@
 // -----------------------------------------------------------------------------
 
 #include "csamisc_cstylecastused.t.hpp"
-#ident "$Id$"
+#include <bdes_ident.h>
 
 namespace cool
 {

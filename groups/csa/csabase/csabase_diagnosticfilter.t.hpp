@@ -7,8 +7,15 @@
 
 #if !defined(INCLUDED_CSABASE_DIAGNOSTICFILTER)
 #define INCLUDED_CSABASE_DIAGNOSTICFILTER 1
-#ident "$Id$"
-#include "csabase_diagnosticfilterextra.hpp"
+#if !defined(INCLUDED_BDES_IDENT)
+#  include <bdes_ident.h>
+#endif
+#ifndef INCLUDED_CSASCM_VERSION
+#  include <csascm_version.h>
+#endif
+#ifndef INCLUDED_CSABASE_DIAGNOSTICFILTEREXTRA
+#  include "csabase_diagnosticfilterextra.hpp"
+#endif
 
 // ----------------------------------------------------------------------------
 

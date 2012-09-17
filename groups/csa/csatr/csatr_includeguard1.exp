@@ -1,5 +1,16 @@
 In file included from groups/csa/csatr/csatr_includeguard1.t.cpp:3:
 groups/csa/csatr/csatr_includeguard1.t.h:3:0: warning: TR14: wrong name for include guard (expected 'INCLUDED_CSATR_INCLUDEGUARD1')
-#ifndef INCLUDED_CSATR_INCLUDEGUARD
+#ifndef INCLUDED_CSATR_INCLUDEGUARD0
 ^
-1 warning generated.
+groups/csa/csatr/csatr_includeguard1.t.h:3:0: warning: SEG: include guard without include file
+#ifndef INCLUDED_CSATR_INCLUDEGUARD0
+^
+groups/csa/csatr/csatr_includeguard1.t.h:3:0: warning: SHO: header without or with wrong include guard
+#ifndef INCLUDED_CSATR_INCLUDEGUARD0
+^
+groups/csa/csatr/csatr_includeguard1.t.h:3:0: warning: SHO: missing include for bdes_ident.h
+groups/csa/csatr/csatr_includeguard1.t.h:3:0: warning: SHO: missing include for csascm_version.h
+groups/csa/csatr/csatr_includeguard1.t.cpp:4:0: warning: SHO: bdes_ident.h is used inconsistently with the header
+#include <bdes_ident.h>
+^
+6 warnings generated.

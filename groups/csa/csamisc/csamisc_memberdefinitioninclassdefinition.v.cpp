@@ -6,7 +6,7 @@
 // -----------------------------------------------------------------------------
 
 #include "csamisc_memberdefinitioninclassdefinition.v.hpp"
-#ident "$Id$"
+#include <bdes_ident.h>
 
 void cool::csamisc::memberdefinitioninclassdefinition_foo::g()
 {

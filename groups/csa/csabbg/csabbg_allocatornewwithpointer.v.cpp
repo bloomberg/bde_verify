@@ -6,8 +6,8 @@
 // -----------------------------------------------------------------------------
 
 #include "csabbg_allocatornewwithpointer.v.hpp"
+#include <bdes_ident.h>
 #include "bslma_allocator.h"
-#ident "$Id$"
 
 // -----------------------------------------------------------------------------
 

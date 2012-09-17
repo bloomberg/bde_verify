@@ -29,6 +29,7 @@ namespace clang
 {
     class CompilerInstance;
     class Sema;
+    class SourceManager;
 }
 
 namespace cool
@@ -98,6 +99,7 @@ public:
 
     clang::NamedDecl* lookup_name(std::string const& name);
     clang::TypeDecl*  lookup_type(std::string const& name);
+    bool hasContext() const { return this->context_; }
 
 private:
     Analyser(cool::csabase::Analyser const&);
@@ -106,6 +108,7 @@ private:
     std::auto_ptr<cool::csabase::Config>  d_config;
     std::string                           tool_name_;
     clang::CompilerInstance&              compiler_;
+    clang::SourceManager const&           d_source_manager;
     std::auto_ptr<cool::csabase::Visitor> visitor_;
     cool::csabase::PPObserver*            pp_observer_;
     clang::ASTContext*                    context_;

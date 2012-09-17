@@ -1,6 +1,7 @@
 // csatr_entityrestrictions.t.cpp                                     -*-C++-*-
 
 #include "csatr_entityrestrictions.t.h"
+#include <bdes_ident.h>
 
 namespace cool
 {

@@ -6,6 +6,7 @@
 // -----------------------------------------------------------------------------
 
 #include "csamisc_arrayinitialization.t.hpp"
+#include <bdes_ident.h>
 
 namespace cool
 {
@@ -58,4 +59,10 @@ int main(int ac, char* av[])
     cool::csamisc::t   array17[5] = { cool::csamisc::t() };
     cool::csamisc::t   array18[5] = { cool::csamisc::t(1) };
     cool::csamisc::t   array19[5] = { cool::csamisc::t(1), cool::csamisc::t() };
+
+    int const  array20[] = { 0, 1 };
+    char const array21[] = "foobar";
+    char       array22[] = "foobar";
+    char const array23[] = { "foobar" };
+    char       array24[] = { "foobar" };
 }

@@ -7,7 +7,12 @@
 
 #if !defined(INCLUDED_CSABBG_ALLOCATORFORWARD)
 #define INCLUDED_CSABBG_ALLOCATORFORWARD 1
-#ident "$Id$"
+#if !defined(INCLUDED_BDES_IDENT)
+#  include <bdes_ident.h>
+#endif
+#ifndef INCLUDED_CSASCM_VERSION
+#  include <csascm_version.h>
+#endif
 
 // -----------------------------------------------------------------------------
 

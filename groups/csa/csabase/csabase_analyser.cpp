@@ -34,11 +34,12 @@ cool::csabase::Analyser::Analyser(clang::CompilerInstance& compiler,
     : d_config(new cool::csabase::Config(config.empty()? ".coolyser": config))
     , tool_name_(name)
     , compiler_(compiler)
+    , d_source_manager(this->compiler_.getSourceManager())
     , visitor_(new cool::csabase::Visitor())
     , pp_observer_(0)
     , context_(0)
 {
-    std::auto_ptr<cool::csabase::PPObserver> observer(new cool::csabase::PPObserver(&this->compiler_.getSourceManager()));
+    std::auto_ptr<cool::csabase::PPObserver> observer(new cool::csabase::PPObserver(&this->d_source_manager));
     this->pp_observer_ = observer.get();
     cool::csabase::CheckRegistry::attach(*this, *this->visitor_, *observer);
 #if defined(CLANG_SVN)
@@ -264,7 +265,7 @@ cool::csabase::Analyser::report(clang::SourceLocation where, std::string const& 
     // if (always || location.file().find(this->prefix_) == 0)
     if (always || this->is_component(location.file()))
     {
-        clang::FullSourceLoc location(where, this->compiler_.getSourceManager());
+        clang::FullSourceLoc location(where, this->d_source_manager);
 #if !defined(CLANG_29)
         unsigned int id(this->compiler_.getDiagnostics().getCustomDiagID(clang::DiagnosticsEngine::Warning,
                                                                          this->tool_name() + message));
@@ -282,7 +283,7 @@ cool::csabase::Analyser::report(clang::SourceLocation where, std::string const& 
 clang::SourceManager&
 cool::csabase::Analyser::manager()
 {
-    return this->context_->getSourceManager();
+    return this->compiler_.getSourceManager();
 }
 
 std::string
@@ -299,16 +300,7 @@ cool::csabase::Analyser::get_source(clang::SourceRange range)
 cool::csabase::Location
 cool::csabase::Analyser::get_location(clang::SourceLocation sl) const
 {
-    if (this->context_)
-    {
-        clang::PresumedLoc loc(this->context_->getSourceManager().getPresumedLoc(sl));
-        char const* filename(loc.getFilename());
-        return filename? cool::csabase::Location(filename, loc.getLine(), loc.getColumn()): cool::csabase::Location("", 0, 0);
-    }
-    else
-    {
-        return cool::csabase::Location();
-    }
+    return cool::csabase::Location(this->d_source_manager, sl);
 }
 
 cool::csabase::Location

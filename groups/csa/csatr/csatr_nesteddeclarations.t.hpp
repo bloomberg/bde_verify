@@ -7,9 +7,16 @@
 
 #if !defined(INCLUDED_CSATR_NESTEDDECLARATIONS)
 #define INCLUDED_CSATR_NESTEDDECLARATIONS 1
-#ident "$Id$"
+#if !defined(INCLUDED_BDES_IDENT)
+#  include <bdes_ident.h>
+#endif
+#ifndef INCLUDED_CSASCM_VERSION
+#  include <csascm_version.h>
+#endif
 
+#ifndef INCLUDED_CSATR_OTHERS
 #include "csatr_others.hpp"
+#endif
 
 // -----------------------------------------------------------------------------
 

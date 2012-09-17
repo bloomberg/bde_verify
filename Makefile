@@ -11,7 +11,7 @@ CLANGVER = 3.1
 LLVM     = /opt/swt/install/llvm-$(CLANGVER)-64
 COMPILER = g++
 
-CURRENT  = csastil/csastil_includeorder.t.cpp
+CURRENT  = csastil/csastil_externalguards.t.cpp
 
 #  ----------------------------------------------------------------------------
 
@@ -37,6 +37,8 @@ TSTCXXFILES +=                                                                \
         groups/csa/csastil/csastil_implicitctor.cpp                           \
         groups/csa/csastil/csastil_includeorder.cpp                           \
         groups/csa/csastil/csastil_templatetypename.cpp                       \
+        groups/csa/csastil/csastil_leakingmacro.cpp                           \
+        groups/csa/csastil/csastil_externalguards.cpp                         \
         groups/csa/csamisc/csamisc_charvsstring.cpp                           \
         groups/csa/csamisc/csamisc_arrayinitialization.cpp                    \
         groups/csa/csamisc/csamisc_anonymousnamespaceinheader.cpp             \
@@ -80,7 +82,6 @@ ifeq ($(SYSTEM),Darwin)
   COMPILER = clang
 endif
 ECHON    = echo
-# CLANGVER = SVN
 
 ifeq ($(CLANGVER),2.9)
   CPPFLAGS += -DCLANG_29
