@@ -18,9 +18,9 @@ namespace CB = cool::csabase;
 // ----------------------------------------------------------------------------
 
 CB::DiagnosticFilter::DiagnosticFilter(CB::Analyser const& analyser,
-                                       clang::DiagnosticOptions const& options)
+                                       clang::DiagnosticOptions & options)
     : d_options(&options)
-    , d_client(new clang::TextDiagnosticPrinter(llvm::errs(), options))
+    , d_client(new clang::TextDiagnosticPrinter(llvm::errs(), d_options))
     , d_analyser(&analyser)
 {
 }

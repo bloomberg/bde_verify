@@ -101,6 +101,14 @@ cool::csabase::PPObserver::do_skip_file(std::string const& from, std::string con
 }
 
 void
+cool::csabase::PPObserver::do_file_not_found(std::string const& file)
+{
+    std::string msg("do_file_not_found(" + file + ")");
+    cool::csabase::Debug d(msg.c_str());
+    this->onFileNotFound(file);
+}
+
+void
 cool::csabase::PPObserver::do_other_file(std::string const& file, clang::PPCallbacks::FileChangeReason reason)
 {
     std::string msg("do_other_file '" + file + "'");
@@ -123,21 +131,25 @@ cool::csabase::PPObserver::do_pragma(clang::SourceLocation location, std::string
 }
 
 void
-cool::csabase::PPObserver::do_macro_expands(clang::Token const& token, clang::MacroInfo const* macro)
+cool::csabase::PPObserver::do_macro_expands(clang::Token const&          token,
+                                            const clang::MacroDirective *macro)
 {
     cool::csabase::Debug d("do_macro_expands");
     this->onMacroExpands(token, macro);
 }
 
 void
-cool::csabase::PPObserver::do_macro_defined(clang::Token const& token, clang::MacroInfo const* macro)
+cool::csabase::PPObserver::do_macro_defined(clang::Token const&          token,
+                                            const clang::MacroDirective *macro)
 {
     cool::csabase::Debug d("do_macro_defined");
     this->onMacroDefined(token, macro);
 }
 
 void
-cool::csabase::PPObserver::do_macro_undefined(clang::Token const& token, clang::MacroInfo const* macro)
+cool::csabase::PPObserver::do_macro_undefined(
+                                            clang::Token const&          token,
+                                            const clang::MacroDirective *macro)
 {
     cool::csabase::Debug d("do_macro_undefined");
     this->onMacroUndefined(token, macro);
@@ -208,18 +220,11 @@ cool::csabase::PPObserver::do_context()
 // -----------------------------------------------------------------------------
 
 void
-cool::csabase::PPObserver::FileChanged(clang::SourceLocation location,
-                               clang::PPCallbacks::FileChangeReason reason,
-                               clang::SrcMgr::CharacteristicKind kind,
-                               clang::FileID)
-{
-    this->FileChanged(location, reason, kind);
-}
-
-void
-cool::csabase::PPObserver::FileChanged(clang::SourceLocation location,
-                               clang::PPCallbacks::FileChangeReason reason,
-                               clang::SrcMgr::CharacteristicKind kind)
+cool::csabase::PPObserver::FileChanged(
+                                 clang::SourceLocation                location,
+                                 clang::PPCallbacks::FileChangeReason reason,
+                                 clang::SrcMgr::CharacteristicKind    kind,
+                                 clang::FileID                        prev)
 {
     if (this->connected_)
     {
@@ -268,6 +273,16 @@ cool::csabase::PPObserver::FileSkipped(clang::FileEntry const& file, clang::Toke
 
 // -----------------------------------------------------------------------------
 
+bool
+cool::csabase::PPObserver::FileNotFound(llvm::StringRef name,
+                                        llvm::SmallVectorImpl<char>& path)
+{
+    this->do_file_not_found(name);
+    return false;
+}
+
+// -----------------------------------------------------------------------------
+
 void
 cool::csabase::PPObserver::Ident(clang::SourceLocation location, std::string const& ident)
 {
@@ -283,7 +298,37 @@ cool::csabase::PPObserver::PragmaComment(clang::SourceLocation location, clang::
 }
 
 void
-cool::csabase::PPObserver::PragmaMessage(clang::SourceLocation location, llvm::StringRef value)
+cool::csabase::PPObserver::PragmaDebug(clang::SourceLocation Loc,
+                                       llvm::StringRef       DebugType)
+{
+}
+
+void
+cool::csabase::PPObserver::PragmaDiagnosticPush(
+                                               clang::SourceLocation Loc,
+                                               llvm::StringRef       Namespace)
+{
+}
+
+void
+cool::csabase::PPObserver::PragmaDiagnosticPop(clang::SourceLocation Loc,
+                                               llvm::StringRef       Namespace)
+{
+}
+
+void
+cool::csabase::PPObserver::PragmaDiagnostic(clang::SourceLocation Loc,
+                                            llvm::StringRef       Namespace,
+                                            clang::diag::Mapping  Mapping,
+                                            llvm::StringRef       Str)
+{
+}
+
+void
+cool::csabase::PPObserver::PragmaMessage(clang::SourceLocation location,
+                                         llvm::StringRef       nmspc,
+                                         PragmaMessageKind     kind,
+                                         llvm::StringRef       value)
 {
     this->do_pragma(location, value);
 }
@@ -291,103 +336,84 @@ cool::csabase::PPObserver::PragmaMessage(clang::SourceLocation location, llvm::S
 // -----------------------------------------------------------------------------
 
 void
-cool::csabase::PPObserver::MacroExpands(clang::Token const& token, clang::MacroInfo const* macro)
+cool::csabase::PPObserver::MacroExpands(clang::Token const&          token,
+                                        const clang::MacroDirective *macro,
+                                        clang::SourceRange           range,
+                                        const clang::MacroArgs      *args)
 {
     this->do_macro_expands(token, macro);
 }
 
 void
-cool::csabase::PPObserver::MacroDefined(clang::Token const& token, clang::MacroInfo const* macro)
+cool::csabase::PPObserver::MacroDefined(clang::Token const&          token,
+                                        const clang::MacroDirective *macro)
 {
     this->do_macro_defined(token, macro);
 }
 
 void
-cool::csabase::PPObserver::MacroUndefined(clang::Token const& token, clang::MacroInfo const* macro)
+cool::csabase::PPObserver::MacroUndefined(clang::Token const&          token,
+                                          const clang::MacroDirective *macro)
 {
     this->do_macro_undefined(token, macro);
 }
 
-// ----------------------------------------------------------------------------
-
 void
-cool::csabase::PPObserver::If(clang::SourceRange range)
+cool::csabase::PPObserver::Defined(const clang::Token&          token,
+                                   const clang::MacroDirective *macro)
 {
-    this->do_if(clang::SourceLocation(), range);
 }
 
 void
-cool::csabase::PPObserver::Elif(clang::SourceRange range)
+cool::csabase::PPObserver::SourceRangeSkipped(clang::SourceRange range)
 {
-    this->do_elif(clang::SourceLocation(), range);
-}
-
-void
-cool::csabase::PPObserver::Ifdef(clang::Token const& token)
-{
-    this->do_ifdef(clang::SourceLocation(), token);
-}
-
-void
-cool::csabase::PPObserver::Ifndef(clang::Token const& token)
-{
-    this->do_ifndef(clang::SourceLocation(), token);
-}
-
-void
-cool::csabase::PPObserver::Else()
-{
-    this->do_else(clang::SourceLocation(), clang::SourceLocation());
-}
-
-void
-cool::csabase::PPObserver::Endif()
-{
-    this->do_endif(clang::SourceLocation(), clang::SourceLocation());
 }
 
 // ----------------------------------------------------------------------------
 
 void
-cool::csabase::PPObserver::If(clang::SourceLocation where,
-                              clang::SourceRange range)
+cool::csabase::PPObserver::If(clang::SourceLocation loc,
+                              clang::SourceRange    range)
 {
-    this->do_if(where, range);
+    this->do_if(loc, range);
 }
 
 void
-cool::csabase::PPObserver::Elif(clang::SourceLocation where,
-                                clang::SourceRange range)
+cool::csabase::PPObserver::Elif(clang::SourceLocation loc,
+                                clang::SourceRange    range,
+                                clang::SourceLocation ifloc)
 {
-    this->do_elif(where, range);
+    this->do_elif(loc, range);
 }
 
 void
-cool::csabase::PPObserver::Ifdef(clang::SourceLocation where,
-                                 clang::Token const& token)
+cool::csabase::PPObserver::Ifdef(clang::SourceLocation        loc,
+                                 clang::Token const&          token,
+                                 const clang::MacroDirective *md)
 {
-    this->do_ifdef(where, token);
+    this->do_ifdef(loc, token);
 }
 
 void
-cool::csabase::PPObserver::Ifndef(clang::SourceLocation where,
-                                  clang::Token const& token)
+cool::csabase::PPObserver::Ifndef(clang::SourceLocation        loc,
+                                  clang::Token const&          token,
+                                  const clang::MacroDirective *md)
 {
-    this->do_ifndef(where, token);
+    this->do_ifndef(loc, token);
 }
 
 void
-cool::csabase::PPObserver::Else(clang::SourceLocation where,
-                                clang::SourceLocation what)
+cool::csabase::PPObserver::Else(clang::SourceLocation loc,
+                                clang::SourceLocation ifloc)
 {
-    this->do_else(where, what);
+    this->do_else(loc, ifloc);
 }
 
 void
-cool::csabase::PPObserver::Endif(clang::SourceLocation where,
-                                 clang::SourceLocation what)
+cool::csabase::PPObserver::Endif(clang::SourceLocation loc,
+                                 clang::SourceLocation ifloc)
 {
-    this->do_endif(where, what);
+    this->do_endif(loc, ifloc);
 }
 
 // ----------------------------------------------------------------------------
@@ -405,27 +431,24 @@ cool::csabase::PPObserver::Context()
 }
 
 void
-cool::csabase::PPObserver::InclusionDirective(clang::SourceLocation HashLoc,
-                                      clang::Token const& IncludeTok,
-                                      llvm::StringRef FileName,
-                                      bool IsAngled,
-                                      clang::FileEntry const* File,
-                                      clang::SourceLocation EndLoc,
-                                      llvm::StringRef,
-                                      llvm::StringRef)
-{
-    this->InclusionDirective(HashLoc, IncludeTok, FileName, IsAngled, File, EndLoc);
-}
-
-void
-cool::csabase::PPObserver::InclusionDirective(clang::SourceLocation HashLoc,
-                                      clang::Token const& IncludeTok,
-                                      llvm::StringRef FileName,
-                                      bool IsAngled,
-                                      clang::FileEntry const* File,
-                                      clang::SourceLocation EndLoc)
+cool::csabase::PPObserver::InclusionDirective(
+                                         clang::SourceLocation   HashLoc,
+                                         const clang::Token&     IncludeTok,
+                                         llvm::StringRef         FileName,
+                                         bool                    IsAngled,
+                                         clang::CharSourceRange  FilenameRange,
+                                         const clang::FileEntry *File,
+                                         llvm::StringRef         SearchPath,
+                                         llvm::StringRef         RelativePath,
+                                         const clang::Module    *Imported)
 {
     this->do_include_file(HashLoc, IsAngled, FileName);
     //-dk:TODO make constructive use of this...
 }
 
+void
+cool::csabase::PPObserver::moduleImport(clang::SourceLocation  ImportLoc,
+                                        clang::ModuleIdPath    Path,
+                                        const clang::Module   *Imported)
+{
+}

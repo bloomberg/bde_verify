@@ -95,7 +95,7 @@ namespace
                     struct stat indirect;
                     if (::stat(expect.c_str(), &indirect) || direct.st_ino != indirect.st_ino) {
                         analyser.report(where, ::check_name,
-                                        "TR02: component '%0' doesn't seems to be in package '%1'",
+                                        "TR02: component '%0' doesn't seem to be in package '%1'",
                                         true)
                             << component
                             << package

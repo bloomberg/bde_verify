@@ -116,7 +116,7 @@ namespace
                 data.d_test = true;
             }
         }
-        void operator()(clang::Token const& token, clang::MacroInfo const*) const
+        void operator()(clang::Token const& token, clang::MacroDirective const*) const
         {
             ::include_guard& data(this->d_analyser->attachment< ::include_guard>());
             if (this->d_analyser->is_component_header(token.getLocation())

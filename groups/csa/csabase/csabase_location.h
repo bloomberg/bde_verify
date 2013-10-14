@@ -29,6 +29,8 @@ namespace cool
         class Location;
         llvm::raw_ostream& operator<< (llvm::raw_ostream&, Location const&);
         std::ostream& operator<< (std::ostream&, Location const&);
+        bool operator== (Location const&, Location const&);
+        bool operator!= (Location const&, Location const&);
     }
 }
 

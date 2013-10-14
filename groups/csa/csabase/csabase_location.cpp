@@ -68,11 +68,27 @@ cool::csabase::Location::column() const
 }
 
 bool
-cool::csabase::Location::operator< (cool::csabase::Location const& location) const
+cool::csabase::Location::operator< (cool::csabase::Location const& rhs) const
 {
-    return this->d_file != location.d_file? this->d_file < location.d_file
-        :  this->d_line != location.d_line? this->d_line < location.d_line
-        :  this->d_column < location.d_column;
+    if (d_file < rhs.d_file) {
+        return true;
+    }
+    if (rhs.d_file < d_file) {
+        return false;
+    }
+    if (d_line < rhs.d_line) {
+        return true;
+    }
+    if (rhs.d_line < d_line) {
+        return false;
+    }
+    if (d_column < rhs.d_column) {
+        return true;
+    }
+    if (rhs.d_column < d_column) {
+        return false;
+    }
+    return false;
 }
 
 // -----------------------------------------------------------------------------
@@ -89,4 +105,26 @@ std::ostream&
 cool::csabase::operator<< (std::ostream& out, cool::csabase::Location const& loc)
 {
     return out << loc.file() << ":" << loc.line() << ":" << loc.column();
+}
+
+// -----------------------------------------------------------------------------
+
+bool
+cool::csabase::operator==(cool::csabase::Location const& a,
+                          cool::csabase::Location const& b)
+{
+    return a.file()   == b.file()
+        && a.line()   == b.line()
+        && a.column() == b.column();
+}
+
+// -----------------------------------------------------------------------------
+
+bool
+cool::csabase::operator!=(cool::csabase::Location const& a,
+                          cool::csabase::Location const& b)
+{
+    return a.file()   != b.file()
+        || a.line()   != b.line()
+        || a.column() != b.column();
 }

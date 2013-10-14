@@ -38,7 +38,8 @@ member_definition_in_class_definition(cool::csabase::Analyser& analyser, clang::
         && (!ctor || !ctor->isImplicit())
         && (!dtor || !dtor->isImplicit())
         && !analyser.attachment< ::member_definition>().reported_[decl->getCanonicalDecl()]
-        && !analyser.is_test_driver())
+        && !analyser.is_test_driver()
+        && !decl->getLocStart().isMacroID())
     {
         analyser.report(decl, check_name, "member function '%0' is defined in the class definition.")
             << decl->getQualifiedNameAsString();

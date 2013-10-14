@@ -7,7 +7,7 @@
 
 #if !defined(INCLUDED_CSABBG_ALLOCATORFORWARD)
 #define INCLUDED_CSABBG_ALLOCATORFORWARD 1
-#if !defined(INCLUDED_BDES_IDENT)
+#ifndef INCLUDED_BDES_IDENT
 #  include <bdes_ident.h>
 #endif
 #ifndef INCLUDED_CSASCM_VERSION
@@ -18,7 +18,7 @@
 
 namespace BloombergLP
 {
-    class bslma_Allocator;
+    namespace bslma { class Allocator; }
 }
 
 namespace cool
@@ -42,10 +42,10 @@ class cool::csabbg::allocatorforward_alloc_unused
 class cool::csabbg::allocatorforward_alloc_used
 {
 public:
-    allocatorforward_alloc_used();
-    allocatorforward_alloc_used(int);
+    //allocatorforward_alloc_used();
+    //allocatorforward_alloc_used(int);
                                                                     // IMPLICIT
-    allocatorforward_alloc_used(int, BloombergLP::bslma_Allocator*);
+    allocatorforward_alloc_used(int = 0, BloombergLP::bslma::Allocator* = 0);
 };
 
 // -----------------------------------------------------------------------------

@@ -22,10 +22,10 @@ namespace cool
             {
             public:
                 test(int);                                          // IMPLICIT
-                test(int, BloombergLP::bslma_Allocator*);
-                test(bool, BloombergLP::bslma_Allocator*);
+                test(int, BloombergLP::bslma::Allocator*);
+                test(bool, BloombergLP::bslma::Allocator*);
             private:
-                BloombergLP::bslma_Allocator* allocator_;
+                BloombergLP::bslma::Allocator* allocator_;
                 cool::csabbg::allocatorforward_alloc_unused    unused_;
                 cool::csabbg::allocatorforward_alloc_used      used0_;
                 cool::csabbg::allocatorforward_alloc_used      used1_;
@@ -45,7 +45,7 @@ cool::csabbg::test::test(int i):
 
 // -----------------------------------------------------------------------------
 
-cool::csabbg::test::test(int i, BloombergLP::bslma_Allocator* alloc):
+cool::csabbg::test::test(int i, BloombergLP::bslma::Allocator* alloc):
     allocatorforward_alloc_used(i),
     used0_(i),
     used1_(i, alloc)
@@ -60,7 +60,7 @@ namespace cool
     {
         namespace
         {
-            int dummy(BloombergLP::bslma_Allocator* a)
+            int dummy(BloombergLP::bslma::Allocator* a)
             {
                 return a? 1: 0;
             }
@@ -68,7 +68,7 @@ namespace cool
     }
 }
 
-cool::csabbg::test::test(bool, BloombergLP::bslma_Allocator* alloc):
+cool::csabbg::test::test(bool, BloombergLP::bslma::Allocator* alloc):
     allocatorforward_alloc_used(-1, alloc),
     allocator_(alloc),
     used0_(cool::csabbg::dummy(alloc)),
@@ -89,8 +89,8 @@ namespace cool
             struct tbase
             {
                 tbase();
-                explicit tbase(BloombergLP::bslma_Allocator*);
-                tbase(int, BloombergLP::bslma_Allocator*);
+                explicit tbase(BloombergLP::bslma::Allocator*);
+                tbase(int, BloombergLP::bslma::Allocator*);
                 cool::csabbg::allocatorforward_alloc_unused unused_;
                 cool::csabbg::allocatorforward_alloc_used   used0_;
             };
@@ -101,12 +101,12 @@ namespace cool
             }
 
             template <class T>
-            tbase<T>::tbase(BloombergLP::bslma_Allocator*)
+            tbase<T>::tbase(BloombergLP::bslma::Allocator*)
             {
             }
 
             template <class T>
-            tbase<T>::tbase(int i, BloombergLP::bslma_Allocator* alloc):
+            tbase<T>::tbase(int i, BloombergLP::bslma::Allocator* alloc):
                 used0_(i, alloc)
             {
             }
@@ -118,6 +118,6 @@ void
 cool::csabbg::operator+(allocatorforward_alloc_used)
 {
     cool::csabbg::tbase<int> tb0;
-    cool::csabbg::tbase<int> tb1(static_cast<BloombergLP::bslma_Allocator*>(0));
-    cool::csabbg::tbase<int> tb2(2, static_cast<BloombergLP::bslma_Allocator*>(0));
+    cool::csabbg::tbase<int> tb1(static_cast<BloombergLP::bslma::Allocator*>(0));
+    cool::csabbg::tbase<int> tb2(2, static_cast<BloombergLP::bslma::Allocator*>(0));
 }

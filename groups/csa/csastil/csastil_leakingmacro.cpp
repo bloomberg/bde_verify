@@ -110,7 +110,7 @@ onCloseFile(cool::csabase::Analyser* analyser,
 static void
 onMacroDefined(cool::csabase::Analyser* analyser,
                clang::Token const&      token,
-               clang::MacroInfo const*  info)
+               clang::MacroDirective const*  info)
 {
     ::leaking_macro& context(analyser->attachment< ::leaking_macro>());
     std::string source(token.getIdentifierInfo()->getNameStart());
@@ -120,7 +120,7 @@ onMacroDefined(cool::csabase::Analyser* analyser,
 static void
 onMacroUndefined(cool::csabase::Analyser* analyser,
                  clang::Token const&      token,
-                 clang::MacroInfo const*  info)
+                 clang::MacroDirective const*  info)
 {
     ::leaking_macro& context(analyser->attachment< ::leaking_macro>());
     std::string source(token.getIdentifierInfo()->getNameStart());

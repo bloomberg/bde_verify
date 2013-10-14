@@ -16,6 +16,7 @@
 #include <clang/AST/DeclVisitor.h>
 #include <clang/Basic/SourceManager.h>
 #include <clang/Frontend/CompilerInstance.h>
+#include <clang/Lex/Lexer.h>
 #include <clang/Lex/Preprocessor.h>
 #include <clang/Sema/Sema.h>
 #include <clang/Sema/Lookup.h>
@@ -289,10 +290,13 @@ cool::csabase::Analyser::manager()
 std::string
 cool::csabase::Analyser::get_source(clang::SourceRange range)
 {
-    clang::SourceManager& manager(this->manager());
-    char const* begin(manager.getCharacterData(range.getBegin()));
-    char const* end(manager.getCharacterData(range.getEnd()));
-    return std::string(begin, end);
+    clang::SourceManager& sm(this->manager());
+    clang::SourceLocation b = sm.getExpansionLoc(range.getBegin());
+    clang::SourceLocation e = sm.getExpansionLoc(range.getEnd());
+    clang::SourceLocation t = sm.getExpansionLoc(
+            clang::Lexer::getLocForEndOfToken(e, 0, sm, clang::LangOptions()));
+    return std::string(sm.getCharacterData(b),
+                       sm.getCharacterData(t.isValid() ? t : e));
 }
 
 // -----------------------------------------------------------------------------

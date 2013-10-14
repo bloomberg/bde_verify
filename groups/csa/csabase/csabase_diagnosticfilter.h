@@ -39,7 +39,7 @@ class cool::csabase::DiagnosticFilter
 {
 public:
     DiagnosticFilter(cool::csabase::Analyser const& analyser,
-                     clang::DiagnosticOptions const& options);
+                     clang::DiagnosticOptions & options);
     ~DiagnosticFilter();
 
     void BeginSourceFile(clang::LangOptions const&  opts,
@@ -59,7 +59,7 @@ private:
     DiagnosticFilter(DiagnosticFilter const&);
     void operator=(DiagnosticFilter const&);
 
-    clang::DiagnosticOptions const*          d_options;
+    clang::DiagnosticOptions *               d_options;
 #if !defined(CLANG_29)
     std::auto_ptr<clang::DiagnosticConsumer> d_client;
 #else

@@ -84,8 +84,8 @@ if ($system ne "Linux" && $system ne "Darwin")
 
 my $version="3.1";
 my $shared = $script =~ /\/scripts\/bdechk/
-    ? "/home/dkuhl/src/coolyser/Linux-g++-$version/coolyser.so"
-    : "/home/dkuhl/bin/coolyser/Linux-g++-$version/coolyser.so";
+    ? "$HOME/src/coolyser/Linux-g++-$version/coolyser.so"
+    : "$HOME/bin/coolyser/Linux-g++-$version/coolyser.so";
 
 my @clangoptions = (
     "-cc1",
@@ -93,8 +93,8 @@ my @clangoptions = (
     "-plugin coolyse",
     "-plugin-arg-coolyse tool=bdechk",
     );
-my $checkcfg = "-plugin-arg-coolyse config=/home/dkuhl/bin/coolyser/bdechk.cfg";
-my $checktcfg = "-plugin-arg-coolyse config=/home/dkuhl/bin/coolyser/bdechk.t.cfg";
+my $checkcfg = "-plugin-arg-coolyse config=$HOME/bin/coolyser/bdechk.cfg";
+my $checktcfg = "-plugin-arg-coolyse config=$HOME/bin/coolyser/bdechk.t.cfg";
 
 my @bdeoptions = (
     "-fcxx-exceptions",
@@ -135,11 +135,11 @@ my @bdeoptions = (
     "-isystem /opt/swt/install/gcc-4.4.6/include/c++/4.4.6/x86_64-unknown-linux-gnu/32",
     "-isystem /opt/swt/install/gcc-4.4.6/include/c++/4.4.6/backward",
     "-I.",
-    #"-I/home16/dkuhl/src/git-bde/include/bsl",
-    #"-I/home16/dkuhl/src/git-bde/include/bde",
-    #"-I/home16/dkuhl/src/git-bde/include/bae",
-    #"-I/home16/dkuhl/src/git-bde/include/bce",
-    "-I/home16/dkuhl/src/git-bde/include/fixes",
+    #"-I$HOME/src/git-bde/include/bsl",
+    #"-I$HOME/src/git-bde/include/bde",
+    #"-I$HOME/src/git-bde/include/bae",
+    #"-I$HOME/src/git-bde/include/bce",
+    "-I$HOME/src/git-bde/include/fixes",
     "-I/bbsrc/source/proot/include/stlport",
     "-I/bbsrc/source/proot/include/00depbuild",
     "-I/bbsrc/source/proot/include/00deployed",
@@ -162,13 +162,13 @@ my @bdeoptions = (
 my $bdeflags = join(" ", @bdeoptions);
 
 my $llvm    = $system eq "Darwin"? "/opt/llvm": "/opt/swt/install/llvm-$version-64";
-my $home    = $system eq "Darwin"? "/Users/kuehl/src/cool/coolyser": "/home/dkuhl/bin/coolyser";
+my $home    = $system eq "Darwin"? "/Users/kuehl/src/cool/coolyser": "$HOME/bin/coolyser";
 my $lib     = "$home/$system-$compiler/coolyser.$suffix";
 my $flags   = "-I$llvm -I. -D_DEBUG -D_GNU_SOURCE -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS";
 $flags = $bdeflags;
 my $lflags  = "-fcxx-exceptions";
 my $cflags  = join(" ", @clangoptions);
-my $iflags  = "-I/home16/dkuhl/src/git-bde/include/fixes "
+my $iflags  = "-I$HOME/src/git-bde/include/fixes "
     . join(" ", grep { /^-I/ } @ARGV);
 my $uflags  = join(" ", grep { !/^-I/ } @ARGV);
 

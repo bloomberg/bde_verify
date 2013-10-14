@@ -12,8 +12,33 @@
 #include <csabase_debug.h>
 #include <llvm/Support/raw_ostream.h>
 #include <clang/AST/ExprCXX.h>
+#include <clang/Lex/Lexer.h>
 #include <map>
+#include <set>
 #ident "$Id: allocator_forward.cpp 161 2011-12-28 00:20:28Z kuehl $"
+
+using clang::CXXBindTemporaryExpr;
+using clang::CXXConstructExpr;
+using clang::CXXConstructorDecl;
+using clang::CXXCtorInitializer;
+using clang::CXXMethodDecl;
+using clang::CXXRecordDecl;
+using clang::Decl;
+using clang::Expr;
+using clang::FunctionDecl;
+using clang::MaterializeTemporaryExpr;
+using clang::ParmVarDecl;
+using clang::QualType;
+using clang::RecordDecl;
+using clang::RecordType;
+using clang::SourceLocation;
+using clang::SourceRange;
+using clang::TagDecl;
+using clang::Type;
+using clang::VarDecl;
+
+using cool::csabase::Analyser;
+using cool::csabase::RegisterCheck;
 
 // -----------------------------------------------------------------------------
 
@@ -25,202 +50,284 @@ namespace
 {
     struct allocator_info
     {
-        allocator_info():
-            bslma_allocator_(0)
-        {
-        }
+        QualType bslma_allocator_;
+        std::set<const Type*> takes_allocator_;
+        std::set<std::pair<const Expr*, const Decl*> > bad_cexp_;
 
-        clang::TypeDecl* bslma_allocator_;
-        std::map<void const*, bool> uses_allocator_;
+        void set_takes_allocator(const Type* type);
+        bool takes_allocator(const Type* type) const;
     };
+
+    void allocator_info::set_takes_allocator(const Type* type)
+    {
+        takes_allocator_.insert(type->getCanonicalTypeInternal().getTypePtr());
+    }
+
+    bool allocator_info::takes_allocator(const Type* type) const
+    {
+        return takes_allocator_.count(
+                                type->getCanonicalTypeInternal().getTypePtr());
+    }
 }
 
 // -----------------------------------------------------------------------------
 
-static clang::TypeDecl*
-get_bslma_allocator(cool::csabase::Analyser& analyser)
+static QualType
+get_bslma_allocator(Analyser& analyser)
 {
-    ::allocator_info& info(analyser.attachment< ::allocator_info>());
-    if (!info.bslma_allocator_)
-    {
-        info.bslma_allocator_ = analyser.lookup_type("::BloombergLP::bslma_Allocator"); 
-    }
-    return info.bslma_allocator_;
-}
-
-// -----------------------------------------------------------------------------
-
-namespace
-{
-    bool
-    is_allocator(clang::QualType bslma_allocator, clang::ParmVarDecl* parameter)
-    {
-        return parameter->getType()->isPointerType()
-            && bslma_allocator == parameter->getType()->getPointeeType()->getCanonicalTypeInternal();
-    }
-
-    void
-    print_parameter(clang::ParmVarDecl* parameter)
-    {
-#if 0
-        //-dk:TODO remove
-        llvm::errs() << "parameter "
-                     << "name=" << parameter->getName() << " "
-                     << "type=" << parameter->getType().getAsString() << " "
-                     << "\n";
-#endif
-    }
+    return analyser.attachment<allocator_info>().bslma_allocator_;
 }
 
 // -----------------------------------------------------------------------------
 
 static bool
-uses_allocator(cool::csabase::Analyser& analyser, clang::CXXConstructorDecl const* decl)
+is_allocp(QualType allocator, QualType type)
+    // Return 'true' iff the specified 'type' is a pointer to the specified
+    // 'allocator'.
 {
-    clang::TypeDecl* bslma_allocator_type(::get_bslma_allocator(analyser));
-    if (!bslma_allocator_type
-        || !bslma_allocator_type->getTypeForDecl())
-    {
-        return false;
+    return type->isPointerType() &&
+           type->getPointeeType()->getCanonicalTypeInternal() == allocator;
+}
+
+static bool
+is_allocator(QualType allocator, const ParmVarDecl* parameter)
+    // Return 'true' iff the type of the specified 'parameter' is pointer to
+    // the specified 'allocator'.
+{
+    return is_allocp(allocator, parameter->getType());
+}
+
+static bool
+takes_allocator(Analyser& analyser, CXXConstructorDecl const* constructor)
+    // Return 'true' if the specified 'constructor' has parameters and its last
+    // one is an allocator pointer.
+{
+    unsigned n = constructor->getNumParams();
+    return n > 0
+        && is_allocator(get_bslma_allocator(analyser),
+                        constructor->getParamDecl(n - 1));
+}
+
+static bool
+last_arg_is_explicit(const CXXConstructExpr* call)
+    // Return 'false' iff the specified 'call' to a constructor has arguments
+    // and the last argument is the default rather than explicitly passed.
+{
+    if (call) {
+        unsigned n = call->getNumArgs();
+        return n == 0 || !call->getArg(n - 1)->isDefaultArgument();   // RETURN
     }
-    clang::QualType bslma_allocator(bslma_allocator_type->getTypeForDecl()->getCanonicalTypeInternal());
+    return true;
+}
+
+// -----------------------------------------------------------------------------
+
+static void
+find_allocator(Analyser& analyser, TagDecl const* decl)
+    // Callback to set up the type "::BloombergLP::bslma::Allocator";
+{
+    static const std::string allocator = "BloombergLP::bslma::Allocator";
+    if (allocator == decl->getQualifiedNameAsString()) {
+        analyser.attachment<allocator_info>().bslma_allocator_ =
+                            decl->getTypeForDecl()->getCanonicalTypeInternal();
+    }
+}
+
+// -----------------------------------------------------------------------------
+
+static void
+check_wrong_parm(Analyser& analyser, const CXXConstructExpr* expr)
+    // Check for constructor calls in which an explicitly passed allocator
+    // argument initializes a non-allocator parameter.  The canonical case is
+    //..
+    //    struct X {
+    //        bdef_Function<void(*)()> d_f;
+    //        X(const bdef_Function<void(*)()>& f, bslma::Allocator *a = 0);
+    //    };
+    //    X x(bslma::Default::defaultAllocator());
+    //..
+    // typically occurring when a bdef_Function member is added to a class
+    // which did not have one.
+{
+    allocator_info& info(analyser.attachment<allocator_info>());
+    QualType bslma_allocator = get_bslma_allocator(analyser);
+
+    const CXXConstructorDecl* decl = expr->getConstructor();
+    unsigned n = expr->getNumArgs();
+    const ParmVarDecl* lastp;
+    const Expr* lastarg;
+
+    // For the problem to possibly occur, we need each of the following:
+    //: 1 The constructor has at least two parameters.
+    //:
+    //: 2 The constructor and the constructor expression have the same number
+    //:   of parameters/arguments. (I believe this will always be true.)
+    //:
+    //: 3 The final constructor parameter has a default argument.
+    //:
+    //: 4 The final constructor argument expression is the default argument.
+    //:
+    //: 5 The type of the final constructor parameter is pointer to allocator.
+
+    if (   n >= 2
+        && decl->getNumParams() == n
+        && (lastp = decl->getParamDecl(n - 1))->hasDefaultArg()
+        && (lastarg = expr->getArg(n - 1))->isDefaultArgument()
+        && is_allocp(bslma_allocator, lastp->getType())) {
+
+        // The error will be that the second-to-last parameter is initialized
+        // by the allocator.
+
+        const ParmVarDecl* allocp = decl->getParamDecl(n - 1);
+        const ParmVarDecl* wrongp = decl->getParamDecl(n - 2);
+
+        // Descend into the expression, looking for a conversion from an
+        // allocator.  The details of this come from an examination of the type
+        // structure when a test case exhibiting the problem is encountered. We
+        // use a loop because elements of the descent can repeat.
+
+        const Expr* arg = expr->getArg(n - 2);
+        for (;;) {
+            if (const MaterializeTemporaryExpr* mte =
+                               llvm::dyn_cast<MaterializeTemporaryExpr>(arg)) {
+                arg = mte->GetTemporaryExpr();
+                continue;
+            }
+
+            if (const CXXBindTemporaryExpr* bte =
+                                   llvm::dyn_cast<CXXBindTemporaryExpr>(arg)) {
+                arg = bte->getSubExpr();
+                continue;
+            }
+
+            if (const CXXConstructExpr* ce =
+                                       llvm::dyn_cast<CXXConstructExpr>(arg)) {
+                unsigned i;
+                for (i = ce->getNumArgs(); i > 0; --i) {
+                    const Expr* carg = ce->getArg(i - 1);
+                    if (!carg->isDefaultArgument()) {
+                        // Get the rightmost non-defaulted argument expression.
+                        arg = carg->IgnoreImpCasts();
+                        break;
+                    }
+                }
+                if (0 < i && i < ce->getNumArgs()) {
+                    decl = expr->getConstructor();
+                    allocp = decl->getParamDecl(i);
+                    wrongp = decl->getParamDecl(i - 1);
+                    continue;
+                }
+            }
+
+            // At this point, we should have stripped off all the outer layers
+            // of the argument expression which are performing the conversion
+            // to the parameter type, and have the inner expression with its
+            // actual type.  If that type is pointer-to-allocator, report the
+            // problem if it is new.
+
+            if (   is_allocp(bslma_allocator, arg->getType())
+                && !info.bad_cexp_.count(std::make_pair(arg, decl))) {
+                analyser.report(arg->getExprLoc(), check_name, "AAP: "
+                                "allocator argument initializes non-allocator "
+                                "parameter '%0' of type '%1' rather than "
+                                "allocator parameter '%2'")
+                    << wrongp->getName()
+                    << wrongp->getType().getAsString()
+                    << allocp->getName()
+                    << arg->getSourceRange();
+                info.bad_cexp_.insert(std::make_pair(arg, decl));
+            }
+            
+            break;  // Done.
+        }
+    }
+}
+
+// -----------------------------------------------------------------------------
+
+static void
+check_not_forwarded(Analyser& analyser, CXXConstructorDecl const* decl)
+    // Check whether the specified constructor 'decl' has an allocator
+    // parameter but fails to forward it to base class and member constructors
+    // which have allocator parameters.
+{
+    QualType bslma_allocator(get_bslma_allocator(analyser));
+    if (bslma_allocator.isNull()) {
+        // We have not seen the declaration for the allocator yet, so this
+        // constructor cannot be using it.
+        return;                                                       // RETURN
+    }
+
+    if (!takes_allocator(analyser, decl)) {
+        // This constructor does not have a final allocator pointer parameter.
+        return;                                                       // RETURN
+    }
+
+    // Record that the class type of the constructor takes an allocator.
+    allocator_info& info(analyser.attachment<allocator_info>());
+    const Type* classType =
+                       decl->getParent()->getCanonicalDecl()->getTypeForDecl();
+    info.set_takes_allocator(classType);
+
+    if (!decl->hasBody()) {
+        return;                                                       // RETURN
+    }
     
-    std::for_each(decl->param_begin(), decl->param_end(), ::print_parameter);
-    return std::find_if(decl->param_begin(), decl->param_end(), std::bind1st(std::ptr_fun(::is_allocator), bslma_allocator))
-        != decl->param_end();
-}
+    // The allocator parameter is the last one.
+    const ParmVarDecl* palloc = decl->getParamDecl(decl->getNumParams() - 1);
 
-// -----------------------------------------------------------------------------
+    // Iterate through the base and member initializers and report those which
+    // take an allocator parameter that we do not pass.
 
-#if 0
-static void
-print_ctor(cool::csabase::Analyser* analyser, clang::CXXConstructorDecl const* decl)
-{
-#if 0
-    //-dk:TODO remove
-    analyser->report(decl, ::check_name, "ctor template-kind=%0 copy-ctor=%1")
-        << decl->getTemplatedKind()
-        << decl->isCopyConstructor();
-#endif
-    std::for_each(decl->param_begin(), decl->param_end(), ::print_parameter);
-}
+    CXXConstructorDecl::init_const_iterator itr = decl->init_begin();
+    CXXConstructorDecl::init_const_iterator end = decl->init_end();
+    while (itr != end) {
+        const CXXCtorInitializer* init = *itr++;
 
-static void
-print_method(cool::csabase::Analyser* analyser, clang::CXXMethodDecl const* decl)
-{
-#if 0
-    //-dk:TODO remove
-    analyser->report(decl, ::check_name, "method template-kind=%0")
-        << decl->getTemplatedKind();
-#endif
-    std::for_each(decl->param_begin(), decl->param_end(), ::print_parameter);
-}
-#endif
+        // Type of object being initialized.
+        const Type* type = init->isBaseInitializer()
+                         ? init->getBaseClass()
+                         : init->getAnyMember()->getType().getTypePtr();
 
-static bool
-uses_allocator(cool::csabase::Analyser& analyser, clang::CXXRecordDecl const* record)
-{
-#if 0
-    //-dk:TODO remove
-    llvm::errs() << "cxx-record "
-                 << "name=" << record->getName() << " "
-                 << "\n";
-#endif
-    //std::for_each(record->ctor_begin(), record->ctor_end(),
-    //              std::bind1st(std::ptr_fun(::print_ctor), &analyser));
-    //std::for_each(record->method_begin(), record->method_end(),
-    //              std::bind1st(std::ptr_fun(::print_method), &analyser));
-    return false;
-}
-
-// -----------------------------------------------------------------------------
-
-static void
-check(cool::csabase::Analyser& analyser, clang::CXXConstructorDecl const* decl)
-{
-    bool uses_allocator(::uses_allocator(analyser, decl));
-#if 0
-    //-dk:TODO
-    llvm::errs() << "allocator forward "
-                 << "parent=" << decl->getParent()->getName() << " "
-                 << "body=" << decl->hasBody() << " "
-                 << "uses=" << uses_allocator << " "
-                 << "\n";
-#endif
-    if (uses_allocator)
-    {
-        ::allocator_info& info(analyser.attachment< ::allocator_info>());
-        clang::Type const* parent(decl->getParent()->getCanonicalDecl()->getTypeForDecl()->getCanonicalTypeInternal().getTypePtr());
-        info.uses_allocator_[parent] = true;
-    }
-
-    if (uses_allocator && decl->hasBody())
-    {
-        ::allocator_info& info(analyser.attachment< ::allocator_info>());
-        clang::QualType bslma_allocator(get_bslma_allocator(analyser)->getTypeForDecl()->getCanonicalTypeInternal());
-        clang::FunctionDecl::param_const_iterator pit(std::find_if(decl->param_begin(), decl->param_end(),
-                                                                   std::bind1st(std::ptr_fun(::is_allocator), bslma_allocator)));
-        clang::VarDecl const* var(*pit);
-        clang::CXXRecordDecl const* cxx_record(decl->getParent());
-        for (clang::RecordDecl::field_iterator fit(cxx_record->field_begin()), fend(cxx_record->field_end()); fit != fend; ++fit)
-        {
-            clang::Type const* type(fit->getType().getCanonicalType().getTypePtr());
-
-#if 0
-            //-dk:TODO
-            llvm::errs() << "field=" << fit->getName() << " "
-                         << "type=" << fit->getType().getAsString() << " "
-                         << "type-class=" << cool::csabase::format(type->getTypeClass()) << " "
-                         << "uses=" << info.uses_allocator_[type] << " "
-                         << "\n";
-#endif
-            if (fit->getType().getCanonicalType()->getTypeClass() == clang::Type::Record)
-            {
-                clang::RecordType const* record_type(llvm::dyn_cast<clang::RecordType>(type));
-                clang::RecordDecl const* record_decl(record_type? record_type->getDecl(): 0);
-                clang::CXXRecordDecl const* cxx_record_decl(llvm::dyn_cast<clang::CXXRecordDecl>(record_decl));
-                if (cxx_record_decl)
-                {
-                    ::uses_allocator(analyser, cxx_record_decl);
-                }
-            }
+        if (!info.takes_allocator(type)) {
+            // This type doesn't take an allocator.
+            continue;
         }
 
-        for (clang::CXXConstructorDecl::init_const_iterator it(decl->init_begin()), end(decl->init_end()); it != end; ++it)
-        {
-            //clang::QualType qual_type((*it)->isBaseInitializer()
-            //                           ? (*it)->getBaseClass()->getCanonicalTypeInternal()
-            //                           : (*it)->getAnyMember()->getType()->getCanonicalTypeInternal());
-            //-dk:TODO remove analyser.report(decl, ::check_name, "type name=%0") << qual_type;
-            clang::Type const* type((*it)->isBaseInitializer()
-                                    ? (*it)->getBaseClass()->getCanonicalTypeInternal().getTypePtr()
-                                    : (*it)->getAnyMember()->getType()->getCanonicalTypeInternal().getTypePtr());
-            if (info.uses_allocator_[type])
-            {
-                clang::CXXConstructExpr* ctor_expr(llvm::dyn_cast<clang::CXXConstructExpr>((*it)->getInit()));
-                if (ctor_expr && !::uses_allocator(analyser, ctor_expr->getConstructor()))
-                {
-                    //-dk:TODO locate the definition of the constructor!
-                    clang::SourceLocation loc((*it)->isWritten() ? ctor_expr->getExprLoc() : decl->getLocation());
-                    clang::SourceRange range((*it)->isWritten()? (*it)->getSourceRange(): var->getSourceRange());
-                    if ((*it)->isBaseInitializer())
-                    {
-                        analyser.report(loc, check_name, "allocator not passed to base %0")
-                            << (*it)->getBaseClass()->getCanonicalTypeInternal().getAsString() << range;
+        const CXXConstructExpr* ctor_expr =
+                             llvm::dyn_cast<CXXConstructExpr>(init->getInit());
 
-                    }
-                    else
-                    {
-                        analyser.report(loc, check_name, "allocator not passed to member %0")
-                            << (*it)->getAnyMember()->getNameAsString()
-                            << range;
-                    }
-                }
-            }
+        if (last_arg_is_explicit(ctor_expr)) {
+            // The allocator parameter is passed.
+            continue;
+        }
+
+        SourceLocation loc;
+        SourceRange range;
+
+        if (init->isWritten()) {
+            loc = ctor_expr->getExprLoc();
+            range = init->getSourceRange();
+        } else {
+            loc = decl->getLocation();
+            range = palloc->getSourceRange();
+        }
+
+        if (init->isBaseInitializer()) {
+            analyser.report(loc, check_name,
+                            "AFW: allocator not passed to base %0")
+                << init->getBaseClass()->getCanonicalTypeInternal().
+                                                        getAsString() << range;
+        } else {
+            analyser.report(loc, check_name,
+                            "AFW: allocator not passed to member %0")
+                << init->getAnyMember()->getNameAsString() << range;
         }
     }
 }
 
 // -----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck registerCheck(check_name, &::check);
+static RegisterCheck c1(check_name, &find_allocator);
+static RegisterCheck c2(check_name, &check_not_forwarded);
+static RegisterCheck c3(check_name, &check_wrong_parm);

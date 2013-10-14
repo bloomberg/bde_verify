@@ -7,11 +7,15 @@
 # $Id$
 
 default:  check-current
-CLANGVER = 3.1
-LLVM     = /opt/swt/install/llvm-$(CLANGVER)-64
-COMPILER = g++
+CLANGVER = 3.3
+LLVMINC  = -I/home/hrosen4/mbig/llvm/include -I/home/hrosen4/mbig/build/include
+CLANGINC = -I/home/hrosen4/mbig/llvm/tools/clang/include -I/home/hrosen4/mbig/build/tools/clang/include
+LLVMLIB  = /home/hrosen4/mbig/build/Release+Asserts/lib
+CLANG    = /home/hrosen4/mbig/build/Release+Asserts/bin/clang
+COMPILER = clang
 
-CURRENT  = csastil/csastil_externalguards.t.cpp
+# CURRENT  = csastil/csastil_externalguards.t.cpp
+CURRENT  = csabbg/csabbg_allocatorforward.t.cpp
 
 #  ----------------------------------------------------------------------------
 
@@ -20,6 +24,7 @@ TARGET = coolyser
 TSTCXXFILES +=                                                                \
         groups/csa/csabbg/csabbg_allocatorforward.cpp                         \
         groups/csa/csabbg/csabbg_allocatornewwithpointer.cpp                  \
+        groups/csa/csabbg/csabbg_midreturn.cpp                                \
         groups/csa/csafmt/csafmt_headline.cpp                                 \
         groups/csa/csatr/csatr_groupname.cpp                                  \
         groups/csa/csatr/csatr_componentprefix.cpp                            \
@@ -46,6 +51,7 @@ TSTCXXFILES +=                                                                \
         groups/csa/csamisc/csamisc_cstylecastused.cpp                         \
         groups/csa/csamisc/csamisc_constantreturn.cpp                         \
         groups/csa/csamisc/csamisc_contiguousswitch.cpp                       \
+        groups/csa/csamisc/csamisc_longinline.cpp                            \
         groups/csa/csamisc/csamisc_memberdefinitioninclassdefinition.cpp      \
         groups/csa/csamisc/csamisc_thrownonstdexception.cpp                   \
         groups/csa/csamisc/csamisc_verifysameargumentnames.cpp                \
@@ -78,49 +84,25 @@ LIBCXXFILES +=                                                                \
 # -----------------------------------------------------------------------------
 
 SYSTEM   = $(shell uname -s)
-ifeq ($(SYSTEM),Darwin)
-  COMPILER = clang
-endif
 ECHON    = echo
+CPPFLAGS += -DCLANG_SVN
+PFLAGS   = -Wno-string-plus-int
+CXXFLAGS += -fvisibility-inlines-hidden 
+LDLIBS   += -lclangEdit
+PFLAGS   = -Wno-string-plus-int
 
-ifeq ($(CLANGVER),2.9)
-  CPPFLAGS += -DCLANG_29
-endif
-ifeq ($(CLANGVER),3.1)
-  CPPFLAGS += -DCLANG_31
-endif
-ifeq ($(SYSTEM),Darwin)
-  LLVM     = /opt/llvm
-  ifeq ($(CLANGVER),2.9)
-    LLVM     = /opt/llvm-2.9
-  endif
-  ifeq ($(CLANGVER),3.1)
-    LLVM     = /opt/llvm-3.1
-    PFLAGS   = -Wno-string-plus-int
-  endif
-  ifeq ($(CLANGVER),SVN)
-    CPPFLAGS += -DCLANG_SVN
-    CXXFLAGS += -fvisibility-inlines-hidden 
-    LDLIBS   += -lclangEdit
-    PFLAGS   = -Wno-string-plus-int
-  endif
-endif
-
-CLANG    = $(LLVM)/bin/clang
 SOSUFFIX = so
-CXX      = g++
-ifeq ($(COMPILER),clang)
 CXX      = $(CLANG)
-endif
 LINK     = $(CXX)
 OBJ      = $(SYSTEM)-$(COMPILER)-$(CLANGVER)
+#DEBUG    = on
 DEBUG    = off
-ifeq ($(DEBUG),off)
-  VERBOSE  = @
-endif
+#VERBOSE  =
+VERBOSE  = @
+# STD      = CXX2011
 REDIRECT = $(VERBOSE:@=>/dev/null 2>&1)
 
-INCFLAGS = -I$(LLVM)/include -I.
+INCFLAGS = $(LLVMINC) $(CLANGINC) -I.
 DEFFLAGS = -D_DEBUG -D_GNU_SOURCE -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS
 ifeq ($(STD),CXX2011)
   STDFLAGS = -std=c++0x -DCOOL_CXX2011
@@ -129,8 +111,8 @@ CPPFLAGS += $(INCFLAGS) $(DEFFLAGS) $(STDFLAGS)
 CPPFLAGS += -Igroups/csa/csabase -Igroups/csa/csadep
 CPPFLAGS += -Iinclude
 # PFLAGS   += -fdiagnostics-show-option
-PFLAGS   += -fcxx-exceptions
-CXXFLAGS += -g -fno-exceptions -fno-rtti -fno-common -fno-strict-aliasing
+# PFLAGS   += -fcxx-exceptions
+CXXFLAGS += -g -fno-common -fno-strict-aliasing -fno-exceptions -fno-rtti
 WARNFLAGS = \
         -Wcast-qual \
         -Wno-long-long \
@@ -139,11 +121,9 @@ WARNFLAGS = \
         -Wno-unused-parameter \
         -Wno-overloaded-virtual \
         -Wwrite-strings
-LDFLAGS = -L$(LLVM)/lib
+LDFLAGS = -L$(LLVMLIB) -g
 
-ifeq ($(CLANGVER),3.1)
 LDLIBS += -lclangEdit
-endif
 LDLIBS += \
         -lclangFrontend \
         -lclangDriver \
@@ -159,21 +139,9 @@ LDLIBS += \
         -lpthread \
         -lm 
 
-ifeq ($(SYSTEM),Linux)
-  CXXFLAGS += -fpic
-  LDFLAGS  += -shared
-  LDLIBS   += -ldl
-endif
-ifeq ($(SYSTEM),SunOS)
-  CXXFLAGS += -R -fpic
-  LDFLAGS  += -Wl,-undefined -m64 -Wl,-G
-endif
-ifeq ($(SYSTEM),Darwin)
-  SOSUFFIX = dylib
-  ECHON    = /bin/echo -n
-  LDFLAGS  += -Wl,-undefined,dynamic_lookup -dynamiclib
-  LDFLAGS  += -mmacosx-version-min=10.6
-endif
+CXXFLAGS += -fpic
+LDFLAGS  += -shared
+LDLIBS   += -ldl
 
 PLUGIN   = -cc1 -load $(OBJ)/$(TARGET).$(SOSUFFIX) \
            -plugin coolyse -plugin-arg-coolyse config=test.cfg
@@ -202,7 +170,6 @@ check: check-all
 	@echo '*** SUCCESS ***'
 
 check-all: $(OBJ)/$(TARGET).$(SOSUFFIX)
-	@ \
 	success=1; \
 	for f in `find groups -name \*.[vt].cpp -or -name \*test.cpp`; \
 	do \
@@ -214,7 +181,7 @@ check-all: $(OBJ)/$(TARGET).$(SOSUFFIX)
 	    echo OK; \
 	  else \
 	    success=0; \
-            echo "\x1b[31mfail\x1b[0m"; \
+            echo -e "\x1b[31mfail\x1b[0m"; \
 	  fi; \
 	done; \
 	[ $$success = 1 ]
@@ -246,4 +213,4 @@ depend $(OBJ)/make.depend:
 	$(VERBOSE) $(CXX) $(CPPFLAGS) -M $(LIBCXXFILES) \
            | scripts/fixdepend $(OBJ) > $(OBJ)/make.depend
 
-include $(OBJ)/make.depend
+           include $(OBJ)/make.depend

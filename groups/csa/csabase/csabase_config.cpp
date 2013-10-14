@@ -157,6 +157,21 @@ cool::csabase::Config::load(std::string const& original)
                 llvm::errs() << "WARNING: no file name given on line '" << line << "'\n";
             }
         }
+        else if (command == "set") {
+            std::string key;
+            if (args >> key) {
+                std::string value;
+                if (std::getline(args, value)) {
+                    this->d_values[key] = value;
+                }
+                else {
+                    llvm::errs() << "WARNING: set could not read value on line '" << line << "'\n";
+                }
+            }
+            else {
+                llvm::errs() << "WARNING: set needs name and value on line '" << line << "'\n";
+            }
+        }
         else if (command.empty() || command[0] != '#') {
             std::cout << "unknown configuration command='" << command << "' arguments='" << line << "'\n";
         }
@@ -176,4 +191,13 @@ std::map<std::string, cool::csabase::Config::Status> const&
 cool::csabase::Config::checks() const
 {
     return this->d_checks;
+}
+
+const std::string& cool::csabase::Config::value(const std::string& key) const
+{
+    static std::string empty;
+    if (d_values.find(key) != d_values.end()) {
+        return d_values.find(key)->second;
+    }
+    return empty;
 }

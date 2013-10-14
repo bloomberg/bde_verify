@@ -40,12 +40,14 @@ public:
     
     std::string const&                   toplevel_namespace() const;
     std::map<std::string, Status> const& checks() const;
+    std::string const&                   value(const std::string& key) const;
 
 private:
     std::string                                      d_toplevel_namespace;
     std::vector<std::string>                         d_loadpath;
     std::map<std::string, Status>                    d_checks;
     std::map<std::string, std::vector<std::string> > d_groups;
+    std::map<std::string, std::string>               d_values;
 };
 
 // -----------------------------------------------------------------------------

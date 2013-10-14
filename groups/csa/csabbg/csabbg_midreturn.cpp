@@ -1,0 +1,161 @@
+// csabbg_midreturn.cpp                                               -*-C++-*-
+// ----------------------------------------------------------------------------
+
+#include <csabase_analyser.h>
+#include <csabase_location.h>
+#include <csabase_ppobserver.h>
+#include <csabase_registercheck.h>
+#include <set>
+#include <string>
+#include <sstream>
+
+#ident "$Id$"
+
+// ----------------------------------------------------------------------------
+
+static std::string const check_name("mid-return");
+
+// ----------------------------------------------------------------------------
+
+using clang::CompoundStmt;
+using clang::ConstStmtRange;
+using clang::FunctionDecl;
+using clang::ReturnStmt;
+using clang::SourceLocation;
+using clang::SourceManager;
+using clang::SourceRange;
+using clang::Stmt;
+using cool::csabase::Analyser;
+using cool::csabase::Location;
+using cool::csabase::PPObserver;
+using cool::csabase::RegisterCheck;
+using cool::csabase::Visitor;
+
+namespace
+{
+
+// Data attached to analyzer for this check.
+struct data
+{
+    std::set<const Stmt*>    d_last_returns; // Last top-level 'return'
+    std::set<const Stmt*>    d_all_returns;  // All 'return' statements
+    std::set<SourceLocation> d_rcs;          // Suppression comments
+};
+
+// Callback object for inspecting comments.
+struct comments
+{
+    Analyser* d_analyser;
+
+    comments(Analyser& analyser) : d_analyser(&analyser) {}
+
+    void operator()(SourceRange range)
+    {
+        Location location(d_analyser->get_location(range.getBegin()));
+        if (d_analyser->is_component(location.file())) {
+            std::string comment(d_analyser->get_source(range));
+            if (comment == "// RETURN") {
+                d_analyser->attachment<data>().d_rcs.insert(range.getBegin());
+            }
+        }
+    }
+};
+
+// Callback function for inspecting return statements.
+void all_returns(Analyser& analyser, const ReturnStmt* ret)
+{
+    analyser.attachment<data>().d_all_returns.insert(ret);
+}
+
+// Function for searching for return statements.
+const ReturnStmt* last_return(ConstStmtRange s)
+{
+    const ReturnStmt* ret = 0;
+    for (; s; ++s) {
+        if (llvm::dyn_cast<CompoundStmt>(*s)) {
+            // Recurse into simple compound statements.
+            ret = last_return((*s)->children());
+        } else {
+            // Try to cast each statement to a ReturnStmt. Therefore 'ret'
+            // will only be non-zero if the final statement is a 'return'.
+            ret = llvm::dyn_cast<ReturnStmt>(*s);
+        }
+    }
+    return ret;
+}
+
+// Callback function for inspecting function declarations.
+void last_returns(Analyser& analyser, const FunctionDecl* func)
+{
+    // Process only function definitions, not declarations.
+    if (func->hasBody()) {
+        const ReturnStmt* ret = last_return(func->getBody()->children());
+        if (ret) {
+            analyser.attachment<data>().d_last_returns.insert(ret);
+        }
+    }
+}
+
+// Callback object invoked upon completeion.
+struct report
+{
+    Analyser* d_analyser;
+
+    report(Analyser& analyser) : d_analyser(&analyser) {}
+
+    void operator()()
+    {
+        const data& d = d_analyser->attachment<data>();
+        process_all_returns(d.d_all_returns.begin(), d.d_all_returns.end());
+    }
+
+    template <class IT>
+    void process_all_returns(IT begin, IT end)
+    {
+        const data& d = d_analyser->attachment<data>();
+        for (IT it = begin; it != end; ++it) {
+            // Ignore final top-level return statements.
+            if (!d.d_last_returns.count(*it)) {
+                if (!is_commented(*it, d.d_rcs.begin(), d.d_rcs.end())) {
+                    d_analyser->report(*it, check_name, "MFR: "
+                        "Mid-function 'return' requires '// RETURN' comment");
+                }
+            }
+        }
+    }
+
+    // Determine if a statement has a proper '// RETURN' comment.
+    template <class IT>
+    bool is_commented(const Stmt *stmt, IT comments_begin, IT comments_end)
+    {
+        SourceManager& m = d_analyser->manager();
+        for (IT it = comments_begin; it != comments_end; ++it) {
+            if (m.getPresumedLineNumber(*it) ==
+                m.getPresumedLineNumber(stmt->getLocEnd()) &&
+                m.getFileID(*it) == m.getFileID(stmt->getLocEnd())) {
+                if (m.getPresumedColumnNumber(*it) != 71) {
+                    std::ostringstream ss;
+                    ss << "MRE: '// RETURN' comment must end in column 79, "
+                       << "not " << (m.getPresumedColumnNumber(*it) + 8);
+                    d_analyser->report(*it, check_name, ss.str());
+                }
+                return true;
+            }
+        }
+        return false;
+    }
+};
+
+void subscribe(Analyser& analyser, Visitor&, PPObserver& observer)
+{
+    analyser.onTranslationUnitDone += report(analyser);
+    observer.onComment += comments(analyser);
+}
+
+}  // close anonymous namespace
+
+// ----------------------------------------------------------------------------
+
+static RegisterCheck c1(check_name, &last_returns);
+static RegisterCheck c2(check_name, &all_returns);
+static RegisterCheck c3(check_name, &subscribe);
