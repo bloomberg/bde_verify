@@ -82,11 +82,87 @@ set_status(std::map<std::string, cool::csabase::Config::Status>&   checks,
 
 // ----------------------------------------------------------------------------
 
-cool::csabase::Config::Config(std::string const& name):
-    d_toplevel_namespace("BloombergLP")
+cool::csabase::Config::Config(std::string const& name)
+: d_toplevel_namespace("BloombergLP")
+, d_all(on)
 {
     //-dk:TODO load global and user configuration?
     this->load(name);
+}
+
+void
+cool::csabase::Config::process(std::string const& line)
+{
+    std::string command;
+    std::istringstream args(line);
+    if (!(args >> command >> std::ws)) {
+    }
+    else if (command == "namespace") {
+        std::string name;
+        if (args >> name) {
+            this->d_toplevel_namespace = name;
+        }
+        else {
+            llvm::errs() << "WARNING: couldn't read namespace name from '" << line << "'\n";
+        }
+    }
+    else if (command == "all") {
+        cool::csabase::Config::Status status;
+        if (args >> status) {
+            d_all = status;
+        }
+        else {
+            llvm::errs() << "WARNING: couldn't read 'all' configuration from '" << line << "'\n";
+        }
+    }
+    else if (command == "check") {
+        std::string                   check;
+        cool::csabase::Config::Status status;
+        if (args >> check >> status) {
+            std::vector<std::string> path;
+            ::set_status(this->d_checks, this->d_groups, check, status, path);
+        }
+        else {
+            llvm::errs() << "WARNING: couldn't read check configuration from '" << line << "'\n";
+        }
+    }
+    else if (command == "group") {
+        std::string name;
+        if (args >> name) {
+            this->d_groups[name].assign(std::istream_iterator<std::string>(args),
+                    std::istream_iterator<std::string>());
+        }
+        else {
+            llvm::errs() << "WARNING: a group needs at least a name on line '" << line << "'\n";
+        }
+    }
+    else if (command == "load") {
+        std::string name;
+        if (args >> name) {
+            this->load(name);
+        }
+        else {
+            llvm::errs() << "WARNING: no file name given on line '" << line << "'\n";
+        }
+    }
+    else if (command == "set") {
+        std::string key;
+        if (args >> key) {
+            std::string value;
+            if (std::getline(args, value)) {
+                this->d_values[key] = value;
+            }
+            else {
+                llvm::errs() << "WARNING: set could not read value on line '" << line << "'\n";
+            }
+        }
+        else {
+            llvm::errs() << "WARNING: set needs name and value on line '" << line << "'\n";
+        }
+    }
+    else if (command.empty() || command[0] != '#') {
+        std::cout << "unknown configuration command='" << command << "' arguments='" << line << "'\n";
+    }
 }
 
 void
@@ -114,67 +190,9 @@ cool::csabase::Config::load(std::string const& original)
 
     this->d_loadpath.push_back(file);
     std::ifstream in(file.c_str());
-    for (std::string command, line; std::getline(in, line); ) {
-        std::istringstream args(line);
-        if (!(args >> command >> std::ws)) {
-        }
-        else if (command == "namespace") {
-            std::string name;
-            if (args >> name) {
-                this->d_toplevel_namespace = name;
-            }
-            else {
-                llvm::errs() << "WARNING: couldn't read namespace name from '" << line << "'\n";
-            }
-        }
-        else if (command == "check") {
-            std::string                   check;
-            cool::csabase::Config::Status status;
-            if (args >> check >> status) {
-                std::vector<std::string> path;
-                ::set_status(this->d_checks, this->d_groups, check, status, path);
-            }
-            else {
-                llvm::errs() << "WARNING: couldn't read check configuration from '" << line << "'\n";
-            }
-        }
-        else if (command == "group") {
-            std::string name;
-            if (args >> name) {
-                this->d_groups[name].assign(std::istream_iterator<std::string>(args),
-                                            std::istream_iterator<std::string>());
-            }
-            else {
-                llvm::errs() << "WARNING: a group needs at least a name on line '" << line << "'\n";
-            }
-        }
-        else if (command == "load") {
-            std::string name;
-            if (args >> name) {
-                this->load(name);
-            }
-            else {
-                llvm::errs() << "WARNING: no file name given on line '" << line << "'\n";
-            }
-        }
-        else if (command == "set") {
-            std::string key;
-            if (args >> key) {
-                std::string value;
-                if (std::getline(args, value)) {
-                    this->d_values[key] = value;
-                }
-                else {
-                    llvm::errs() << "WARNING: set could not read value on line '" << line << "'\n";
-                }
-            }
-            else {
-                llvm::errs() << "WARNING: set needs name and value on line '" << line << "'\n";
-            }
-        }
-        else if (command.empty() || command[0] != '#') {
-            std::cout << "unknown configuration command='" << command << "' arguments='" << line << "'\n";
-        }
+    std::string line;
+    while (std::getline(in, line)) {
+        process(line);
     }
     this->d_loadpath.pop_back();
 }
@@ -200,4 +218,9 @@ const std::string& cool::csabase::Config::value(const std::string& key) const
         return d_values.find(key)->second;
     }
     return empty;
+}
+
+bool cool::csabase::Config::all() const
+{
+    return d_all;
 }

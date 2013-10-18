@@ -51,11 +51,7 @@ CB::DiagnosticFilter::IncludeInDiagnosticCount() const
 }
 
 static std::string
-#if !defined(CLANG_29)
 get_filename(clang::Diagnostic const& d)
-#else
-get_filename(clang::DiagnosticInfo const& d)
-#endif
 {
     if (!d.getLocation().isFileID()) {
         return std::string();
@@ -66,7 +62,6 @@ get_filename(clang::DiagnosticInfo const& d)
 }
 
 void
-#if !defined(CLANG_29)
 CB::DiagnosticFilter::HandleDiagnostic(clang::DiagnosticsEngine::Level level,
                                        clang::Diagnostic const&        info)
 {
@@ -80,26 +75,9 @@ CB::DiagnosticFilter::HandleDiagnostic(clang::DiagnosticsEngine::Level level,
         this->d_client->HandleDiagnostic(level, info);
     }
 }
-#else
-CB::DiagnosticFilter::HandleDiagnostic(clang::Diagnostic::Level     level,
-                                       clang::DiagnosticInfo const& info)
-{
-    if (clang::Diagnostic::Note != level
-        && (clang::Diagnostic::Warning < level
-            || !info.getLocation().isFileID()
-            || this->d_analyser->is_component(::get_filename(info)))
-        )
-    {
-        this->DiagnosticClient::HandleDiagnostic(level, info);
-        this->d_client->HandleDiagnostic(level, info);
-    }
-}
-#endif
 
-#if !defined(CLANG_29)
 clang::DiagnosticConsumer*
 CB::DiagnosticFilter::clone(clang::DiagnosticsEngine&) const
 {
     return new CB::DiagnosticFilter(*this->d_analyser, *this->d_options);
 }
-#endif

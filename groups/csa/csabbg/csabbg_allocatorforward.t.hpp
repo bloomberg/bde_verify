@@ -45,7 +45,8 @@ public:
     //allocatorforward_alloc_used();
     //allocatorforward_alloc_used(int);
                                                                     // IMPLICIT
-    allocatorforward_alloc_used(int = 0, BloombergLP::bslma::Allocator* = 0);
+    explicit allocatorforward_alloc_used(int = 0,
+                                         BloombergLP::bslma::Allocator* = 0);
 };
 
 // -----------------------------------------------------------------------------

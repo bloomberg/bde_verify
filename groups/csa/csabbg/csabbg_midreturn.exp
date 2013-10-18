@@ -1,37 +1,37 @@
-groups/csa/csabbg/csabbg_midreturn.t.cpp:17:0: warning: HR001: Mid-function 'return' requires '// RETURN' comment
+groups/csa/csabbg/csabbg_midreturn.t.cpp:17:0: warning: MR01: Mid-function 'return' requires '// RETURN' comment
                         return false;
 ^
-groups/csa/csabbg/csabbg_midreturn.t.cpp:23:0: warning: HR001: Mid-function 'return' requires '// RETURN' comment
+groups/csa/csabbg/csabbg_midreturn.t.cpp:23:0: warning: MR01: Mid-function 'return' requires '// RETURN' comment
                 return 1;
 ^
-groups/csa/csabbg/csabbg_midreturn.t.cpp:26:0: warning: HR001: '// RETURN' comment must end in column 79, not 78
+groups/csa/csabbg/csabbg_midreturn.t.cpp:26:0: warning: MR01: '// RETURN' comment must end in column 79, not 78
                 return 2;                                            // RETURN
 ^
-groups/csa/csabbg/csabbg_midreturn.t.cpp:29:0: warning: HR001: Mid-function 'return' requires '// RETURN' comment
+groups/csa/csabbg/csabbg_midreturn.t.cpp:29:0: warning: MR01: Mid-function 'return' requires '// RETURN' comment
                 return 3;
 ^
-groups/csa/csabbg/csabbg_midreturn.t.cpp:50:0: warning: HR001: Mid-function 'return' requires '// RETURN' comment
+groups/csa/csabbg/csabbg_midreturn.t.cpp:50:0: warning: MR01: Mid-function 'return' requires '// RETURN' comment
                 return 1;
 ^
-groups/csa/csabbg/csabbg_midreturn.t.cpp:53:0: warning: HR001: '// RETURN' comment must end in column 79, not 78
+groups/csa/csabbg/csabbg_midreturn.t.cpp:53:0: warning: MR01: '// RETURN' comment must end in column 79, not 78
                 return 2;                                            // RETURN
 ^
-groups/csa/csabbg/csabbg_midreturn.t.cpp:56:0: warning: HR001: Mid-function 'return' requires '// RETURN' comment
+groups/csa/csabbg/csabbg_midreturn.t.cpp:56:0: warning: MR01: Mid-function 'return' requires '// RETURN' comment
                 return 3;
 ^
-groups/csa/csabbg/csabbg_midreturn.t.cpp:44:0: warning: HR001: Mid-function 'return' requires '// RETURN' comment
+groups/csa/csabbg/csabbg_midreturn.t.cpp:44:0: warning: MR01: Mid-function 'return' requires '// RETURN' comment
                         return false;
 ^
-groups/csa/csabbg/csabbg_midreturn.t.cpp:50:0: warning: HR001: Mid-function 'return' requires '// RETURN' comment
+groups/csa/csabbg/csabbg_midreturn.t.cpp:50:0: warning: MR01: Mid-function 'return' requires '// RETURN' comment
                 return 1;
 ^
-groups/csa/csabbg/csabbg_midreturn.t.cpp:53:0: warning: HR001: '// RETURN' comment must end in column 79, not 78
+groups/csa/csabbg/csabbg_midreturn.t.cpp:53:0: warning: MR01: '// RETURN' comment must end in column 79, not 78
                 return 2;                                            // RETURN
 ^
-groups/csa/csabbg/csabbg_midreturn.t.cpp:56:0: warning: HR001: Mid-function 'return' requires '// RETURN' comment
+groups/csa/csabbg/csabbg_midreturn.t.cpp:56:0: warning: MR01: Mid-function 'return' requires '// RETURN' comment
                 return 3;
 ^
-groups/csa/csabbg/csabbg_midreturn.t.cpp:44:0: warning: HR001: Mid-function 'return' requires '// RETURN' comment
+groups/csa/csabbg/csabbg_midreturn.t.cpp:44:0: warning: MR01: Mid-function 'return' requires '// RETURN' comment
                         return false;
 ^
 12 warnings generated.

@@ -35,17 +35,12 @@ static bool isDefaultValue(cool::csabase::Analyser& analyser,
     do
     {
         orig = init;
-#if !defined(CLANG_29)
         init = const_cast<clang::Expr*>(init)->IgnoreImplicit();
-#else
-        init = const_cast<clang::Expr*>(init)->IgnoreParenNoopCasts(*analyser.context());
-#endif
 
         if (clang::CastExpr const* cast = llvm::dyn_cast<clang::CastExpr>(init))
         {
             init = cast->getSubExpr();
         }
-#if !defined(CLANG_29)
         else if (clang::CXXConstructExpr const* ctor = llvm::dyn_cast<clang::CXXConstructExpr>(init))
         {
             if (ctor->getNumArgs() == 1
@@ -54,7 +49,6 @@ static bool isDefaultValue(cool::csabase::Analyser& analyser,
                 init = llvm::dyn_cast<clang::MaterializeTemporaryExpr>(ctor->getArg(0))->GetTemporaryExpr();
             }
         }
-#endif
     }
     while (orig != init);
 
@@ -81,9 +75,7 @@ check(cool::csabase::Analyser& analyser, clang::InitListExpr const* expr)
 {
     clang::Type const* type(expr->getType().getTypePtr());
     if (type->isConstantArrayType()
-#if !defined(CLANG_29)
         && !expr->isStringLiteralInit()
-#endif
         )
     {
         clang::ConstantArrayType const* array(analyser.context()->getAsConstantArrayType(expr->getType()));

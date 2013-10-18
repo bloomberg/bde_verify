@@ -65,7 +65,8 @@ cool::csabase::CheckRegistry::attach(cool::csabase::Analyser& analyser,
          it != end; ++it)
     {
         checks_type::const_iterator cit(config.find(it->first));
-        if (config.end() == cit || cit->second == cool::csabase::Config::on)
+        if ((config.end() == cit && analyser.config()->all()) ||
+            cit->second == cool::csabase::Config::on)
         {
             it->second(analyser, visitor, observer);
         }

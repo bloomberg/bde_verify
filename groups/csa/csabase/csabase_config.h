@@ -37,10 +37,12 @@ public:
 
     Config(std::string const& name);
     void load(std::string const& file);
+    void process(std::string const& line);
     
     std::string const&                   toplevel_namespace() const;
     std::map<std::string, Status> const& checks() const;
     std::string const&                   value(const std::string& key) const;
+    bool                                 all() const;
 
 private:
     std::string                                      d_toplevel_namespace;
@@ -48,6 +50,7 @@ private:
     std::map<std::string, Status>                    d_checks;
     std::map<std::string, std::vector<std::string> > d_groups;
     std::map<std::string, std::string>               d_values;
+    Status                                           d_all;
 };
 
 // -----------------------------------------------------------------------------

@@ -32,11 +32,7 @@ process(cool::csabase::Analyser& analyser, clang::Expr const* expr, clang::Decl 
     if (const clang::FunctionDecl* function = decl? llvm::dyn_cast<clang::FunctionDecl>(decl): 0) {
         function = function->getCanonicalDecl();
         std::string name;
-#if defined(CLANG_SVN)
         clang::PrintingPolicy policy(analyser.context()->getLangOpts());
-#else
-        clang::PrintingPolicy policy(analyser.context()->getLangOptions());
-#endif
         function->getNameForDiagnostic(name, policy, true);
 
         std::ostringstream out;

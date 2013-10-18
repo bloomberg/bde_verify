@@ -88,7 +88,7 @@ struct on_group_open
                     || direct.st_ino != indirect.st_ino) {
                     analyser.report(where,
                                     ::check_name,
-                                    "TR01: component '%0' doesn't seems to be "
+                                    "TR01: component '%0' doesn't seem to be "
                                     "in package group '%1'",
                                     true)
                         << (analyser.package() + "_" + analyser.component())

@@ -39,7 +39,8 @@ check(cool::csabase::Analyser& analyser, clang::FunctionDecl const* decl)
             clang::ReturnStmt* ret(llvm::dyn_cast<clang::ReturnStmt>(stmt));
             clang::Expr* expr(ret->getRetValue());
             llvm::APSInt result;
-            if (expr->isIntegerConstantExpr(result, *analyser.context()))
+            if (!expr->isValueDependent() &&
+                expr->isIntegerConstantExpr(result, *analyser.context()))
             {
                 analyser.report(expr, check_name, "function %0() has only one statement which returns the constant '%1'") 
                     << decl->getNameAsString()

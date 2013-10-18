@@ -1,7 +1,7 @@
 // csabbg_midreturn.t.cpp                                             -*-C++-*-
 // ----------------------------------------------------------------------------
 
-#include "csabbg_midreturn.t.h"
+#include "csabbg_midreturn.t.hpp"
 #include <bdes_ident.h>
 
 namespace cool

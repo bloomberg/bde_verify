@@ -55,6 +55,7 @@ getComponent(std::string const& file)
     slash = slash == file.npos? 0u: slash + 1;
     std::string::size_type point(file.find('.', slash));
     point = point == file.npos? file.size(): point;
+    std::string s = file.substr(slash, point - slash);
     return ::toUpper(file.substr(slash, point - slash));
 }
 

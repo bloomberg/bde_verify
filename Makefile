@@ -15,7 +15,7 @@ CLANG    = /home/hrosen4/mbig/build/Release+Asserts/bin/clang
 COMPILER = clang
 
 # CURRENT  = csastil/csastil_externalguards.t.cpp
-CURRENT  = csabbg/csabbg_allocatorforward.t.cpp
+CURRENT  = csabbg/csabbg_functioncontract.t.cpp
 
 #  ----------------------------------------------------------------------------
 
@@ -24,6 +24,7 @@ TARGET = coolyser
 TSTCXXFILES +=                                                                \
         groups/csa/csabbg/csabbg_allocatorforward.cpp                         \
         groups/csa/csabbg/csabbg_allocatornewwithpointer.cpp                  \
+        groups/csa/csabbg/csabbg_functioncontract.cpp                         \
         groups/csa/csabbg/csabbg_midreturn.cpp                                \
         groups/csa/csafmt/csafmt_headline.cpp                                 \
         groups/csa/csatr/csatr_groupname.cpp                                  \
@@ -51,7 +52,7 @@ TSTCXXFILES +=                                                                \
         groups/csa/csamisc/csamisc_cstylecastused.cpp                         \
         groups/csa/csamisc/csamisc_constantreturn.cpp                         \
         groups/csa/csamisc/csamisc_contiguousswitch.cpp                       \
-        groups/csa/csamisc/csamisc_longinline.cpp                            \
+        groups/csa/csamisc/csamisc_longinline.cpp                             \
         groups/csa/csamisc/csamisc_memberdefinitioninclassdefinition.cpp      \
         groups/csa/csamisc/csamisc_thrownonstdexception.cpp                   \
         groups/csa/csamisc/csamisc_verifysameargumentnames.cpp                \
@@ -59,8 +60,8 @@ TSTCXXFILES +=                                                                \
 
 TODO =                                                                        \
         groups/csa/csamisc/csamisc_calls.cpp                                  \
-        groups/csa/csamisc/csamisc_selfinitialization.cpp                     \
         groups/csa/csamisc/csamisc_includeguard.cpp                           \
+        groups/csa/csamisc/csamisc_selfinitialization.cpp                     \
         groups/csa/csamisc/csamisc_superfluoustemporary.cpp                   \
         groups/csa/csadep/csadep_dependencies.cpp                             \
         groups/csa/csadep/csadep_types.cpp                                    \
@@ -83,13 +84,33 @@ LIBCXXFILES +=                                                                \
 
 # -----------------------------------------------------------------------------
 
+BB = /bb/build/share/packages/refroot/amd64/unstable/bb
+PFLAGS += -Igroups/csa/csabase
+PFLAGS += -Igroups/csa/csadep
+PFLAGS += -isystem $(BB)/include
+PFLAGS += -isystem $(BB)/include/stlport
+PFLAGS += -isystem /usr/include
+PFLAGS += -isystem /usr/include/c++/4.4.4
+PFLAGS += -isystem /usr/include/c++/4.4.4/backward
+PFLAGS += -isystem /usr/include/c++/4.4.4/x86_64-redhat-linux6E/32
+PFLAGS += -isystem /usr/lib/gcc/x86_64-redhat-linux6E/4.4.4/include
+PFLAGS += -isystem /usr/lib/gcc/x86_64-redhat-linux/4.1.2/include
+PFLAGS += -DBB_THREADED
+PFLAGS += -DBDE_BUILD_TARGET_DBG
+PFLAGS += -DBDE_BUILD_TARGET_EXC
+PFLAGS += -DBDE_BUILD_TARGET_MT
+PFLAGS += -DBSL_OVERRIDES_STD
+PFLAGS += -D_LINUX_SOURCE
+PFLAGS += -D_REENTRANT
+PFLAGS += -D_SYS_SYSMACROS_H
+PFLAGS += -D_THREAD_SAFE
+
 SYSTEM   = $(shell uname -s)
 ECHON    = echo
 CPPFLAGS += -DCLANG_SVN
-PFLAGS   = -Wno-string-plus-int
+PFLAGS   += -Wno-string-plus-int
 CXXFLAGS += -fvisibility-inlines-hidden 
 LDLIBS   += -lclangEdit
-PFLAGS   = -Wno-string-plus-int
 
 SOSUFFIX = so
 CXX      = $(CLANG)
@@ -110,8 +131,8 @@ endif
 CPPFLAGS += $(INCFLAGS) $(DEFFLAGS) $(STDFLAGS)
 CPPFLAGS += -Igroups/csa/csabase -Igroups/csa/csadep
 CPPFLAGS += -Iinclude
-# PFLAGS   += -fdiagnostics-show-option
-# PFLAGS   += -fcxx-exceptions
+#PFLAGS   += -fdiagnostics-show-option
+PFLAGS   += -fcxx-exceptions
 CXXFLAGS += -g -fno-common -fno-strict-aliasing -fno-exceptions -fno-rtti
 WARNFLAGS = \
         -Wcast-qual \
@@ -152,10 +173,17 @@ POSTPROCESS = sed -e 's/\([^:]*:[0-9][0-9]*\):[^:]*:/\1:0:/' \
             | sed -e '/^$$/d'
 
 #EXPECT      = `echo $$f | sed -E 's/((test)|(\.[vt]))\.cpp$$/.exp/'`
-EXPECT      = `echo $$f | \
+EXPECT      = $$(echo $$f | \
                sed -e 's/test\.cpp$$/.exp/' | \
                sed -e 's/\.t.cpp$$/.exp/' | \
-               sed -e 's/\.v.cpp$$/.exp/'`
+               sed -e 's/\.v.cpp$$/.exp/')
+
+SOURCE      = $$(echo $$f | \
+               sed -e 's/test\.cpp$$/.cpp/' | \
+               sed -e 's/\.t.cpp$$/.cpp/' | \
+               sed -e 's/\.v.cpp$$/.cpp/')
+
+CHECK_NAME  = $$(echo | sed -n 's/.*check_name("\([^"]*\)".*/\1/p' $(SOURCE))
 
 # -----------------------------------------------------------------------------
 
@@ -171,10 +199,18 @@ check: check-all
 
 check-all: $(OBJ)/$(TARGET).$(SOSUFFIX)
 	success=1; \
-	for f in `find groups -name \*.[vt].cpp -or -name \*test.cpp`; \
+	for f in $$(find groups -name \*.[vt].cpp -or -name \*test.cpp); \
 	do \
 	  $(ECHON) "testing $$f "; \
-	  if $(CLANG) $(PLUGIN) $(CPPFLAGS) $(PFLAGS) $$f 2>&1 \
+      (echo namespace cool; \
+       echo all on) > .coolyser; \
+      if [ -f "$(SOURCE)" ]; then if [ ! -z "$(CHECK_NAME)" ]; then \
+          (echo namespace cool; \
+           echo all off; \
+           echo check $(CHECK_NAME) on) > .coolyser; \
+      fi; fi; \
+      cat .coolyser; \
+	  if $(CLANG) $(PLUGIN) -plugin-arg-coolyse config=.coolyser $(CPPFLAGS) $(PFLAGS) $$f 2>&1 \
              | $(POSTPROCESS) \
              | diff - $(EXPECT) $(REDIRECT); \
 	  then \
@@ -184,6 +220,7 @@ check-all: $(OBJ)/$(TARGET).$(SOSUFFIX)
             echo -e "\x1b[31mfail\x1b[0m"; \
 	  fi; \
 	done; \
+    rm .coolyser; \
 	[ $$success = 1 ]
 
 plugin: $(OBJ)/$(TARGET).$(SOSUFFIX)

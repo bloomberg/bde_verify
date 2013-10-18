@@ -54,11 +54,7 @@ namespace
     public:
         AnalyseConsumer(clang::CompilerInstance& compiler, std::string const& source, PluginAction const& plugin);
         void Initialize(clang::ASTContext& context);
-#if !defined(CLANG_29)
         bool HandleTopLevelDecl(clang::DeclGroupRef DG);
-#else
-        void HandleTopLevelDecl(clang::DeclGroupRef DG);
-#endif
         void HandleTranslationUnit(clang::ASTContext&);
 
     private:
@@ -97,17 +93,11 @@ AnalyseConsumer::Initialize(clang::ASTContext& context)
 
 // -----------------------------------------------------------------------------
 
-#if !defined(CLANG_29)
 bool
-#else
-void
-#endif
 AnalyseConsumer::HandleTopLevelDecl(clang::DeclGroupRef DG)
 {
     this->analyser_.process_decls(DG.begin(), DG.end());
-#if !defined(CLANG_29)
     return true;
-#endif
 }
 
 // -----------------------------------------------------------------------------

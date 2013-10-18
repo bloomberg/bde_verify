@@ -57,11 +57,7 @@ component_prefix(cool::csabase::Analyser&  analyser,
         && wrong_prefix(analyser, name)
         && analyser.is_component_header(decl)
         && (!llvm::dyn_cast<clang::RecordDecl>(named)
-#if !defined(CLANG_29)
             || llvm::dyn_cast<clang::RecordDecl>(named)->isCompleteDefinition()
-#else
-            || llvm::dyn_cast<clang::RecordDecl>(named)->isDefinition()
-#endif
             )
         && (!llvm::dyn_cast<clang::FunctionDecl>(named)
             || !(llvm::dyn_cast<clang::FunctionDecl>(named)->isOverloadedOperator()

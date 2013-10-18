@@ -96,7 +96,7 @@ void last_returns(Analyser& analyser, const FunctionDecl* func)
     }
 }
 
-// Callback object invoked upon completeion.
+// Callback object invoked upon completion.
 struct report
 {
     Analyser* d_analyser;
@@ -117,7 +117,7 @@ struct report
             // Ignore final top-level return statements.
             if (!d.d_last_returns.count(*it)) {
                 if (!is_commented(*it, d.d_rcs.begin(), d.d_rcs.end())) {
-                    d_analyser->report(*it, check_name, "MFR: "
+                    d_analyser->report(*it, check_name, "MR01: "
                         "Mid-function 'return' requires '// RETURN' comment");
                 }
             }
@@ -129,14 +129,24 @@ struct report
     bool is_commented(const Stmt *stmt, IT comments_begin, IT comments_end)
     {
         SourceManager& m = d_analyser->manager();
+        unsigned       sline = m.getPresumedLineNumber(stmt->getLocEnd());
+        unsigned       scolm = m.getPresumedColumnNumber(stmt->getLocEnd());
+        clang::FileID  sfile = m.getFileID(stmt->getLocEnd());
+
         for (IT it = comments_begin; it != comments_end; ++it) {
-            if (m.getPresumedLineNumber(*it) ==
-                m.getPresumedLineNumber(stmt->getLocEnd()) &&
-                m.getFileID(*it) == m.getFileID(stmt->getLocEnd())) {
-                if (m.getPresumedColumnNumber(*it) != 71) {
+            unsigned      cline = m.getPresumedLineNumber(*it);
+            unsigned      ccolm = m.getPresumedColumnNumber(*it);
+            clang::FileID cfile = m.getFileID(*it);
+
+            if (   (cline == sline || (scolm >= 69 && cline == sline + 1))
+                && cfile == sfile) {
+                if (ccolm != 71) {
                     std::ostringstream ss;
-                    ss << "MRE: '// RETURN' comment must end in column 79, "
-                       << "not " << (m.getPresumedColumnNumber(*it) + 8);
+                    ss << "MR01: '// RETURN' comment must end in column 79, "
+                       << "not " << (ccolm + 8);
+                    if (scolm >= 69 && ccolm > 71) {
+                        ss << " (place it alone on the next line)";
+                    }
                     d_analyser->report(*it, check_name, ss.str());
                 }
                 return true;

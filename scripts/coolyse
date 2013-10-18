@@ -13,7 +13,7 @@ use Getopt::Long;
 
 my $home     = "/home/hrosen4/coolyser";
 my $llvm     = "/bb/mbigc/mbig816/build/Release+Asserts";
-my $bb       = "/bb/build/share/packages/refroot/amd64/r201309v00/bb";
+my $bb       = "/bb/build/share/packages/refroot/amd64/unstable/bb";
 my $config   = "$home/coolyser.cfg";
 my $lib      = "$home/Linux-clang-3.3/coolyser.so";
 my $debug    = "";
@@ -50,15 +50,16 @@ $config = "-plugin-arg-coolyse config=$config" if $config ne "";
 $debug  = "-plugin-arg-coolyse debug-on"       if $debug;
 
 my @lflags = (
-    "color-diagnostics",
+    #"color-diagnostics",
     "cxx-exceptions",
     "diagnostics-show-name",
     "diagnostics-show-option",
+    "parse-all-comments",
 );
 my $lflags  = join(" ", map("-f$_", @lflags));
 
 my @wflags = (
-    "everything",
+    #"everything",
 );
 my $wflags  = join(" ", map("-W$_", @wflags));
 

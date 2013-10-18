@@ -227,7 +227,7 @@ check_wrong_parm(Analyser& analyser, const CXXConstructExpr* expr)
 
             if (   is_allocp(bslma_allocator, arg->getType())
                 && !info.bad_cexp_.count(std::make_pair(arg, decl))) {
-                analyser.report(arg->getExprLoc(), check_name, "AAP: "
+                analyser.report(arg->getExprLoc(), check_name, "MA01: "
                                 "allocator argument initializes non-allocator "
                                 "parameter '%0' of type '%1' rather than "
                                 "allocator parameter '%2'")
@@ -315,12 +315,12 @@ check_not_forwarded(Analyser& analyser, CXXConstructorDecl const* decl)
 
         if (init->isBaseInitializer()) {
             analyser.report(loc, check_name,
-                            "AFW: allocator not passed to base %0")
+                            "MA01: allocator not passed to base %0")
                 << init->getBaseClass()->getCanonicalTypeInternal().
                                                         getAsString() << range;
         } else {
             analyser.report(loc, check_name,
-                            "AFW: allocator not passed to member %0")
+                            "MA01: allocator not passed to member %0")
                 << init->getAnyMember()->getNameAsString() << range;
         }
     }
