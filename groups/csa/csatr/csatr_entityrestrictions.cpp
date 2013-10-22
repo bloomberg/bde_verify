@@ -82,7 +82,7 @@ typedef_declaration(cool::csabase::Analyser&  analyser,
 
 // -----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck check0(check_name, &::enum_declaration);
-static cool::csabase::RegisterCheck check1(check_name, &::var_declaration);
-static cool::csabase::RegisterCheck check2(check_name, &::function_declaration);
-static cool::csabase::RegisterCheck check3(check_name, &::typedef_declaration);
+static cool::csabase::RegisterCheck c0(check_name, &::enum_declaration);
+static cool::csabase::RegisterCheck c1(check_name, &::var_declaration);
+static cool::csabase::RegisterCheck c2(check_name, &::function_declaration);
+static cool::csabase::RegisterCheck c3(check_name, &::typedef_declaration);

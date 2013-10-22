@@ -14,7 +14,6 @@ LLVMLIB  = /home/hrosen4/mbig/build/Release+Asserts/lib
 CLANG    = /home/hrosen4/mbig/build/Release+Asserts/bin/clang
 COMPILER = clang
 
-# CURRENT  = csastil/csastil_externalguards.t.cpp
 CURRENT  = csabbg/csabbg_functioncontract.t.cpp
 
 #  ----------------------------------------------------------------------------
@@ -205,6 +204,7 @@ check-all: $(OBJ)/$(TARGET).$(SOSUFFIX)
       if echo $(TODO) | grep -q $(SOURCE); \
         then echo skipping $$f; continue; fi; \
 	  $(ECHON) "testing $$f "; \
+      trap "rm -f $$$$" EXIT; \
       (echo namespace cool; \
        echo all on) > $$$$; \
       if [ -f "$(SOURCE)" ]; then if [ ! -z "$(CHECK_NAME)" ]; then \
@@ -226,7 +226,6 @@ check-all: $(OBJ)/$(TARGET).$(SOSUFFIX)
         echo -e "\x1b[31mfail\x1b[0m"; \
 	  fi; \
 	done; \
-    rm -f $$$$; \
 	[ $$success = 1 ]
 
 plugin: $(OBJ)/$(TARGET).$(SOSUFFIX)

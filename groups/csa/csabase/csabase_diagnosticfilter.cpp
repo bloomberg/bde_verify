@@ -7,11 +7,18 @@
 
 #include <csabase_diagnosticfilter.h>
 #include <csabase_analyser.h>
+#include <csabase_registercheck.h>
 #include <clang/Frontend/TextDiagnosticPrinter.h>
 #include <clang/Basic/SourceManager.h>
 #include <clang/Basic/FileManager.h>
 #include <llvm/Support/raw_ostream.h>
 #ident "$Id$"
+
+// ----------------------------------------------------------------------------
+
+static std::string const check_name("diagnostic-filter");
+
+// ----------------------------------------------------------------------------
 
 namespace CB = cool::csabase;
 
@@ -81,3 +88,13 @@ CB::DiagnosticFilter::clone(clang::DiagnosticsEngine&) const
 {
     return new CB::DiagnosticFilter(*this->d_analyser, *this->d_options);
 }
+
+// ----------------------------------------------------------------------------
+
+static void check(CB::Analyser& analyser, const clang::TranslationUnitDecl*)
+{
+}
+
+// ----------------------------------------------------------------------------
+
+static CB::RegisterCheck register_check(check_name, &::check);

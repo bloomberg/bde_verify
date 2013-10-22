@@ -11,39 +11,21 @@ int nesteddeclarations_bad_global_variable;
 groups/csa/csatr/csatr_nesteddeclarations.t.hpp:36:0: warning: TR04: declaration of 'nesteddeclarations_bad_cool_struct' not within package namespace 'cool::csatr'
     struct nesteddeclarations_bad_cool_struct
 ^~~~~~
-groups/csa/csatr/csatr_nesteddeclarations.t.hpp:42:0: warning: TR17: function 'nesteddeclarations_bad_cool_function' declared at global scope
-    void nesteddeclarations_bad_cool_function();
-^
 groups/csa/csatr/csatr_nesteddeclarations.t.hpp:42:0: warning: TR04: declaration of 'nesteddeclarations_bad_cool_function' not within package namespace 'cool::csatr'
     void nesteddeclarations_bad_cool_function();
 ^~~~~~
-groups/csa/csatr/csatr_nesteddeclarations.t.hpp:43:0: warning: TR17: variable 'nesteddeclarations_bad_cool_variable' declared at global scope
-    int nesteddeclarations_bad_cool_variable;
-^
 groups/csa/csatr/csatr_nesteddeclarations.t.hpp:43:0: warning: TR04: declaration of 'nesteddeclarations_bad_cool_variable' not within package namespace 'cool::csatr'
     int nesteddeclarations_bad_cool_variable;
 ^~~~~~
 groups/csa/csatr/csatr_nesteddeclarations.t.hpp:48:0: warning: TR04: declaration of 'nesteddeclarations_bad_cool_csamisc_struct' not within package namespace 'cool::csatr'
         struct nesteddeclarations_bad_cool_csamisc_struct
 ^~~~~~
-groups/csa/csatr/csatr_nesteddeclarations.t.hpp:54:0: warning: TR17: function 'nesteddeclarations_bad_cool_csamisc_function' declared at global scope
-        void nesteddeclarations_bad_cool_csamisc_function();
-^
 groups/csa/csatr/csatr_nesteddeclarations.t.hpp:54:0: warning: TR04: declaration of 'nesteddeclarations_bad_cool_csamisc_function' not within package namespace 'cool::csatr'
         void nesteddeclarations_bad_cool_csamisc_function();
 ^~~~~~
-groups/csa/csatr/csatr_nesteddeclarations.t.hpp:55:0: warning: TR17: variable 'nesteddeclarations_bad_cool_csamisc_variable' declared at global scope
-        int nesteddeclarations_bad_cool_csamisc_variable;
-^
 groups/csa/csatr/csatr_nesteddeclarations.t.hpp:55:0: warning: TR04: declaration of 'nesteddeclarations_bad_cool_csamisc_variable' not within package namespace 'cool::csatr'
         int nesteddeclarations_bad_cool_csamisc_variable;
 ^~~~~~
-groups/csa/csatr/csatr_nesteddeclarations.t.hpp:68:0: warning: TR17: function 'nesteddeclarations_good_function' declared at global scope
-        void nesteddeclarations_good_function();
-^
-groups/csa/csatr/csatr_nesteddeclarations.t.hpp:69:0: warning: TR17: variable 'nesteddeclarations_good_cool_csatr_variable' declared at global scope
-        int nesteddeclarations_good_cool_csatr_variable;
-^
 groups/csa/csatr/csatr_nesteddeclarations.t.cpp:13:0: warning: TR04: declaration of 'bad_global_struct1' at global scope
 struct bad_global_struct1;
 ^~~~~~
@@ -116,4 +98,4 @@ groups/csa/csatr/csatr_nesteddeclarations.t.cpp:55:0: warning: TR04: declaration
 groups/csa/csatr/csatr_nesteddeclarations.t.cpp:56:0: warning: TR04: declaration of 'bad_top_csatr_anonymous_function' not within package namespace 'cool::csatr'
             void bad_top_csatr_anonymous_function() {}
 ^~~~~~
-39 warnings generated.
+33 warnings generated.

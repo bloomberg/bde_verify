@@ -1,13 +1,4 @@
 In file included from groups/csa/csamisc/csamisc_verifysameargumentnames.t.cpp:8:
-groups/csa/csamisc/csamisc_verifysameargumentnames.t.hpp:21:0: warning: TR17: function 'verifysameargumentnames_f' declared at global scope
-        void verifysameargumentnames_f(int);
-^
-groups/csa/csamisc/csamisc_verifysameargumentnames.t.hpp:23:0: warning: TR17: function 'verifysameargumentnames_f' declared at global scope
-        void verifysameargumentnames_f(int, int);
-^
-groups/csa/csamisc/csamisc_verifysameargumentnames.t.hpp:25:0: warning: TR17: function 'verifysameargumentnames_g' declared at global scope
-        void verifysameargumentnames_g(int, int);
-^
 groups/csa/csamisc/csamisc_verifysameargumentnames.t.hpp:26:0: warning: parameter name mismatch for 1st parameter; the other declaration used 'b'.
         void verifysameargumentnames_g(int a, int);
 ^~~~~~
@@ -80,4 +71,4 @@ groups/csa/csamisc/csamisc_verifysameargumentnames.t.cpp:24:0: warning: paramete
 groups/csa/csamisc/csamisc_verifysameargumentnames.t.cpp:24:0: warning: parameter name mismatch for 1st parameter; the other declaration used 'a'.
         void verifysameargumentnames_g(int b, int a);
 ^~~~~~
-27 warnings generated.
+24 warnings generated.

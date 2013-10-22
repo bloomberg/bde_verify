@@ -23,16 +23,10 @@ template <typename T>
 groups/csa/csastil/csastil_templatetypename.t.cpp:6:0: warning: template parameter uses typename
 template <typename T>
 ^
-groups/csa/csastil/csastil_templatetypename.t.cpp:6:0: warning: TR04: declaration of 'bad' at global scope
-template <typename T>
-^~~~~~
 groups/csa/csastil/csastil_templatetypename.t.cpp:9:0: warning: template parameter uses typename
 template <typename T>
 ^
-groups/csa/csastil/csastil_templatetypename.t.cpp:9:0: warning: TR04: declaration of 'good' at global scope
-template <typename T>
-^~~~~~
 groups/csa/csastil/csastil_templatetypename.t.cpp:18:0: warning: template parameter uses typename
             template <typename T>
 ^
-12 warnings generated.
+10 warnings generated.

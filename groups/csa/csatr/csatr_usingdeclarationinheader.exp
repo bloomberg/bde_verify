@@ -5,10 +5,4 @@ groups/csa/csatr/csatr_usingdeclarationinheader.t.hpp:26:0: warning: TR16: names
 groups/csa/csatr/csatr_usingdeclarationinheader.t.hpp:30:0: warning: TR16: namespace level using declaration in header file
 using cool::csamisc::foo;
 ^~~~~~
-groups/csa/csatr/csatr_usingdeclarationinheader.t.hpp:30:0: warning: TR04: declaration of 'foo' at global scope
-using cool::csamisc::foo;
-^~~~~~
-groups/csa/csatr/csatr_usingdeclarationinheader.t.cpp:11:0: warning: TR04: declaration of 'foo' at global scope
-using cool::csamisc::foo;
-^~~~~~
-4 warnings generated.
+2 warnings generated.
