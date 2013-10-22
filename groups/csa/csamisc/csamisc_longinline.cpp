@@ -23,7 +23,6 @@ using clang::SourceManager;
 using cool::csabase::Analyser;
 using cool::csabase::Location;
 using cool::csabase::PPObserver;
-using cool::csabase::RegisterCheck;
 using cool::csabase::Visitor;
 
 namespace
@@ -126,5 +125,5 @@ void subscribe(Analyser& analyser, Visitor&, PPObserver& observer)
 
 // ----------------------------------------------------------------------------
 
-static RegisterCheck c1(check_name, &long_inlines);
-static RegisterCheck c3(check_name, &subscribe);
+static cool::csabase::RegisterCheck c1(check_name, &long_inlines);
+static cool::csabase::RegisterCheck c2(check_name, &subscribe);

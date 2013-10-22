@@ -26,4 +26,4 @@ anonymous_namespace_in_header(cool::csabase::Analyser& analyser, clang::Namespac
 
 // -----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck check(::check_name, &::anonymous_namespace_in_header);
+static cool::csabase::RegisterCheck check(check_name, &anonymous_namespace_in_header);

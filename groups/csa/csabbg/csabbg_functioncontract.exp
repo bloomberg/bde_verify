@@ -289,8 +289,10 @@ groups/csa/csabbg/csabbg_functioncontract.t.cpp:291:0: warning: FD01: Function c
 groups/csa/csabbg/csabbg_functioncontract.t.cpp:294:0: warning: FD01: Function contracts should be indented 4, not 50, spaces from their function declaration
                                                               // Way too right.
 ^~~~~~
-groups/csa/csabbg/csabbg_functioncontract.t.cpp:4:0: warning: SHO: source doesn't include component header first
-#include <bdes_ident.h>
-^
-groups/csa/csabbg/csabbg_functioncontract.t.cpp:4:0: warning: SHO: bdes_ident.h is used inconsistently with the header
+groups/csa/csabbg/csabbg_functioncontract.t.cpp:301:0: warning: FD01: Function declaration requires contract
+            void godiva();
+^~~~~~
+groups/csa/csabbg/csabbg_functioncontract.t.cpp:318:0: warning: FD01: Function declaration requires contract
+        inline void spall()
+^~~~~
 99 warnings generated.

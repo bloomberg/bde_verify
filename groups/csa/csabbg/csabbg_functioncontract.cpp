@@ -31,7 +31,6 @@ using clang::Stmt;
 using cool::csabase::Analyser;
 using cool::csabase::Location;
 using cool::csabase::PPObserver;
-using cool::csabase::RegisterCheck;
 using cool::csabase::Visitor;
 
 namespace
@@ -333,6 +332,6 @@ void subscribe(Analyser& analyser, Visitor&, PPObserver& observer)
 
 // ----------------------------------------------------------------------------
 
-static RegisterCheck c1(check_name, &all_fundecls);
-static RegisterCheck c2(check_name, &all_tpltfundecls);
-static RegisterCheck c3(check_name, &subscribe);
+static cool::csabase::RegisterCheck c1(check_name, &all_fundecls);
+static cool::csabase::RegisterCheck c2(check_name, &all_tpltfundecls);
+static cool::csabase::RegisterCheck c3(check_name, &subscribe);

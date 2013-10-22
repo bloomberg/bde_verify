@@ -38,7 +38,6 @@ using clang::Type;
 using clang::VarDecl;
 
 using cool::csabase::Analyser;
-using cool::csabase::RegisterCheck;
 
 // -----------------------------------------------------------------------------
 
@@ -328,6 +327,6 @@ check_not_forwarded(Analyser& analyser, CXXConstructorDecl const* decl)
 
 // -----------------------------------------------------------------------------
 
-static RegisterCheck c1(check_name, &find_allocator);
-static RegisterCheck c2(check_name, &check_not_forwarded);
-static RegisterCheck c3(check_name, &check_wrong_parm);
+static cool::csabase::RegisterCheck c1(check_name, &find_allocator);
+static cool::csabase::RegisterCheck c2(check_name, &check_not_forwarded);
+static cool::csabase::RegisterCheck c3(check_name, &check_wrong_parm);

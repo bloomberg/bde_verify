@@ -198,29 +198,35 @@ check: check-all
 	@echo '*** SUCCESS ***'
 
 check-all: $(OBJ)/$(TARGET).$(SOSUFFIX)
+	@ \
 	success=1; \
 	for f in $$(find groups -name \*.[vt].cpp -or -name \*test.cpp); \
 	do \
+      if echo $(TODO) | grep -q $(SOURCE); \
+        then echo skipping $$f; continue; fi; \
 	  $(ECHON) "testing $$f "; \
       (echo namespace cool; \
-       echo all on) > .coolyser; \
+       echo all on) > $$$$; \
       if [ -f "$(SOURCE)" ]; then if [ ! -z "$(CHECK_NAME)" ]; then \
-          (echo namespace cool; \
-           echo all off; \
-           echo check $(CHECK_NAME) on) > .coolyser; \
+        (echo namespace cool; \
+         echo all off; \
+         echo check $(CHECK_NAME) on) > $$$$; \
       fi; fi; \
-      cat .coolyser; \
-	  if $(CLANG) $(PLUGIN) -plugin-arg-coolyse config=.coolyser $(CPPFLAGS) $(PFLAGS) $$f 2>&1 \
+	  if $(CLANG) $(PLUGIN) -plugin-arg-coolyse config=$$$$ $(CPPFLAGS) $(PFLAGS) $$f 2>&1 \
              | $(POSTPROCESS) \
              | diff - $(EXPECT) $(REDIRECT); \
 	  then \
 	    echo OK; \
 	  else \
 	    success=0; \
-            echo -e "\x1b[31mfail\x1b[0m"; \
+        cat $$$$; \
+        $(CLANG) $(PLUGIN) -plugin-arg-coolyse config=$$$$ $(CPPFLAGS) $(PFLAGS) $$f 2>&1 \
+          | $(POSTPROCESS) \
+          | diff - $(EXPECT); \
+        echo -e "\x1b[31mfail\x1b[0m"; \
 	  fi; \
 	done; \
-    rm .coolyser; \
+    rm -f $$$$; \
 	[ $$success = 1 ]
 
 plugin: $(OBJ)/$(TARGET).$(SOSUFFIX)

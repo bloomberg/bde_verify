@@ -50,7 +50,7 @@ $config = "-plugin-arg-coolyse config=$config" if $config ne "";
 $debug  = "-plugin-arg-coolyse debug-on"       if $debug;
 
 my @lflags = (
-    #"color-diagnostics",
+    "color-diagnostics",
     "cxx-exceptions",
     "diagnostics-show-name",
     "diagnostics-show-option",
