@@ -54,7 +54,6 @@ my @lflags = (
     "cxx-exceptions",
     "diagnostics-show-name",
     "diagnostics-show-option",
-    "parse-all-comments",
 );
 my $lflags  = join(" ", map("-f$_", @lflags));
 

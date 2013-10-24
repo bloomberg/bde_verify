@@ -18,6 +18,8 @@ static std::string const check_name("function-contract");
 
 // ----------------------------------------------------------------------------
 
+using clang::CXXConstructorDecl;
+using clang::CXXMethodDecl;
 using clang::CompoundStmt;
 using clang::ConstStmtRange;
 using clang::FunctionDecl;
@@ -140,15 +142,16 @@ getWordLoc(SourceLocation loc, const std::string& src, const std::string& word)
     // invalid range if 'word' cannot be so found in 'src'.
 {
     SourceRange ret;
-    std::string::size_type pos = src.find(word);
-    if (   pos != src.npos
-        && word.size() > 0
-        && (   pos == 0
-            || !isIdChar(src[pos - 1]))
-        && (   pos + word.size() >= src.size()
-            || !isIdChar(src[pos + word.size()]))) {
-        ret.setBegin(loc.getLocWithOffset(pos));
-        ret.setEnd(ret.getBegin().getLocWithOffset(word.length() - 1));
+    for (std::string::size_type pos = 0;
+                 (pos = src.find(word, pos)) != src.npos; pos += word.size()) {
+        if (   (   pos == 0
+                || !isIdChar(src[pos - 1]))
+            && (   pos + word.size() >= src.size()
+                || !isIdChar(src[pos + word.size()]))) {
+            ret = SourceRange(loc.getLocWithOffset(pos),
+                              loc.getLocWithOffset(pos + word.size() - 1));
+            break;
+        }
     }
     return ret;
 }
@@ -175,13 +178,29 @@ struct report
     void process_all_fundecls(IT begin, IT end)
     {
         for (IT it = begin; it != end; ++it) {
-            if (!is_commented(*it, d.d_comments.begin(), d.d_comments.end())) {
+            if (   !is_commented(*it, d.d_comments.begin(), d.d_comments.end())
+                && !does_not_need_contract(*it)) {
                 d_analyser.report((*it)->getNameInfo().getLoc(),
                                   check_name, "FD01: "
                                   "Function declaration requires contract")
                     << (*it)->getNameInfo().getSourceRange();
             }
         }
+    }
+
+    bool does_not_need_contract(const FunctionDecl *func)
+        // Return 'true' iff the specified 'func' is a private assignment
+        // operator or copy constructor declaration (but not a definition).
+    {
+        const CXXConstructorDecl *ctor;
+        const CXXMethodDecl *meth;
+
+        return    func->getAccess() == clang::AS_private
+               && !func->hasBody()
+               && (   (   (ctor = llvm::dyn_cast<CXXConstructorDecl>(func))
+                       && ctor->isCopyConstructor())
+                   || (   (meth = llvm::dyn_cast<CXXMethodDecl>(func))
+                       && meth->isCopyAssignmentOperator()));
     }
 
     template <class IT>
@@ -259,8 +278,9 @@ struct report
                 // issues.  This could lead to false positives if there are
                 // multiple parameters with the same spelling but different
                 // cases, but we'll live with that.
-                const std::string name = toLower(parm->getNameAsString());
-                const SourceRange crange = getWordLoc(cloc, comment, name);
+                const std::string name = parm->getNameAsString();
+                const SourceRange crange =
+                                      getWordLoc(cloc, comment, toLower(name));
                 if (!crange.isValid()) {
                     // Did not find parameter name in contract.
                     d_analyser.report(parm->getSourceRange().getBegin(),

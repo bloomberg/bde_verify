@@ -130,8 +130,8 @@ endif
 CPPFLAGS += $(INCFLAGS) $(DEFFLAGS) $(STDFLAGS)
 CPPFLAGS += -Igroups/csa/csabase -Igroups/csa/csadep
 CPPFLAGS += -Iinclude
-#PFLAGS   += -fdiagnostics-show-option
 PFLAGS   += -fcxx-exceptions
+PFLAGS   += -fcolor-diagnostics
 CXXFLAGS += -g -fno-common -fno-strict-aliasing -fno-exceptions -fno-rtti
 WARNFLAGS = \
         -Wcast-qual \
@@ -169,7 +169,8 @@ OFILES = $(LIBCXXFILES:%.cpp=$(OBJ)/%.o)
 POSTPROCESS = sed -e 's/\([^:]*:[0-9][0-9]*\):[^:]*:/\1:0:/' \
             | sed -e '/\^/s/ //g' \
             | sed -e 's/~~~~~\(~*\)/~~~~~/g' \
-            | sed -e '/^$$/d'
+            | sed -e '/^$$/d' \
+            | sed -e 's/\x1B[^m]*m//g'
 
 #EXPECT      = `echo $$f | sed -E 's/((test)|(\.[vt]))\.cpp$$/.exp/'`
 EXPECT      = $$(echo $$f | \
@@ -187,11 +188,23 @@ CHECK_NAME  = $$(echo | sed -n 's/.*check_name("\([^"]*\)".*/\1/p' $(SOURCE))
 # -----------------------------------------------------------------------------
 
 check-current: $(OBJ)/$(TARGET).$(SOSUFFIX)
-	$(CLANG) $(PLUGIN) \
-	    -plugin-arg-coolyse debug-$(DEBUG) \
-	    -plugin-arg-coolyse config=test.cfg \
-	    -plugin-arg-coolyse tool=bdechk \
-	    $(CPPFLAGS) $(PFLAGS) groups/csa/$(CURRENT)
+	@ \
+    f=groups/csa/$(CURRENT); \
+    if echo $(TODO) | grep -q $(SOURCE); then echo skipping $$f; else \
+      trap "rm -f $$$$" EXIT; \
+      (echo namespace cool; \
+       echo all on) > $$$$; \
+      if [ -f "$(SOURCE)" ]; then if [ ! -z "$(CHECK_NAME)" ]; then \
+        (echo namespace cool; \
+         echo all off; \
+         echo check $(CHECK_NAME) on) > $$$$; \
+      fi; fi; \
+      $(CLANG) $(PLUGIN) \
+        -plugin-arg-coolyse debug-$(DEBUG) \
+        -plugin-arg-coolyse config=$$$$ \
+        -plugin-arg-coolyse tool=bdechk \
+        $(CPPFLAGS) $(PFLAGS) $$f; \
+    fi
 
 check: check-all
 	@echo '*** SUCCESS ***'
