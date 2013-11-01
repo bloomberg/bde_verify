@@ -33,6 +33,7 @@ using clang::Stmt;
 using cool::csabase::Analyser;
 using cool::csabase::Location;
 using cool::csabase::PPObserver;
+using cool::csabase::Range;
 using cool::csabase::Visitor;
 
 namespace
@@ -93,18 +94,11 @@ struct comments
 void all_fundecls(Analyser& analyser, const FunctionDecl* func)
     // Callback function for inspecting function declarations.
 {
-    const FunctionDecl *ifmf = func->getInstantiatedFromMemberFunction();
-    if (ifmf) {
-        func = ifmf;
-    }
-
-    // Process only the first declaration of a function.
-    // Don't process compiler-defaulted methods or macro expansions.
+    // Don't process compiler-defaulted methods, main, or macro expansions.
     if (   !func->isDefaulted()
         && !func->isMain()
         && !func->getLocation().isMacroID()) {
-        analyser.attachment<data>().d_fundecls.insert(
-                                                     func->getCanonicalDecl());
+        analyser.attachment<data>().d_fundecls.insert(func);
     }
 }
  
@@ -181,6 +175,9 @@ struct report
     void process_all_fundecls(IT begin, IT end)
     {
         for (IT it = begin; it != end; ++it) {
+            // Check whether a comment exists before checking whether a comment
+            // is needed, so that unneeded but present comments will be checked
+            // for malformations.
             if (   !is_commented(*it, d.d_comments.begin(), d.d_comments.end())
                 && !does_not_need_contract(*it)) {
                 d_analyser.report((*it)->getNameInfo().getLoc(),
@@ -192,19 +189,28 @@ struct report
     }
 
     bool does_not_need_contract(const FunctionDecl *func)
-        // Return 'true' iff the specified 'func' is a private assignment
-        // operator or copy constructor declaration (but not a definition),
-        // or if it is an expanded macro.
+        // Return 'true' iff the specified 'func' does not need a contract.
+        //
+        // Reasons:
+        //: o Not the canonical declaration
+        //: o Private copy constructor declaration.
+        //: o Private assignment operator declaration.
+        //: o Template method specialization.
     {
         const CXXConstructorDecl *ctor;
         const CXXMethodDecl *meth;
+        const FunctionDecl *ifmf;
 
-        return    func->getAccess() == clang::AS_private
-               && !func->hasBody()
-               && (   (   (ctor = llvm::dyn_cast<CXXConstructorDecl>(func))
-                       && ctor->isCopyConstructor())
-                   || (   (meth = llvm::dyn_cast<CXXMethodDecl>(func))
-                       && meth->isCopyAssignmentOperator()));
+        return func != func->getCanonicalDecl()
+            || (   func->getAccess() == clang::AS_private
+                && !func->hasBody()
+                && (   (   (ctor = llvm::dyn_cast<CXXConstructorDecl>(func))
+                        && ctor->isCopyConstructor())
+                    || (   (meth = llvm::dyn_cast<CXXMethodDecl>(func))
+                        && meth->isCopyAssignmentOperator())))
+            || (   (ifmf = func->getInstantiatedFromMemberFunction())
+                && (   func != ifmf
+                    || does_not_need_contract(ifmf)));
     }
 
     template <class IT>
@@ -222,14 +228,18 @@ struct report
         // Find the line number that the function contract should encompass.
         if (func->doesThisDeclarationHaveABody()) {
             // For functions with bodies, the end of the 'FunctionDecl' is the
-            // end of the body, so instead get the line before the body begins.
+            // end of the body, so instead get the line before the body begins,
+            // if they're not all on the same line.
             SourceLocation bodyloc = func->getBody()->getLocStart();
             sfile = m.getFileID(bodyloc);
-            sline = m.getPresumedLineNumber(bodyloc) - 1;
-            if (sline < m.getPresumedLineNumber(func->getLocStart())) {
-                // If the body begins on the same line as the 'FunctionDecl',
-                // use that line.
-                ++sline;
+
+            unsigned bodyBegin = m.getPresumedLineNumber(bodyloc);
+            unsigned funcBegin = m.getPresumedLineNumber(func->getLocStart());
+
+            if (bodyBegin <= funcBegin) {
+                sline = bodyBegin + 1;
+            } else {
+                sline = bodyBegin - 1;
             }
         } else {
             // For plain declarations, use the line after.
