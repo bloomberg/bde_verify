@@ -318,5 +318,16 @@ namespace cool
         inline void spall()
         {
         }
+
+        struct casabbg_g {
+            void fragrant(int horoscopic,
+                          int zealous) const;
+                // This is the first useless line.
+                // This is the second useless line.
+                // This function does nothing with the specified 'zealous' and
+                // not much with the specified 'horoscopic' either.
+                // This is the third useless line.
+                // This is the fourth useless line.
+        };
     }
 }

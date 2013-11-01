@@ -93,22 +93,25 @@ struct comments
 void all_fundecls(Analyser& analyser, const FunctionDecl* func)
     // Callback function for inspecting function declarations.
 {
+    const FunctionDecl *ifmf = func->getInstantiatedFromMemberFunction();
+    if (ifmf) {
+        func = ifmf;
+    }
+
     // Process only the first declaration of a function.
-    // Don't process compiler-defaulted methods.
+    // Don't process compiler-defaulted methods or macro expansions.
     if (   !func->isDefaulted()
         && !func->isMain()
-        && func == func->getCanonicalDecl()) {
-        analyser.attachment<data>().d_fundecls.insert(func);
+        && !func->getLocation().isMacroID()) {
+        analyser.attachment<data>().d_fundecls.insert(
+                                                     func->getCanonicalDecl());
     }
 }
  
 void all_tpltfundecls(Analyser& analyser, const FunctionTemplateDecl* func)
     // Callback function for inspecting function template declarations.
 {
-    // Process only the first declaration of a function template.
-    if (func == func->getCanonicalDecl()) {
-        analyser.attachment<data>().d_fundecls.insert(func->getTemplatedDecl());
-    }
+    all_fundecls(analyser, func->getTemplatedDecl());
 }
 
 static char
@@ -190,7 +193,8 @@ struct report
 
     bool does_not_need_contract(const FunctionDecl *func)
         // Return 'true' iff the specified 'func' is a private assignment
-        // operator or copy constructor declaration (but not a definition).
+        // operator or copy constructor declaration (but not a definition),
+        // or if it is an expanded macro.
     {
         const CXXConstructorDecl *ctor;
         const CXXMethodDecl *meth;
@@ -279,8 +283,8 @@ struct report
                 // multiple parameters with the same spelling but different
                 // cases, but we'll live with that.
                 const std::string name = parm->getNameAsString();
-                const SourceRange crange =
-                                      getWordLoc(cloc, comment, toLower(name));
+                const std::string lcname = toLower(name);
+                const SourceRange crange = getWordLoc(cloc, comment, lcname);
                 if (!crange.isValid()) {
                     // Did not find parameter name in contract.
                     d_analyser.report(parm->getSourceRange().getBegin(),
@@ -290,7 +294,7 @@ struct report
                         << name
                         << parm->getSourceRange();
                 } else {
-                    if (comment.find("'" + name + "'") == comment.npos) {
+                    if (comment.find("'" + lcname + "'") == comment.npos) {
                         // Found parameter name, but unticked.
                         d_analyser.report(crange.getBegin(),
                              check_name, "FD01: "

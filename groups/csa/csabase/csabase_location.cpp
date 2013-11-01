@@ -38,15 +38,6 @@ cool::csabase::Location::Location(clang::SourceManager const& manager,
     }
 }
 
-#if 0
-cool::csabase::Location::Location(std::string const& file, size_t line, size_t column)
-    : d_file(file)
-    , d_line(line)
-    , d_column(column)
-{
-}
-#endif
-
 // -----------------------------------------------------------------------------
 
 std::string
@@ -127,4 +118,83 @@ cool::csabase::operator!=(cool::csabase::Location const& a,
     return a.file()   != b.file()
         || a.line()   != b.line()
         || a.column() != b.column();
+}
+
+// -----------------------------------------------------------------------------
+
+cool::csabase::Range::Range()
+{
+}
+
+cool::csabase::Range::Range(clang::SourceManager const& manager,
+                            clang::SourceRange range)
+    : d_from(manager, range.getBegin())
+    , d_to(manager, range.getEnd())
+{
+}
+
+// -----------------------------------------------------------------------------
+
+const cool::csabase::Location&
+cool::csabase::Range::from() const
+{
+    return this->d_from;
+}
+
+const cool::csabase::Location&
+cool::csabase::Range::to() const
+{
+    return this->d_to;
+}
+
+bool
+cool::csabase::Range::operator< (cool::csabase::Range const& rhs) const
+{
+    if (d_from < rhs.d_from) {
+        return true;
+    }
+    if (rhs.d_from < d_from) {
+        return false;
+    }
+    if (d_to < rhs.d_to) {
+        return true;
+    }
+    if (rhs.d_to < d_to) {
+        return false;
+    }
+    return false;
+}
+
+// -----------------------------------------------------------------------------
+
+llvm::raw_ostream&
+cool::csabase::operator<< (llvm::raw_ostream& out, cool::csabase::Range const& loc)
+{
+    return out << "[" << loc.from() << ", " << loc.to() << "]";
+}
+
+// -----------------------------------------------------------------------------
+
+std::ostream&
+cool::csabase::operator<< (std::ostream& out, cool::csabase::Range const& loc)
+{
+    return out << "[" << loc.from() << ", " << loc.to() << "]";
+}
+
+// -----------------------------------------------------------------------------
+
+bool
+cool::csabase::operator==(cool::csabase::Range const& a,
+                          cool::csabase::Range const& b)
+{
+    return a.from() == b.from() && a.to() == b.to();
+}
+
+// -----------------------------------------------------------------------------
+
+bool
+cool::csabase::operator!=(cool::csabase::Range const& a,
+                          cool::csabase::Range const& b)
+{
+    return a.from() != b.from() || a.to() != b.to();
 }
