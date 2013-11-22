@@ -14,7 +14,7 @@ LLVMLIB  = /home/hrosen4/mbig/build/Release+Asserts/lib
 CLANG    = /home/hrosen4/mbig/build/Release+Asserts/bin/clang
 COMPILER = clang
 
-CURRENT  = csabbg/csabbg_functioncontract.t.cpp
+CURRENT  = csabbg/csabbg_allocatorforward.t.cpp
 
 #  ----------------------------------------------------------------------------
 
@@ -26,6 +26,7 @@ TSTCXXFILES +=                                                                \
         groups/csa/csabbg/csabbg_functioncontract.cpp                         \
         groups/csa/csabbg/csabbg_midreturn.cpp                                \
         groups/csa/csafmt/csafmt_headline.cpp                                 \
+        groups/csa/csafmt/csafmt_nonascii.cpp                                 \
         groups/csa/csatr/csatr_groupname.cpp                                  \
         groups/csa/csatr/csatr_componentprefix.cpp                            \
         groups/csa/csatr/csatr_packagename.cpp                                \

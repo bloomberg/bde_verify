@@ -16,7 +16,7 @@ enum_declaration(cool::csabase::Analyser&  analyser,
 {
     if (llvm::dyn_cast<clang::NamespaceDecl>(decl->getDeclContext())
         && analyser.is_component_header(decl)) {
-        analyser.report(decl, ::check_name,
+        analyser.report(decl, check_name,
                         "TR17: enum '%0' declared at global scope")
             << decl->getName();
     }
@@ -30,7 +30,7 @@ var_declaration(cool::csabase::Analyser&  analyser,
 {
     if (llvm::dyn_cast<clang::NamespaceDecl>(decl->getDeclContext())
         && analyser.is_component_header(decl)) {
-        analyser.report(decl, ::check_name,
+        analyser.report(decl, check_name,
                         "TR17: variable '%0' declared at global scope")
             << decl->getName();
     }
@@ -55,11 +55,11 @@ function_declaration(cool::csabase::Analyser&   analyser,
     if (llvm::dyn_cast<clang::NamespaceDecl>(decl->getDeclContext())
         && analyser.is_component_header(decl)
         && !decl->isOverloadedOperator()
-        && !::is_swap(decl)
+        && !is_swap(decl)
         && decl->getNameAsString() != "debugprint"
         && decl->isFirstDeclaration()
         ) {
-        analyser.report(decl, ::check_name,
+        analyser.report(decl, check_name,
                         "TR17: function '%0' declared at global scope")
             << decl->getNameAsString();
     }
@@ -74,7 +74,7 @@ typedef_declaration(cool::csabase::Analyser&  analyser,
     if (llvm::dyn_cast<clang::NamespaceDecl>(decl->getDeclContext())
         && analyser.is_component_header(decl)
         ) {
-        analyser.report(decl, ::check_name,
+        analyser.report(decl, check_name,
                         "TR17: typedef '%0' declared at global scope")
             << decl->getNameAsString();
     }
@@ -82,7 +82,7 @@ typedef_declaration(cool::csabase::Analyser&  analyser,
 
 // -----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck c0(check_name, &::enum_declaration);
-static cool::csabase::RegisterCheck c1(check_name, &::var_declaration);
-static cool::csabase::RegisterCheck c2(check_name, &::function_declaration);
-static cool::csabase::RegisterCheck c3(check_name, &::typedef_declaration);
+static cool::csabase::RegisterCheck c0(check_name, &enum_declaration);
+static cool::csabase::RegisterCheck c1(check_name, &var_declaration);
+static cool::csabase::RegisterCheck c2(check_name, &function_declaration);
+static cool::csabase::RegisterCheck c3(check_name, &typedef_declaration);

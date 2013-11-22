@@ -48,7 +48,7 @@ global_type_only_in_source(cool::csabase::Analyser&  analyser,
         && !decl->isInAnonymousNamespace()
         && !analyser.is_test_driver()
         && std::find_if(decl->redecls_begin(), decl->redecls_end(),
-                        ::decl_not_in_toplevel(&analyser))
+                        decl_not_in_toplevel(&analyser))
             == decl->redecls_end()
         && (decl->getLinkage() == clang::UniqueExternalLinkage
             || decl->getLinkage() == clang::ExternalLinkage)
@@ -66,4 +66,4 @@ global_type_only_in_source(cool::csabase::Analyser&  analyser,
 // ----------------------------------------------------------------------------
 
 static cool::csabase::RegisterCheck check(check_name,
-                                          &::global_type_only_in_source);
+                                          &global_type_only_in_source);

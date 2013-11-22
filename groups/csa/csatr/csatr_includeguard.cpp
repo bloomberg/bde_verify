@@ -40,7 +40,7 @@ namespace
                     + analyser->component();
                 std::transform(this->d_expect.begin(), this->d_expect.end(),
                                this->d_expect.begin(),
-                               ::my_toupper);
+                               my_toupper);
             }
             return this->d_expect;
         }
@@ -70,11 +70,11 @@ namespace
             char const* end(this->d_analyser->manager().getCharacterData(range.getEnd()));
             std::string value(begin, end);
             value.erase(std::remove_if(value.begin(), value.end(),
-                                       &::my_isspace), value.end());
+                                       &my_isspace), value.end());
             std::string const& expect(data.get_expect(this->d_analyser));
             if (value != "!defined(" + expect + ")"
                 && value != "!defined" + expect) {
-                this->d_analyser->report(range.getBegin(), ::check_name,
+                this->d_analyser->report(range.getBegin(), check_name,
                                          "TR14: wrong include guard "
                                          "(expected '!defined(%0)')")
                     << expect;
@@ -108,7 +108,7 @@ namespace
                 //-dk:TODO llvm::errs() << "  vlaue='" << value << "'\n";
                 std::string const& expect(data.get_expect(this->d_analyser));
                 if (value != expect) {
-                    this->d_analyser->report(token.getLocation(), ::check_name,
+                    this->d_analyser->report(token.getLocation(), check_name,
                                              "TR14: wrong name for include guard "
                                              "(expected '%0')")
                         << expect;
@@ -118,7 +118,7 @@ namespace
         }
         void operator()(clang::Token const& token, clang::MacroDirective const*) const
         {
-            ::include_guard& data(this->d_analyser->attachment< ::include_guard>());
+            include_guard& data(this->d_analyser->attachment<include_guard>());
             if (this->d_analyser->is_component_header(token.getLocation())
                 && !data.d_define
                 && token.getIdentifierInfo()
@@ -135,8 +135,8 @@ namespace
             if (this->d_analyser->is_component_header(filename)
                 && !this->d_analyser->attachment<include_guard>().isComplete())
             {
-                ::include_guard const& data(this->d_analyser->attachment<include_guard>());
-                this->d_analyser->report(location, ::check_name,
+                include_guard const& data(this->d_analyser->attachment<include_guard>());
+                this->d_analyser->report(location, check_name,
                                          data.d_test
                                          ? "TR14: missing define for include guard"
                                          : data.d_define
@@ -164,5 +164,4 @@ subscribe(cool::csabase::Analyser&   analyser,
 
 // ----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck register_observer(check_name,
-                                                      &::subscribe);
+static cool::csabase::RegisterCheck register_observer(check_name, &subscribe);

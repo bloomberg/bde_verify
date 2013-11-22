@@ -53,7 +53,7 @@ close_file(cool::csabase::Analyser& analyser,
 {
     if (analyser.is_component_header(name))
     {
-        analyser.attachment< ::status>().line_
+        analyser.attachment<status>().line_
             = analyser.get_location(where).line();
     }
 }
@@ -75,13 +75,13 @@ include_file(cool::csabase::Analyser& analyser,
         }
         else if (!status.header_seen_
                  && analyser.toplevel() != name
-                 && ::builtin != name
-                 && ::command_line != name
+                 && builtin != name
+                 && command_line != name
                  && "bdes_ident.h" != name
                  && !analyser.is_main())
         {
             analyser.report(where,
-                            ::check_name,
+                            check_name,
                             "TR09: include files precede component header",
                             true);
             status.check_ = false;
@@ -94,7 +94,7 @@ include_file(cool::csabase::Analyser& analyser,
 static void
 declaration(cool::csabase::Analyser& analyser, clang::Decl const* decl)
 {
-    ::status& status(analyser.attachment< ::status>());
+    status& status(analyser.attachment< ::status>());
     if (status.check_)
     {
         cool::csabase::Location loc(analyser.get_location(decl));
@@ -106,17 +106,17 @@ declaration(cool::csabase::Analyser& analyser, clang::Decl const* decl)
         }
         else if (((analyser.toplevel() != loc.file() && !status.header_seen_)
                   || loc.line() < status.line_)
-                 && ::builtin != loc.file() && ::command_line != loc.file()
+                 && builtin != loc.file() && command_line != loc.file()
                  && (llvm::dyn_cast<clang::NamedDecl>(decl) == 0
-                     || cool::end(::id_names)
-                          == std::find(cool::begin(::id_names),
-                                       cool::end(::id_names),
+                     || cool::end(id_names)
+                          == std::find(cool::begin(id_names),
+                                       cool::end(id_names),
                                        llvm::dyn_cast<clang::NamedDecl>(decl)
                                                           ->getNameAsString()))
                  && !analyser.is_main())
         {
             analyser.report(decl,
-                            ::check_name,
+                            check_name,
                             "TR09: declarations precede component header",
                             true);
             status.check_ = false;
@@ -161,13 +161,13 @@ subscribe(cool::csabase::Analyser&   analyser,
           cool::csabase::Visitor&    ,
           cool::csabase::PPObserver& observer)
 {
-    observer.onInclude   += ::analyser_binder<bool>(::include_file, analyser);
-    observer.onCloseFile += ::analyser_binder<std::string const&>(::close_file,
+    observer.onInclude   += analyser_binder<bool>(include_file, analyser);
+    observer.onCloseFile += analyser_binder<std::string const&>(close_file,
                                                                   analyser);
 }
 
 // -----------------------------------------------------------------------------
 
 static cool::csabase::RegisterCheck register_observer(check_name,
-                                                      &::subscribe);
-static cool::csabase::RegisterCheck register_check(check_name, &::declaration);
+                                                      &subscribe);
+static cool::csabase::RegisterCheck register_check(check_name, &declaration);

@@ -65,7 +65,7 @@ template <typename T>
 void
 ::add_to_event<T>::operator()(cool::csabase::Analyser& a, cool::csabase::Visitor& v, cool::csabase::PPObserver&)
 {
-    v.*(this->member_) += ::binder<T>(a, this->check_);
+    v.*(this->member_) += binder<T>(a, this->check_);
 }
 
 // -----------------------------------------------------------------------------
@@ -101,7 +101,7 @@ namespace                                                               \
         static cool::event<void(clang::D const*)> (cool::csabase::Visitor::* member()); \
     };                                                                  \
     cool::event<void(clang::D const*)>                                  \
-        (cool::csabase::Visitor::* ::map_to_member<clang::D>::member())          \
+        (cool::csabase::Visitor::* map_to_member<clang::D>::member())          \
     {                                                                   \
         return &cool::csabase::Visitor::on##D;                                   \
     }                                                                   \

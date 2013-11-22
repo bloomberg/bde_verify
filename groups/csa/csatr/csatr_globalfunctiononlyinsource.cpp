@@ -43,7 +43,7 @@ global_function_only_in_source(cool::csabase::Analyser&   analyser,
         && llvm::dyn_cast<clang::CXXMethodDecl>(decl) == 0
         && analyser.get_location(decl).file() == analyser.toplevel()
         && std::find_if(decl->redecls_begin(), decl->redecls_end(),
-                        ::decl_not_in_toplevel(&analyser))
+                        decl_not_in_toplevel(&analyser))
             == decl->redecls_end()
         && !analyser.is_test_driver()
         && !decl->isMain())
@@ -58,4 +58,4 @@ global_function_only_in_source(cool::csabase::Analyser&   analyser,
 // ----------------------------------------------------------------------------
 
 static cool::csabase::RegisterCheck check(check_name,
-                                          &::global_function_only_in_source);
+                                          &global_function_only_in_source);

@@ -47,9 +47,9 @@ is_comparison(clang::BinaryOperatorKind opcode)
 static void
 check(cool::csabase::Analyser& analyser, clang::BinaryOperator const* expr)
 {
-    if (::is_comparison(expr->getOpcode())
-        && (::is_bool_comparison(expr->getLHS(), expr->getRHS())
-            || ::is_bool_comparison(expr->getRHS(), expr->getLHS())))
+    if (is_comparison(expr->getOpcode())
+        && (is_bool_comparison(expr->getLHS(), expr->getRHS())
+            || is_bool_comparison(expr->getRHS(), expr->getLHS())))
     {
         analyser.report(expr, check_name,
                         "comparing a Boolean expression to a Boolean literal")
@@ -59,4 +59,4 @@ check(cool::csabase::Analyser& analyser, clang::BinaryOperator const* expr)
 
 // ----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck register_check(check_name, &::check);
+static cool::csabase::RegisterCheck register_check(check_name, &check);

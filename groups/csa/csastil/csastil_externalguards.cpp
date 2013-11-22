@@ -44,7 +44,7 @@ static std::string
 toUpper(std::string value)
 {
     std::transform(value.begin(), value.end(), value.begin(),
-                   static_cast<char(*)(unsigned char)>(&::toUpper));
+                   static_cast<char(*)(unsigned char)>(&toUpper));
     return value;
 }
 
@@ -56,7 +56,7 @@ getComponent(std::string const& file)
     std::string::size_type point(file.find('.', slash));
     point = point == file.npos? file.size(): point;
     std::string s = file.substr(slash, point - slash);
-    return ::toUpper(file.substr(slash, point - slash));
+    return toUpper(file.substr(slash, point - slash));
 }
 
 // ----------------------------------------------------------------------------
@@ -66,7 +66,7 @@ onIfdef(CB::Analyser*         analyser,
         clang::SourceLocation where,
         clang::Token const&   token)
 {
-    ::ExternalGuards& context(analyser->attachment< ::ExternalGuards>());
+    ExternalGuards& context(analyser->attachment<ExternalGuards>());
     // This condition is never part of an include guard.
     context.d_conditions.push(std::make_pair(std::string(), where));
 }
@@ -80,7 +80,7 @@ onIfndef(CB::Analyser*         analyser,
          clang::SourceLocation where,
          clang::Token const&   token)
 {
-    ::ExternalGuards& context(analyser->attachment< ::ExternalGuards>());
+    ExternalGuards& context(analyser->attachment<ExternalGuards>());
     std::string macro(token.getIdentifierInfo()->getNameStart());
     context.d_conditions.push(std::make_pair(macro.find(prefix0) == 0
                                              ? macro.substr(prefix0.size())
@@ -103,7 +103,7 @@ onIf(CB::Analyser*         analyser,
      clang::SourceLocation where,
      clang::SourceRange    source)
 {
-    ::ExternalGuards& context(analyser->attachment< ::ExternalGuards>());
+    ExternalGuards& context(analyser->attachment<ExternalGuards>());
     std::string condition(analyser->get_source(source));
     condition.erase(std::remove_if(condition.begin(), condition.end(), &isSpace),
                     condition.end());
@@ -137,7 +137,7 @@ getInclude(std::string const& value)
         std::string::size_type end(value.find('>', begin));
         return end == value.npos
             ? std::string()
-            : ::getComponent(value.substr(begin, end - begin));
+            : getComponent(value.substr(begin, end - begin));
     }
     pos = value.find(include1);
     if (pos != value.npos) {
@@ -145,7 +145,7 @@ getInclude(std::string const& value)
         std::string::size_type end(value.find('"', begin));
         return end == value.npos
             ? std::string()
-            : ::getComponent(value.substr(begin, end - begin));
+            : getComponent(value.substr(begin, end - begin));
     }
     return std::string();
 }
@@ -155,22 +155,22 @@ onEndif(CB::Analyser* analyser,
         clang::SourceLocation end,
         clang::SourceLocation)
 {
-    ::ExternalGuards& context(analyser->attachment< ::ExternalGuards>());
+    ExternalGuards& context(analyser->attachment<ExternalGuards>());
     if (!context.d_conditions.empty()) {
         if (analyser->is_component_header(end)
             && !context.d_conditions.top().first.empty()
             && (context.d_conditions.top().first
-                != ::toUpper(analyser->package() + "_" + analyser->component()))
+                != toUpper(analyser->package() + "_" + analyser->component()))
             ) {
             std::string source(analyser->get_source(clang::SourceRange(context.d_conditions.top().second, end)));
-            source.erase(std::remove_if(source.begin(), source.end(), &::isSpace), source.end());
-            std::string include(::getInclude(source));
+            source.erase(std::remove_if(source.begin(), source.end(), &isSpace), source.end());
+            std::string include(getInclude(source));
             if (include.empty()) {
-                analyser->report(context.d_conditions.top().second, ::check_name,
+                analyser->report(context.d_conditions.top().second, check_name,
                                  "SEG: include guard without include file");
             }
             else if (include != context.d_conditions.top().first) {
-                analyser->report(context.d_conditions.top().second, ::check_name,
+                analyser->report(context.d_conditions.top().second, check_name,
                                  "SEG: include guard mismatching include file");
             }
         }
@@ -189,17 +189,17 @@ onInclude(CB::Analyser*         analyser,
           bool                  ,
           std::string const&    file)
 {
-    ::ExternalGuards& context(analyser->attachment< ::ExternalGuards>());
+    ExternalGuards& context(analyser->attachment<ExternalGuards>());
     if (analyser->is_component_header(where)
         && (context.d_conditions.empty()
             || context.d_conditions.top().first.empty()
             || (context.d_conditions.top().first
-                == ::toUpper(analyser->package() + "_"
+                == toUpper(analyser->package() + "_"
                              + analyser->component()))
             )
         )
     {
-        analyser->report(where, ::check_name,
+        analyser->report(where, check_name,
                          "SEG: include without external include guard");
     }
 }
@@ -210,7 +210,7 @@ static void
 subscribe(CB::Analyser& analyser, CB::Visitor&, CB::PPObserver& observer)
 {
     observer.onInclude  += CB::bind(&analyser, &onInclude);
-    // observer.onSkipFile += ::binder(&analyser);
+    // observer.onSkipFile += binder(&analyser);
     observer.onIfdef    += CB::bind(&analyser, &onIfdef);
     observer.onIfndef   += CB::bind(&analyser, &onIfndef);
     observer.onIf       += CB::bind(&analyser, &onIf);
@@ -219,4 +219,4 @@ subscribe(CB::Analyser& analyser, CB::Visitor&, CB::PPObserver& observer)
 
 // ----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck register_observer(check_name, &::subscribe);
+static cool::csabase::RegisterCheck register_observer(check_name, &subscribe);

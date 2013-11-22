@@ -67,7 +67,7 @@ namespace
         std::string suffix(file.npos == separator? "": file.substr(separator));
         if (cool::end(suffixes) == std::find(cool::begin(suffixes), cool::end(suffixes), suffix))
         {
-            analyser->report(begin, ::check_name, "unknown header file suffix: '" + suffix + "'");
+            analyser->report(begin, check_name, "unknown header file suffix: '" + suffix + "'");
         }
         else
         {
@@ -76,10 +76,10 @@ namespace
             {
                 file[file.size() - 2] = '_';
             }
-            std::transform(file.begin(), file.end(), file.begin(), ::to_upper);
+            std::transform(file.begin(), file.end(), file.begin(), to_upper);
             if (file != name)
             {
-                analyser->report(begin, ::check_name, "expected include guard '" + name + "'");
+                analyser->report(begin, check_name, "expected include guard '" + name + "'");
             }
         }
     }
@@ -92,12 +92,12 @@ namespace
     std::string const not_defined("!defined(");
     void on_if(cool::csabase::Analyser* analyser, clang::SourceRange range)
     {
-        std::string expr(::get_string(analyser, range.getBegin(), range.getEnd()));
-        expr.erase(std::remove_if(expr.begin(), expr.end(), ::is_space), expr.end());
-        if (0 == expr.find(::not_defined) && *(expr.end() - 1) == ')')
+        std::string expr(get_string(analyser, range.getBegin(), range.getEnd()));
+        expr.erase(std::remove_if(expr.begin(), expr.end(), is_space), expr.end());
+        if (0 == expr.find(not_defined) && *(expr.end() - 1) == ')')
         {
-            ::inspect_guard_name(analyser, range.getBegin(),
-                                 expr.substr(::not_defined.size(), expr.size() - ::not_defined.size() - 1));
+            inspect_guard_name(analyser, range.getBegin(),
+                                 expr.substr(not_defined.size(), expr.size() - not_defined.size() - 1));
         }
     }
 }
@@ -109,7 +109,7 @@ namespace
     void on_ifndef(cool::csabase::Analyser* analyser, clang::Token token)
     {
         //-dk:TODO remove llvm::errs() << "onIfndef\n";
-        ::inspect_guard_name(analyser, token.getLocation(), ::get_string(analyser, token.getLocation(), token.getLastLoc()));
+        inspect_guard_name(analyser, token.getLocation(), get_string(analyser, token.getLocation(), token.getLastLoc()));
     }
 }
 
@@ -118,10 +118,10 @@ namespace
 static void
 subscribe(cool::csabase::Analyser& analyser, cool::csabase::Visitor&, cool::csabase::PPObserver& observer)
 {
-    observer.onIf      += std::bind1st(std::ptr_fun(::on_if), &analyser);
-    observer.onIfndef  += std::bind1st(std::ptr_fun(::on_ifndef), &analyser);
+    observer.onIf      += std::bind1st(std::ptr_fun(on_if), &analyser);
+    observer.onIfndef  += std::bind1st(std::ptr_fun(on_ifndef), &analyser);
 }
 
 // -----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck register_observer(check_name, &::subscribe);
+static cool::csabase::RegisterCheck register_observer(check_name, &subscribe);

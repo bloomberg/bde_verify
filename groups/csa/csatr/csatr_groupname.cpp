@@ -54,7 +54,7 @@ struct on_group_open
                     std::string const&    ,
                     std::string const&    name) const
     {
-        ::groupname& attachment(this->d_analyser->attachment< ::groupname>());
+        groupname& attachment(this->d_analyser->attachment<groupname>());
         if (!attachment.d_done
             && name == this->d_analyser->toplevel()
             && !this->d_analyser->group().empty()) {
@@ -63,16 +63,16 @@ struct on_group_open
 
             if (group.size() != 3) {
                 analyser.report(where,
-                                ::check_name,
+                                check_name,
                                 "TR01: group names most consist of 3 "
                                 "characters: '%0'",
                                 true)
                     << group;
             }
-            if (std::find_if(group.begin(), group.end(), &::not_groupchar)
+            if (std::find_if(group.begin(), group.end(), &not_groupchar)
                 != group.end()) {
                 analyser.report(where,
-                                ::check_name,
+                                check_name,
                                 "TR01: group names most consist of lower case "
                                 "alphabetic characters only: '%0'",
                                 true)
@@ -81,13 +81,13 @@ struct on_group_open
             std::string path(analyser.directory() + "..");
                 
             struct stat direct;
-            if (!::stat(path.c_str(), &direct)) {
+            if (!stat(path.c_str(), &direct)) {
                 std::string expect(analyser.directory() + "../../" + group);
                 struct stat indirect;
-                if (::stat(expect.c_str(), &indirect)
+                if (stat(expect.c_str(), &indirect)
                     || direct.st_ino != indirect.st_ino) {
                     analyser.report(where,
-                                    ::check_name,
+                                    check_name,
                                     "TR01: component '%0' doesn't seem to be "
                                     "in package group '%1'",
                                     true)
@@ -110,4 +110,4 @@ subscribe(cool::csabase::Analyser& analyser, cool::csabase::Visitor&, cool::csab
 
 // ----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck register_observer(check_name, &::subscribe);
+static cool::csabase::RegisterCheck register_observer(check_name, &subscribe);

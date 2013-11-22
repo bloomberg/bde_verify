@@ -47,8 +47,8 @@ onOpenFile(cool::csabase::Analyser* analyser,
            std::string const&       current,
            std::string const&       opened)
 {
-    ::leaking_macro& context(analyser->attachment< ::leaking_macro>());
-    context.d_macros.push(::leaking_macro::map_type());
+    leaking_macro& context(analyser->attachment<leaking_macro>());
+    context.d_macros.push(leaking_macro::map_type());
 }
 
 // ----------------------------------------------------------------------------
@@ -79,10 +79,10 @@ onCloseFile(cool::csabase::Analyser* analyser,
     std::string component(closed.substr(slash, point - slash));
     std::transform(component.begin(), component.end(),
                    component.begin(),
-                   &::to_upper);
+                   &to_upper);
 
-    ::leaking_macro& context(analyser->attachment< ::leaking_macro>());
-    typedef ::leaking_macro::map_type map_type;
+    leaking_macro& context(analyser->attachment<leaking_macro>());
+    typedef leaking_macro::map_type map_type;
     map_type const& macros(context.d_macros.top());
     for (map_type::const_iterator it(macros.begin()), end(macros.end());
          it != end; ++it) {
@@ -90,13 +90,13 @@ onCloseFile(cool::csabase::Analyser* analyser,
         if (where.file() != "<built-in>"
             && where.file() != "<command line>"
             && it->first.find("INCLUDED_") != 0
-            && ::toUpper(it->first).find(component) != 0
+            && toUpper(it->first).find(component) != 0
             && (analyser->is_component_header(it->second)
                 ? true
                 : it->first.size() < 4)
             )
         {
-            analyser->report(it->second, ::check_name,
+            analyser->report(it->second, check_name,
                              "SLM: macro definition '%0' leaks from header",
                              true)
                 << it->first;
@@ -112,7 +112,7 @@ onMacroDefined(cool::csabase::Analyser* analyser,
                clang::Token const&      token,
                clang::MacroDirective const*  info)
 {
-    ::leaking_macro& context(analyser->attachment< ::leaking_macro>());
+    leaking_macro& context(analyser->attachment<leaking_macro>());
     std::string source(token.getIdentifierInfo()->getNameStart());
     context.d_macros.top().insert(std::make_pair(source, token.getLocation()));
 }
@@ -122,7 +122,7 @@ onMacroUndefined(cool::csabase::Analyser* analyser,
                  clang::Token const&      token,
                  clang::MacroDirective const*  info)
 {
-    ::leaking_macro& context(analyser->attachment< ::leaking_macro>());
+    leaking_macro& context(analyser->attachment<leaking_macro>());
     std::string source(token.getIdentifierInfo()->getNameStart());
     context.d_macros.top().erase(source);
 }
@@ -142,4 +142,4 @@ subscribe(cool::csabase::Analyser&   analyser,
 
 // ----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck register_observer(check_name, &::subscribe);
+static cool::csabase::RegisterCheck register_observer(check_name, &subscribe);

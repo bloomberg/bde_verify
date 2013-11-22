@@ -37,11 +37,11 @@ namespace
                     std::string header(directory + component + ".h");
                     std::string test(directory + component + ".t.cpp");
                     if (stat(header.c_str(), &buffer)) {
-                        analyser.report(where, ::check_name, "TR03: header file '%0' not accessible", true)
+                        analyser.report(where, check_name, "TR03: header file '%0' not accessible", true)
                             << header;
                     }
                     if (stat(test.c_str(), &buffer)) {
-                        analyser.report(where, ::check_name, "TR03: test file '%0' not accessible", true)
+                        analyser.report(where, check_name, "TR03: test file '%0' not accessible", true)
                             << test;
                     }
                 }
@@ -54,9 +54,9 @@ namespace
 static void
 subscribe(cool::csabase::Analyser& analyser, cool::csabase::Visitor&, cool::csabase::PPObserver& observer)
 {
-    observer.onOpenFile  += ::on_files_open(analyser);
+    observer.onOpenFile  += on_files_open(analyser);
 }
 
 // -----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck register_observer(check_name, &::subscribe);
+static cool::csabase::RegisterCheck register_observer(check_name, &subscribe);

@@ -75,7 +75,7 @@ CB::DiagnosticFilter::HandleDiagnostic(clang::DiagnosticsEngine::Level level,
     if (clang::DiagnosticsEngine::Note != level
         && (clang::DiagnosticsEngine::Warning < level
             || !info.getLocation().isFileID()
-            || this->d_analyser->is_component(::get_filename(info)))
+            || this->d_analyser->is_component(get_filename(info)))
         )
     {
         this->DiagnosticConsumer::HandleDiagnostic(level, info);
@@ -97,4 +97,4 @@ static void check(CB::Analyser& analyser, const clang::TranslationUnitDecl*)
 
 // ----------------------------------------------------------------------------
 
-static CB::RegisterCheck register_check(check_name, &::check);
+static CB::RegisterCheck register_check(check_name, &check);

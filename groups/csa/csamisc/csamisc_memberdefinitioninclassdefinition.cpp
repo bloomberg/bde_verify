@@ -37,16 +37,16 @@ member_definition_in_class_definition(cool::csabase::Analyser& analyser, clang::
         && !decl->isTrivial()
         && (!ctor || !ctor->isImplicit())
         && (!dtor || !dtor->isImplicit())
-        && !analyser.attachment< ::member_definition>().reported_[decl->getCanonicalDecl()]
+        && !analyser.attachment<member_definition>().reported_[decl->getCanonicalDecl()]
         && !analyser.is_test_driver()
         && !decl->getLocStart().isMacroID())
     {
         analyser.report(decl, check_name, "member function '%0' is defined in the class definition.")
             << decl->getQualifiedNameAsString();
-        analyser.attachment< ::member_definition>().reported_[decl->getCanonicalDecl()] = true;
+        analyser.attachment<member_definition>().reported_[decl->getCanonicalDecl()] = true;
     }
 }
 
 // -----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck check(check_name, &::member_definition_in_class_definition);
+static cool::csabase::RegisterCheck check(check_name, &member_definition_in_class_definition);

@@ -20,10 +20,10 @@ namespace
 {
     typedef std::multimap<std::string, cool::csabase::CheckRegistry::Subscriber> map_type;
 
-    ::map_type&
+    map_type&
     checks()
     {
-        static ::map_type rc;
+        static map_type rc;
         return rc;
     }
 }
@@ -34,7 +34,7 @@ void
 cool::csabase::CheckRegistry::add_check(std::string const& name,
                                         cool::csabase::CheckRegistry::Subscriber check)
 {
-    ::checks().insert(std::make_pair(name, check));
+    checks().insert(std::make_pair(name, check));
 }
 
 // -----------------------------------------------------------------------------
@@ -44,12 +44,12 @@ cool::csabase::CheckRegistry::attach(cool::csabase::Analyser& analyser,
                                      cool::csabase::Visitor& visitor,
                                      cool::csabase::PPObserver& observer)
 {
-    typedef ::map_type::const_iterator const_iterator;
+    typedef map_type::const_iterator const_iterator;
     typedef std::map<std::string, cool::csabase::Config::Status> checks_type;
     checks_type const& config(analyser.config()->checks());
     for (checks_type::const_iterator it(config.begin()), end(config.end());
          it != end; ++it) {
-        if (::checks().find(it->first) == ::checks().end()) {
+        if (checks().find(it->first) == checks().end()) {
             llvm::errs() << "unknown check '" << it->first << "'; "
                          << "existing checks:\n";
             for (const_iterator cit(checks().begin()), cend(checks().end());
@@ -60,8 +60,8 @@ cool::csabase::CheckRegistry::attach(cool::csabase::Analyser& analyser,
         }
     }
 
-    typedef ::map_type::const_iterator const_iterator;
-    for (const_iterator it(::checks().begin()), end(::checks().end());
+    typedef map_type::const_iterator const_iterator;
+    for (const_iterator it(checks().begin()), end(checks().end());
          it != end; ++it)
     {
         checks_type::const_iterator cit(config.find(it->first));

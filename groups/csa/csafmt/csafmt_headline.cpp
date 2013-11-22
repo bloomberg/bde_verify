@@ -64,13 +64,13 @@ open_file(cool::csabase::Analyser& analyser,
             expect += "-*-C++-*-";
             if (line != expect && line.npos == line.find("GENERATED")) {
                 analyser.report(where,
-                                ::check_name,
+                                check_name,
                                 "file headline incorrect",
                                 true);
             }
         }
         else {
-            analyser.report(where, ::check_name,
+            analyser.report(where, check_name,
                             "failed to open file '" + name + "' for reading");
         }
     }
@@ -83,11 +83,11 @@ subscribe(cool::csabase::Analyser& analyser,
           cool::csabase::Visitor&  ,
           cool::csabase::PPObserver& observer)
 {
-    observer.onOpenFile += ::analyser_binder<std::string const&>(::open_file,
+    observer.onOpenFile += analyser_binder<std::string const&>(open_file,
                                                                  analyser);
 }
 
 // ----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck register_observer(check_name,&::subscribe);
+static cool::csabase::RegisterCheck register_observer(check_name,&subscribe);
 

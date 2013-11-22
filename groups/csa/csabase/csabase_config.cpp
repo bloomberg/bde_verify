@@ -70,7 +70,7 @@ set_status(std::map<std::string, cool::csabase::Config::Status>&   checks,
             path.push_back(check);
             for (std::vector<std::string>::const_iterator cit(it->second.begin()), cend(it->second.end());
                  cit != cend; ++cit) {
-                ::set_status(checks, groups, *cit, status, path);
+                set_status(checks, groups, *cit, status, path);
             }
             path.pop_back();
         }
@@ -120,7 +120,7 @@ cool::csabase::Config::process(std::string const& line)
         cool::csabase::Config::Status status;
         if (args >> check >> status) {
             std::vector<std::string> path;
-            ::set_status(this->d_checks, this->d_groups, check, status, path);
+            set_status(this->d_checks, this->d_groups, check, status, path);
         }
         else {
             llvm::errs() << "WARNING: couldn't read check configuration from '" << line << "'\n";

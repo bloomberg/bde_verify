@@ -57,7 +57,7 @@ static bool isDefaultValue(cool::csabase::Analyser& analyser,
             && llvm::dyn_cast<clang::CharacterLiteral>(init)->getValue() == 0)
         || (llvm::dyn_cast<clang::IntegerLiteral>(init)
             && llvm::dyn_cast<clang::IntegerLiteral>(init)->getValue().getLimitedValue() == 0u)
-        || ::isDefaultConstructor(analyser, init);
+        || isDefaultConstructor(analyser, init);
 }
 
 // -----------------------------------------------------------------------------
@@ -81,8 +81,8 @@ check(cool::csabase::Analyser& analyser, clang::InitListExpr const* expr)
         clang::ConstantArrayType const* array(analyser.context()->getAsConstantArrayType(expr->getType()));
         if (0u < expr->getNumInits()
             && expr->getNumInits() < array->getSize().getLimitedValue()
-            && !::isDefaultValue(analyser, expr, expr->getInit(expr->getNumInits() - 1u))
-            && analyser.attachment< ::reported >().reported_.insert(expr).second)
+            && !isDefaultValue(analyser, expr, expr->getInit(expr->getNumInits() - 1u))
+            && analyser.attachment<reported >().reported_.insert(expr).second)
         {
             analyser.report(expr, check_name, "incomplete initialization with non-defaulted last value")
                 << expr->getInit(expr->getNumInits() - 1u)->getSourceRange();
@@ -92,4 +92,4 @@ check(cool::csabase::Analyser& analyser, clang::InitListExpr const* expr)
 
 // -----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck register_check(check_name, &::check);
+static cool::csabase::RegisterCheck register_check(check_name, &check);

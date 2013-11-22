@@ -83,7 +83,7 @@ local_friendship_only(cool::csabase::Analyser&  analyser,
         clang::TypeSourceInfo const* typeInfo(decl->getFriendType());
         clang::TypeLoc loc(typeInfo->getTypeLoc());
         clang::Type const* type(loc.getTypePtr());
-        if (::is_extern_type(analyser, type)) {
+        if (is_extern_type(analyser, type)) {
             analyser.report(decl, check_name,
                             "TR19: friendship to a class "
                             "can only be granted within a component"
@@ -96,5 +96,5 @@ local_friendship_only(cool::csabase::Analyser&  analyser,
 
 // ----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck check(::check_name,
-                                          &::local_friendship_only);
+static cool::csabase::RegisterCheck check(check_name,
+                                          &local_friendship_only);

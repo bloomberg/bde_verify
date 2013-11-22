@@ -38,4 +38,4 @@ check(cool::csabase::Analyser& analyser, clang::CXXNewExpr const* expr)
 
 // -----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck register_check(check_name, &::check);
+static cool::csabase::RegisterCheck register_check(check_name, &check);

@@ -122,7 +122,7 @@ PluginAction::PluginAction()
 clang::ASTConsumer*
 PluginAction::CreateASTConsumer(clang::CompilerInstance& compiler, llvm::StringRef source)
 {
-    return new ::AnalyseConsumer(compiler, source, *this);
+    return new AnalyseConsumer(compiler, source, *this);
 }
 
 // -----------------------------------------------------------------------------
@@ -176,4 +176,4 @@ PluginAction::tool_name() const
 
 // -----------------------------------------------------------------------------
 
-static clang::FrontendPluginRegistry::Add< ::PluginAction> registerPlugin("coolyse", "analyse source");
+static clang::FrontendPluginRegistry::Add<PluginAction> registerPlugin("coolyse", "analyse source");

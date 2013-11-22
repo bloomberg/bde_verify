@@ -40,4 +40,4 @@ check(cool::csabase::Analyser& analyser, clang::VarDecl const* decl)
 
 // ----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck register_check(check_name, &::check);
+static cool::csabase::RegisterCheck register_check(check_name, &check);

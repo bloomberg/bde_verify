@@ -21,7 +21,7 @@ static size_t next_index(0u);
 size_t
 cool::csabase::Attachments::alloc()
 {
-    return ::next_index++;
+    return next_index++;
 }
 
 // -----------------------------------------------------------------------------

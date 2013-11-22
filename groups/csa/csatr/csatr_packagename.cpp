@@ -46,7 +46,7 @@ namespace
         on_open(cool::csabase::Analyser& analyser): d_analyser(&analyser) {}
         void operator()(clang::SourceLocation where, std::string const&, std::string const& name) const
         {
-            ::packagename& attachment(this->d_analyser->attachment< ::packagename>());
+            packagename& attachment(this->d_analyser->attachment<packagename>());
             if (!attachment.d_done && name == this->d_analyser->toplevel()) {
                 cool::csabase::Analyser& analyser(*this->d_analyser);
 
@@ -57,7 +57,7 @@ namespace
                 std::string component(slash == name.npos? 0: name.substr(slash, period == name.npos? name.npos: (period - slash)));
                 std::string::size_type underscore(component.find('_'));
                 if (underscore == component.npos) {
-                    analyser.report(where, ::check_name, "TR02: component file name '%0' doesn't contain an underscore", true)
+                    analyser.report(where, check_name, "TR02: component file name '%0' doesn't contain an underscore", true)
                         << component;
                     return;
                 }
@@ -65,7 +65,7 @@ namespace
                          && ((underscore = component.find('_',
                                                           underscore + 1))
                              == component.npos)) {
-                    analyser.report(where, ::check_name,
+                    analyser.report(where, check_name,
                                     "TR02: component file name '%0' "
                                     "in standalone component "
                                     "contains only one underscore", true)
@@ -76,13 +76,13 @@ namespace
                 std::string::size_type offset(2u < underscore && component[1] == '_'? 2: 0);
                 std::string package(component.substr(offset, underscore - offset));
                 if (!(3 < package.size() && package.size() < 8)) {
-                    analyser.report(where, ::check_name,
+                    analyser.report(where, check_name,
                                     "TR02: package names must consist of 1 to 4 characters preceded by the group name: '%0'", true)
                         << package;
                 }
-                if (std::find_if(package.begin(), package.end(), &::not_packagechar) != package.end()
+                if (std::find_if(package.begin(), package.end(), &not_packagechar) != package.end()
                     || isdigit(static_cast<unsigned char>(package[3]))) {
-                    analyser.report(where, ::check_name,
+                    analyser.report(where, check_name,
                                     "TR02: package names must consist of lower case alphanumeric characters only: '%0'", true)
                         << package;
                 }
@@ -90,11 +90,11 @@ namespace
                 
                 package = component.substr(0, underscore);
                 struct stat direct;
-                if (!::stat(path.c_str(), &direct)) {
+                if (!stat(path.c_str(), &direct)) {
                     std::string expect(name.substr(0, slash) + "../" + package);
                     struct stat indirect;
-                    if (::stat(expect.c_str(), &indirect) || direct.st_ino != indirect.st_ino) {
-                        analyser.report(where, ::check_name,
+                    if (stat(expect.c_str(), &indirect) || direct.st_ino != indirect.st_ino) {
+                        analyser.report(where, check_name,
                                         "TR02: component '%0' doesn't seem to be in package '%1'",
                                         true)
                             << component
@@ -112,9 +112,9 @@ namespace
 static void
 subscribe(cool::csabase::Analyser& analyser, cool::csabase::Visitor&, cool::csabase::PPObserver& observer)
 {
-    observer.onOpenFile  += ::on_open(analyser);
+    observer.onOpenFile  += on_open(analyser);
 }
 
 // -----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck register_observer(check_name, &::subscribe);
+static cool::csabase::RegisterCheck register_observer(check_name, &subscribe);

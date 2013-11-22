@@ -38,13 +38,13 @@ namespace
 void
 cool::csabase::Debug::set_debug(bool value)
 {
-    ::do_debug = value;
+    do_debug = value;
 }
 
 bool
 cool::csabase::Debug::get_debug()
 {
-    return ::do_debug;
+    return do_debug;
 }
 
 // -----------------------------------------------------------------------------
@@ -53,18 +53,18 @@ cool::csabase::Debug::Debug(char const* message, bool nest):
     message_(message),
     nest_(nest)
 {
-    if (::do_debug)
+    if (do_debug)
     {
-        ::start(::indent) << (this->nest_? "\\ ": "| ") << "'" << this->message_ << "'\n";
+        start(::indent) << (this->nest_? "\\ ": "| ") << "'" << this->message_ << "'\n";
         ::indent += nest;
     }
 }
 
 cool::csabase::Debug::~Debug()
 {
-    if (::do_debug && this->nest_)
+    if (do_debug && this->nest_)
     {
-        ::start(::indent -= this->nest_) << (this->nest_? "/ ": "| ") << message_ << "\n";
+        start(::indent -= this->nest_) << (this->nest_? "/ ": "| ") << message_ << "\n";
     }
 }
 
@@ -78,5 +78,5 @@ namespace
 llvm::raw_ostream&
 cool::csabase::Debug::indent() const
 {
-    return ::do_debug? ::start(::indent) << "| ": ::dummy_stream;
+    return do_debug? start(::indent) << "| ": dummy_stream;
 }

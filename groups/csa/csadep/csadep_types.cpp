@@ -37,7 +37,7 @@ record_needed_declaration(cool::csabase::Analyser& analyser,
     // print = true;
     if (print) {
         clang::SourceLocation location(decl->getLocStart());
-        analyser.report(location, ::check_name, "in file %2 need %0 for %1")
+        analyser.report(location, check_name, "in file %2 need %0 for %1")
             << (need_definition? "definition": "declaration")
             << named->getQualifiedNameAsString()
             << analyser.get_location(decl).file()
@@ -80,34 +80,34 @@ check_type(cool::csabase::Analyser& analyser,
     case clang::Type::Pointer:
         {
             cast_ptr<clang::PointerType> const pointer(type);
-            ::check_type(analyser, decl, pointer->getPointeeType().getTypePtr(), false, print);
+            check_type(analyser, decl, pointer->getPointeeType().getTypePtr(), false, print);
         }
         break;
     case clang::Type::LValueReference:
     case clang::Type::RValueReference:
         {
             cast_ptr<clang::ReferenceType> const reference(type);
-            ::check_type(analyser, decl, reference->getPointeeType().getTypePtr(), false, print);
+            check_type(analyser, decl, reference->getPointeeType().getTypePtr(), false, print);
         }
         break;
     case clang::Type::MemberPointer:
         {
             cast_ptr<clang::MemberPointerType> const member(type);
-            ::check_type(analyser, decl, member->getPointeeType().getTypePtr(), false, print);
-            ::check_type(analyser, decl, member->getClass(), false, print);
+            check_type(analyser, decl, member->getPointeeType().getTypePtr(), false, print);
+            check_type(analyser, decl, member->getClass(), false, print);
         }
         break;
     case clang::Type::ConstantArray:
         {
             cast_ptr<clang::ConstantArrayType> const array(type);
-            ::check_type(analyser, decl, array->getElementType().getTypePtr(), inDefinition, print);
+            check_type(analyser, decl, array->getElementType().getTypePtr(), inDefinition, print);
             //-dk:TODO check where the size is coming from!
         }
         break;
     case clang::Type::IncompleteArray:
         {
             cast_ptr<clang::IncompleteArrayType> const array(type);
-            ::check_type(analyser, decl, array->getElementType().getTypePtr(), inDefinition, print);
+            check_type(analyser, decl, array->getElementType().getTypePtr(), inDefinition, print);
         }
         break;
     case clang::Type::VariableArray:
@@ -120,14 +120,14 @@ check_type(cool::csabase::Analyser& analyser,
         break; // SIMD vectors are not part of standard C++
     case clang::Type::FunctionProto: // fall through
     case clang::Type::FunctionNoProto:
-        analyser.report(decl, ::check_name, "TODO: function proto");
+        analyser.report(decl, check_name, "TODO: function proto");
         break;
     case clang::Type::UnresolvedUsing:
         break; // these need to be checked during instantiation
     case clang::Type::Paren:
         {
             cast_ptr<clang::ParenType> const paren(type);
-            ::check_type(analyser, decl, paren->getInnerType().getTypePtr(), inDefinition, print);
+            check_type(analyser, decl, paren->getInnerType().getTypePtr(), inDefinition, print);
         }
         break;
     case clang::Type::Typedef:
@@ -157,13 +157,13 @@ check_type(cool::csabase::Analyser& analyser,
     case clang::Type::Elaborated:
         {
             cast_ptr<clang::ElaboratedType> const elaborated(type);
-            ::check_type(analyser, decl, elaborated->getNamedType().getTypePtr(), inDefinition, print);
+            check_type(analyser, decl, elaborated->getNamedType().getTypePtr(), inDefinition, print);
         }
         break;
     case clang::Type::SubstTemplateTypeParm:
         {
             cast_ptr<clang::SubstTemplateTypeParmType> const subst(type);
-            ::check_type(analyser, decl, subst->getReplacementType().getTypePtr(), inDefinition, print);
+            check_type(analyser, decl, subst->getReplacementType().getTypePtr(), inDefinition, print);
         }
         break;
     case clang::Type::Attributed:
@@ -180,7 +180,7 @@ check_type(cool::csabase::Analyser& analyser,
             {
                 if (it->getKind() == clang::TemplateArgument::Type)
                 {
-                    ::check_type(analyser, decl, it->getAsType().getTypePtr(), inDefinition, print);
+                    check_type(analyser, decl, it->getAsType().getTypePtr(), inDefinition, print);
                 }
             }
         }
@@ -190,7 +190,7 @@ check_type(cool::csabase::Analyser& analyser,
     case clang::Type::InjectedClassName:
         {
             cast_ptr<clang::InjectedClassNameType> injected(type);
-            ::check_type(analyser, decl, injected->getInjectedSpecializationType().getTypePtr(), inDefinition, print);
+            check_type(analyser, decl, injected->getInjectedSpecializationType().getTypePtr(), inDefinition, print);
         }
         break;
     case clang::Type::DependentName:
@@ -200,7 +200,7 @@ check_type(cool::csabase::Analyser& analyser,
     case clang::Type::PackExpansion:
         break; // these become available with C++2011 only
     default:
-        analyser.report(decl, ::check_name, "unknown type class: %0") << cool::csabase::format(type->getTypeClass());
+        analyser.report(decl, check_name, "unknown type class: %0") << cool::csabase::format(type->getTypeClass());
         break;
     }
 }
@@ -222,7 +222,7 @@ namespace
 static void
 on_include(cool::csabase::Analyser& analyser, std::string const& from, std::string const& file)
 {
-    ::include_files& context(analyser.attachment<include_files>());
+    include_files& context(analyser.attachment<include_files>());
     context.includes_[from].insert(file);
     if (analyser.is_component_header(from))
     {
@@ -236,13 +236,13 @@ on_include(cool::csabase::Analyser& analyser, std::string const& from, std::stri
 static void
 on_open(cool::csabase::Analyser& analyser, clang::SourceLocation, std::string const& from, std::string const& file)
 {
-    ::on_include(analyser, from, file);
+    on_include(analyser, from, file);
 }
 
 static void
 on_skip(cool::csabase::Analyser& analyser, std::string const& from, std::string const& file)
 {
-    ::on_include(analyser, from, file);
+    on_include(analyser, from, file);
 }
 
 // -----------------------------------------------------------------------------
@@ -251,10 +251,10 @@ static void
 check_declref(cool::csabase::Analyser& analyser, clang::Decl const* decl, clang::Decl const* declref)
 {
     std::string const& file(analyser.get_location(decl).file());
-    ::include_files& context(analyser.attachment<include_files>());
+    include_files& context(analyser.attachment<include_files>());
     std::set<std::string> const& includes(context.includes_[file]);
 
-    analyser.report(declref, ::check_name, "declref")
+    analyser.report(declref, check_name, "declref")
         << declref
         ;
     std::string header(analyser.get_location(declref).file());
@@ -263,7 +263,7 @@ check_declref(cool::csabase::Analyser& analyser, clang::Decl const* decl, clang:
         // && context.reported_.insert(std::make_pair(file, header)).second
         )
     {
-        analyser.report(decl, ::check_name,
+        analyser.report(decl, check_name,
                         "header file '%0' only included indirectly!")
             << header;
     }
@@ -281,7 +281,7 @@ on_cxxrecorddecl(cool::csabase::Analyser& analyser, clang::CXXRecordDecl const* 
             clang::CXXRecordDecl* record(it->getType()->getAsCXXRecordDecl());
             if (record)
             {
-                ::check_declref(analyser, decl, record);
+                check_declref(analyser, decl, record);
             }
         }
     }
@@ -305,7 +305,7 @@ check_type(cool::csabase::Analyser& analyser, clang::Decl const* decl, clang::Qu
 {
     if (clang::Type const* type = qual_type.getTypePtrOrNull())
     {
-        ::check_type(analyser, decl, type);
+        check_type(analyser, decl, type);
     }
 }
 
@@ -317,10 +317,10 @@ on_functiondecl(cool::csabase::Analyser& analyser, clang::FunctionDecl const* de
     for (clang::FunctionDecl::param_const_iterator it(decl->param_begin()), end(decl->param_end()); it != end; ++it)
     {
         clang::ParmVarDecl const* parameter(*it);
-        ::check_type(analyser, parameter, parameter->getType());
+        check_type(analyser, parameter, parameter->getType());
         if (parameter->getDefaultArg())
         {
-            ::check_expr(analyser, decl, parameter->getDefaultArg());
+            check_expr(analyser, decl, parameter->getDefaultArg());
         }
     }
 }
@@ -343,7 +343,7 @@ on_decl(cool::csabase::Analyser& analyser, clang::Decl const* decl)
 static void
 on_expr(cool::csabase::Analyser& analyser, clang::Expr const* expr)
 {
-    //-dk:TODO analyser.report(expr, ::check_name, "expr");
+    //-dk:TODO analyser.report(expr, check_name, "expr");
 }
 
 // -----------------------------------------------------------------------------
@@ -390,36 +390,36 @@ namespace
 static void
 subscribe(cool::csabase::Analyser& analyser, cool::csabase::Visitor&, cool::csabase::PPObserver& observer)
 {
-    observer.onOpenFile += ::binder(::on_open, analyser);
-    observer.onSkipFile += ::skip_binder(::on_skip, analyser);
+    observer.onOpenFile += binder(on_open, analyser);
+    observer.onSkipFile += skip_binder(on_skip, analyser);
 }
 
 // -----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck register_check0(check_name, &::on_decl);
-static cool::csabase::RegisterCheck register_check1(check_name, &::on_cxxrecorddecl);
-static cool::csabase::RegisterCheck register_check3(check_name, &::on_functiondecl);
-static cool::csabase::RegisterCheck register_check4(check_name, &::on_expr);
-static cool::csabase::RegisterCheck register_observer(check_name, &::subscribe);
+static cool::csabase::RegisterCheck register_check0(check_name, &on_decl);
+static cool::csabase::RegisterCheck register_check1(check_name, &on_cxxrecorddecl);
+static cool::csabase::RegisterCheck register_check3(check_name, &on_functiondecl);
+static cool::csabase::RegisterCheck register_check4(check_name, &on_expr);
+static cool::csabase::RegisterCheck register_observer(check_name, &subscribe);
 static void
 on_declref(cool::csabase::Analyser& analyser, clang::DeclRefExpr const* expr)
 {
     clang::ValueDecl const* decl(expr->getDecl());
-    analyser.report(decl, ::check_name, "declaration")
+    analyser.report(decl, check_name, "declaration")
         << decl->getSourceRange()
         ;
-    analyser.report(expr, ::check_name, "declref")
+    analyser.report(expr, check_name, "declref")
         << expr->getSourceRange()
         ;
 }
-static cool::csabase::RegisterCheck register_check0(check_name, &::on_declref);
+static cool::csabase::RegisterCheck register_check0(check_name, &on_declref);
 #else
 // -----------------------------------------------------------------------------
 
 static void
 on_valuedecl(cool::csabase::Analyser& analyser, clang::VarDecl const* decl)
 {
-    ::check_type(analyser, decl, decl->getType().getTypePtr(),
+    check_type(analyser, decl, decl->getType().getTypePtr(),
                  !decl->hasExternalStorage());
 }
 
@@ -428,11 +428,11 @@ on_valuedecl(cool::csabase::Analyser& analyser, clang::VarDecl const* decl)
 static void
 on_typedefdecl(cool::csabase::Analyser& analyser, clang::TypedefDecl const* decl)
 {
-    ::check_type(analyser, decl, decl->getUnderlyingType().getTypePtr(), false);
+    check_type(analyser, decl, decl->getUnderlyingType().getTypePtr(), false);
 }
 
 // -----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck register_check_typedefdecl(check_name, &::on_typedefdecl);
-static cool::csabase::RegisterCheck register_check_valuedecl(check_name, &::on_valuedecl);
+static cool::csabase::RegisterCheck register_check_typedefdecl(check_name, &on_typedefdecl);
+static cool::csabase::RegisterCheck register_check_valuedecl(check_name, &on_valuedecl);
 #endif

@@ -121,3 +121,48 @@ cool::csabbg::operator+(allocatorforward_alloc_used)
     cool::csabbg::tbase<int> tb1(static_cast<BloombergLP::bslma::Allocator*>(0));
     cool::csabbg::tbase<int> tb2(2, static_cast<BloombergLP::bslma::Allocator*>(0));
 }
+
+// -----------------------------------------------------------------------------
+
+namespace cool
+{
+    namespace csabbg
+    {
+        namespace
+        {
+            template <class T>
+                struct M { M(BloombergLP::bslma::Allocator*); };
+            template <class T, class A = M<T> >
+                struct S { S(const T*); S(const T*, const A&); };
+            template class M<char>;  // TBD should not be needed
+            struct C {
+                S<char> s;
+                C(BloombergLP::bslma::Allocator*) : s("") { }
+            };
+        }
+    }
+}
+
+// -----------------------------------------------------------------------------
+
+namespace cool
+{
+    namespace csabbg
+    {
+        namespace
+        {
+            struct not_alloc {
+                not_alloc(BloombergLP::bslma::Allocator*) { }
+            };
+            struct object {
+                not_alloc member;
+                object(not_alloc na, BloombergLP::bslma::Allocator* = 0)
+                : member(na) { }
+            };
+            void test(BloombergLP::bslma::Allocator *a)
+            {
+                object o(a);
+            }
+        }
+    }
+}

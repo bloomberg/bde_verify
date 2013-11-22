@@ -49,17 +49,17 @@ static void
 checkCall(cool::csabase::Analyser& analyser, clang::CallExpr const* expr)
 {
     if (clang::FunctionDecl const* decl = expr->getDirectCallee()) {
-        ::check(analyser, expr, const_cast<clang::CallExpr*>(expr)->getArgs(), expr->getNumArgs(), decl);
+        check(analyser, expr, const_cast<clang::CallExpr*>(expr)->getArgs(), expr->getNumArgs(), decl);
     }
 }
 
 static void
 checkCtor(cool::csabase::Analyser& analyser, clang::CXXConstructExpr const* expr)
 {
-    ::check(analyser, expr, expr->getArgs(), expr->getNumArgs(), expr->getConstructor());
+    check(analyser, expr, expr->getArgs(), expr->getNumArgs(), expr->getConstructor());
 }
 
 // -----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck register_check0(check_name, &::checkCall);
-static cool::csabase::RegisterCheck register_check1(check_name, &::checkCtor);
+static cool::csabase::RegisterCheck register_check0(check_name, &checkCall);
+static cool::csabase::RegisterCheck register_check1(check_name, &checkCtor);

@@ -36,4 +36,4 @@ check_entry(cool::csabase::Analyser& analyser, clang::CXXConstructExpr const* ex
 
 // -----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck check(check_name, &::check_entry);
+static cool::csabase::RegisterCheck check(check_name, &check_entry);

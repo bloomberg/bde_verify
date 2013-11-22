@@ -168,9 +168,9 @@ void
 cool::csabase::Analyser::toplevel(std::string const& path)
 {
     this->toplevel_ = path;
-    std::string const* it(std::find_if(cool::begin(::source_suffixes), cool::end(::source_suffixes),
-                                       std::bind1st(std::ptr_fun(&::compare_tail), this->toplevel_)));
-    this->prefix_ = it == cool::end(::source_suffixes)? path: path.substr(0, path.size() - it->size());
+    std::string const* it(std::find_if(cool::begin(source_suffixes), cool::end(source_suffixes),
+                                       std::bind1st(std::ptr_fun(&compare_tail), this->toplevel_)));
+    this->prefix_ = it == cool::end(source_suffixes)? path: path.substr(0, path.size() - it->size());
     std::string const& prefix(this->prefix_);
     std::string::size_type slash(prefix.rfind('/'));
     this->directory_ = prefix.substr(0, slash == prefix.npos? 0: slash + 1);
@@ -202,7 +202,7 @@ cool::csabase::Analyser::is_component_header(std::string const& name) const
     slash = this->prefix().rfind('/');
     std::string            pre(slash != std::string::npos? this->prefix().substr(slash + 1): this->prefix());
     return (base == pre || (base + ".t") == pre)
-        && cool::end(::header_suffixes) != std::find(cool::begin(::header_suffixes), cool::end(::header_suffixes), suffix);
+        && cool::end(header_suffixes) != std::find(cool::begin(header_suffixes), cool::end(header_suffixes), suffix);
 }
 
 bool
@@ -361,7 +361,7 @@ namespace
             }
             if (clang::NamespaceDecl* decl = llvm::dyn_cast<clang::NamespaceDecl>(*result.begin()))
             {
-                return ::lookup_name(sema, decl, name.substr(colons + 2));
+                return lookup_name(sema, decl, name.substr(colons + 2));
             }
         }
         return 0;
@@ -372,8 +372,8 @@ namespace
     {
         std::string::size_type colons(name.find("::"));
         return 0 == colons
-            ? ::lookup_name(sema, name.substr(2))
-            : ::lookup_name(sema, sema.getASTContext().getTranslationUnitDecl(), name);
+            ? lookup_name(sema, name.substr(2))
+            : lookup_name(sema, sema.getASTContext().getTranslationUnitDecl(), name);
     }
 }
 

@@ -99,7 +99,7 @@ check(cool::csabase::Analyser& analyser, clang::Decl const* decl)
                 && !llvm::dyn_cast<clang::ClassTemplatePartialSpecializationDecl>(decl)
                 && named->getNameAsString().find("operator new") == std::string::npos
                 && named->getNameAsString().find("operator delete") == std::string::npos
-                && !::isSpecialFunction(named)
+                && !isSpecialFunction(named)
                 )
             {
                 //-dk:TODO check if this happens in the correct namespace
@@ -115,4 +115,4 @@ check(cool::csabase::Analyser& analyser, clang::Decl const* decl)
 
 // -----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck register_check(check_name, &::check);
+static cool::csabase::RegisterCheck register_check(check_name, &check);

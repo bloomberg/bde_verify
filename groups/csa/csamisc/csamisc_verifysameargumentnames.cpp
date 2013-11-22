@@ -69,9 +69,9 @@ namespace
 static void
 verify_same_argument_names(cool::csabase::Analyser& analyser, clang::FunctionDecl const* decl)
 {
-    std::for_each(decl->redecls_begin(), decl->redecls_end(), ::same_argument_names(&analyser, decl));
+    std::for_each(decl->redecls_begin(), decl->redecls_end(), same_argument_names(&analyser, decl));
 }
 
 // -----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck check(check_name, &::verify_same_argument_names);
+static cool::csabase::RegisterCheck check(check_name, &verify_same_argument_names);

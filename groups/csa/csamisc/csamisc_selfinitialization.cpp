@@ -48,10 +48,10 @@ namespace
 static void
 checker(cool::csabase::Analyser& analyser, clang::VarDecl const* decl)
 {
-    cool::local_visitor visitor(::match_var_decl(analyser, decl));
+    cool::local_visitor visitor(match_var_decl(analyser, decl));
     visitor.visit(decl);
 }
 
 // -----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck check(check_name, &::checker);
+static cool::csabase::RegisterCheck check(check_name, &checker);

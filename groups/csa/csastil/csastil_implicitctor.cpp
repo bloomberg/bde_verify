@@ -35,7 +35,7 @@ check(cool::csabase::Analyser& analyser, clang::CXXConstructorDecl const* decl)
         && decl->isFirstDeclaration()
         && !llvm::dyn_cast<clang::ClassTemplateSpecializationDecl>(decl->getParent())
         ) {
-        analyser.attachment< ::suppressions>().reports_.push_back(decl);
+        analyser.attachment<suppressions>().reports_.push_back(decl);
     }
 }
 
@@ -52,7 +52,7 @@ namespace
         {
             cool::csabase::Analyser* analyser(this->analyser_);
             //-dk:TODO the suppression handling should be in a shared place!
-            ::suppressions const& attachment(analyser->attachment< ::suppressions>());
+            suppressions const& attachment(analyser->attachment<suppressions>());
             for (std::vector<clang::Decl const*>::const_iterator rit(attachment.reports_.begin()), rend(attachment.reports_.end());
                  rit != rend; ++rit) {
                 clang::Decl const* decl(*rit);
@@ -105,7 +105,7 @@ namespace
             if (this->analyser_->is_component(location.file())) {
                 std::string comment(this->analyser_->get_source(range));
                 if (comment == "// IMPLICIT") {
-                    this->analyser_->attachment< ::suppressions>().entries_.insert(location);
+                    this->analyser_->attachment<suppressions>().entries_.insert(location);
                 }
             }
         }
@@ -115,11 +115,11 @@ namespace
 static void
 subscribe(cool::csabase::Analyser& analyser, cool::csabase::Visitor&, cool::csabase::PPObserver& observer)
 {
-    analyser.onTranslationUnitDone += ::report(analyser);
-    observer.onComment += ::comments(analyser);
+    analyser.onTranslationUnitDone += report(analyser);
+    observer.onComment += comments(analyser);
 }
 
 // -----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck register_check(check_name, &::check);
-static cool::csabase::RegisterCheck register_observer(check_name, &::subscribe);
+static cool::csabase::RegisterCheck register_check(check_name, &check);
+static cool::csabase::RegisterCheck register_observer(check_name, &subscribe);

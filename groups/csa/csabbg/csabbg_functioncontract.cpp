@@ -9,6 +9,7 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include <ctype.h>
 
 #ident "$Id$"
 
@@ -120,7 +121,7 @@ static char
 toLower(unsigned char c)
     // Return the lower-case version of the specified 'c'.
 {
-    return std::tolower(c);
+    return tolower(c);
 }
 
 static std::string
@@ -128,7 +129,7 @@ toLower(std::string value)
     // Return the lower-case version of the specified 'value'.
 {
     std::transform(value.begin(), value.end(), value.begin(),
-            static_cast<char(*)(unsigned char)>(&::toLower));
+            static_cast<char(*)(unsigned char)>(&toLower));
     return value;
 }
 
@@ -136,7 +137,7 @@ static bool
 isIdChar(unsigned char c)
     // Return whether the specified 'c' is a C++ identifier character.
 {
-    return c == '_' || std::isalnum(c);
+    return c == '_' || isalnum(c);
 }
 
 static SourceRange

@@ -49,68 +49,68 @@ checkSwitch(cool::csabase::Analyser& analyser, clang::SwitchStmt const* stmt)
         cases.push_back(label);
     }
     if (cases.empty()) {
-        analyser.report(stmt, ::check_name, "empty switch statement");
+        analyser.report(stmt, check_name, "empty switch statement");
         return;
     }
     std::reverse(cases.begin(), cases.end());
     
     const_iterator it(cases.begin()), end(cases.end());
     if (cool::csabase::cast_ptr<clang::DefaultStmt> label = *it) {
-        analyser.report(*it, ::check_name, "switch starts with default")
+        analyser.report(*it, check_name, "switch starts with default")
             << label.get();
-        ::checkBreak(analyser, *it, true);
+        checkBreak(analyser, *it, true);
         ++it;
     }
     else if (cool::csabase::cast_ptr<clang::CaseStmt> label = *it) {
         long result(0);
-        if (!::getValue(analyser, label->getLHS(), result) || result != 0) {
-            analyser.report(*it, ::check_name,
+        if (!getValue(analyser, label->getLHS(), result) || result != 0) {
+            analyser.report(*it, check_name,
                             "switch doesn't start with `case 0:`")
                 << label.get();
-            ::checkBreak(analyser, *it, true);
+            checkBreak(analyser, *it, true);
         }
         else {
-            ::checkBreak(analyser, *it, false);
+            checkBreak(analyser, *it, false);
             ++it;
         }
     }
     else {
-        analyser.report(*it, ::check_name, "unknown switch case")
+        analyser.report(*it, check_name, "unknown switch case")
             << cases.front();
     }
 
     if (it != end) {
         long previous(0);
         if (cool::csabase::cast_ptr<clang::CaseStmt> label = *it) {
-            if (!::getValue(analyser, label->getLHS(), previous)) {
-                analyser.report(*it, ::check_name,
+            if (!getValue(analyser, label->getLHS(), previous)) {
+                analyser.report(*it, check_name,
                                 "can't get value from case label")
                     << *it;
             }
         }
         else if (cool::csabase::cast_ptr<clang::DefaultStmt> label = *it) {
             if (it + 1 != end) {
-                analyser.report(label.get(), ::check_name,
+                analyser.report(label.get(), check_name,
                                 "`default:` label in the middle of labels")
                     << *it;
             }
         }
-        ::checkBreak(analyser, *it, true);
+        checkBreak(analyser, *it, true);
         ++it;
 
         bool default_at_end(false);
         for (; it != end; ++it) {
             long value(0);
             if (cool::csabase::cast_ptr<clang::CaseStmt> label = *it) {
-                if (!::getValue(analyser, label->getLHS(), value)) {
-                    analyser.report(*it, ::check_name,
+                if (!getValue(analyser, label->getLHS(), value)) {
+                    analyser.report(*it, check_name,
                                     "can't get value from case label")
                         << *it;
                 }
                 else if ((1 < previous && previous - 1 != value)
                          || value == 0
                          || (previous <= value)) {
-                    analyser.report(*it, ::check_name,
+                    analyser.report(*it, check_name,
                                     "case label out of order: "
                                     "previous=%0 value=%1")
                         << previous << value;
@@ -119,7 +119,7 @@ checkSwitch(cool::csabase::Analyser& analyser, clang::SwitchStmt const* stmt)
             }
             else if (cool::csabase::cast_ptr<clang::DefaultStmt> label = *it) {
                 if (it + 1 != end) {
-                    analyser.report(label.get(), ::check_name,
+                    analyser.report(label.get(), check_name,
                                     "`default:` label in the middle of labels")
                         << *it;
                 }
@@ -127,10 +127,10 @@ checkSwitch(cool::csabase::Analyser& analyser, clang::SwitchStmt const* stmt)
                     default_at_end = true;
                 }
             }
-            ::checkBreak(analyser, *it, true);
+            checkBreak(analyser, *it, true);
         }
         if (!default_at_end) {
-            analyser.report(stmt, ::check_name,
+            analyser.report(stmt, check_name,
                             "switch doesn't end with `default:` label");
         }
     }
@@ -149,7 +149,7 @@ check(cool::csabase::Analyser& analyser, clang::FunctionDecl const* decl)
         for (const_iterator it(body->body_begin()), end(body->body_end());
              it != end; ++it) {
             if (cool::csabase::cast_ptr<clang::SwitchStmt> switchStmt = *it) {
-                ::checkSwitch(analyser, switchStmt.get());
+                checkSwitch(analyser, switchStmt.get());
             }
         }
     }
@@ -158,4 +158,4 @@ check(cool::csabase::Analyser& analyser, clang::FunctionDecl const* decl)
     }
 }
 
-static cool::csabase::RegisterCheck register_check(check_name, &::check);
+static cool::csabase::RegisterCheck register_check(check_name, &check);

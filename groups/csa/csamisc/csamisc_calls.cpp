@@ -133,12 +133,12 @@ namespace
 static void
 subscribe(cool::csabase::Analyser& analyser, cool::csabase::Visitor&, cool::csabase::PPObserver& observer)
 {
-    observer.onOpenFile  += ::analyser_binder<std::string const&>(::open_file, analyser);
-    observer.onCloseFile  += ::analyser_binder<std::string const&>(::close_file, analyser);
+    observer.onOpenFile  += analyser_binder<std::string const&>(open_file, analyser);
+    observer.onCloseFile  += analyser_binder<std::string const&>(close_file, analyser);
 }
 
 // -----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck register_observer(check_name, &::subscribe);
-static cool::csabase::RegisterCheck register_calls(check_name, &::calls);
-static cool::csabase::RegisterCheck register_ctors(check_name, &::ctors);
+static cool::csabase::RegisterCheck register_observer(check_name, &subscribe);
+static cool::csabase::RegisterCheck register_calls(check_name, &calls);
+static cool::csabase::RegisterCheck register_ctors(check_name, &ctors);
