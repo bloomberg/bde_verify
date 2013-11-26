@@ -26,7 +26,7 @@ sub usage()
     usage: $0 [options] [additional compiler options] file.cpp ...
         --config=config_file     [$config]  
         --bb=dir                 [$bb]
-        --lib =coolyser.so       [$lib]
+        --lib=coolyser.so        [$lib]
         --llvm=dir               [$llvm]
         --debug
         --verbose
