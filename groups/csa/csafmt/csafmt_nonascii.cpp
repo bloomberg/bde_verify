@@ -2,6 +2,7 @@
 // ----------------------------------------------------------------------------
 
 #include <csabase_analyser.h>
+#include <csabase_debug.h>
 #include <csabase_location.h>
 #include <csabase_ppobserver.h>
 #include <csabase_registercheck.h>
@@ -19,6 +20,7 @@ using clang::SourceLocation;
 using clang::SourceManager;
 using clang::SourceRange;
 using cool::csabase::Analyser;
+using cool::csabase::Debug;
 using cool::csabase::Location;
 using cool::csabase::PPObserver;
 using cool::csabase::Range;
@@ -27,43 +29,50 @@ using cool::csabase::Visitor;
 namespace
 {
 
-struct comments
-    // Callback object for inspecting comments.
+struct files
+    // Callback object for inspecting files.
 {
     Analyser& d_analyser;                   // Analyser object.
 
-    comments(Analyser& analyser);
-        // Create a 'comments' object, accessing the specified 'analyser'.
+    files(Analyser& analyser);
+        // Create a 'files' object, accessing the specified 'analyser'.
 
-    void operator()(SourceRange range);
-        // The specified 'range', representing a comment, is examined for
-        // non-ascii characters.
+    void operator()(SourceLocation loc,
+                    std::string const&,
+                    std::string const&);
+        // The file specified by 'loc' is examined for non-ascii characters.
 };
 
-comments::comments(Analyser& analyser)
+files::files(Analyser& analyser)
 : d_analyser(analyser)
 {
 }
 
-void comments::operator()(SourceRange range)
+void files::operator()(SourceLocation loc,
+                       std::string const&,
+                       std::string const&)
 {
-    const std::string s(d_analyser.get_source(range));
+    const SourceManager &m = d_analyser.manager();
+    const llvm::MemoryBuffer *buf = m.getBuffer(m.getFileID(loc));
+    const char *b = buf->getBufferStart();
+    const char *e = buf->getBufferEnd();
 
-    int begin = -1;
-    for (size_t i = 0; i <= s.length(); ++i) {
-        if (!(s[i] & 0x80)) {
-            if (begin >= 0) {
-                SourceRange bad(range.getBegin().getLocWithOffset(begin),
-                                range.getBegin().getLocWithOffset(i - 1));
+    const char *begin = 0;
+    for (const char *s = b; s <= e; ++s) {
+        if (!(*s & 0x80)) {
+            if (begin != 0) {
+                SourceRange bad(loc.getLocWithOffset(begin - b),
+                                loc.getLocWithOffset(s - b - 1));
                 d_analyser.report(bad.getBegin(),
                                   check_name, "NA01: "
-                                  "Non-ASCII comment characters")
+                                  "Non-ASCII comment characters",
+                                  true)
                     << bad;
-                begin = -1;
+                begin = 0;
             }
         } else {
-            if (begin == -1) {
-                begin = i;
+            if (begin == 0) {
+                begin = s;
             }
         }
     }
@@ -72,7 +81,7 @@ void comments::operator()(SourceRange range)
 void subscribe(Analyser& analyser, Visitor&, PPObserver& observer)
     // Hook up the callback functions.
 {
-    observer.onComment += comments(analyser);
+    observer.onOpenFile += files(analyser);
 }
 
 }  // close anonymous namespace
