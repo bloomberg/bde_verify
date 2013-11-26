@@ -131,9 +131,9 @@ namespace cool
         namespace
         {
             template <class T>
-                struct M { M(BloombergLP::bslma::Allocator*); };
+                struct M { M(BloombergLP::bslma::Allocator*) {} };
             template <class T, class A = M<T> >
-                struct S { S(const T*); S(const T*, const A&); };
+                struct S { S(const T*) {} S(const T*, const A&) {} };
             template class M<char>;  // TBD should not be needed
             struct C {
                 S<char> s;

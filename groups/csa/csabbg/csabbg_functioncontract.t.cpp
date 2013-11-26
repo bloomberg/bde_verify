@@ -298,6 +298,9 @@ namespace cool
             void pectorales();
                 // This function does nothing.
 
+            // The definition of this function has a contract but the
+            // declaration does not, and the two are widely separated.
+            // This does not result in a warning. TBD Should it?
             void godiva();
         };
 

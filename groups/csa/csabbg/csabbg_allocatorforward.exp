@@ -13,4 +13,10 @@ groups/csa/csabbg/csabbg_allocatorforward.t.cpp:74:0: warning: MA01: allocator n
 groups/csa/csabbg/csabbg_allocatorforward.t.cpp:92:0: warning: MA01: allocator not passed to member used0_
                 explicit tbase(BloombergLP::bslma::Allocator*);
 ~~~~~^
-5 warnings generated.
+groups/csa/csabbg/csabbg_allocatorforward.t.cpp:140:0: warning: MA01: allocator not passed to member s
+                C(BloombergLP::bslma::Allocator*) : s("") { }
+^~~~~
+groups/csa/csabbg/csabbg_allocatorforward.t.cpp:164:0: warning: MA02: allocator argument initializes non-allocator parameter 1 ('na') of type 'struct cool::csabbg::<anonymous>::not_alloc' rather than allocator parameter 2
+                object o(a);
+^
+7 warnings generated.

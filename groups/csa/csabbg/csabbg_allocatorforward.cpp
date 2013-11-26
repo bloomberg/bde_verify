@@ -472,10 +472,6 @@ void report::check_wrong_parm(const CXXConstructExpr *expr)
                     continue;
                 }
             }
-            if (const CastExpr* ce = llvm::dyn_cast<ImplicitCastExpr>(arg)) {
-                //arg = ce->getSubExpr();
-                //continue;
-            }
 
             // At this point, we should have stripped off all the outer
             // layers of the argument expression which are performing the
@@ -485,7 +481,7 @@ void report::check_wrong_parm(const CXXConstructExpr *expr)
 
             if (   is_allocator(arg->getType())
                 && !data_.bad_cexp_.count(std::make_pair(arg, decl))) {
-                analyser_.report(arg->getExprLoc(), check_name, "MA01: "
+                analyser_.report(arg->getExprLoc(), check_name, "MA02: "
                                 "allocator argument initializes "
                                 "non-allocator %0 of type '%1' rather than "
                                 "allocator %2")
