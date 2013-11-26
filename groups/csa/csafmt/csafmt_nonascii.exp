@@ -1,0 +1,16 @@
+groups/csa/csafmt/csafmt_nonascii.t.cpp:1:0: warning: NA01: Non-ASCII comment characters
+// ab<U+00DE><U+00DF><U+00EB>cd<U+00B6><U+00A5><U+00B6><U+00D7>ef
+^~~~~~
+groups/csa/csafmt/csafmt_nonascii.t.cpp:1:0: warning: NA01: Non-ASCII comment characters
+// ab<U+00DE><U+00DF><U+00EB>cd<U+00B6><U+00A5><U+00B6><U+00D7>ef
+^~~~~~
+groups/csa/csafmt/csafmt_nonascii.t.cpp:3:0: warning: NA01: Non-ASCII comment characters
+    <U+00B6><U+00A5><U+00D7><U+00B1>
+^~~~~~
+groups/csa/csafmt/csafmt_nonascii.t.cpp:4:0: warning: NA01: Non-ASCII comment characters
+    <U+00B6><U+00A5><U+00D7><U+00B1><U+00AE>
+^~~~~~
+groups/csa/csafmt/csafmt_nonascii.t.cpp:5:0: warning: NA01: Non-ASCII comment characters
+    <U+00B6><U+00A5><U+00D7><U+00B1><U+00AE><U+00AB>
+^~~~~~
+5 warnings generated.
