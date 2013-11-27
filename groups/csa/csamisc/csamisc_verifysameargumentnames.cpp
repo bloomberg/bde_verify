@@ -19,8 +19,8 @@ static std::string const check_name("verify-same-argument-names");
 
 namespace
 {
-    bool
-    verify_same_argument_names_compare(clang::ParmVarDecl const* p0, clang::ParmVarDecl const* p1)
+    bool arg_names_match(clang::ParmVarDecl const* p0,
+                         clang::ParmVarDecl const* p1)
     {
         std::string n0(p0->getNameAsString());
         std::string n1(p1->getNameAsString());
@@ -30,35 +30,36 @@ namespace
 
     struct same_argument_names
     {
-        same_argument_names(cool::csabase::Analyser* analyser, clang::FunctionDecl const* current):
+        same_argument_names(cool::csabase::Analyser* analyser,
+                            clang::FunctionDecl const* current):
             analyser_(analyser),
             current_(current)
         {
         }
+
         void operator()(clang::Decl const* decl)
         {
-            if (clang::FunctionDecl const* p = llvm::dyn_cast<clang::FunctionDecl>(decl))
-            {
+            if (clang::FunctionDecl const* p =
+                                   llvm::dyn_cast<clang::FunctionDecl>(decl)) {
                 clang::FunctionDecl const* c(this->current_);
-
-                if (std::distance(p->param_begin(), p->param_end()) == std::distance(c->param_begin(), c->param_end()))
-                {
-                    typedef clang::FunctionDecl::param_const_iterator It;
-                    for (std::pair<It, It> pair(p->param_begin(), c->param_begin());
-                         p->param_end() != (pair = std::mismatch(pair.first, p->param_end(), pair.second,
-                                                                 verify_same_argument_names_compare)).first; )
-                    {
-                        this->analyser_->report(c, check_name,
-                                                "parameter name mismatch for %ordinal0 parameter; the other declaration used '%1'.")
-                            << int(1 + pair.first - p->param_begin())
-                            << (*pair.first)->getName()
-                            << (*pair.second)->getSourceRange();
-                        ++pair.first;
-                        ++pair.second;
+                unsigned n = p->getNumParams();
+                if (n == c->getNumParams()) {
+                    for (unsigned i = 0; i < n; ++i) {
+                        const clang::ParmVarDecl *pp = p->getParamDecl(i);
+                        const clang::ParmVarDecl *cp = c->getParamDecl(i);
+                        if (!arg_names_match(pp, cp)) {
+                            this->analyser_->report(c, check_name, "AN01: "
+                                "parameter name mismatch for %ordinal0 "
+                                "parameter; the other declaration used '%1'.")
+                                << int(i + 1)
+                                << pp->getName()
+                                << cp->getSourceRange();
+                        }
                     }
                 }
             }
         }
+
         cool::csabase::Analyser*            analyser_;
         clang::FunctionDecl const* current_;
     };
@@ -67,11 +68,14 @@ namespace
 // -----------------------------------------------------------------------------
 
 static void
-verify_same_argument_names(cool::csabase::Analyser& analyser, clang::FunctionDecl const* decl)
+verify_arg_names_match(cool::csabase::Analyser& analyser,
+                       clang::FunctionDecl const* decl)
 {
-    std::for_each(decl->redecls_begin(), decl->redecls_end(), same_argument_names(&analyser, decl));
+    std::for_each(decl->redecls_begin(),
+                  decl->redecls_end(),
+                  same_argument_names(&analyser, decl));
 }
 
 // -----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck check(check_name, &verify_same_argument_names);
+static cool::csabase::RegisterCheck check(check_name, &verify_arg_names_match);

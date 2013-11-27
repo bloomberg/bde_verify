@@ -1,74 +1,74 @@
 In file included from groups/csa/csamisc/csamisc_verifysameargumentnames.t.cpp:8:
-groups/csa/csamisc/csamisc_verifysameargumentnames.t.hpp:26:0: warning: parameter name mismatch for 1st parameter; the other declaration used 'b'.
+groups/csa/csamisc/csamisc_verifysameargumentnames.t.hpp:26:0: warning: AN01: parameter name mismatch for 1st parameter; the other declaration used 'b'.
         void verifysameargumentnames_g(int a, int);
 ^~~~~~
-groups/csa/csamisc/csamisc_verifysameargumentnames.t.hpp:27:0: warning: parameter name mismatch for 2nd parameter; the other declaration used 'a'.
+groups/csa/csamisc/csamisc_verifysameargumentnames.t.hpp:27:0: warning: AN01: parameter name mismatch for 2nd parameter; the other declaration used 'a'.
         void verifysameargumentnames_g(int, int b);
 ^~~~~~
-groups/csa/csamisc/csamisc_verifysameargumentnames.t.hpp:28:0: warning: parameter name mismatch for 1st parameter; the other declaration used 'b'.
+groups/csa/csamisc/csamisc_verifysameargumentnames.t.hpp:28:0: warning: AN01: parameter name mismatch for 1st parameter; the other declaration used 'b'.
         void verifysameargumentnames_g(int a, int b);
 ^~~~~~
-groups/csa/csamisc/csamisc_verifysameargumentnames.t.hpp:28:0: warning: parameter name mismatch for 2nd parameter; the other declaration used 'a'.
+groups/csa/csamisc/csamisc_verifysameargumentnames.t.hpp:28:0: warning: AN01: parameter name mismatch for 2nd parameter; the other declaration used 'a'.
         void verifysameargumentnames_g(int a, int b);
 ^~~~~~
-groups/csa/csamisc/csamisc_verifysameargumentnames.t.hpp:29:0: warning: parameter name mismatch for 1st parameter; the other declaration used 'a'.
+groups/csa/csamisc/csamisc_verifysameargumentnames.t.hpp:29:0: warning: AN01: parameter name mismatch for 1st parameter; the other declaration used 'a'.
         void verifysameargumentnames_g(int b, int a);
 ^~~~~~
-groups/csa/csamisc/csamisc_verifysameargumentnames.t.hpp:29:0: warning: parameter name mismatch for 2nd parameter; the other declaration used 'b'.
+groups/csa/csamisc/csamisc_verifysameargumentnames.t.hpp:29:0: warning: AN01: parameter name mismatch for 2nd parameter; the other declaration used 'b'.
         void verifysameargumentnames_g(int b, int a);
 ^~~~~~
-groups/csa/csamisc/csamisc_verifysameargumentnames.t.hpp:29:0: warning: parameter name mismatch for 2nd parameter; the other declaration used 'b'.
+groups/csa/csamisc/csamisc_verifysameargumentnames.t.hpp:29:0: warning: AN01: parameter name mismatch for 2nd parameter; the other declaration used 'b'.
         void verifysameargumentnames_g(int b, int a);
 ^~~~~~
-groups/csa/csamisc/csamisc_verifysameargumentnames.t.hpp:29:0: warning: parameter name mismatch for 1st parameter; the other declaration used 'a'.
+groups/csa/csamisc/csamisc_verifysameargumentnames.t.hpp:29:0: warning: AN01: parameter name mismatch for 1st parameter; the other declaration used 'a'.
         void verifysameargumentnames_g(int b, int a);
 ^~~~~~
-groups/csa/csamisc/csamisc_verifysameargumentnames.t.cpp:21:0: warning: parameter name mismatch for 1st parameter; the other declaration used 'b'.
+groups/csa/csamisc/csamisc_verifysameargumentnames.t.cpp:21:0: warning: AN01: parameter name mismatch for 1st parameter; the other declaration used 'b'.
         void verifysameargumentnames_g(int a, int);
 ^~~~~~
-groups/csa/csamisc/csamisc_verifysameargumentnames.t.cpp:21:0: warning: parameter name mismatch for 1st parameter; the other declaration used 'b'.
+groups/csa/csamisc/csamisc_verifysameargumentnames.t.cpp:21:0: warning: AN01: parameter name mismatch for 1st parameter; the other declaration used 'b'.
         void verifysameargumentnames_g(int a, int);
 ^~~~~~
-groups/csa/csamisc/csamisc_verifysameargumentnames.t.cpp:22:0: warning: parameter name mismatch for 2nd parameter; the other declaration used 'a'.
+groups/csa/csamisc/csamisc_verifysameargumentnames.t.cpp:22:0: warning: AN01: parameter name mismatch for 2nd parameter; the other declaration used 'a'.
         void verifysameargumentnames_g(int, int b);
 ^~~~~~
-groups/csa/csamisc/csamisc_verifysameargumentnames.t.cpp:22:0: warning: parameter name mismatch for 2nd parameter; the other declaration used 'a'.
+groups/csa/csamisc/csamisc_verifysameargumentnames.t.cpp:22:0: warning: AN01: parameter name mismatch for 2nd parameter; the other declaration used 'a'.
         void verifysameargumentnames_g(int, int b);
 ^~~~~~
-groups/csa/csamisc/csamisc_verifysameargumentnames.t.cpp:23:0: warning: parameter name mismatch for 1st parameter; the other declaration used 'b'.
+groups/csa/csamisc/csamisc_verifysameargumentnames.t.cpp:23:0: warning: AN01: parameter name mismatch for 1st parameter; the other declaration used 'b'.
         void verifysameargumentnames_g(int a, int b);
 ^~~~~~
-groups/csa/csamisc/csamisc_verifysameargumentnames.t.cpp:23:0: warning: parameter name mismatch for 2nd parameter; the other declaration used 'a'.
+groups/csa/csamisc/csamisc_verifysameargumentnames.t.cpp:23:0: warning: AN01: parameter name mismatch for 2nd parameter; the other declaration used 'a'.
         void verifysameargumentnames_g(int a, int b);
 ^~~~~~
-groups/csa/csamisc/csamisc_verifysameargumentnames.t.cpp:23:0: warning: parameter name mismatch for 1st parameter; the other declaration used 'b'.
+groups/csa/csamisc/csamisc_verifysameargumentnames.t.cpp:23:0: warning: AN01: parameter name mismatch for 1st parameter; the other declaration used 'b'.
         void verifysameargumentnames_g(int a, int b);
 ^~~~~~
-groups/csa/csamisc/csamisc_verifysameargumentnames.t.cpp:23:0: warning: parameter name mismatch for 2nd parameter; the other declaration used 'a'.
+groups/csa/csamisc/csamisc_verifysameargumentnames.t.cpp:23:0: warning: AN01: parameter name mismatch for 2nd parameter; the other declaration used 'a'.
         void verifysameargumentnames_g(int a, int b);
 ^~~~~~
-groups/csa/csamisc/csamisc_verifysameargumentnames.t.cpp:24:0: warning: parameter name mismatch for 1st parameter; the other declaration used 'a'.
+groups/csa/csamisc/csamisc_verifysameargumentnames.t.cpp:24:0: warning: AN01: parameter name mismatch for 1st parameter; the other declaration used 'a'.
         void verifysameargumentnames_g(int b, int a);
 ^~~~~~
-groups/csa/csamisc/csamisc_verifysameargumentnames.t.cpp:24:0: warning: parameter name mismatch for 2nd parameter; the other declaration used 'b'.
+groups/csa/csamisc/csamisc_verifysameargumentnames.t.cpp:24:0: warning: AN01: parameter name mismatch for 2nd parameter; the other declaration used 'b'.
         void verifysameargumentnames_g(int b, int a);
 ^~~~~~
-groups/csa/csamisc/csamisc_verifysameargumentnames.t.cpp:24:0: warning: parameter name mismatch for 2nd parameter; the other declaration used 'b'.
+groups/csa/csamisc/csamisc_verifysameargumentnames.t.cpp:24:0: warning: AN01: parameter name mismatch for 2nd parameter; the other declaration used 'b'.
         void verifysameargumentnames_g(int b, int a);
 ^~~~~~
-groups/csa/csamisc/csamisc_verifysameargumentnames.t.cpp:24:0: warning: parameter name mismatch for 1st parameter; the other declaration used 'a'.
+groups/csa/csamisc/csamisc_verifysameargumentnames.t.cpp:24:0: warning: AN01: parameter name mismatch for 1st parameter; the other declaration used 'a'.
         void verifysameargumentnames_g(int b, int a);
 ^~~~~~
-groups/csa/csamisc/csamisc_verifysameargumentnames.t.cpp:24:0: warning: parameter name mismatch for 1st parameter; the other declaration used 'a'.
+groups/csa/csamisc/csamisc_verifysameargumentnames.t.cpp:24:0: warning: AN01: parameter name mismatch for 1st parameter; the other declaration used 'a'.
         void verifysameargumentnames_g(int b, int a);
 ^~~~~~
-groups/csa/csamisc/csamisc_verifysameargumentnames.t.cpp:24:0: warning: parameter name mismatch for 2nd parameter; the other declaration used 'b'.
+groups/csa/csamisc/csamisc_verifysameargumentnames.t.cpp:24:0: warning: AN01: parameter name mismatch for 2nd parameter; the other declaration used 'b'.
         void verifysameargumentnames_g(int b, int a);
 ^~~~~~
-groups/csa/csamisc/csamisc_verifysameargumentnames.t.cpp:24:0: warning: parameter name mismatch for 2nd parameter; the other declaration used 'b'.
+groups/csa/csamisc/csamisc_verifysameargumentnames.t.cpp:24:0: warning: AN01: parameter name mismatch for 2nd parameter; the other declaration used 'b'.
         void verifysameargumentnames_g(int b, int a);
 ^~~~~~
-groups/csa/csamisc/csamisc_verifysameargumentnames.t.cpp:24:0: warning: parameter name mismatch for 1st parameter; the other declaration used 'a'.
+groups/csa/csamisc/csamisc_verifysameargumentnames.t.cpp:24:0: warning: AN01: parameter name mismatch for 1st parameter; the other declaration used 'a'.
         void verifysameargumentnames_g(int b, int a);
 ^~~~~~
 24 warnings generated.

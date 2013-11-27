@@ -7,12 +7,14 @@
 # $Id$
 
 default:  check-current
-CLANGVER = 3.3
+
 LLVMINC  = -I/home/hrosen4/mbig/llvm/include -I/home/hrosen4/mbig/build/include
 CLANGINC = -I/home/hrosen4/mbig/llvm/tools/clang/include -I/home/hrosen4/mbig/build/tools/clang/include
 LLVMLIB  = /home/hrosen4/mbig/build/Release+Asserts/lib
 CLANG    = /home/hrosen4/mbig/build/Release+Asserts/bin/clang
+
 COMPILER = clang
+CLANGVER = 3.3
 
 CURRENT  = csabbg/csabbg_allocatorforward.t.cpp
 
@@ -173,7 +175,6 @@ POSTPROCESS = sed -e 's/\([^:]*:[0-9][0-9]*\):[^:]*:/\1:0:/' \
             | sed -e '/^$$/d' \
             | sed -e 's/\x1B[^m]*m//g'
 
-#EXPECT      = `echo $$f | sed -E 's/((test)|(\.[vt]))\.cpp$$/.exp/'`
 EXPECT      = $$(echo $$f | \
                sed -e 's/test\.cpp$$/.exp/' | \
                sed -e 's/\.t.cpp$$/.exp/' | \
@@ -226,7 +227,8 @@ check-all: $(OBJ)/$(TARGET).$(SOSUFFIX)
          echo all off; \
          echo check $(CHECK_NAME) on) > $$$$; \
       fi; fi; \
-	  if $(CLANG) $(PLUGIN) -plugin-arg-coolyse config=$$$$ $(CPPFLAGS) $(PFLAGS) $$f 2>&1 \
+	  if $(CLANG) $(PLUGIN) -plugin-arg-coolyse \
+          config=$$$$ $(CPPFLAGS) $(PFLAGS) $$f 2>&1 \
              | $(POSTPROCESS) \
              | diff - $(EXPECT) $(REDIRECT); \
 	  then \
