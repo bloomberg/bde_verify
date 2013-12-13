@@ -341,16 +341,20 @@ void report::check_not_forwarded(const CXXCtorInitializer* init,
         : init->getAnyMember()->getType().getTypePtr();
 
     if (!takes_allocator(type->getCanonicalTypeInternal(), true)) {
-        return;                                                   // RETURN
+        return;                                                       // RETURN
     }
 
     const CXXConstructExpr* ctor_expr =
         llvm::dyn_cast<CXXConstructExpr>(init->getInit());
 
+    if (!ctor_expr) {
+        return;                                                       // RETURN
+    }
+
     if (takes_allocator(ctor_expr->getConstructor()) &&
         last_arg_is_explicit(ctor_expr)) {
         // The allocator parameter is passed.
-        return;                                                   // RETURN
+        return;                                                       // RETURN
     }
 
     SourceLocation loc;

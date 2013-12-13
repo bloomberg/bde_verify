@@ -292,35 +292,74 @@ cool::csabase::PPObserver::Ident(clang::SourceLocation location, std::string con
 // -----------------------------------------------------------------------------
 
 void
+cool::csabase::PPObserver::PragmaDirective(clang::SourceLocation location, clang::PragmaIntroducerKind introducer)
+{
+}
+
+void
 cool::csabase::PPObserver::PragmaComment(clang::SourceLocation location, clang::IdentifierInfo const*, std::string const& value)
 {
     this->do_pragma(location, value);
 }
 
 void
-cool::csabase::PPObserver::PragmaDebug(clang::SourceLocation Loc,
-                                       llvm::StringRef       DebugType)
+cool::csabase::PPObserver::PragmaDetectMismatch(clang::SourceLocation  loc,
+                                                const std::string     &name,
+                                                const std::string     &value)
+{
+}
+
+void
+cool::csabase::PPObserver::PragmaDebug(clang::SourceLocation loc,
+                                       llvm::StringRef       debugtype)
 {
 }
 
 void
 cool::csabase::PPObserver::PragmaDiagnosticPush(
-                                               clang::SourceLocation Loc,
-                                               llvm::StringRef       Namespace)
+                                               clang::SourceLocation loc,
+                                               llvm::StringRef       nmspc)
 {
 }
 
 void
-cool::csabase::PPObserver::PragmaDiagnosticPop(clang::SourceLocation Loc,
-                                               llvm::StringRef       Namespace)
+cool::csabase::PPObserver::PragmaDiagnosticPop(clang::SourceLocation loc,
+                                               llvm::StringRef       nmspc)
 {
 }
 
 void
-cool::csabase::PPObserver::PragmaDiagnostic(clang::SourceLocation Loc,
-                                            llvm::StringRef       Namespace,
-                                            clang::diag::Mapping  Mapping,
-                                            llvm::StringRef       Str)
+cool::csabase::PPObserver::PragmaDiagnostic(clang::SourceLocation loc,
+                                            llvm::StringRef       nmspc,
+                                            clang::diag::Mapping  mapping,
+                                            llvm::StringRef       str)
+{
+}
+
+void
+cool::csabase::PPObserver::PragmaOpenCLExtension(
+                                         clang::SourceLocation        nameloc,
+                                         const clang::IdentifierInfo *name,
+                                         clang::SourceLocation        stateloc,
+                                         unsigned                     state)
+{
+}
+
+void
+cool::csabase::PPObserver::PragmaWarning(clang::SourceLocation loc,
+                                         llvm::StringRef       warningspec,
+                                         llvm::ArrayRef<int>   ids)
+{
+}
+
+void
+cool::csabase::PPObserver::PragmaWarningPush(clang::SourceLocation loc,
+                                             int                   level)
+{
+}
+
+void
+cool::csabase::PPObserver::PragmaWarningPop(clang::SourceLocation loc)
 {
 }
 
@@ -360,7 +399,8 @@ cool::csabase::PPObserver::MacroUndefined(clang::Token const&          token,
 
 void
 cool::csabase::PPObserver::Defined(const clang::Token&          token,
-                                   const clang::MacroDirective *macro)
+                                   const clang::MacroDirective *macro,
+                                   clang::SourceRange           range)
 {
 }
 
@@ -373,7 +413,8 @@ cool::csabase::PPObserver::SourceRangeSkipped(clang::SourceRange range)
 
 void
 cool::csabase::PPObserver::If(clang::SourceLocation loc,
-                              clang::SourceRange    range)
+                              clang::SourceRange    range,
+                              bool                  conditionvalue)
 {
     this->do_if(loc, range);
 }
@@ -381,6 +422,7 @@ cool::csabase::PPObserver::If(clang::SourceLocation loc,
 void
 cool::csabase::PPObserver::Elif(clang::SourceLocation loc,
                                 clang::SourceRange    range,
+                                bool                  conditionvalue,
                                 clang::SourceLocation ifloc)
 {
     this->do_elif(loc, range);

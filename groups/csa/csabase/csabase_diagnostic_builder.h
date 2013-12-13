@@ -43,12 +43,9 @@ namespace cool
 
         diagnostic_builder& operator<< (long argument)
         {
-            if (this->builder_.get())
-            {
-                *this->builder_ << int(argument);
-            }
-            return *this;
+            return *this << static_cast<int>(argument);
         }
+
         template <typename T>
         diagnostic_builder& operator<< (T const& argument)
         {

@@ -1,6 +1,7 @@
 #   Makefile                                                     -*-makefile-*-
 #  ----------------------------------------------------------------------------
 #  Copyright 2012 Dietmar Kuehl http://www.dietmar-kuehl.de              
+#  Modified  2013 Hyman Rosen (hrosen4@bloomberg.net)
 #  Distributed under the Boost Software License, Version 1.0. (See file  
 #  LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt).     
 #  ----------------------------------------------------------------------------
@@ -8,15 +9,15 @@
 
 default:  check-current
 
-LLVMINC  = -I/home/hrosen4/mbig/llvm/include -I/home/hrosen4/mbig/build/include
-CLANGINC = -I/home/hrosen4/mbig/llvm/tools/clang/include -I/home/hrosen4/mbig/build/tools/clang/include
-LLVMLIB  = /home/hrosen4/mbig/build/Release+Asserts/lib
-CLANG    = /home/hrosen4/mbig/build/Release+Asserts/bin/clang
+LLVM     = /home/hrosen4/mbig/llvm-svn/install
+LLVMINC  = -I$(LLVM)/include
+LLVMLIB  = $(LLVM)/lib
+CLANG    = $(LLVM)/bin/clang
+CLANGVER = 3.5
 
 COMPILER = clang
-CLANGVER = 3.3
 
-CURRENT  = csabbg/csabbg_allocatorforward.t.cpp
+CURRENT  = csafmt/csafmt_nonascii.t.cpp
 
 #  ----------------------------------------------------------------------------
 
@@ -25,6 +26,7 @@ TARGET = coolyser
 TSTCXXFILES +=                                                                \
         groups/csa/csabbg/csabbg_allocatorforward.cpp                         \
         groups/csa/csabbg/csabbg_allocatornewwithpointer.cpp                  \
+        groups/csa/csabbg/csabbg_enumvalue.cpp                                \
         groups/csa/csabbg/csabbg_functioncontract.cpp                         \
         groups/csa/csabbg/csabbg_midreturn.cpp                                \
         groups/csa/csafmt/csafmt_headline.cpp                                 \
@@ -125,10 +127,12 @@ VERBOSE  = @
 # STD      = CXX2011
 REDIRECT = $(VERBOSE:@=>/dev/null 2>&1)
 
-INCFLAGS = $(LLVMINC) $(CLANGINC) -I.
+INCFLAGS = $(LLVMINC) -I.
 DEFFLAGS = -D_DEBUG -D_GNU_SOURCE -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS
 ifeq ($(STD),CXX2011)
   STDFLAGS = -std=c++0x -DCOOL_CXX2011
+else
+  STDFLAGS = -Wno-c++11-extensions
 endif
 CPPFLAGS += $(INCFLAGS) $(DEFFLAGS) $(STDFLAGS)
 CPPFLAGS += -Igroups/csa/csabase -Igroups/csa/csadep
@@ -190,7 +194,7 @@ CHECK_NAME  = $$(echo | sed -n 's/.*check_name("\([^"]*\)".*/\1/p' $(SOURCE))
 # -----------------------------------------------------------------------------
 
 check-current: $(OBJ)/$(TARGET).$(SOSUFFIX)
-	@ \
+	$(VERBOSE) \
     f=groups/csa/$(CURRENT); \
     if echo $(TODO) | grep -q $(SOURCE); then echo skipping $$f; else \
       trap "rm -f $$$$" EXIT; \
@@ -212,7 +216,7 @@ check: check-all
 	@echo '*** SUCCESS ***'
 
 check-all: $(OBJ)/$(TARGET).$(SOSUFFIX)
-	@ \
+	$(VERBOSE) \
 	success=1; \
 	for f in $$(find groups -name \*.[vt].cpp -or -name \*test.cpp); \
 	do \

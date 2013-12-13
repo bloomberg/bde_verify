@@ -55,7 +55,6 @@ my @lflags = (
 @lflags = map { "-f$_" } @lflags;
 
 my @wflags = (
-    "everything",
 );
 @wflags = map { "-W$_" } @wflags;
 
@@ -91,12 +90,19 @@ push(@incs, (
     ".",
     "$bb\\include",
     "$bb\\include\\bsl+stdhdrs",
-    "c:\\Program Files (x86)\\Microsoft Visual Studio 11.0\\VC\\include",
 ));
+
+my $inc = $ENV{INCLUDE};
+if ($inc ne '') {
+    push(@incs, split(/;/, $ENV{INCLUDE}));
+} else {
+    push(@incs, "c:\\Program Files (x86)\\Microsoft Visual Studio 11.0\\VC\\include");
+}
+
 @incs = map { ("-I", $_, "-cxx-isystem", $_ ) } @incs;
 
 my @command = (
-    "c:\\bde-verify\\Debug\\BDEVerify.exe",
+    "c:\\bde-verify\\Release\\BDEVerify.exe",
     "-cc1",
     "-std=c++11",
     "-plugin",

@@ -75,6 +75,7 @@ AnalyseConsumer::AnalyseConsumer(clang::CompilerInstance& compiler,
 {
     this->analyser_.toplevel(source);
     this->compiler_.getLangOpts().CPlusPlus     = true;
+    this->compiler_.getLangOpts().CPlusPlus11   = true;
     this->compiler_.getLangOpts().Exceptions    = true;
     this->compiler_.getLangOpts().CXXExceptions = true;
 

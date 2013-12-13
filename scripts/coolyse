@@ -12,10 +12,12 @@ use strict;
 use Getopt::Long;
 
 my $home     = "/home/hrosen4/coolyser";
-my $llvm     = "/bb/mbigc/mbig816/build/Release+Asserts";
+#my $llvm     = "/bb/mbigc/mbig816/build/Release+Asserts";
+my $llvm     = "/bb/mbigc/mbig816/llvm-svn/install";
 my $bb       = "/bb/build/share/packages/refroot/amd64/unstable/bb";
 my $config   = "$home/coolyser.cfg";
-my $lib      = "$home/Linux-clang-3.3/coolyser.so";
+#my $lib      = "$home/Linux-clang-3.3/coolyser.so";
+my $lib      = "$home/Linux-clang-3.5/coolyser.so";
 my $debug    = "";
 my $verbose  = "";
 my $help     = "";
@@ -46,8 +48,8 @@ GetOptions(
     'verbose'    => \$verbose,
 ) and !$help and $#ARGV >= 0 or usage();
 
-$config = "-plugin-arg-coolyse config=$config" if $config ne "";
-$debug  = "-plugin-arg-coolyse debug-on"       if $debug;
+my @config = ("-plugin-arg-coolyse", "config=$config") if $config ne "";
+my @debug  = ("-plugin-arg-coolyse", "debug-on")       if $debug;
 
 my @lflags = (
     "color-diagnostics",
@@ -55,12 +57,11 @@ my @lflags = (
     "diagnostics-show-name",
     "diagnostics-show-option",
 );
-my $lflags  = join(" ", map("-f$_", @lflags));
+@lflags = map { "-f$_" } @lflags;
 
 my @wflags = (
-    #"everything",
 );
-my $wflags  = join(" ", map("-W$_", @wflags));
+@wflags = map { "-W$_" } @wflags;
 
 my @defs = (
     "BB_THREADED",
@@ -73,6 +74,7 @@ my @defs = (
     "_SYS_SYSMACROS_H",
     "_THREAD_SAFE",
 );
+@defs = map { "-D$_" } @defs;
 
 my @incs;
 for (@ARGV) {
@@ -84,18 +86,27 @@ push(@incs, (
     ".",
     "$bb/include",
     "$bb/include/stlport",
-    "/usr/include",
-    "/usr/include/c++/4.4.4",
-    "/usr/include/c++/4.4.4/backward",
-    "/usr/include/c++/4.4.4/x86_64-redhat-linux6E/32",
-    "/usr/lib/gcc/x86_64-redhat-linux6E/4.4.4/include",
-    "/usr/lib/gcc/x86_64-redhat-linux/4.1.2/include",
 ));
+push(@incs, map { chomp; $_; }
+            qx{ $llvm/bin/clang++ -xc++ -E -v /dev/null 2>&1 |
+                /opt/swt/bin/sed -n '/^ [/]/s/ //p'});
+@incs = map { ("-I", $_, "-cxx-isystem", $_ ) } @incs;
 
-my $flags = join(' ', map("-D$_", @defs), map("-I$_ -isystem $_", @incs));
+my @command = (
+    "$llvm/bin/clang",
+    "-cc1",
+    "-load",
+    "$lib",
+    "-plugin",
+    "coolyse",
+    @debug,
+    @config,
+    @defs,
+    @incs,
+    @lflags,
+    @wflags,
+    @ARGV);
 
-my $command = "$llvm/bin/clang -cc1 -load $lib -plugin coolyse $debug $config $flags $lflags $wflags " . join(" ", @ARGV);
+print join(' ', @command), "\n" if $verbose;
 
-print "$command\n" if $verbose;
-
-exec $command;
+exec @command;

@@ -1,11 +1,10 @@
-// csabbg_nonascii.cpp                                                -*-C++-*-
+// csafmt_nonascii.cpp                                                -*-C++-*-
 // ----------------------------------------------------------------------------
 
 #include <csabase_analyser.h>
-#include <csabase_debug.h>
-#include <csabase_location.h>
 #include <csabase_ppobserver.h>
 #include <csabase_registercheck.h>
+#include <csabase_location.h>
 #include <string>
 
 #ident "$Id$"
@@ -20,7 +19,6 @@ using clang::SourceLocation;
 using clang::SourceManager;
 using clang::SourceRange;
 using cool::csabase::Analyser;
-using cool::csabase::Debug;
 using cool::csabase::Location;
 using cool::csabase::PPObserver;
 using cool::csabase::Range;
@@ -37,9 +35,9 @@ struct files
     files(Analyser& analyser);
         // Create a 'files' object, accessing the specified 'analyser'.
 
-    void operator()(SourceLocation loc,
-                    std::string const&,
-                    std::string const&);
+    void operator()(SourceLocation     loc,
+                    std::string const &from,
+                    std::string const &file);
         // The file specified by 'loc' is examined for non-ascii characters.
 };
 
@@ -48,9 +46,9 @@ files::files(Analyser& analyser)
 {
 }
 
-void files::operator()(SourceLocation loc,
-                       std::string const&,
-                       std::string const&)
+void files::operator()(SourceLocation     loc,
+                       std::string const &from,
+                       std::string const &file)
 {
     const SourceManager &m = d_analyser.manager();
     const llvm::MemoryBuffer *buf = m.getBuffer(m.getFileID(loc));
@@ -63,10 +61,8 @@ void files::operator()(SourceLocation loc,
             if (begin != 0) {
                 SourceRange bad(loc.getLocWithOffset(begin - b),
                                 loc.getLocWithOffset(s - b - 1));
-                d_analyser.report(bad.getBegin(),
-                                  check_name, "NA01: "
-                                  "Non-ASCII comment characters",
-                                  true)
+                d_analyser.report(bad.getBegin(), check_name,
+                                  "NA01: Non-ASCII characters")
                     << bad;
                 begin = 0;
             }

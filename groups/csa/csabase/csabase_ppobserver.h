@@ -1,8 +1,8 @@
 // csabase_ppobserver.h                                               -*-C++-*-
 // -----------------------------------------------------------------------------
-// Copyright 2012 Dietmar Kuehl http://www.dietmar-kuehl.de              
-// Distributed under the Boost Software License, Version 1.0. (See file  
-// LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt).     
+// Copyright 2012 Dietmar Kuehl http://www.dietmar-kuehl.de
+// Distributed under the Boost Software License, Version 1.0. (See file
+// LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt).
 // -----------------------------------------------------------------------------
 
 #if !defined(INCLUDED_CSABASE_PPOSERVER)
@@ -56,19 +56,21 @@ public:
     cool::event<void(clang::SourceRange)>                                            onComment;
     cool::event<void()>                                                              onContext;
 
-#if 1
     void FileChanged(
                   clang::SourceLocation             Loc,
                   FileChangeReason                  Reason,
                   clang::SrcMgr::CharacteristicKind FileType,
-                  clang::FileID                     PrevFID = clang::FileID());
+                  clang::FileID                     PrevFID = clang::FileID())
+    override;
 
     void FileSkipped(const clang::FileEntry            &ParentFile,
                      const clang::Token                &FilenameTok,
-                     clang::SrcMgr::CharacteristicKind  FileType);
+                     clang::SrcMgr::CharacteristicKind  FileType)
+    override;
 
     bool FileNotFound(llvm::StringRef              FileName,
-                      llvm::SmallVectorImpl<char> &RecoveryPath);
+                      llvm::SmallVectorImpl<char> &RecoveryPath)
+    override;
 
     void InclusionDirective(clang::SourceLocation   HashLoc,
                             const clang::Token&     IncludeTok,
@@ -77,121 +79,128 @@ public:
                             clang::CharSourceRange  FilenameRange,
                             const clang::FileEntry *File,
                             llvm::StringRef         SearchPath,
-                            llvm::StringRef         RelativePath, 
-                            const clang::Module    *Imported);
+                            llvm::StringRef         RelativePath,
+                            const clang::Module    *Imported)
+    override;
 
     void moduleImport(clang::SourceLocation  ImportLoc,
                       clang::ModuleIdPath    Path,
-                      const clang::Module   *Imported);
+                      const clang::Module   *Imported)
+    override;
 
-    void EndOfMainFile();
+    void EndOfMainFile()
+    override;
 
-    void Ident(clang::SourceLocation Loc, const std::string &str);
+    void Ident(clang::SourceLocation Loc, const std::string &Str)
+    override;
+
+    virtual void PragmaDirective(clang::SourceLocation       Loc,
+                                 clang::PragmaIntroducerKind Introducer)
+    override;
 
     void PragmaComment(clang::SourceLocation         Loc,
                        const clang::IdentifierInfo  *Kind,
-                       const std::string&            Str);
+                       const std::string&            Str)
+    override;
+
+    void PragmaDetectMismatch(clang::SourceLocation     Loc,
+                              const std::string        &Name,
+                              const std::string        &Value)
+    override;
 
     void PragmaDebug(clang::SourceLocation Loc,
-                     llvm::StringRef       DebugType);
-
-    enum PragmaMessageKind { PMK_Message, PMK_Warning, PMK_Error };
+                     llvm::StringRef       DebugType)
+    override;
 
     void PragmaMessage(clang::SourceLocation Loc,
                        llvm::StringRef       Namespace,
                        PragmaMessageKind     Kind,
-                       llvm::StringRef       Str); 
+                       llvm::StringRef       Str)
+    override;
 
     void PragmaDiagnosticPush(clang::SourceLocation Loc,
-                              llvm::StringRef       Namespace); 
+                              llvm::StringRef       Namespace)
+    override;
 
     void PragmaDiagnosticPop(clang::SourceLocation Loc,
-                             llvm::StringRef       Namespace); 
+                             llvm::StringRef       Namespace)
+    override;
 
     void PragmaDiagnostic(clang::SourceLocation Loc,
                           llvm::StringRef       Namespace,
                           clang::diag::Mapping  Mapping,
-                          llvm::StringRef       Str); 
+                          llvm::StringRef       Str)
+    override;
+
+    void PragmaOpenCLExtension(clang::SourceLocation        NameLoc,
+                               const clang::IdentifierInfo *Name,
+                               clang::SourceLocation        StateLoc,
+                               unsigned                     State)
+    override;
+
+    void PragmaWarning(clang::SourceLocation Loc,
+                       llvm::StringRef       WarningSpec,
+                       llvm::ArrayRef<int>   Ids)
+    override;
+
+    void PragmaWarningPush(clang::SourceLocation Loc,
+                           int                   Level)
+    override;
+
+    void PragmaWarningPop(clang::SourceLocation Loc)
+    override;
 
     void MacroExpands(const clang::Token&          MacroNameTok,
                       const clang::MacroDirective *MD,
                       clang::SourceRange           Range,
-                      const clang::MacroArgs      *Args); 
+                      const clang::MacroArgs      *Args)
+    override;
 
     void MacroDefined(const clang::Token&          MacroNameTok,
-                      const clang::MacroDirective *MD); 
+                      const clang::MacroDirective *MD)
+    override;
 
     void MacroUndefined(const clang::Token&          MacroNameTok,
-                        const clang::MacroDirective *MD); 
+                        const clang::MacroDirective *MD)
+    override;
 
     void Defined(const clang::Token&          MacroNameTok,
-                 const clang::MacroDirective *MD); 
+                 const clang::MacroDirective *MD,
+                 clang::SourceRange           Range)
+    override;
 
-    void SourceRangeSkipped(clang::SourceRange Range); 
+    void SourceRangeSkipped(clang::SourceRange Range)
+    override;
 
-    void If(clang::SourceLocation Loc, clang::SourceRange ConditionRange); 
+    void If(clang::SourceLocation Loc,
+            clang::SourceRange    ConditionRange,
+            bool                  ConditionValue)
+    override;
 
     void Elif(clang::SourceLocation Loc,
               clang::SourceRange    ConditionRange,
-              clang::SourceLocation IfLoc); 
+              bool                  ConditionValue,
+              clang::SourceLocation IfLoc)
+    override;
 
     void Ifdef(clang::SourceLocation        Loc,
                const clang::Token&          MacroNameTok,
-               const clang::MacroDirective *MD); 
+               const clang::MacroDirective *MD)
+    override;
 
     void Ifndef(clang::SourceLocation        Loc,
                 const clang::Token&          MacroNameTok,
-                const clang::MacroDirective *MD);
+                const clang::MacroDirective *MD)
+    override;
 
-    void Else(clang::SourceLocation Loc, clang::SourceLocation IfLoc);
+    void Else(clang::SourceLocation Loc, clang::SourceLocation IfLoc)
+    override;
 
-    void Endif(clang::SourceLocation Loc, clang::SourceLocation IfLoc);
-#else
-    void FileChanged(clang::SourceLocation, clang::PPCallbacks::FileChangeReason,
-                     clang::SrcMgr::CharacteristicKind,
-                     clang::FileID);
-    void FileChanged(clang::SourceLocation, clang::PPCallbacks::FileChangeReason,
-                     clang::SrcMgr::CharacteristicKind);
-    void FileSkipped(clang::FileEntry const&, clang::Token const&,
-                     clang::SrcMgr::CharacteristicKind);
-    void EndOfMainFile();
+    void Endif(clang::SourceLocation Loc, clang::SourceLocation IfLoc)
+    override;
 
-    void Ident(clang::SourceLocation, std::string const&);
-    void PragmaComment(clang::SourceLocation, clang::IdentifierInfo const*, std::string const&);
-    void PragmaMessage(clang::SourceLocation, llvm::StringRef);
-    void MacroExpands(clang::Token const&, clang::MacroInfo const*);
-    void MacroDefined(clang::Token const&, clang::MacroInfo const*);
-    void MacroUndefined(clang::Token const&, clang::MacroInfo const*);
-    void If(clang::SourceRange);
-    void Elif(clang::SourceRange);
-    void Ifdef(clang::Token const&);
-    void Ifndef(clang::Token const&);
-    void Else();
-    void Endif();
-
-    void If(clang::SourceLocation, clang::SourceRange);
-    void Elif(clang::SourceLocation, clang::SourceRange);
-    void Ifdef(clang::SourceLocation, clang::Token const&);
-    void Ifndef(clang::SourceLocation, clang::Token const&);
-    void Else(clang::SourceLocation, clang::SourceLocation);
-    void Endif(clang::SourceLocation, clang::SourceLocation);
-
-    void InclusionDirective(clang::SourceLocation HashLoc,
-                            clang::Token const& IncludeTok,
-                            llvm::StringRef FileName,
-                            bool IsAngled,
-                            clang::FileEntry const* File,
-                            clang::SourceLocation EndLoc,
-                            llvm::StringRef SearchPath,
-                            llvm::StringRef RelativePath);
-    void InclusionDirective(clang::SourceLocation HashLoc,
-                            clang::Token const& IncludeTok,
-                            llvm::StringRef FileName,
-                            bool IsAngled,
-                            clang::FileEntry const* File,
-                            clang::SourceLocation EndLoc);
-#endif
     void Context();
+
     void HandleComment(clang::SourceRange);
 
 private:

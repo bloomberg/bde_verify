@@ -55,23 +55,33 @@ open_file(cool::csabase::Analyser& analyser,
     std::string            filename(slash == name.npos
                                     ? name
                                     : name.substr(slash + 1));
-    if (analyser.is_component_header(filename)
-        || name == analyser.toplevel()) {
-        std::string line;
-        if (std::getline(std::ifstream(name.c_str()) >> std::noskipws, line)) {
-            std::string expect("// " + filename);
-            expect.resize(70, ' ');
-            expect += "-*-C++-*-";
-            if (line != expect && line.npos == line.find("GENERATED")) {
-                analyser.report(where,
-                                check_name,
-                                "file headline incorrect",
-                                true);
+    if (analyser.is_component_header(filename) || name == analyser.toplevel()) {
+        const clang::SourceManager &m = analyser.manager();
+        llvm::StringRef buf = m.getBuffer(m.getFileID(where))->getBuffer();
+        buf = buf.substr(0, buf.find('\n'));
+        std::string expect("// " + filename);
+        expect.resize(70, ' ');
+        expect += "-*-C++-*-";
+
+        if (!buf.equals(expect) && buf.find("GENERATED") == buf.npos) {
+            int i = 0;
+            while (buf[i] == expect[i]) {
+                ++i;
             }
-        }
-        else {
-            analyser.report(where, check_name,
-                            "failed to open file '" + name + "' for reading");
+            int j = 0;
+            while (j > i &&
+                   buf[buf.size() - j - 1] == expect[expect.size() - j - 1]) {
+                --j;
+            }
+            analyser.report(where.getLocWithOffset(i),
+                            check_name,
+                            "HL01: file headline incorrect",
+                            true)
+                << clang::FixItHint::CreateReplacement(
+                    clang::SourceRange(
+                        where.getLocWithOffset(i),
+                        where.getLocWithOffset(buf.size() - j)),
+                    llvm::StringRef(&expect[i], expect.size() - i - j));
         }
     }
 }

@@ -50,8 +50,7 @@ global_type_only_in_source(cool::csabase::Analyser&  analyser,
         && std::find_if(decl->redecls_begin(), decl->redecls_end(),
                         decl_not_in_toplevel(&analyser))
             == decl->redecls_end()
-        && (decl->getLinkage() == clang::UniqueExternalLinkage
-            || decl->getLinkage() == clang::ExternalLinkage)
+        && decl->isExternallyVisible()
         && decl->getDeclName().isIdentifier()
         && !decl->getDeclName().getAsString().empty()
         )

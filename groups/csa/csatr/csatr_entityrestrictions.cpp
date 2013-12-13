@@ -57,7 +57,7 @@ function_declaration(cool::csabase::Analyser&   analyser,
         && !decl->isOverloadedOperator()
         && !is_swap(decl)
         && decl->getNameAsString() != "debugprint"
-        && decl->isFirstDeclaration()
+        && decl->isFirstDecl()
         ) {
         analyser.report(decl, check_name,
                         "TR17: function '%0' declared at global scope")
