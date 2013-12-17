@@ -277,7 +277,7 @@ SourceRange report::getContract(const FunctionDecl *func,
     clang::FileID sfile;
 
     // Find the line number that the function contract should encompass.
-    if (func->doesThisDeclarationHaveABody()) {
+    if (func->doesThisDeclarationHaveABody() && func->getBody()) {
         // For functions with bodies, the end of the 'FunctionDecl' is the
         // end of the body, so instead get the line before the body begins,
         // if they're not all on the same line.

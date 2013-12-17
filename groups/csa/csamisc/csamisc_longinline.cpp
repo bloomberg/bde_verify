@@ -48,7 +48,7 @@ struct data
 void long_inlines(Analyser& analyser, const FunctionDecl* func)
 {
     // Process only function definitions, not declarations.
-    if (func->hasBody() && func->isInlineSpecified()) {
+    if (func->hasBody() && func->getBody() && func->isInlineSpecified()) {
         data&           d    = analyser.attachment<data>();
         data::VecFE&    ad   = d.d_long_inlines;
         Stmt           *body = func->getBody();

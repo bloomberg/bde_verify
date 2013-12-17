@@ -51,6 +51,7 @@ my @lflags = (
     "ms-compatibility",
     "ms-extensions",
     "msc-version=1800",
+    #"delayed-template-parsing",
 );
 @lflags = map { "-f$_" } @lflags;
 

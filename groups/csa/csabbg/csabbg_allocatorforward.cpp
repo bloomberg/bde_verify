@@ -56,6 +56,10 @@ struct data
     Ctors ctors_;
         // The set of constructor declarations seen.
 
+    typedef std::set<const CXXRecordDecl*> RecordsWithAllocatorTrait;
+    RecordsWithAllocatorTrait records_with_allocator_trait_;
+        // The set of record declarations having an allocator trait.
+
     typedef std::set<const CXXConstructExpr*> Cexprs;
     Cexprs cexprs_;
         // The set of constructor expressions seen.
@@ -119,9 +123,10 @@ struct report
         // Invoke the forwarding check on the items in the range from the
         // specified 'begin' up to but not including the specified 'end'.
 
-    void check_not_forwarded(const CXXConstructorDecl *decl);
+    bool check_not_forwarded(const CXXConstructorDecl *decl);
         // If the specified constructor 'decl' takes an allocator parameter,
-        // check whether it passes it to its subobjects.
+        // return 'true' and check whether it passes the parameter to its
+        // subobjects.
 
     template <typename Iter>
     void check_not_forwarded(Iter begin, Iter end, const ParmVarDecl* palloc);
@@ -290,25 +295,63 @@ void report::operator()()
 template <typename Iter>
 void report::check_not_forwarded(Iter begin, Iter end)
 {
+    bool uses_allocator = false;
+    bool has_alloc_trait = false;
+    const CXXRecordDecl *record = 0;
+
     while (begin != end) {
-        check_not_forwarded(*begin++);
+        const CXXConstructorDecl *decl = *begin++;
+        record = decl->getParent();
+        if (check_not_forwarded(decl)) {
+            uses_allocator = true;
+        }
+        if (data_.records_with_allocator_trait_.count(record)) {
+            has_alloc_trait = true;
+        }
+    }
+
+    if (!uses_allocator && has_alloc_trait) {
+        analyser_.report(record, check_name,
+                "MA02: class %0 does not use allocators but declares "
+                "the TypeTraitUsesBslmaAllocator trait")
+            << record;
+    }
+    else if (uses_allocator && !has_alloc_trait) {
+        analyser_.report(record, check_name,
+                "MA02: class %0 uses allocators but does not declare "
+                "the TypeTraitUsesBslmaAllocator trait")
+            << record;
+    }
+
+    if (uses_allocator && record->needsImplicitCopyConstructor()) {
+        analyser_.report(record, check_name,
+                "MA03: class %0 uses allocators but does not have "
+                "a user-defined copy constructor")
+            << record;
     }
 }
 
-void report::check_not_forwarded(const CXXConstructorDecl *decl)
+bool report::check_not_forwarded(const CXXConstructorDecl *decl)
 {
     if (data_.bslma_allocator_.isNull()) {
         // We have not seen the declaration for the allocator yet, so this
         // constructor cannot be using it.
-        return;                                                   // RETURN
+        return false;                                                 // RETURN
     }
 
     if (!decl->hasBody()) {
-        return;                                                   // RETURN
+        return false;                                                 // RETURN
+    }
+
+    const CXXRecordDecl *record =
+        llvm::dyn_cast<CXXRecordDecl>(decl->getParent());
+
+    if (!record) {
+        return false;                                                 // RETURN
     }
 
     if (!takes_allocator(decl, true)) {
-        return;                                                   // RETURN
+        return false;                                                 // RETURN
     }
 
     // The allocator parameter is the last one.
@@ -319,6 +362,8 @@ void report::check_not_forwarded(const CXXConstructorDecl *decl)
     // which take an allocator parameter that we do not pass.
 
     check_not_forwarded(decl->init_begin(), decl->init_end(), palloc);
+
+    return true;
 }
 
 template <typename Iter>
@@ -542,9 +587,51 @@ gather_ctor_decls(Analyser& analyser, CXXConstructorDecl const* decl)
 
 // -----------------------------------------------------------------------------
 
+static void
+gather_allocator_traits(Analyser& analyser, CXXConversionDecl const* decl)
+    // Accumulate the record declaration of the specified 'decl' within the
+    // specified 'analyser' if the conversion represents a declaration of an
+    // allocator trait in the record.  Expanded from macros, the declaration
+    // looks like
+    //..
+    //  class MyClass { operator bslalg::TypeTraitUsesBslmaAllocator::
+    //                           NestedTraitDeclaration<MyClass>() const ... };
+    //..
+{
+    static const std::string alloc("BloombergLP::bslalg::"
+            "TypeTraitUsesBslmaAllocator::"
+            "NestedTraitDeclaration");
+
+    const CXXRecordDecl *record =
+        llvm::dyn_cast<CXXRecordDecl>(decl->getDeclContext());
+    const ElaboratedType *nested_trait_type =
+        llvm::dyn_cast<ElaboratedType>(decl->getConversionType().getTypePtr());
+    if (record && nested_trait_type) {
+        const TemplateSpecializationType *trait_template =
+            llvm::dyn_cast<TemplateSpecializationType>(
+                    nested_trait_type->getNamedType().getTypePtr());
+        if (trait_template && trait_template->getNumArgs() == 1) {
+            const Type *arg_type =
+                trait_template->getArg(0).getAsType().getTypePtr();
+            if (arg_type && arg_type->getAsCXXRecordDecl() == record) {
+                const TemplateDecl *trait_decl =
+                    trait_template->getTemplateName().getAsTemplateDecl();
+                if (trait_decl &&
+                        alloc == trait_decl->getQualifiedNameAsString()) {
+                    data& info(analyser.attachment<data>());
+                    info.records_with_allocator_trait_.insert(record);
+                }
+            }
+        }
+    }
+}
+
+// -----------------------------------------------------------------------------
+
 }  // close anonymous namespace
 
 static cool::csabase::RegisterCheck c1(check_name, &find_allocator);
 static cool::csabase::RegisterCheck c2(check_name, &gather_ctor_decls);
 static cool::csabase::RegisterCheck c3(check_name, &gather_ctor_exprs);
 static cool::csabase::RegisterCheck c4(check_name, &subscribe);
+static cool::csabase::RegisterCheck c5(check_name, &gather_allocator_traits);

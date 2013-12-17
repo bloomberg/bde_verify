@@ -150,24 +150,23 @@ WARNFLAGS = \
         -Wwrite-strings
 LDFLAGS = -L$(LLVMLIB) -g
 
-LDLIBS += -lclangEdit
 LDLIBS += \
         -lclangFrontend \
         -lclangDriver \
         -lclangSerialization \
+        -lclangParse \
         -lclangSema \
         -lclangAnalysis \
-        -lclangParse \
+        -lclangEdit \
         -lclangAST \
-        -lclangLex \
         -lclangBasic \
+        -lclangLex \
         -lLLVMSupport \
         -lLLVMMC \
         -lpthread \
         -lm 
 
 CXXFLAGS += -fpic
-LDFLAGS  += -shared
 LDLIBS   += -ldl
 
 PLUGIN   = -cc1 -load $(OBJ)/$(TARGET).$(SOSUFFIX) \
@@ -252,7 +251,7 @@ plugin: $(OBJ)/$(TARGET).$(SOSUFFIX)
 
 $(OBJ)/$(TARGET).$(SOSUFFIX): $(OFILES)
 	@echo linking shared library
-	$(VERBOSE) $(CXX) $(LDFLAGS) -o $@ $(OFILES) $(LDLIBS)
+	$(VERBOSE) $(CXX) $(LDFLAGS) -shared -o $@ $(OFILES) $(LDLIBS)
 
 $(OBJ)/%.o: %.cpp
 	@if [ ! -d $(@D) ]; then scripts/mkdirhier $(@D); fi

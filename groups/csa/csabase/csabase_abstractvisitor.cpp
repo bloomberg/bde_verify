@@ -144,7 +144,10 @@ process_decl(cool::csabase::AbstractVisitor* visitor, clang::FunctionDecl* decl)
         visitor->visit(decl->getDescribedFunctionTemplate());
     }
 
-    if (decl->isThisDeclarationADefinition())
+    // Note that due to the potential use of '-fdelayed-template-parsing' in
+    // Windows, it is possible for 'decl->hasBody()' to return 'true' but for
+    // 'decl->getBody()' to return a null pointer.
+    if (decl->isThisDeclarationADefinition() && decl->getBody())
     {
         visitor->visit(decl->getBody());
     }
@@ -407,7 +410,7 @@ process_decl(cool::csabase::AbstractVisitor* visitor, Declaration* decl)
 {
     cool::csabase::Debug d("process_decl(..., Declaration)");
 #if 0
-    if (decl->hasBody())
+    if (decl->hasBody() && decl->getBody())
     {
         visitor->visit(decl->getBody());
     }

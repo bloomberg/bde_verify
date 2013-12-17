@@ -25,6 +25,7 @@ check(cool::csabase::Analyser& analyser, clang::FunctionDecl const* decl)
 {
     if (analyser.is_component(decl)
         && decl->hasBody()
+        && decl->getBody()
         && decl->getIdentifier())
     {
         clang::Stmt* stmt(decl->getBody());
