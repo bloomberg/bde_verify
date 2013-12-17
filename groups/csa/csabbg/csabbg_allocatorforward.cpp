@@ -323,10 +323,10 @@ void report::check_not_forwarded(Iter begin, Iter end)
             << record;
     }
 
-    if (uses_allocator && record->needsImplicitCopyConstructor()) {
+    if (uses_allocator && !record->hasUserDeclaredCopyConstructor()) {
         analyser_.report(record, check_name,
                 "MA03: class %0 uses allocators but does not have "
-                "a user-defined copy constructor")
+                "a user-declared copy constructor")
             << record;
     }
 }
