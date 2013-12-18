@@ -295,39 +295,37 @@ void report::operator()()
 template <typename Iter>
 void report::check_not_forwarded(Iter begin, Iter end)
 {
-    bool uses_allocator = false;
-    bool has_alloc_trait = false;
-    const CXXRecordDecl *record = 0;
+    std::set<const CXXRecordDecl *> records;
 
     while (begin != end) {
         const CXXConstructorDecl *decl = *begin++;
-        record = decl->getParent();
-        if (check_not_forwarded(decl)) {
-            uses_allocator = true;
-        }
-        if (data_.records_with_allocator_trait_.count(record)) {
-            has_alloc_trait = true;
-        }
-    }
+        const CXXRecordDecl *record = decl->getParent();
+        bool uses_allocator = check_not_forwarded(decl);
+        bool has_alloc_trait =
+            data_.records_with_allocator_trait_.count(record);
+        if (records.count(record) == 0) {
+            records.insert(record);
 
-    if (!uses_allocator && has_alloc_trait) {
-        analyser_.report(record, check_name,
-                "MA02: class %0 does not use allocators but declares "
-                "the TypeTraitUsesBslmaAllocator trait")
-            << record;
-    }
-    else if (uses_allocator && !has_alloc_trait) {
-        analyser_.report(record, check_name,
-                "MA02: class %0 uses allocators but does not declare "
-                "the TypeTraitUsesBslmaAllocator trait")
-            << record;
-    }
+            if (!uses_allocator && has_alloc_trait) {
+                analyser_.report(record, check_name,
+                        "MA02: class %0 does not use allocators but declares "
+                        "the TypeTraitUsesBslmaAllocator trait")
+                    << record;
+            }
+            else if (uses_allocator && !has_alloc_trait) {
+                analyser_.report(record, check_name,
+                        "MA02: class %0 uses allocators but does not declare "
+                        "the TypeTraitUsesBslmaAllocator trait")
+                    << record;
+            }
 
-    if (uses_allocator && !record->hasUserDeclaredCopyConstructor()) {
-        analyser_.report(record, check_name,
-                "MA03: class %0 uses allocators but does not have "
-                "a user-declared copy constructor")
-            << record;
+            if (uses_allocator && !record->hasUserDeclaredCopyConstructor()) {
+                analyser_.report(record, check_name,
+                        "MA03: class %0 uses allocators but does not have "
+                        "a user-declared copy constructor")
+                    << record;
+            }
+        }
     }
 }
 
