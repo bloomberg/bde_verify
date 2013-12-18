@@ -20,6 +20,7 @@
 #include <clang/Lex/Preprocessor.h>
 #include <clang/Sema/Sema.h>
 #include <clang/Sema/Lookup.h>
+#include <llvm/Support/Path.h>
 #include <llvm/Support/raw_ostream.h>
 #include <algorithm>
 #include <functional>
@@ -112,19 +113,15 @@ namespace
 {
     static std::string const source_suffixes[] =
     {
-        ".cpp", ".cxx", ".cc", ".C", ".CC", ".c++", ".c"
+        ".cpp", ".cc", ".cxx", ".C", ".CC", ".c++", ".c"
     };
+    const int NSS = sizeof source_suffixes / sizeof *source_suffixes;
+
     static std::string const header_suffixes[] =
     {
-        ".hpp", ".hxx", ".hh", ".H", ".HH", ".h++", ".h"
+        ".h", ".hpp", ".hxx", ".hh", ".H", ".HH", ".h++"
     };
-
-    bool
-    compare_tail(std::string full, std::string tail)
-    {
-        return tail.size() < full.size()
-            && std::mismatch(full.end() - tail.size(), full.end(), tail.begin()).first == full.end();
-    }
+    const int NHS = sizeof header_suffixes / sizeof *header_suffixes;
 }
 
 std::string const&
@@ -167,42 +164,70 @@ cool::csabase::Analyser::component() const
 void
 cool::csabase::Analyser::toplevel(std::string const& path)
 {
+    llvm::StringRef srpath(path);
+    llvm::StringRef srext = llvm::sys::path::extension(srpath);
+
     this->toplevel_ = path;
-    std::string const* it(std::find_if(cool::begin(source_suffixes), cool::end(source_suffixes),
-                                       std::bind1st(std::ptr_fun(&compare_tail), this->toplevel_)));
-    this->prefix_ = it == cool::end(source_suffixes)? path: path.substr(0, path.size() - it->size());
-    std::string const& prefix(this->prefix_);
-    std::string::size_type slash(prefix.rfind('/'));
-    this->directory_ = prefix.substr(0, slash == prefix.npos? 0: slash + 1);
-    std::string            fileroot(slash == prefix.npos? prefix: prefix.substr(slash + 1));
-    std::string::size_type under(fileroot.find('_'));
-    under = under != fileroot.npos && under == 1? fileroot.find('_', 2): under;
-    this->package_   = fileroot.substr(0, under);
-    under = under == fileroot.npos? 0: under + 1;
-    if (1u == under || fileroot[1] != '_') {
-        this->group_ = fileroot.substr(0, std::min<std::string::size_type>(3u, fileroot.size()));
+    this->prefix_ = path;
+    for (int i = 0; i < NSS; ++i) {
+        if (srext.equals(source_suffixes[i])) {
+            this->prefix_ = srpath.drop_back(srext.size());
+            break;
+        }
     }
-    std::string::size_type period(fileroot.find('.', under));
-    this->component_ = fileroot.substr(under,
-                                       period == fileroot.npos
-                                       ? fileroot.npos
-                                       : (period - under));
+    llvm::StringRef srdir(this->prefix_);
+    while (srdir.size() > 0 && !llvm::sys::path::is_separator(srdir.back())) {
+        srdir = srdir.drop_back(1);
+    }
+    this->directory_ = srdir;
+
+    llvm::StringRef srroot = srpath.drop_front(srdir.size());
+    size_t under = srroot.find('_');
+    if (under == 1) {
+        under = srroot.find('_', 2);
+    }
+    this->package_ = srroot.slice(0, under);
+    ++under;
+    if (under == 1 || srroot[1] != '_') {
+        this->group_ = srroot.substr(0, 3);
+    }
+    this->component_ = srroot.slice(under, srroot.find('.'));
 }
 
 bool
 cool::csabase::Analyser::is_component_header(std::string const& name) const
 {
-    std::string::size_type separator(name.rfind('.'));
-    std::string            suffix(name.substr(name.npos == separator? name.size(): separator));
-    std::string            base(name.substr(0, name.npos == separator? name.size(): separator));
-    std::string::size_type slash(base.rfind('/'));
-    if (slash != base.npos) {
-        base = base.substr(slash + 1);
+    IsComponentHeader::iterator in = this->is_component_header_.find(name);
+    if (in != this->is_component_header_.end()) {
+        return in->second;
     }
-    slash = this->prefix().rfind('/');
-    std::string            pre(slash != std::string::npos? this->prefix().substr(slash + 1): this->prefix());
-    return (base == pre || (base + ".t") == pre)
-        && cool::end(header_suffixes) != std::find(cool::begin(header_suffixes), cool::end(header_suffixes), suffix);
+
+    llvm::StringRef srname(name);
+    llvm::StringRef srsuffix = srname.substr(srname.rfind('.'));
+    llvm::StringRef srbase = srname.drop_back(srsuffix.size());
+    llvm::StringRef srdir = srbase;
+    while (srdir.size() > 0 && !llvm::sys::path::is_separator(srdir.back())) {
+        srdir = srdir.drop_back(1);
+    }
+    srbase = srbase.drop_front(srdir.size());
+
+    for (int i = 0; i < NHS; ++i) {
+        if (srsuffix.equals(header_suffixes[i])) {
+            llvm::StringRef srpre(this->prefix_);
+            llvm::StringRef srdir(this->prefix_);
+            while (srdir.size() > 0 && 
+                   !llvm::sys::path::is_separator(srdir.back())) {
+                srdir = srdir.drop_back(1);
+            }
+            srpre = srpre.drop_front(srdir.size());
+            if (srbase.equals(srpre) ||
+                (srpre.endswith(".t") && srbase.equals(srpre.drop_back(2)))) {
+                return this->is_component_header_[name] = true;       // RETURN
+            }
+            break;
+        }
+    }
+    return this->is_component_header_[name] = false;
 }
 
 bool

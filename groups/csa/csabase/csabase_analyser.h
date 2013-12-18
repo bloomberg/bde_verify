@@ -22,6 +22,7 @@
 #include <llvm/Support/raw_ostream.h>
 #include <memory>
 #include <string>
+#include <map>
 
 // -----------------------------------------------------------------------------
 
@@ -118,6 +119,8 @@ private:
     std::string                           group_;
     std::string                           package_;
     std::string                           component_;
+    typedef std::map<std::string, bool>   IsComponentHeader;
+    mutable IsComponentHeader             is_component_header_;
 };
 
 // -----------------------------------------------------------------------------
