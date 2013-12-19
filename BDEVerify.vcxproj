@@ -88,6 +88,7 @@
     <ClCompile Include="groups\csa\csabase\csabase_coolyse.cpp" />
     <ClCompile Include="groups\csa\csabase\csabase_debug.cpp" />
     <ClCompile Include="groups\csa\csabase\csabase_diagnosticfilter.cpp" />
+    <ClCompile Include="groups\csa\csabase\csabase_filenames.cpp" />
     <ClCompile Include="groups\csa\csabase\csabase_format.cpp" />
     <ClCompile Include="groups\csa\csabase\csabase_location.cpp" />
     <ClCompile Include="groups\csa\csabase\csabase_ppobserver.cpp" />
