@@ -6,6 +6,7 @@
 // ----------------------------------------------------------------------------
 
 #include <csabase_analyser.h>
+#include <csabase_filenames.h>
 #include <csabase_registercheck.h>
 #include <csabase_ppobserver.h>
 #include <fstream>
@@ -51,14 +52,12 @@ open_file(cool::csabase::Analyser& analyser,
           const std::string&       ,
           const std::string&       name)
 {
-    std::string::size_type slash(name.rfind('/'));
-    std::string            filename(slash == name.npos
-                                    ? name
-                                    : name.substr(slash + 1));
+    cool::csabase::FileName fn(name);
+    std::string filename = fn.name();
     if (analyser.is_component_header(filename) || name == analyser.toplevel()) {
         const clang::SourceManager &m = analyser.manager();
         llvm::StringRef buf = m.getBuffer(m.getFileID(where))->getBuffer();
-        buf = buf.substr(0, buf.find('\n'));
+        buf = buf.substr(0, buf.find('\n')).rtrim();
         std::string expect("// " + filename);
         expect.resize(70, ' ');
         expect += "-*-C++-*-";
