@@ -79,6 +79,7 @@ LIBCXXFILES +=                                                                \
         groups/csa/csabase/csabase_coolyse.cpp                                \
         groups/csa/csabase/csabase_debug.cpp                                  \
         groups/csa/csabase/csabase_diagnosticfilter.cpp                       \
+        groups/csa/csabase/csabase_filenames.cpp                              \
         groups/csa/csabase/csabase_format.cpp                                 \
         groups/csa/csabase/csabase_location.cpp                               \
         groups/csa/csabase/csabase_ppobserver.cpp                             \

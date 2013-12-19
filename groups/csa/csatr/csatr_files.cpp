@@ -6,6 +6,7 @@
 // -----------------------------------------------------------------------------
 
 #include <csabase_analyser.h>
+#include <csabase_filenames.h>
 #include <csabase_ppobserver.h>
 #include <csabase_registercheck.h>
 #include <sys/stat.h>
@@ -26,27 +27,23 @@ namespace
         {
             cool::csabase::Analyser& analyser(*this->d_analyser);
             if (name == this->d_analyser->toplevel()) {
-                std::string::size_type slash(name.rfind('/'));
-                std::string            directory(slash == name.npos? "./": name.substr(0, slash + 1));
-                std::string            file(slash == name.npos? name: name.substr(slash + 1));
-                std::string::size_type period(file.find('.'));
-                std::string            component(file.substr(0, period));
-                std::string            suffix(file.substr(period == file.npos? file.size(): period));
-                if (suffix == ".cpp") {
-                    struct stat buffer;
-                    std::string header(directory + component + ".h");
-                    std::string test(directory + component + ".t.cpp");
-                    if (stat(header.c_str(), &buffer)) {
-                        analyser.report(where, check_name, "TR03: header file '%0' not accessible", true)
-                            << header;
-                    }
-                    if (stat(test.c_str(), &buffer)) {
-                        analyser.report(where, check_name, "TR03: test file '%0' not accessible", true)
-                            << test;
-                    }
+                cool::csabase::FileName fn(name);
+                struct stat buffer;
+                std::string prefix =
+                    fn.directory().str() + fn.component().str();
+                std::string header = prefix + ".h";
+                std::string test = prefix + ".t.cpp";
+                if (stat(header.c_str(), &buffer)) {
+                    analyser.report(where, check_name, "TR03: header file '%0' not accessible", true)
+                        << header;
+                }
+                if (stat(test.c_str(), &buffer)) {
+                    analyser.report(where, check_name, "TR03: test file '%0' not accessible", true)
+                        << test;
                 }
             }
         }
+
         cool::csabase::Analyser* d_analyser;
     };
 }

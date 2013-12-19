@@ -10,6 +10,7 @@
 #include "framework/register_check.hpp"
 #include "framework/location.hpp"
 #include "cool/array.hpp"
+#include <csabase_filenames.h>
 #include "clang/Basic/SourceLocation.h"
 #include <algorithm>
 #include <string>
@@ -57,21 +58,14 @@ namespace
     void
     inspect_guard_name(cool::csabase::Analyser* analyser, clang::SourceLocation begin, std::string const& name)
     {
-        std::string file(analyser->get_location(begin).file());
-        std::string::size_type separator(file.rfind('/'));
-        if (file.npos != separator)
+        cool::csabase::FileName fn(analyser->get_location(begin).file());
+        if (cool::end(suffixes) == std::find(cool::begin(suffixes), cool::end(suffixes), fn.extension().str()))
         {
-            file = file.substr(separator + 1);
-        }
-        separator = file.rfind('.');
-        std::string suffix(file.npos == separator? "": file.substr(separator));
-        if (cool::end(suffixes) == std::find(cool::begin(suffixes), cool::end(suffixes), suffix))
-        {
-            analyser->report(begin, check_name, "unknown header file suffix: '" + suffix + "'");
+            analyser->report(begin, check_name, "unknown header file suffix: '" + fn.extension().str() + "'");
         }
         else
         {
-            file = "INCLUDED_" + file.substr(0, separator);
+            std::string file = "INCLUDED_" + fn.prefix().str();
             if (2 <= file.size() && ".t" == file.substr(file.size() - 2))
             {
                 file[file.size() - 2] = '_';

@@ -8,6 +8,7 @@
 #include <csabase_analyser.h>
 #include <csabase_ppobserver.h>
 #include <csabase_registercheck.h>
+#include <llvm/Support/Path.h>
 #include <ctype.h>
 #include <sys/stat.h>
 #ident "$Id$"
@@ -32,9 +33,9 @@ namespace
 
 // ----------------------------------------------------------------------------
 
-static bool not_groupchar(unsigned char c)
+static bool groupchar(unsigned char c)
 {
-    return !(isalpha(c) && islower(c));
+    return isalpha(c) && islower(c);
 }
 
 // ----------------------------------------------------------------------------
@@ -54,51 +55,49 @@ struct on_group_open
                     std::string const&    ,
                     std::string const&    name) const
     {
-        groupname& attachment(this->d_analyser->attachment<groupname>());
-        if (!attachment.d_done
-            && name == this->d_analyser->toplevel()
-            && !this->d_analyser->group().empty()) {
-            cool::csabase::Analyser& analyser(*this->d_analyser);
+        cool::csabase::Analyser& analyser(*this->d_analyser);
+        groupname& attachment(analyser.attachment<groupname>());
+        if (!attachment.d_done && name == analyser.toplevel()) {
+            attachment.d_done = true;
             std::string const& group(analyser.group());
+            if (!((group.size() == 3 &&
+                  groupchar(group[0]) &&
+                  groupchar(group[1]) &&
+                  groupchar(group[2])) ||
+                 (group.size() == 5 &&
+                  groupchar(group[0]) &&
+                  group[1] == '_' &&
+                  groupchar(group[2]) &&
+                  groupchar(group[3]) &&
+                  groupchar(group[4])))) {
+                analyser.report(where, check_name, "TR01: "
+                        "group names must consist of three lower-case letters "
+                        "possibly prefixed by a single lowercase letter and "
+                        "underscore: %0", true)
+                    << group;
+            }
 
-            if (group.size() != 3) {
-                analyser.report(where,
-                                check_name,
-                                "TR01: group names most consist of 3 "
-                                "characters: '%0'",
-                                true)
-                    << group;
-            }
-            if (std::find_if(group.begin(), group.end(), &not_groupchar)
-                != group.end()) {
-                analyser.report(where,
-                                check_name,
-                                "TR01: group names most consist of lower case "
-                                "alphabetic characters only: '%0'",
-                                true)
-                    << group;
-            }
-            std::string path(analyser.directory() + "..");
-                
+            llvm::SmallVector<char, 1024> vpath(analyser.directory().begin(),
+                                                analyser.directory().end());
+            llvm::sys::path::append(vpath, "..");
+            std::string packagedir(vpath.begin(), vpath.end());
             struct stat direct;
-            if (!stat(path.c_str(), &direct)) {
-                std::string expect(analyser.directory() + "../../" + group);
+            if (stat(packagedir.c_str(), &direct) == 0) {
+                llvm::sys::path::append(vpath, "..", group);
+                std::string groupdir(vpath.begin(), vpath.end());
                 struct stat indirect;
-                if (stat(expect.c_str(), &indirect)
+                if (stat(groupdir.c_str(), &indirect)
                     || direct.st_ino != indirect.st_ino) {
-                    analyser.report(where,
-                                    check_name,
-                                    "TR01: component '%0' doesn't seem to be "
-                                    "in package group '%1'",
-                                    true)
-                        << (analyser.package() + "_" + analyser.component())
-                        << group
-                        << expect;
+                    analyser.report(where, check_name, "TR01: "
+                            "component '%0' doesn't seem to be in package "
+                            "group '%1'", true)
+                        << analyser.component()
+                        << group;
                 }
-                attachment.d_done = true;
             }
         }
     }
+
     cool::csabase::Analyser* d_analyser;
 };
 

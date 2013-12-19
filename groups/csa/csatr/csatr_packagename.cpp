@@ -6,8 +6,10 @@
 // -----------------------------------------------------------------------------
 
 #include <csabase_analyser.h>
+#include <csabase_filenames.h>
 #include <csabase_ppobserver.h>
 #include <csabase_registercheck.h>
+#include <llvm/Support/Path.h>
 #include <ctype.h>
 #include <sys/stat.h>
 #ident "$Id$"
@@ -32,13 +34,6 @@ namespace
 
 // -----------------------------------------------------------------------------
 
-static bool not_packagechar(unsigned char c)
-{
-    return !(isalnum(c) && (isdigit(c) || islower(c)));
-}
-
-// -----------------------------------------------------------------------------
-
 namespace
 {
     struct on_open
@@ -46,65 +41,82 @@ namespace
         on_open(cool::csabase::Analyser& analyser): d_analyser(&analyser) {}
         void operator()(clang::SourceLocation where, std::string const&, std::string const& name) const
         {
-            packagename& attachment(this->d_analyser->attachment<packagename>());
+            packagename& attachment(d_analyser->attachment<packagename>());
             if (!attachment.d_done && name == this->d_analyser->toplevel()) {
+                attachment.d_done = true;
                 cool::csabase::Analyser& analyser(*this->d_analyser);
+                cool::csabase::FileName fn(name);
 
-                std::string::size_type slash(name.rfind('/'));
-                slash = slash == name.npos? 0: slash + 1;
-                std::string directory(name.substr(0, slash == name.npos? 0: slash));
-                std::string::size_type period(name.find('.', slash));
-                std::string component(slash == name.npos? 0: name.substr(slash, period == name.npos? name.npos: (period - slash)));
-                std::string::size_type underscore(component.find('_'));
-                if (underscore == component.npos) {
-                    analyser.report(where, check_name, "TR02: component file name '%0' doesn't contain an underscore", true)
-                        << component;
-                    return;
-                }
-                else if (underscore == 1u
-                         && ((underscore = component.find('_',
-                                                          underscore + 1))
-                             == component.npos)) {
-                    analyser.report(where, check_name,
-                                    "TR02: component file name '%0' "
-                                    "in standalone component "
-                                    "contains only one underscore", true)
-                        << component;
-                    return;
+                if (fn.component().count('_') != fn.package().count('_') + 1) {
+                    analyser.report(where, check_name, "TR02: "
+                                    "component file name '%0' must consist of "
+                                    "package %1 followed by underscore and "
+                                    "name with no underscores", true)
+                        << fn.component()
+                        << fn.package();
+                        return;
                 }
 
-                std::string::size_type offset(2u < underscore && component[1] == '_'? 2: 0);
-                std::string package(component.substr(offset, underscore - offset));
-                if (!(3 < package.size() && package.size() < 8)) {
-                    analyser.report(where, check_name,
-                                    "TR02: package names must consist of 1 to 4 characters preceded by the group name: '%0'", true)
-                        << package;
+                llvm::StringRef srpackage = fn.package();
+                llvm::StringRef srgroup = fn.group();
+                int pkgsize = srpackage.size() - srgroup.size();
+                if (pkgsize < 1 || pkgsize > 4) {
+                    analyser.report(where, check_name, "TR02: "
+                            "package name %0 must consist of 1-4 characters "
+                            "preceded by the group name: '%0'", true)
+                        << srgroup.str();
                 }
-                if (std::find_if(package.begin(), package.end(), &not_packagechar) != package.end()
-                    || isdigit(static_cast<unsigned char>(package[3]))) {
-                    analyser.report(where, check_name,
-                                    "TR02: package names must consist of lower case alphanumeric characters only: '%0'", true)
-                        << package;
+
+                bool digit_ok = false;
+                bool under_ok = false;
+                bool bad = false;
+                for (size_t i = 0; !bad && i < srpackage.size(); ++i) {
+                    unsigned char c = srpackage[i];
+                    if (islower(c)) {
+                        digit_ok = true;
+                        under_ok = true;
+                    }
+                    else if ('_' == c) {
+                        bad = !under_ok;
+                        digit_ok = false;
+                        under_ok = false;
+                    }
+                    else if (isdigit(c)) {
+                        bad = !digit_ok;
+                    }
+                    else {
+                        bad = true;
+                    }
                 }
-                std::string path(directory + ".");
-                
-                package = component.substr(0, underscore);
+                if (bad) {
+                    analyser.report(where, check_name, "TR02: "
+                            "package and group names must consist of lower "
+                            "case alphanumeric characters, start with a lower "
+                            "case letter, and be separated by underscores: "
+                            "'%0'", true)
+                        << srpackage;
+                }
+
                 struct stat direct;
-                if (!stat(path.c_str(), &direct)) {
-                    std::string expect(name.substr(0, slash) + "../" + package);
+                if (stat(fn.directory().str().c_str(), &direct) == 0) {
+                    llvm::SmallVector<char, 1024> svpath(fn.directory().begin(),
+                                                         fn.directory().end());
+                    llvm::sys::path::append(svpath, "..", srpackage);
+                    std::string expect(svpath.begin(), svpath.end());
                     struct stat indirect;
-                    if (stat(expect.c_str(), &indirect) || direct.st_ino != indirect.st_ino) {
-                        analyser.report(where, check_name,
-                                        "TR02: component '%0' doesn't seem to be in package '%1'",
-                                        true)
-                            << component
-                            << package
+                    if (stat(expect.c_str(), &indirect) ||
+                        direct.st_ino != indirect.st_ino) {
+                        analyser.report(where, check_name, "TR02: "
+                                "component '%0' doesn't seem to be in package "
+                                "'%1'", true)
+                            << fn.component()
+                            << srpackage
                             << expect;
                     }
-                    attachment.d_done = true;
                 }
             }
         }
+
         cool::csabase::Analyser* d_analyser;
     };
 }

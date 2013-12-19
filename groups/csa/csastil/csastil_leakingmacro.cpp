@@ -6,6 +6,7 @@
 // ----------------------------------------------------------------------------
 
 #include <csabase_analyser.h>
+#include <csabase_filenames.h>
 #include <csabase_registercheck.h>
 #include <csabase_ppobserver.h>
 #include <csabase_location.h>
@@ -72,11 +73,8 @@ onCloseFile(cool::csabase::Analyser* analyser,
             std::string const&       current,
             std::string const&       closed)
 {
-    std::string::size_type slash(closed.rfind('/'));
-    slash = slash == closed.npos? 0u: slash + 1;
-    std::string::size_type point(closed.find('.', slash));
-    point = point == closed.npos? closed.size(): point;
-    std::string component(closed.substr(slash, point - slash));
+    cool::csabase::FileName fn(closed);
+    std::string component = fn.component();
     std::transform(component.begin(), component.end(),
                    component.begin(),
                    &to_upper);

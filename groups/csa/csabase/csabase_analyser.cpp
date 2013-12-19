@@ -8,6 +8,7 @@
 #include <csabase_analyser.h>
 #include <csabase_config.h>
 #include <csabase_checkregistry.h>
+#include <csabase_filenames.h>
 #include <csabase_location.h>
 #include <csabase_ppobserver.h>
 #include <csabase_visitor.h>
@@ -164,34 +165,19 @@ cool::csabase::Analyser::component() const
 void
 cool::csabase::Analyser::toplevel(std::string const& path)
 {
-    llvm::StringRef srpath(path);
-    llvm::StringRef srext = llvm::sys::path::extension(srpath);
-
-    this->toplevel_ = path;
-    this->prefix_ = path;
+    FileName fn(path);
+    toplevel_ = fn.full();
+    prefix_ = fn.full();
     for (int i = 0; i < NSS; ++i) {
-        if (srext.equals(source_suffixes[i])) {
-            this->prefix_ = srpath.drop_back(srext.size());
+        if (fn.extension().equals(source_suffixes[i])) {
+            prefix_ = fn.prefix();
             break;
         }
     }
-    llvm::StringRef srdir(this->prefix_);
-    while (srdir.size() > 0 && !llvm::sys::path::is_separator(srdir.back())) {
-        srdir = srdir.drop_back(1);
-    }
-    this->directory_ = srdir;
-
-    llvm::StringRef srroot = srpath.drop_front(srdir.size());
-    size_t under = srroot.find('_');
-    if (under == 1) {
-        under = srroot.find('_', 2);
-    }
-    this->package_ = srroot.slice(0, under);
-    ++under;
-    if (under == 1 || srroot[1] != '_') {
-        this->group_ = srroot.substr(0, 3);
-    }
-    this->component_ = srroot.slice(under, srroot.find('.'));
+    directory_ = fn.directory();
+    package_ = fn.package();
+    group_ = fn.group();
+    component_ = fn.component();
 }
 
 bool
@@ -201,6 +187,18 @@ cool::csabase::Analyser::is_component_header(std::string const& name) const
     if (in != this->is_component_header_.end()) {
         return in->second;
     }
+
+    FileName fn(name);
+
+    for (int i = 0; i < NHS; ++i) {
+        if (fn.extension().equals(header_suffixes[i])) {
+            if (fn.component() == component_) {
+                return this->is_component_header_[name] = true;       // RETURN
+            }
+            break;
+        }
+    }
+    return this->is_component_header_[name] = false;
 
     llvm::StringRef srname(name);
     llvm::StringRef srsuffix = srname.substr(srname.rfind('.'));

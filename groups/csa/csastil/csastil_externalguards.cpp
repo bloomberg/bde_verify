@@ -7,6 +7,7 @@
 
 #include <csabase_analyser.h>
 #include <csabase_binder.h>
+#include <csabase_filenames.h>
 #include <csabase_registercheck.h>
 #include <csabase_ppobserver.h>
 #include <csabase_location.h>
@@ -51,12 +52,8 @@ toUpper(std::string value)
 static std::string
 getComponent(std::string const& file)
 {
-    std::string::size_type slash(file.rfind('/'));
-    slash = slash == file.npos? 0u: slash + 1;
-    std::string::size_type point(file.find('.', slash));
-    point = point == file.npos? file.size(): point;
-    std::string s = file.substr(slash, point - slash);
-    return toUpper(file.substr(slash, point - slash));
+    cool::csabase::FileName fn(file);
+    return toUpper(fn.component());
 }
 
 // ----------------------------------------------------------------------------
