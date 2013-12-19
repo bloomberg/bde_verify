@@ -87,7 +87,7 @@ public:
     template <typename T> cool::diagnostic_builder report(T, std::string const&, std::string const&, bool always = false);
 
     clang::SourceManager& manager();
-    std::string             get_source(clang::SourceRange);
+    llvm::StringRef         get_source(clang::SourceRange, bool exact = false);
     cool::csabase::Location get_location(clang::SourceLocation) const;
     cool::csabase::Location get_location(clang::Decl const*) const;
     cool::csabase::Location get_location(clang::Expr const*) const;

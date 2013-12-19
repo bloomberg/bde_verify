@@ -301,17 +301,31 @@ cool::csabase::Analyser::manager()
     return this->compiler_.getSourceManager();
 }
 
-std::string
-cool::csabase::Analyser::get_source(clang::SourceRange range)
+llvm::StringRef
+cool::csabase::Analyser::get_source(clang::SourceRange range, bool exact)
 {
-    clang::SourceManager& sm(this->manager());
-    clang::SourceLocation b = sm.getExpansionLoc(range.getBegin());
-    clang::SourceLocation e = sm.getExpansionLoc(range.getEnd());
-    clang::SourceLocation t = sm.getExpansionLoc(
-               clang::Lexer::getLocForEndOfToken(e.getLocWithOffset(-1), 0, sm,
-                                                    context()->getLangOpts()));
-    return std::string(sm.getCharacterData(b),
-                       sm.getCharacterData(t.isValid() ? t : e));
+    const char *pb = "";
+    const char *pe = pb + 1;
+
+    if (range.isValid()) {
+        clang::SourceManager& sm(this->manager());
+        clang::SourceLocation b = sm.getSpellingLoc(range.getBegin());
+        clang::SourceLocation e = sm.getSpellingLoc(range.getEnd());
+        clang::SourceLocation t = exact ? e : sm.getSpellingLoc(
+                clang::Lexer::getLocForEndOfToken(
+                    e.getLocWithOffset(-1), 0, sm, context()->getLangOpts()));
+        if (!t.isValid()) {
+            t = e;
+        }
+        if (   b.isValid()
+            && t.isValid()
+            && sm.getFileID(b) == sm.getFileID(t)
+            && sm.getFileOffset(b) <= sm.getFileOffset(t)) {
+            pb = sm.getCharacterData(b);
+            pe = sm.getCharacterData(t.isValid() ? t : e);
+        }
+    }
+    return llvm::StringRef(pb, pe - pb);
 }
 
 // -----------------------------------------------------------------------------

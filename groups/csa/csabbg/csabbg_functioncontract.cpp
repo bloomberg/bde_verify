@@ -5,6 +5,7 @@
 #include <csabase_location.h>
 #include <csabase_ppobserver.h>
 #include <csabase_registercheck.h>
+#include <llvm/Support/Regex.h>
 #include <map>
 #include <string>
 #include <sstream>
@@ -80,11 +81,10 @@ comments::comments(Analyser& analyser)
 bool
 comments::areConsecutive(const SourceRange& r1, const SourceRange& r2) const
 {
-    unsigned r1e = d_manager.getPresumedLineNumber(r1.getEnd());
-    unsigned r2b = d_manager.getPresumedLineNumber(r2.getBegin());
-    return d_manager.getFileID(r1.getEnd()) ==
-           d_manager.getFileID(r2.getBegin()) &&
-           (r1e == r2b || r1e + 1 == r2b);
+    SourceRange between(r1.getEnd(), r2.getBegin());
+    llvm::StringRef s = d_analyser.get_source(between, true);
+    static llvm::Regex re("^[[:space:]]*$");
+    return re.match(s);
 }
 
 void comments::operator()(SourceRange range)
@@ -115,51 +115,6 @@ void allTpltFunDecls(Analyser& analyser, const FunctionTemplateDecl* func)
     // Callback function for inspecting function template declarations.
 {
     allFunDecls(analyser, func->getTemplatedDecl());
-}
-
-static char
-toLower(unsigned char c)
-    // Return the lower-case version of the specified 'c'.
-{
-    return tolower(c);
-}
-
-static std::string
-toLower(std::string value)
-    // Return the lower-case version of the specified 'value'.
-{
-    std::transform(value.begin(), value.end(), value.begin(),
-            static_cast<char(*)(unsigned char)>(&toLower));
-    return value;
-}
-
-static bool
-isIdChar(unsigned char c)
-    // Return whether the specified 'c' is a C++ identifier character.
-{
-    return c == '_' || isalnum(c);
-}
-
-static SourceRange
-getWordLoc(SourceLocation loc, const std::string& src, const std::string& word)
-    // Return a range within the specified 'loc' corresponding to the position
-    // of the specified isolated 'word' within the specified 'src' (i.e., not
-    // immediately preceeded or followed by a C++ identifier character) or an
-    // invalid range if 'word' cannot be so found in 'src'.
-{
-    SourceRange ret;
-    for (std::string::size_type pos = 0;
-                 (pos = src.find(word, pos)) != src.npos; pos += word.size()) {
-        if (   (   pos == 0
-                || !isIdChar(src[pos - 1]))
-            && (   pos + word.size() >= src.size()
-                || !isIdChar(src[pos + word.size()]))) {
-            ret = SourceRange(loc.getLocWithOffset(pos),
-                              loc.getLocWithOffset(pos + word.size() - 1));
-            break;
-        }
-    }
-    return ret;
 }
 
 struct report
@@ -273,10 +228,11 @@ SourceRange report::getContract(const FunctionDecl *func,
     SourceManager& m = d_manager;
     SourceRange contract;
 
-    unsigned sline;
+    unsigned bline;
+    unsigned eline;
     clang::FileID sfile;
 
-    // Find the line number that the function contract should encompass.
+    // Find the line numbers that the function contract may encompass.
     if (func->doesThisDeclarationHaveABody() && func->getBody()) {
         // For functions with bodies, the end of the 'FunctionDecl' is the
         // end of the body, so instead get the line before the body begins,
@@ -287,30 +243,34 @@ SourceRange report::getContract(const FunctionDecl *func,
         unsigned bodyBegin = m.getPresumedLineNumber(bodyloc);
         unsigned funcBegin = m.getPresumedLineNumber(func->getLocStart());
 
+        bline = funcBegin;
+
         if (bodyBegin <= funcBegin) {
-            sline = bodyBegin + 1;
+            eline = bodyBegin + 1;
         } else {
-            sline = bodyBegin - 1;
+            eline = bodyBegin - 1;
         }
     } else {
         // For plain declarations, use the line after.
         SourceLocation declloc = func->getLocEnd();
         sfile = m.getFileID(declloc);
-        sline = m.getPresumedLineNumber(declloc) + 1;
+        bline = m.getPresumedLineNumber(declloc);
+        eline = bline + 1;
     }
 
     for (IT it = comments_begin; it != comments_end; ++it) {
         const SourceRange comment = *it;
         const SourceLocation cloc = comment.getBegin();
         const unsigned cline = m.getPresumedLineNumber(cloc);
-        const unsigned clineend = m.getPresumedLineNumber(comment.getEnd());
         const clang::FileID cfile = m.getFileID(cloc);
 
         // Find a comment that encompasses the contract line, in the same
         // file as the 'FunctionDecl'.
-        if (cfile == sfile && cline <= sline && clineend >= sline) {
-            contract = comment;
-            break;
+        if (cfile == sfile) {
+            if (bline <= cline && cline <= eline) {
+                contract = comment;
+                break;
+            }
         }
     }
 
@@ -319,6 +279,17 @@ SourceRange report::getContract(const FunctionDecl *func,
 
 void report::critiqueContract(const FunctionDecl* func, SourceRange comment)
 {
+    llvm::StringRef contract = d_analyser.get_source(comment);
+
+    // Ignore "= default" and "= delete" comments.
+    static llvm::Regex re("^(//|/[*])" "[[:space:]]*" "=" "[[:space:]]*"
+                          "(delete|default)" "[[:space:]]*" ";?"
+                          "[[:space:]]*" "([*]/)?" "[[:space:]]*" "$",
+                          llvm::Regex::IgnoreCase);
+    if (re.match(contract)) {
+        return;
+    }
+
     const SourceLocation cloc = comment.getBegin();
 
     // Check for bad indentation.
@@ -339,7 +310,6 @@ void report::critiqueContract(const FunctionDecl* func, SourceRange comment)
     // are optional parameters, we only check for a single instance of
     // the word "optionally".
     const unsigned num_parms = func->getNumParams();
-    const std::string contract = toLower(d_analyser.get_source(comment));
     bool specify_done = false;
     bool optional_done = false;
 
@@ -349,59 +319,73 @@ void report::critiqueContract(const FunctionDecl* func, SourceRange comment)
             // Ignore unnamed parameters.
             continue;
         }
-        // Convert to lower case to avoid sentence capitalization
-        // issues.  This could lead to false positives if there are
-        // multiple parameters with the same spelling but different
-        // cases, but we'll live with that.
+        // Compare with case insensitivity to avoid sentence capitalization
+        // issues.  This could lead to false positives if there are multiple
+        // parameters with the same spelling but different cases, but we'll
+        // live with that.
         const std::string name = parm->getNameAsString();
-        const std::string lcname = toLower(name);
-        const SourceRange crange = getWordLoc(cloc, contract, lcname);
-        if (!crange.isValid()) {
+        llvm::Regex pre("^([^_[:alnum:]]*|.*[^_[:alnum:]])" +
+                        name +
+                        "([^_[:alnum:]]*|[^_[:alnum:]].*)$",
+                        llvm::Regex::IgnoreCase);
+        llvm::SmallVector<llvm::StringRef, 3> matches;
+        if (!pre.match(contract, &matches)) {
             // Did not find parameter name in contract.
             d_analyser.report(parm->getSourceRange().getBegin(),
                 check_name, "FD01: "
-                "Parameter '%0' is not documented in the function "
-                "contract")
+                "Parameter '%0' is not documented in the function contract")
                 << name
                 << parm->getSourceRange();
         } else {
-            if (contract.find("'" + lcname + "'") == contract.npos) {
+            SourceRange crange(comment.getBegin().getLocWithOffset(
+                                                       matches[1].size()),
+                              comment.getEnd().getLocWithOffset(
+                                                      -matches[2].size() - 1));
+            llvm::Regex qre("^([^']|'[^']*')*"
+                            "'([^_[:alnum:]']*|[^']*[^_[:alnum:]])" +
+                            name +
+                            "([^_[:alnum:]']*|[^_[:alnum:]][^']*)'",
+                            llvm::Regex::IgnoreCase);
+            if (!qre.match(contract)) {
                 // Found parameter name, but unticked.
                 d_analyser.report(crange.getBegin(),
                      check_name, "FD01: "
-                    "Parameter '%0' is not single-quoted in the "
-                    "function contract")
+                    "Parameter '%0' is not single-quoted in the function "
+                    "contract")
                     << name
                     << crange;
             }
-            static std::string optionally("optionally");
+            static llvm::Regex ore("(^|[^_[:alnum:]])"
+                                   "optionally"
+                                   "([^_[:alnum:]]|$)",
+                                   llvm::Regex::IgnoreCase);
             if (   !optional_done
                 && parm->hasDefaultArg()
-                && contract.find(optionally) == contract.npos) {
+                && !ore.match(contract)) {
                 // The first time we see a named optional parameter,
                 // check for "optionally" in the contract.
                 optional_done = true;
-                d_analyser.report(crange.getBegin(), check_name,
-                    "FD01: "
-                    "In the function contract, use the phrase "
-                    "'optionally specify' to document parameters "
-                    "that have default arguments")
+                d_analyser.report(crange.getBegin(),
+                        check_name, "FD01: "
+                        "In the function contract, use the phrase 'optionally "
+                        "specify' to document parameters that have default "
+                        "arguments")
                     << crange;
             }
-            static std::string specified("specified");
-            static std::string specify("specify");
+            static llvm::Regex sre("(^|[^_[:alnum:]])"
+                                   "(specified|specify)"
+                                   "([^_[:alnum:]]|$)",
+                                   llvm::Regex::IgnoreCase);
             if (   !specify_done
                 && !parm->hasDefaultArg()
-                && contract.find(specified) == contract.npos
-                && contract.find(specify) == contract.npos) {
+                && !sre.match(contract)) {
                 // The first time we see a named required parameter,
                 // check for "specified" or "specify" in the contract.
                 specify_done = true;
-                d_analyser.report(crange.getBegin(), check_name,
-                    "FD01: "
-                    "In the function contract, use the words "
-                    "'specified' or 'specify' to document "
-                    "parameters")
+                d_analyser.report(crange.getBegin(),
+                        check_name, "FD01: "
+                        "In the function contract, use the words 'specified' "
+                        "or 'specify' to document parameters")
                     << crange;
             }
         }
