@@ -136,7 +136,7 @@ check_order(CB::Analyser*                                                      a
     }
     std::vector<std::pair<std::string, clang::SourceLocation> >::const_iterator it(headers.begin());
     if (it == headers.end()
-        || it->first != analyser->package() + "_" + analyser->component()
+        || it->first != analyser->component()
         || it++ == headers.end()) {
         analyser->report(headers[0].second, check_name,
                          header

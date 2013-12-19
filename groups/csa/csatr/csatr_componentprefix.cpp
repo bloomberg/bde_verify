@@ -31,12 +31,12 @@ static bool
 wrong_prefix(cool::csabase::Analyser& analyser,
              std::string              name)
 {
+    std::string package_prefix = analyser.package() + "_";
+    if (name.find(package_prefix) != 0) {
+        name = package_prefix + name;
+    }
     std::transform(name.begin(), name.end(), name.begin(), &to_lower);
-    return (name.size() < analyser.component().size()
-            || name.substr(0, analyser.component().size()) != analyser.component())
-        && (false //-dk:TODO !analyser.package_legacy()
-            || name.find(analyser.package() + '_' + analyser.component()))
-        ;
+    return name.find(analyser.component()) != 0;
 }
 
 // ----------------------------------------------------------------------------
@@ -54,8 +54,8 @@ component_prefix(cool::csabase::Analyser&  analyser,
         && !llvm::dyn_cast<clang::NamespaceDecl>(named)
         && !llvm::dyn_cast<clang::UsingDirectiveDecl>(named)
         && !llvm::dyn_cast<clang::UsingDecl>(named)
-        && wrong_prefix(analyser, name)
         && analyser.is_component_header(decl)
+        && wrong_prefix(analyser, name)
         && (!llvm::dyn_cast<clang::RecordDecl>(named)
             || llvm::dyn_cast<clang::RecordDecl>(named)->isCompleteDefinition()
             )

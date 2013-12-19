@@ -91,8 +91,7 @@ check(cool::csabase::Analyser& analyser, clang::Decl const* decl)
             if ((space->getNameAsString() != analyser.package()
                  || !outer
                  || outer->getNameAsString() != analyser.config()->toplevel_namespace())
-                && (false //-dk:TODO !analyser.package_legacy()
-                    || space->getNameAsString() != analyser.config()->toplevel_namespace()
+                && (   space->getNameAsString() != analyser.config()->toplevel_namespace()
                     || named->getNameAsString().find(analyser.package() + '_') != 0
                     )
                 && !llvm::dyn_cast<clang::ClassTemplateSpecializationDecl>(decl)

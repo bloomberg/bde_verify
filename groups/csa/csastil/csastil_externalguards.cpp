@@ -157,7 +157,7 @@ onEndif(CB::Analyser* analyser,
         if (analyser->is_component_header(end)
             && !context.d_conditions.top().first.empty()
             && (context.d_conditions.top().first
-                != toUpper(analyser->package() + "_" + analyser->component()))
+                != toUpper(analyser->component()))
             ) {
             std::string source(analyser->get_source(clang::SourceRange(context.d_conditions.top().second, end)));
             source.erase(std::remove_if(source.begin(), source.end(), &isSpace), source.end());
@@ -191,8 +191,7 @@ onInclude(CB::Analyser*         analyser,
         && (context.d_conditions.empty()
             || context.d_conditions.top().first.empty()
             || (context.d_conditions.top().first
-                == toUpper(analyser->package() + "_"
-                             + analyser->component()))
+                == toUpper(analyser->component()))
             )
         )
     {

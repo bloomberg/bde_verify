@@ -35,9 +35,7 @@ namespace
         std::string const& get_expect(cool::csabase::Analyser* analyser)
         {
             if (this->d_expect.empty()) {
-                d_expect = "INCLUDED_"
-                    + analyser->package() + "_"
-                    + analyser->component();
+                d_expect = "INCLUDED_" + analyser->component();
                 std::transform(this->d_expect.begin(), this->d_expect.end(),
                                this->d_expect.begin(),
                                my_toupper);
