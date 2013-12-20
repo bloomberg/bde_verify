@@ -97,21 +97,22 @@ namespace
                         << srpackage;
                 }
 
+                llvm::SmallVector<char, 1024> svpath(fn.directory().begin(),
+                                                     fn.directory().end());
+                llvm::sys::path::append(svpath, ".");
+                std::string s(svpath.begin(), svpath.end());
                 struct stat direct;
-                if (stat(fn.directory().str().c_str(), &direct) == 0) {
-                    llvm::SmallVector<char, 1024> svpath(fn.directory().begin(),
-                                                         fn.directory().end());
+                if (stat(s.c_str(), &direct) == 0) {
                     llvm::sys::path::append(svpath, "..", srpackage);
                     std::string expect(svpath.begin(), svpath.end());
                     struct stat indirect;
-                    if (stat(expect.c_str(), &indirect) ||
+                    if (stat(expect.c_str(), &indirect) != 0 ||
                         direct.st_ino != indirect.st_ino) {
                         analyser.report(where, check_name, "TR02: "
                                 "component '%0' doesn't seem to be in package "
                                 "'%1'", true)
                             << fn.component()
-                            << srpackage
-                            << expect;
+                            << srpackage;
                     }
                 }
             }
