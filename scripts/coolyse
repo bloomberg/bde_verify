@@ -9,7 +9,7 @@
 # $Id$
 
 use strict;
-use Getopt::Long;
+use Getopt::Long qw(:config no_ignore_case);
 
 my $home     = "/home/hrosen4/coolyser";
 #my $llvm     = "/bb/mbigc/mbig816/build/Release+Asserts";
@@ -21,15 +21,34 @@ my $lib      = "$home/Linux-clang-3.5/coolyser.so";
 my $debug    = "";
 my $verbose  = "";
 my $help     = "";
+my $definc   = 1;
+my $defdef   = 1;
+my @incs;
+my @defs;
+my @wflags;
+my @lflags = (
+    "color-diagnostics",
+    "cxx-exceptions",
+    "diagnostics-show-name",
+    "diagnostics-show-option",
+);
+my $dummy;
+my @dummy;
 
 sub usage()
 {
     print "
     usage: $0 [options] [additional compiler options] file.cpp ...
+        -I{directory}
+        -D{macro}
+        -W{warning}
+        -f{flag}
         --config=config_file     [$config]  
         --bb=dir                 [$bb]
         --lib=coolyser.so        [$lib]
         --llvm=dir               [$llvm]
+        --[no]definc             [$definc]
+        --[no]defdef             [$defdef]
         --debug
         --verbose
         --help
@@ -38,6 +57,8 @@ sub usage()
     exit(1);
 }
 
+@ARGV = map { /^(-+[DIOWf])(.+)/ ? ($1, $2) : $_ } @ARGV;
+
 GetOptions(
     'bb=s'       => \$bb,
     'config=s'   => \$config,
@@ -45,25 +66,31 @@ GetOptions(
     'help|?'     => \$help,
     'lib=s'      => \$lib,
     'llvm=s'     => \$llvm,
-    'verbose'    => \$verbose,
+    'verbose|v'  => \$verbose,
+    'definc!'    => \$definc,
+    'defdef!'    => \$defdef,
+    "I=s"        => \@incs,
+    "D=s"        => \@defs,
+    "W=s"        => \@wflags,
+    "f=s"        => \@lflags,
+    "m32!"       => \$dummy,
+    "m64!"       => \$dummy,
+    "pipe!"      => \$dummy,
+    "pthread!"   => \$dummy,
+    "O=s"        => \@dummy,
+    "MMD!"       => \$dummy,
+    "MF=s"       => \@dummy,
+    "c!"         => \$dummy,
+    "o=s"        => \@dummy,
 ) and !$help and $#ARGV >= 0 or usage();
 
 my @config = ("-plugin-arg-coolyse", "config=$config") if $config ne "";
 my @debug  = ("-plugin-arg-coolyse", "debug-on")       if $debug;
 
-my @lflags = (
-    "color-diagnostics",
-    "cxx-exceptions",
-    "diagnostics-show-name",
-    "diagnostics-show-option",
-);
-@lflags = map { "-f$_" } @lflags;
-
-my @wflags = (
-);
+@lflags = map { "-f$_" if $_ ne "no-strict-aliasing" } @lflags;
 @wflags = map { "-W$_" } @wflags;
 
-my @defs = (
+push(@defs, (
     "BB_THREADED",
     "BDE_BUILD_TARGET_DBG",
     "BDE_BUILD_TARGET_EXC",
@@ -73,10 +100,9 @@ my @defs = (
     "_REENTRANT",
     "_SYS_SYSMACROS_H",
     "_THREAD_SAFE",
-);
+)) if $defdef;
 @defs = map { "-D$_" } @defs;
 
-my @incs;
 for (@ARGV) {
     if (m{^(.*)/.*$}) {
         push(@incs, $1) unless grep($1, @incs);
@@ -86,7 +112,7 @@ push(@incs, (
     ".",
     "$bb/include",
     "$bb/include/stlport",
-));
+)) if $definc;
 push(@incs, map { chomp; $_; }
             qx{ $llvm/bin/clang++ -xc++ -E -v /dev/null 2>&1 |
                 /opt/swt/bin/sed -n '/^ [/]/s/ //p'});
