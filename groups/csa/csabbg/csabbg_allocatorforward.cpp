@@ -25,12 +25,6 @@ using cool::csabase::PPObserver;
 using cool::csabase::Visitor;
 using namespace clang;
 
-#define _c(x, y) x ## y
-#define _(x, y) _c(x, y)
-#define _e(d,b) Debug d(__FUNCTION__, b ); d << __LINE__ << " "
-#define D  _e(_(x, __LINE__), true )
-#define D_ _e(_(x, __LINE__), false)
-
 // -----------------------------------------------------------------------------
 
 static std::string const check_name("allocator-forward");
@@ -297,14 +291,16 @@ void report::check_not_forwarded(Iter begin, Iter end)
 {
     std::set<const CXXRecordDecl *> records;
 
-    while (begin != end) {
-        const CXXConstructorDecl *decl = *begin++;
+    for (Iter itr = begin; itr != end; ++itr) {
+        const CXXConstructorDecl *decl = *itr;
         const CXXRecordDecl *record = decl->getParent();
         bool uses_allocator = check_not_forwarded(decl);
-        bool has_alloc_trait =
-            data_.records_with_allocator_trait_.count(record);
+
         if (records.count(record) == 0) {
             records.insert(record);
+
+            bool has_alloc_trait =
+                data_.records_with_allocator_trait_.count(record);
 
             if (!uses_allocator && has_alloc_trait) {
                 analyser_.report(record, check_name,
@@ -318,12 +314,53 @@ void report::check_not_forwarded(Iter begin, Iter end)
                         "the TypeTraitUsesBslmaAllocator trait")
                     << record;
             }
+        }
 
-            if (uses_allocator && !record->hasUserDeclaredCopyConstructor()) {
-                analyser_.report(record, check_name,
-                        "MA03: class %0 uses allocators but does not have "
-                        "a user-declared copy constructor")
-                    << record;
+        if (decl == decl->getCanonicalDecl() &&
+            takes_allocator(record->
+                            getTypeForDecl()->
+                            getCanonicalTypeInternal(), true) &&
+            !takes_allocator(decl, true)) {
+            // Warn if the class does not have a constructor that matches this
+            // one, but with a final allocator parameter.
+
+            bool found = false;
+            unsigned num_parms = decl->getNumParams();
+            for (Iter ci = begin; !found && ci != end; ++ci) {
+                const CXXConstructorDecl *ctor = *ci;
+                if (ctor == ctor->getCanonicalDecl() &&
+                    ctor != decl &&
+                    ctor->getParent() == record &&
+                    ctor->getNumParams() == num_parms + 1 &&
+                    takes_allocator(ctor, true)) {
+                    found = true;
+                    for (unsigned pi = 0; found && pi < num_parms; ++pi) {
+                        if (decl->getParamDecl(pi)->getOriginalType() !=
+                            ctor->getParamDecl(pi)->getOriginalType()) {
+                            found = false;
+                        }
+                    }
+                }
+            }
+
+            if (!found) {
+                if (decl->isUserProvided()) {
+                    analyser_.report(decl, check_name, "MA04: "
+                                 "This constructor has no version that can be "
+                                 "called with an allocator.")
+                        << decl;
+                }
+                else {
+                    std::string type =
+                        decl->isDefaultConstructor()    ? "default " :
+                        decl->isCopyOrMoveConstructor() ? "copy "    :
+                                                          "";
+
+                    analyser_.report(decl, check_name, "MA04: "
+                                 "Implicit " + type + "constructor cannot be "
+                                 "called with an allocator")
+                        << decl;
+                }
             }
         }
     }
@@ -597,8 +634,8 @@ gather_allocator_traits(Analyser& analyser, CXXConversionDecl const* decl)
     //..
 {
     static const std::string alloc("BloombergLP::bslalg::"
-            "TypeTraitUsesBslmaAllocator::"
-            "NestedTraitDeclaration");
+                                   "TypeTraitUsesBslmaAllocator::"
+                                   "NestedTraitDeclaration");
 
     const CXXRecordDecl *record =
         llvm::dyn_cast<CXXRecordDecl>(decl->getDeclContext());

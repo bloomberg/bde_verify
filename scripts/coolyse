@@ -73,15 +73,8 @@ GetOptions(
     "D=s"        => \@defs,
     "W=s"        => \@wflags,
     "f=s"        => \@lflags,
-    "m32!"       => \$dummy,
-    "m64!"       => \$dummy,
-    "pipe!"      => \$dummy,
-    "pthread!"   => \$dummy,
-    "O=s"        => \@dummy,
-    "MMD!"       => \$dummy,
-    "MF=s"       => \@dummy,
-    "c!"         => \$dummy,
-    "o=s"        => \@dummy,
+    "m32|m64|pipe|pthread|MMD|g|c" => \$dummy,
+    "O|MF|o=s"   => \@dummy,
 ) and !$help and $#ARGV >= 0 or usage();
 
 my @config = ("-plugin-arg-coolyse", "config=$config") if $config ne "";

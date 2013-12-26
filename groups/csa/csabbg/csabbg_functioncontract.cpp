@@ -176,18 +176,17 @@ template <class IT>
 void report::processAllFunDecls(IT begin, IT end)
 {
     for (IT it = begin; it != end; ++it) {
-        // Check whether a comment exists before checking whether a comment
-        // is needed, so that unneeded but present comments will be checked
-        // for malformations.
         it->second =
               getContract(it->first, d.d_comments.begin(), d.d_comments.end());
     }
 
     for (IT it = begin; it != end; ++it) {
-        if (it->second.isValid()) {
+        if (doesNotNeedContract(it->first)) {
+        }
+        else if (it->second.isValid()) {
             critiqueContract(it->first, it->second);
-        } else if (doesNotNeedContract(it->first)) {
-        } else {
+        }
+        else {
             bool hasCommentedCognate = false;
             for (IT cit = begin; !hasCommentedCognate && cit != end; ++cit) {
                 hasCommentedCognate =
