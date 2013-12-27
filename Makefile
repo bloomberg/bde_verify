@@ -21,7 +21,7 @@ CURRENT  = csafmt/csafmt_nonascii.t.cpp
 
 #  ----------------------------------------------------------------------------
 
-TARGET = coolyser
+TARGET = bdeverify
 
 TSTCXXFILES +=                                                                \
         groups/csa/csabbg/csabbg_allocatorforward.cpp                         \
@@ -71,6 +71,7 @@ TODO =                                                                        \
         groups/csa/csadep/csadep_types.cpp                                    \
 
 LIBCXXFILES +=                                                                \
+        groups/csa/csabase/csabase_tool.cpp                                   \
         groups/csa/csabase/csabase_abstractvisitor.cpp                        \
         groups/csa/csabase/csabase_analyser.cpp                               \
         groups/csa/csabase/csabase_attachments.cpp                            \
@@ -115,9 +116,7 @@ ECHON    = echo
 CPPFLAGS += -DCLANG_SVN
 PFLAGS   += -Wno-string-plus-int
 CXXFLAGS += -fvisibility-inlines-hidden 
-LDLIBS   += -lclangEdit
 
-SOSUFFIX = so
 CXX      = $(CLANG)
 LINK     = $(CXX)
 OBJ      = $(SYSTEM)-$(COMPILER)-$(CLANGVER)
@@ -151,27 +150,8 @@ WARNFLAGS = \
         -Wwrite-strings
 LDFLAGS = -L$(LLVMLIB) -g
 
-LDLIBS += \
-        -lclangFrontend \
-        -lclangDriver \
-        -lclangSerialization \
-        -lclangParse \
-        -lclangSema \
-        -lclangAnalysis \
-        -lclangEdit \
-        -lclangAST \
-        -lclangBasic \
-        -lclangLex \
-        -lLLVMSupport \
-        -lLLVMMC \
-        -lpthread \
-        -lm 
-
-CXXFLAGS += -fpic
-LDLIBS   += -ldl
-
-PLUGIN   = -cc1 -load $(OBJ)/$(TARGET).$(SOSUFFIX) \
-           -plugin coolyse -plugin-arg-coolyse config=test.cfg
+PLUGIN   = $(OBJ)/$(TARGET) \
+           -plugin bdeverify -plugin-arg-bdeverify config=test.cfg
 OFILES = $(LIBCXXFILES:%.cpp=$(OBJ)/%.o)
 POSTPROCESS = sed -e 's/\([^:]*:[0-9][0-9]*\):[^:]*:/\1:0:/' \
             | sed -e '/\^/s/ //g' \
@@ -191,9 +171,69 @@ SOURCE      = $$(echo $$f | \
 
 CHECK_NAME  = $$(echo | sed -n 's/.*check_name("\([^"]*\)".*/\1/p' $(SOURCE))
 
+LIBS     =                                                                    \
+              -lclangFrontendTool                                             \
+              -lclangCodeGen                                                  \
+              -lLLVMIRReader                                                  \
+              -lLLVMLinker                                                    \
+              -lclangRewriteFrontend                                          \
+              -lclangARCMigrate                                               \
+              -lclangStaticAnalyzerFrontend                                   \
+              -lclangIndex                                                    \
+              -lclangFormat                                                   \
+              -lclangTooling                                                  \
+              -lclangFrontend                                                 \
+              -lclangParse                                                    \
+              -lclangSerialization                                            \
+              -lclangSema                                                     \
+              -lclangStaticAnalyzerCheckers                                   \
+              -lclangStaticAnalyzerCore                                       \
+              -lclangRewriteCore                                              \
+              -lclangDynamicASTMatchers                                       \
+              -lclangASTMatchers                                              \
+              -lclangEdit                                                     \
+              -lclangAnalysis                                                 \
+              -lclangAST                                                      \
+              -lclangLex                                                      \
+              -lLLVMSelectionDAG                                              \
+              -lLLVMAsmPrinter                                                \
+              -lLLVMJIT                                                       \
+              -lLLVMInterpreter                                               \
+              -lLLVMCodeGen                                                   \
+              -lLLVMipo                                                       \
+              -lLLVMScalarOpts                                                \
+              -lLLVMInstCombine                                               \
+              -lLLVMInstrumentation                                           \
+              -lclangDriver                                                   \
+              -lLLVMVectorize                                                 \
+              -lLLVMObjCARCOpts                                               \
+              -lLLVMTransformUtils                                            \
+              -lLLVMipa                                                       \
+              -lLLVMAnalysis                                                  \
+              -lLLVMTarget                                                    \
+              -lLLVMBitReader                                                 \
+              -lLLVMAsmParser                                                 \
+              -lLLVMExecutionEngine                                           \
+              -lLLVMBitWriter                                                 \
+              -lLLVMCore                                                      \
+              -lLLVMDebugInfo                                                 \
+              -lclangBasic                                                    \
+              -lLLVMMCParser                                                  \
+              -lLLVMMC                                                        \
+              -lLLVMObject                                                    \
+              -lLLVMOption                                                    \
+              -lLLVMTableGen                                                  \
+              -lLLVMSupport                                                   \
+              -lpthread                                                       \
+              -lcurses                                                        \
+              -lstdc++                                                        \
+              -lm                                                             \
+              -ldl                                                            \
+              -lc                                                             \
+
 # -----------------------------------------------------------------------------
 
-check-current: $(OBJ)/$(TARGET).$(SOSUFFIX)
+check-current: $(OBJ)/$(TARGET)
 	$(VERBOSE) \
     f=groups/csa/$(CURRENT); \
     if echo $(TODO) | grep -q $(SOURCE); then echo skipping $$f; else \
@@ -205,17 +245,17 @@ check-current: $(OBJ)/$(TARGET).$(SOSUFFIX)
          echo all off; \
          echo check $(CHECK_NAME) on) > $$$$; \
       fi; fi; \
-      $(CLANG) $(PLUGIN) \
-        -plugin-arg-coolyse debug-$(DEBUG) \
-        -plugin-arg-coolyse config=$$$$ \
-        -plugin-arg-coolyse tool=bdechk \
+      $(PLUGIN) \
+        -plugin-arg-bdeverify debug-$(DEBUG) \
+        -plugin-arg-bdeverify config=$$$$ \
+        -plugin-arg-bdeverify tool=bdechk \
         $(CPPFLAGS) $(PFLAGS) $$f; \
     fi
 
 check: check-all
 	@echo '*** SUCCESS ***'
 
-check-all: $(OBJ)/$(TARGET).$(SOSUFFIX)
+check-all: $(OBJ)/$(TARGET)
 	$(VERBOSE) \
 	success=1; \
 	for f in $$(find groups -name \*.[vt].cpp -or -name \*test.cpp); \
@@ -231,7 +271,7 @@ check-all: $(OBJ)/$(TARGET).$(SOSUFFIX)
          echo all off; \
          echo check $(CHECK_NAME) on) > $$$$; \
       fi; fi; \
-	  if $(CLANG) $(PLUGIN) -plugin-arg-coolyse \
+	  if $(PLUGIN) -plugin-arg-bdeverify \
           config=$$$$ $(CPPFLAGS) $(PFLAGS) $$f 2>&1 \
              | $(POSTPROCESS) \
              | diff - $(EXPECT) $(REDIRECT); \
@@ -240,7 +280,7 @@ check-all: $(OBJ)/$(TARGET).$(SOSUFFIX)
 	  else \
 	    success=0; \
         cat $$$$; \
-        $(CLANG) $(PLUGIN) -plugin-arg-coolyse config=$$$$ $(CPPFLAGS) $(PFLAGS) $$f 2>&1 \
+        $(PLUGIN) -plugin-arg-bdeverify config=$$$$ $(CPPFLAGS) $(PFLAGS) $$f 2>&1 \
           | $(POSTPROCESS) \
           | diff - $(EXPECT); \
         echo -e "\x1b[31mfail\x1b[0m"; \
@@ -248,11 +288,11 @@ check-all: $(OBJ)/$(TARGET).$(SOSUFFIX)
 	done; \
 	[ $$success = 1 ]
 
-plugin: $(OBJ)/$(TARGET).$(SOSUFFIX)
+plugin: $(OBJ)/$(TARGET)
 
-$(OBJ)/$(TARGET).$(SOSUFFIX): $(OFILES)
-	@echo linking shared library
-	$(VERBOSE) $(CXX) $(LDFLAGS) -shared -o $@ $(OFILES) $(LDLIBS)
+$(OBJ)/$(TARGET): $(OFILES)
+	@echo linking executable
+	$(VERBOSE) $(CXX) $(LDFLAGS) -o $@ $(OFILES) $(LIBS)
 
 $(OBJ)/%.o: %.cpp
 	@if [ ! -d $(@D) ]; then scripts/mkdirhier $(@D); fi
@@ -262,7 +302,7 @@ $(OBJ)/%.o: %.cpp
 
 clean:
 	$(RM) $(OFILES)
-	$(RM) $(OBJ)/$(TARGET).$(SOSUFFIX)
+	$(RM) $(OBJ)/$(TARGET)
 	$(RM) $(OBJ)/make.depend
 	$(RM) -r $(OBJ)
 	$(RM) mkerr olderr *~

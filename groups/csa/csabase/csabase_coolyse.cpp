@@ -113,7 +113,7 @@ AnalyseConsumer::HandleTranslationUnit(clang::ASTContext&)
 
 PluginAction::PluginAction()
     : debug_()
-    , config_(".coolyser")
+    , config_(".bdeverify")
     , tool_name_()
 {
 }
@@ -151,7 +151,7 @@ PluginAction::ParseArgs(clang::CompilerInstance const& compiler, std::vector<std
         }
         else
         {
-            llvm::errs() << "unknown coolyse argument = '" << *it << "'\n";
+            llvm::errs() << "unknown bdeverify argument = '" << *it << "'\n";
         }
     }
     return true;
@@ -177,4 +177,5 @@ PluginAction::tool_name() const
 
 // -----------------------------------------------------------------------------
 
-static clang::FrontendPluginRegistry::Add<PluginAction> registerPlugin("coolyse", "analyse source");
+clang::FrontendPluginRegistry::Add<PluginAction> registerPlugin(
+    "bdeverify", "analyse source");

@@ -12,12 +12,10 @@ use strict;
 use Getopt::Long qw(:config no_ignore_case);
 
 my $home     = "/home/hrosen4/coolyser";
-#my $llvm     = "/bb/mbigc/mbig816/build/Release+Asserts";
 my $llvm     = "/bb/mbigc/mbig816/llvm-svn/install";
 my $bb       = "/bb/build/share/packages/refroot/amd64/unstable/bb";
-my $config   = "$home/coolyser.cfg";
-#my $lib      = "$home/Linux-clang-3.3/coolyser.so";
-my $lib      = "$home/Linux-clang-3.5/coolyser.so";
+my $config   = "$home/bdeverify.cfg";
+my $exe      = "$home/Linux-clang-3.5/bdeverify";
 my $debug    = "";
 my $verbose  = "";
 my $help     = "";
@@ -45,7 +43,7 @@ sub usage()
         -f{flag}
         --config=config_file     [$config]  
         --bb=dir                 [$bb]
-        --lib=coolyser.so        [$lib]
+        --exe=bdeverify          [$exe]
         --llvm=dir               [$llvm]
         --[no]definc             [$definc]
         --[no]defdef             [$defdef]
@@ -64,7 +62,7 @@ GetOptions(
     'config=s'   => \$config,
     'debug'      => \$debug,
     'help|?'     => \$help,
-    'lib=s'      => \$lib,
+    'exe=s'      => \$exe,
     'llvm=s'     => \$llvm,
     'verbose|v'  => \$verbose,
     'definc!'    => \$definc,
@@ -77,8 +75,8 @@ GetOptions(
     "O|MF|o=s"   => \@dummy,
 ) and !$help and $#ARGV >= 0 or usage();
 
-my @config = ("-plugin-arg-coolyse", "config=$config") if $config ne "";
-my @debug  = ("-plugin-arg-coolyse", "debug-on")       if $debug;
+my @config = ("-plugin-arg-bdeverify", "config=$config") if $config ne "";
+my @debug  = ("-plugin-arg-bdeverify", "debug-on")       if $debug;
 
 @lflags = map { "-f$_" if $_ ne "no-strict-aliasing" } @lflags;
 @wflags = map { "-W$_" } @wflags;
@@ -112,12 +110,9 @@ push(@incs, map { chomp; $_; }
 @incs = map { ("-I", $_, "-cxx-isystem", $_ ) } @incs;
 
 my @command = (
-    "$llvm/bin/clang",
-    "-cc1",
-    "-load",
-    "$lib",
+    "$exe",
     "-plugin",
-    "coolyse",
+    "bdeverify",
     @debug,
     @config,
     @defs,
