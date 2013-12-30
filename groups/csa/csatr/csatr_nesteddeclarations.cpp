@@ -49,18 +49,18 @@ check(cool::csabase::Analyser& analyser, clang::Decl const* decl)
         if (llvm::dyn_cast<clang::NamespaceDecl>(decl)
             || llvm::dyn_cast<clang::UsingDirectiveDecl>(decl)) {
             // namespace declarations are permissible e.g. for forward declarations.
-            return;
+            return;                                                   // RETURN
         }
         else if (clang::TagDecl const* tag = llvm::dyn_cast<clang::TagDecl>(decl)) {
             // Forward declarations are always permissible but definitions are not.
             if (!tag->isThisDeclarationADefinition()
                 && analyser.is_component_header(location.file())) {
-                return;
+                return;                                               // RETURN
             }
         }
         else if (llvm::dyn_cast<clang::NamespaceAliasDecl>(decl)
                  && analyser.is_component_source(decl)) {
-            return;
+            return;                                                   // RETURN
         }
 
         clang::DeclContext const* context(decl->getDeclContext());
@@ -76,7 +76,7 @@ check(cool::csabase::Analyser& analyser, clang::Decl const* decl)
                     << decl->getSourceRange()
                     << named->getNameAsString();
             }
-            return;
+            return;                                                   // RETURN
         }
 
         clang::NamespaceDecl const* space(llvm::dyn_cast<clang::NamespaceDecl>(context));

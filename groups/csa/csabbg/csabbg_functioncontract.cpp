@@ -66,6 +66,10 @@ struct comments
         // good enough for the purpose of considering multi-line "//" comments
         // as single comment blocks.
 
+    static bool isDirective(llvm::StringRef comment);
+        // Return wehether the specified 'comment' is a "// = default/delete"
+        // comment.
+
     void operator()(SourceRange range);
         // The specified 'range', representing a comment, is either appended to
         // the previous comment or added separately to the comments list.
@@ -78,13 +82,25 @@ comments::comments(Analyser& analyser)
 {
 }
 
+bool comments::isDirective(llvm::StringRef comment)
+{
+    // Look for "= default" and "= delete" comments.
+    static llvm::Regex re("^(//|/[*])" "[[:space:]]*" "=" "[[:space:]]*"
+                          "(delete|default)" "[[:space:]]*" ";?"
+                          "[[:space:]]*" "([*]/)?" "[[:space:]]*" "$",
+                          llvm::Regex::IgnoreCase);
+    return re.match(comment);
+}
+
 bool
 comments::areConsecutive(const SourceRange& r1, const SourceRange& r2) const
 {
     SourceRange between(r1.getEnd(), r2.getBegin());
     llvm::StringRef s = d_analyser.get_source(between, true);
     static llvm::Regex re("^[[:space:]]*$");
-    return re.match(s);
+    return re.match(s) &&
+           !comments::isDirective(d_analyser.get_source(r1)) &&
+           !comments::isDirective(d_analyser.get_source(r2));
 }
 
 void comments::operator()(SourceRange range)
@@ -225,6 +241,7 @@ SourceRange report::getContract(const FunctionDecl *func,
                                 IT comments_begin, IT comments_end)
 {
     SourceManager& m = d_manager;
+    SourceRange declarator = func->getSourceRange();
     SourceRange contract;
 
     unsigned bline;
@@ -237,6 +254,7 @@ SourceRange report::getContract(const FunctionDecl *func,
         // end of the body, so instead get the line before the body begins,
         // if they're not all on the same line.
         SourceLocation bodyloc = func->getBody()->getLocStart();
+        declarator.setEnd(bodyloc);
         sfile = m.getFileID(bodyloc);
 
         unsigned bodyBegin = m.getPresumedLineNumber(bodyloc);
@@ -263,10 +281,14 @@ SourceRange report::getContract(const FunctionDecl *func,
         const unsigned cline = m.getPresumedLineNumber(cloc);
         const clang::FileID cfile = m.getFileID(cloc);
 
-        // Find a comment that encompasses the contract line, in the same
-        // file as the 'FunctionDecl'.
+        // Find a comment that encompasses the contract line, in the same file
+        // as the 'FunctionDecl' and starting after it.  (We want to avoid
+        // taking a commnted parameter name as a function contract!)
         if (cfile == sfile) {
-            if (bline <= cline && cline <= eline) {
+            if ((m.getPresumedLineNumber(declarator.getBegin()) == cline &&
+                 m.getPresumedColumnNumber(declarator.getEnd()) <=
+                 m.getPresumedColumnNumber(comment.getBegin())) ||
+                (bline < cline && cline <= eline)) {
                 contract = comment;
                 break;
             }
@@ -281,12 +303,8 @@ void report::critiqueContract(const FunctionDecl* func, SourceRange comment)
     llvm::StringRef contract = d_analyser.get_source(comment);
 
     // Ignore "= default" and "= delete" comments.
-    static llvm::Regex re("^(//|/[*])" "[[:space:]]*" "=" "[[:space:]]*"
-                          "(delete|default)" "[[:space:]]*" ";?"
-                          "[[:space:]]*" "([*]/)?" "[[:space:]]*" "$",
-                          llvm::Regex::IgnoreCase);
-    if (re.match(contract)) {
-        return;
+    if (comments::isDirective(contract)) {
+        return;                                                       // RETURN
     }
 
     const SourceLocation cloc = comment.getBegin();
