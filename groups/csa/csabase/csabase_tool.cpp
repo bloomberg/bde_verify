@@ -61,6 +61,7 @@ int main(int argc_, const char **argv_)
     OwningPtr<CompilerInstance>           Clang(new CompilerInstance());
     IntrusiveRefCntPtr<DiagnosticIDs>     DiagID(new DiagnosticIDs());
 
+    llvm::InitializeNativeTarget();
     llvm::InitializeNativeTargetAsmParser();
 
     IntrusiveRefCntPtr<DiagnosticOptions> DiagOpts(new DiagnosticOptions());

@@ -172,10 +172,22 @@ SOURCE      = $$(echo $$f | \
 CHECK_NAME  = $$(echo | sed -n 's/.*check_name("\([^"]*\)".*/\1/p' $(SOURCE))
 
 LIBS     =                                                                    \
+              -lLLVMX86AsmParser                                              \
               -lclangFrontendTool                                             \
               -lclangCodeGen                                                  \
               -lLLVMIRReader                                                  \
               -lLLVMLinker                                                    \
+              -lLLVMipo                                                       \
+              -lLLVMX86CodeGen                                                \
+              -lLLVMSelectionDAG                                              \
+              -lLLVMAsmPrinter                                                \
+              -lLLVMJIT                                                       \
+              -lLLVMInterpreter                                               \
+              -lLLVMCodeGen                                                   \
+              -lLLVMScalarOpts                                                \
+              -lLLVMInstrumentation                                           \
+              -lLLVMInstCombine                                               \
+              -lLLVMVectorize                                                 \
               -lclangRewriteFrontend                                          \
               -lclangARCMigrate                                               \
               -lclangStaticAnalyzerFrontend                                   \
@@ -183,47 +195,36 @@ LIBS     =                                                                    \
               -lclangFormat                                                   \
               -lclangTooling                                                  \
               -lclangFrontend                                                 \
-              -lclangParse                                                    \
-              -lclangSerialization                                            \
-              -lclangSema                                                     \
-              -lclangStaticAnalyzerCheckers                                   \
-              -lclangStaticAnalyzerCore                                       \
-              -lclangRewriteCore                                              \
-              -lclangDynamicASTMatchers                                       \
-              -lclangASTMatchers                                              \
-              -lclangEdit                                                     \
-              -lclangAnalysis                                                 \
-              -lclangAST                                                      \
-              -lclangLex                                                      \
-              -lLLVMSelectionDAG                                              \
-              -lLLVMAsmPrinter                                                \
-              -lLLVMJIT                                                       \
-              -lLLVMInterpreter                                               \
-              -lLLVMCodeGen                                                   \
-              -lLLVMipo                                                       \
-              -lLLVMScalarOpts                                                \
-              -lLLVMInstCombine                                               \
-              -lLLVMInstrumentation                                           \
               -lclangDriver                                                   \
-              -lLLVMVectorize                                                 \
               -lLLVMObjCARCOpts                                               \
               -lLLVMTransformUtils                                            \
               -lLLVMipa                                                       \
               -lLLVMAnalysis                                                  \
-              -lLLVMTarget                                                    \
-              -lLLVMBitReader                                                 \
               -lLLVMAsmParser                                                 \
-              -lLLVMX86AsmParser                                              \
-              -lLLVMX86Desc                                                   \
-              -lLLVMX86AsmPrinter                                             \
-              -lLLVMX86Utils                                                  \
-              -lLLVMX86Info                                                   \
-              -lLLVMExecutionEngine                                           \
+              -lclangSerialization                                            \
+              -lLLVMBitReader                                                 \
               -lLLVMBitWriter                                                 \
+              -lLLVMTarget                                                    \
+              -lLLVMExecutionEngine                                           \
               -lLLVMCore                                                      \
               -lLLVMDebugInfo                                                 \
-              -lclangBasic                                                    \
+              -lclangParse                                                    \
               -lLLVMMCParser                                                  \
+              -lLLVMX86Desc                                                   \
+              -lLLVMX86Info                                                   \
+              -lLLVMX86AsmPrinter                                             \
+              -lLLVMX86Utils                                                  \
+              -lclangSema                                                     \
+              -lclangStaticAnalyzerCheckers                                   \
+              -lclangStaticAnalyzerCore                                       \
+              -lclangDynamicASTMatchers                                       \
+              -lclangASTMatchers                                              \
+              -lclangEdit                                                     \
+              -lclangAnalysis                                                 \
+              -lclangRewriteCore                                              \
+              -lclangAST                                                      \
+              -lclangLex                                                      \
+              -lclangBasic                                                    \
               -lLLVMMC                                                        \
               -lLLVMObject                                                    \
               -lLLVMOption                                                    \
