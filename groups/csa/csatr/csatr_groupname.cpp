@@ -6,6 +6,7 @@
 // ----------------------------------------------------------------------------
 
 #include <csabase_analyser.h>
+#include <csabase_filenames.h>
 #include <csabase_ppobserver.h>
 #include <csabase_registercheck.h>
 #include <llvm/Support/Path.h>
@@ -77,8 +78,9 @@ struct on_group_open
                     << group;
             }
 
-            llvm::SmallVector<char, 1024> vpath(analyser.directory().begin(),
-                                                analyser.directory().end());
+            cool::csabase::FileName fn(name);
+            llvm::SmallVector<char, 1024> vpath(fn.pkgdir().begin(),
+                                                fn.pkgdir().end());
             llvm::sys::path::append(vpath, "..");
             std::string packagedir(vpath.begin(), vpath.end());
             struct stat direct;

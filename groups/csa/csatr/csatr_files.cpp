@@ -22,24 +22,32 @@ namespace
 {
     struct on_files_open
     {
-        on_files_open(cool::csabase::Analyser& analyser): d_analyser(&analyser) {}
-        void operator()(clang::SourceLocation where, std::string const&, std::string const& name) const
+        on_files_open(cool::csabase::Analyser& analyser)
+            : d_analyser(&analyser) {}
+
+        void operator()(clang::SourceLocation where,
+                        std::string const&,
+                        std::string const& name) const
         {
             cool::csabase::Analyser& analyser(*this->d_analyser);
-            if (name == this->d_analyser->toplevel()) {
+            if (name == analyser.toplevel()) {
                 cool::csabase::FileName fn(name);
                 struct stat buffer;
                 std::string prefix =
                     fn.directory().str() + fn.component().str();
-                std::string header = prefix + ".h";
-                std::string test = prefix + ".t.cpp";
-                if (stat(header.c_str(), &buffer)) {
-                    analyser.report(where, check_name, "TR03: header file '%0' not accessible", true)
-                        << header;
+                std::string pkg_prefix =
+                    fn.pkgdir().str()   + fn.component().str();
+                if (stat((    prefix + ".h").c_str(), &buffer) &&
+                    stat((pkg_prefix + ".h").c_str(), &buffer)) {
+                    analyser.report(where, check_name, "TR03: "
+                            "header file '%0' not accessible", true)
+                        << (pkg_prefix + ".h");
                 }
-                if (stat(test.c_str(), &buffer)) {
-                    analyser.report(where, check_name, "TR03: test file '%0' not accessible", true)
-                        << test;
+                if (stat((    prefix + ".t.cpp").c_str(), &buffer) &&
+                    stat((pkg_prefix + ".t.cpp").c_str(), &buffer)) {
+                    analyser.report(where, check_name, "TR03: "
+                            "test file '%0' not accessible", true)
+                        << (pkg_prefix + ".t.cpp");
                 }
             }
         }

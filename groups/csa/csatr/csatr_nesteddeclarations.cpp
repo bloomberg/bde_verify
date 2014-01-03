@@ -43,6 +43,11 @@ isSpecialFunction(clang::NamedDecl const* decl)
 static void
 check(cool::csabase::Analyser& analyser, clang::Decl const* decl)
 {
+    if (analyser.is_main() &&
+        analyser.config()->value("main_namespace_check") == "off") {
+        return;                                                       // RETURN
+    }
+
     cool::csabase::Location location(analyser.get_location(decl));
     clang::NamedDecl const* named(llvm::dyn_cast<clang::NamedDecl>(decl));
     if (analyser.is_component(location.file()) && named) {
@@ -64,47 +69,75 @@ check(cool::csabase::Analyser& analyser, clang::Decl const* decl)
         }
 
         clang::DeclContext const* context(decl->getDeclContext());
+        std::string name = named->getNameAsString();
         if (llvm::dyn_cast<clang::TranslationUnitDecl>(context)) {
-            if (named->getNameAsString() != "main"
-                && named->getNameAsString() != "RCSId"
+            if (name != "main"
+                && name != "RCSId"
                 && !llvm::dyn_cast<clang::ClassTemplateSpecializationDecl>(decl)
                 && !llvm::dyn_cast<clang::ClassTemplatePartialSpecializationDecl>(decl)
-                && named->getNameAsString().find("operator new") == std::string::npos
-                && named->getNameAsString().find("operator delete") == std::string::npos
+                && name.find("operator new") == std::string::npos
+                && name.find("operator delete") == std::string::npos
                 ) {
-                analyser.report(decl, check_name, "TR04: declaration of '%0' at global scope", true)
+                analyser.report(decl, check_name, "TR04: "
+                                "declaration of '%0' at global scope", true)
                     << decl->getSourceRange()
-                    << named->getNameAsString();
+                    << name;
             }
             return;                                                   // RETURN
         }
 
         clang::NamespaceDecl const* space(llvm::dyn_cast<clang::NamespaceDecl>(context));
+        std::string pkgns = analyser.package();
         if (space
             && space->isAnonymousNamespace()
             && llvm::dyn_cast<clang::NamespaceDecl>(space->getDeclContext())) {
-            space = llvm::dyn_cast<clang::NamespaceDecl>(space->getDeclContext());
+            space =
+                llvm::dyn_cast<clang::NamespaceDecl>(space->getDeclContext());
+            if (space->getNameAsString() ==
+                analyser.config()->toplevel_namespace()) {
+                // Anonymous namespace in enterprise namespace without
+                // intervening package namespace.  This is OK if no package
+                // namespace has been seen, for the sake of legacy
+                // package_name components.
+                clang::DeclContext::decl_iterator b = space->decls_begin();
+                clang::DeclContext::decl_iterator e = space->decls_end();
+                bool found = false;
+                while (!found && b != e) {
+                    const clang::NamespaceDecl *ns =
+                        llvm::dyn_cast<clang::NamespaceDecl>(*b++);
+                    found = ns && ns->getNameAsString() == analyser.package();
+                }
+                if (!found) {
+                    pkgns = analyser.config()->toplevel_namespace();
+                }
+            }
         }
-        if (space && named->getNameAsString() != std::string())
+        if (space && name.length() > 0)
         {
-            clang::NamespaceDecl const* outer(llvm::dyn_cast<clang::NamespaceDecl>(space->getDeclContext()));
-            if ((space->getNameAsString() != analyser.package()
+            std::string spname = space->getNameAsString();
+            clang::NamespaceDecl const* outer = space;
+            if (pkgns == analyser.package()) {
+                outer = llvm::dyn_cast<clang::NamespaceDecl>(
+                    space->getDeclContext());
+            }
+            if ((spname != pkgns
                  || !outer
-                 || outer->getNameAsString() != analyser.config()->toplevel_namespace())
-                && (   space->getNameAsString() != analyser.config()->toplevel_namespace()
-                    || named->getNameAsString().find(analyser.package() + '_') != 0
+                 || outer->getNameAsString() !=
+                    analyser.config()->toplevel_namespace())
+                && (   spname != analyser.config()->toplevel_namespace()
+                    || name.find(analyser.package() + '_') != 0
                     )
                 && !llvm::dyn_cast<clang::ClassTemplateSpecializationDecl>(decl)
                 && !llvm::dyn_cast<clang::ClassTemplatePartialSpecializationDecl>(decl)
-                && named->getNameAsString().find("operator new") == std::string::npos
-                && named->getNameAsString().find("operator delete") == std::string::npos
+                && name.find("operator new") == std::string::npos
+                && name.find("operator delete") == std::string::npos
                 && !isSpecialFunction(named)
                 )
             {
                 //-dk:TODO check if this happens in the correct namespace
                 analyser.report(decl, check_name, "TR04: declaration of '%0' not within package namespace '%1'", true)
                     << decl->getSourceRange()
-                    << named->getNameAsString()
+                    << name
                     << (analyser.config()->toplevel_namespace() + "::" + analyser.package())
                     ;
             }

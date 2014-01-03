@@ -324,7 +324,12 @@ void report::check_not_forwarded(Iter begin, Iter end)
             // Warn if the class does not have a constructor that matches this
             // one, but with a final allocator parameter.
 
-            bool found = false;
+            bool found =    // Private copy constructor declarations are OK.
+                decl->getAccess() == clang::AS_private &&
+                decl->isCopyOrMoveConstructor() &&
+                decl->isUserProvided() &&
+                !decl->hasBody();
+
             unsigned num_parms = decl->getNumParams();
             for (Iter ci = begin; !found && ci != end; ++ci) {
                 const CXXConstructorDecl *ctor = *ci;

@@ -97,8 +97,8 @@ namespace
                         << srpackage;
                 }
 
-                llvm::SmallVector<char, 1024> svpath(fn.directory().begin(),
-                                                     fn.directory().end());
+                llvm::SmallVector<char, 1024> svpath(fn.pkgdir().begin(),
+                                                     fn.pkgdir().end());
                 llvm::sys::path::append(svpath, ".");
                 std::string s(svpath.begin(), svpath.end());
                 struct stat direct;

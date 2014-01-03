@@ -29,8 +29,10 @@ namespace cool
             llvm::StringRef extra()     const { return extra_;     }
             llvm::StringRef full()      const { return full_;      }
             llvm::StringRef group()     const { return group_;     }
+            llvm::StringRef grpdir()    const { return grpdir_;    }
             llvm::StringRef name()      const { return name_;      }
             llvm::StringRef package()   const { return package_;   }
+            llvm::StringRef pkgdir()    const { return pkgdir_;    }
             llvm::StringRef prefix()    const { return prefix_;    }
 
         private:
@@ -40,8 +42,10 @@ namespace cool
             llvm::StringRef extra_;
             std::string     full_;
             llvm::StringRef group_;
+            llvm::StringRef grpdir_;
             llvm::StringRef name_;
             llvm::StringRef package_;
+            llvm::StringRef pkgdir_;
             llvm::StringRef prefix_;
         };
     }
