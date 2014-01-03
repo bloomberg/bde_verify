@@ -14,6 +14,7 @@
 #include <llvm/Support/PrettyStackTrace.h>
 #include <llvm/Support/Process.h>
 #include <llvm/Support/Signals.h>
+#include <llvm/Support/TargetSelect.h>
 #include <llvm/Support/Timer.h>
 #include <set>
 
@@ -59,6 +60,9 @@ int main(int argc_, const char **argv_)
 
     OwningPtr<CompilerInstance>           Clang(new CompilerInstance());
     IntrusiveRefCntPtr<DiagnosticIDs>     DiagID(new DiagnosticIDs());
+
+    llvm::InitializeNativeTargetAsmParser();
+
     IntrusiveRefCntPtr<DiagnosticOptions> DiagOpts(new DiagnosticOptions());
 
     TextDiagnosticBuffer *DiagsBuffer = new TextDiagnosticBuffer;

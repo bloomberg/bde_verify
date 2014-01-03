@@ -197,6 +197,11 @@
     <Library Include="C:\llvm-svn\install\lib\LLVMTarget.lib" />
     <Library Include="C:\llvm-svn\install\lib\LLVMBitReader.lib" />
     <Library Include="C:\llvm-svn\install\lib\LLVMAsmParser.lib" />
+    <Library Include="C:\llvm-svn\install\lib\LLVMX86AsmParser.lib" />
+    <Library Include="C:\llvm-svn\install\lib\LLVMX86Desc.lib" />
+    <Library Include="C:\llvm-svn\install\lib\LLVMX86AsmPrinter.lib" />
+    <Library Include="C:\llvm-svn\install\lib\LLVMX86Utils.lib" />
+    <Library Include="C:\llvm-svn\install\lib\LLVMX86Info.lib" />
     <Library Include="C:\llvm-svn\install\lib\LLVMExecutionEngine.lib" />
     <Library Include="C:\llvm-svn\install\lib\LLVMBitWriter.lib" />
     <Library Include="C:\llvm-svn\install\lib\LLVMCore.lib" />

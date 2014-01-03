@@ -213,6 +213,11 @@ LIBS     =                                                                    \
               -lLLVMTarget                                                    \
               -lLLVMBitReader                                                 \
               -lLLVMAsmParser                                                 \
+              -lLLVMX86AsmParser                                              \
+              -lLLVMX86Desc                                                   \
+              -lLLVMX86AsmPrinter                                             \
+              -lLLVMX86Utils                                                  \
+              -lLLVMX86Info                                                   \
               -lLLVMExecutionEngine                                           \
               -lLLVMBitWriter                                                 \
               -lLLVMCore                                                      \
