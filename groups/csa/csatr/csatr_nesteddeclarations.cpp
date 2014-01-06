@@ -132,6 +132,8 @@ check(cool::csabase::Analyser& analyser, clang::Decl const* decl)
                 && name.find("operator new") == std::string::npos
                 && name.find("operator delete") == std::string::npos
                 && !isSpecialFunction(named)
+                && (   analyser.is_component_header(named)
+                    || named->hasLinkage())
                 )
             {
                 //-dk:TODO check if this happens in the correct namespace

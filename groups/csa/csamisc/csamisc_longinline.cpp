@@ -50,12 +50,20 @@ unsigned count_statements(const Stmt *stmt)
     unsigned count = 0;
     if (stmt) {
         // Don't penalize compound or labeled statements.
-        if (!llvm::dyn_cast<clang::CompoundStmt>(stmt) &&
-            !llvm::dyn_cast<clang::LabelStmt>(stmt)) {
+        // Don't double count statements and controlling expressions.
+        if (   !llvm::dyn_cast<clang::CompoundStmt>(stmt)
+            && !llvm::dyn_cast<clang::LabelStmt>(stmt)
+            && !llvm::dyn_cast<clang::IfStmt>(stmt)
+            && !llvm::dyn_cast<clang::DoStmt>(stmt)
+            && !llvm::dyn_cast<clang::ForStmt>(stmt)
+            && !llvm::dyn_cast<clang::WhileStmt>(stmt)
+            && !llvm::dyn_cast<clang::SwitchStmt>(stmt)) {
             ++count;
         }
         // Don't count subexpressions.
-        if (!llvm::dyn_cast<clang::Expr>(stmt)) {
+        if (   !llvm::dyn_cast<clang::Expr>(stmt)
+            && !llvm::dyn_cast<clang::ReturnStmt>(stmt)
+            && !llvm::dyn_cast<clang::DeclStmt>(stmt)) {
             for (clang::ConstStmtRange kids = stmt->children(); kids; ++kids) {
                 count += count_statements(*kids);
             }
@@ -82,8 +90,8 @@ void long_inlines(Analyser& analyser, const FunctionDecl* func)
             ad.push_back(std::make_pair(func, data::e_ENDS_IN_OTHER_FILE));
         } else if (e.getLine() < b.getLine()) {
             ad.push_back(std::make_pair(func, data::e_CONFUSED));
-        } else if (e.getLine() - b.getLine() >= d.d_max_lines &&
-                   count_statements(body)    >= d.d_max_lines) {
+        } else if (e.getLine() - b.getLine() > d.d_max_lines &&
+                   count_statements(body)    > d.d_max_lines) {
             ad.push_back(std::make_pair(func, data::e_TOO_LONG));
         }
     }

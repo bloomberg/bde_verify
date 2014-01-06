@@ -44,8 +44,11 @@ namespace
 struct data
     // Data attached to analyzer for this check.
 {
-    std::vector<SourceRange>                   d_comments;  // Comment blocks.
-    std::map<const FunctionDecl*, SourceRange> d_fundecls;  // FunDecl, comment
+    typedef std::vector<SourceRange>           Comments;
+    Comments d_comments;  // Comment blocks.
+
+    typedef std::map<const FunctionDecl*, SourceRange> FunDecls;
+    FunDecls d_fundecls;  // FunDecl, comment
 };
 
 struct comments
@@ -146,8 +149,8 @@ struct report
     void operator()();
         // Invoked to process reports.
 
-    template <class IT>
-    void processAllFunDecls(IT begin, IT end);
+    void processAllFunDecls(data::FunDecls::iterator begin,
+                            data::FunDecls::iterator end);
         // Utility method to process function declarations from the specified
         // 'begin' up to the specified 'end'.
 
@@ -160,9 +163,9 @@ struct report
         //: o Private assignment operator declaration.
         //: o Template method specialization.
 
-    template <class IT>
     SourceRange getContract(const FunctionDecl *func,
-                            IT comments_begin, IT comments_end);
+                            data::Comments::iterator comments_begin,
+                            data::Comments::iterator comments_end);
         // Return the 'SourceRange' of the function contract of the specified
         // 'func' if it is present in the specified range of 'comments_begin'
         // up to 'comments_end', and return an invalid 'SourceRange' otherwise.
@@ -171,9 +174,14 @@ struct report
         // Issue diagnostics for deficiencies in the specified 'comment' with
         // respect to being a contract for the specified 'func'.
 
-    bool areCognates(const FunctionDecl *a, const FunctionDecl *b);
-        // Return 'true' iff the specified 'a' and 'b' are similar in a way
-        // such that it is sufficient for only one of them to have a contract.
+    bool hasCommentedCognate(data::FunDecls::iterator itr,
+                             data::FunDecls::iterator begin,
+                             data::FunDecls::iterator end);
+        // Return 'true' iff the function declaration of the specified 'itr'
+        // can be satisfied by a function contract appearing on a declaration
+        // in the sequence from the specified 'begin' to just before the
+        // specified 'end'.  Note that 'itr' itself is expected to be a member
+        // of this sequence.
 };
 
 report::report(Analyser& analyser)
@@ -188,32 +196,90 @@ void report::operator()()
     processAllFunDecls(d.d_fundecls.begin(), d.d_fundecls.end());
 }
 
-template <class IT>
-void report::processAllFunDecls(IT begin, IT end)
+bool report::hasCommentedCognate(data::FunDecls::iterator itr,
+                                 data::FunDecls::iterator begin,
+                                 data::FunDecls::iterator end)
 {
-    for (IT it = begin; it != end; ++it) {
+    const clang::FunctionDecl *func = itr->first;
+    const clang::DeclContext *parent = func->getLookupParent();
+    std::string name = func->getNameAsString();
+    clang::FileID fileb = d_manager.getFileID(func->getLocStart());
+    clang::FileID filee = d_manager.getFileID(func->getLocEnd());
+    unsigned bl = d_manager.getPresumedLineNumber(func->getLocStart());
+    unsigned el = d_manager.getPresumedLineNumber(func->getLocEnd());
+    typedef std::multimap<unsigned, data::FunDecls::iterator> FMap;
+    FMap fmap;
+
+    for (data::FunDecls::iterator cit = begin; cit != end; ++cit) {
+        const clang::FunctionDecl *cfunc = cit->first;
+        if (cfunc->getLookupParent()->Equals(parent)) {
+            if (cit->second.isValid() && cfunc->getNameAsString() == name) {
+                // Functions in the same scope with the same name are cognates.
+                // (This is, perhaps, simplistic.)
+                return true;                                          // RETURN
+            }
+            if (   fileb == filee
+                && cfunc != func
+                && d_manager.getFileID(cfunc->getLocStart()) == fileb
+                && d_manager.getFileID(cfunc->getLocEnd())   == filee) {
+                unsigned cbl =
+                    d_manager.getPresumedLineNumber(cfunc->getLocStart());
+                unsigned cel =
+                    d_manager.getPresumedLineNumber(cfunc->getLocEnd());
+                for (unsigned i = cbl; i <= cel; ++i) {
+                    fmap.insert(std::make_pair(i, cit));
+                }
+            }
+        }
+    }
+    
+    // A consecutive set of function declarations with nothing else intervening
+    // are cognates.
+    for (;;) {
+        std::pair<FMap::iterator, FMap::iterator> li = fmap.equal_range(++el);
+        if (li.first == li.second) {
+            break;
+        }
+        while (li.first != li.second) {
+            if (li.first++->second->second.isValid()) {
+                return true;                                          // RETURN
+            }
+        }
+    }
+    while (bl) {
+        std::pair<FMap::iterator, FMap::iterator> li = fmap.equal_range(--bl);
+        if (li.first == li.second) {
+            break;
+        }
+        while (li.first != li.second) {
+            if (li.first++->second->second.isValid()) {
+                return true;                                          // RETURN
+            }
+        }
+    }
+
+    return false;
+}
+
+void report::processAllFunDecls(data::FunDecls::iterator begin,
+                                data::FunDecls::iterator end)
+{
+    for (data::FunDecls::iterator it = begin; it != end; ++it) {
         it->second =
               getContract(it->first, d.d_comments.begin(), d.d_comments.end());
     }
 
-    for (IT it = begin; it != end; ++it) {
+    for (data::FunDecls::iterator it = begin; it != end; ++it) {
         if (doesNotNeedContract(it->first)) {
         }
         else if (it->second.isValid()) {
             critiqueContract(it->first, it->second);
         }
-        else {
-            bool hasCommentedCognate = false;
-            for (IT cit = begin; !hasCommentedCognate && cit != end; ++cit) {
-                hasCommentedCognate =
-                   cit->second.isValid() && areCognates(cit->first, it->first);
-            }
-            if (!hasCommentedCognate) {
-                d_analyser.report(it->first->getNameInfo().getLoc(),
-                                  check_name, "FD01: "
-                                  "Function declaration requires contract")
-                    << it->first->getNameInfo().getSourceRange();
-            }
+        else if (!hasCommentedCognate(it, begin, end)) {
+            d_analyser.report(it->first->getNameInfo().getLoc(),
+                              check_name, "FD01: "
+                              "Function declaration requires contract")
+                << it->first->getNameInfo().getSourceRange();
         }
     }
 }
@@ -236,9 +302,9 @@ bool report::doesNotNeedContract(const FunctionDecl *func)
                 || doesNotNeedContract(ifmf)));
 }
 
-template <class IT>
 SourceRange report::getContract(const FunctionDecl *func,
-                                IT comments_begin, IT comments_end)
+                                data::Comments::iterator comments_begin,
+                                data::Comments::iterator comments_end)
 {
     SourceManager& m = d_manager;
     SourceRange declarator = func->getSourceRange();
@@ -275,7 +341,8 @@ SourceRange report::getContract(const FunctionDecl *func,
         eline = bline + 1;
     }
 
-    for (IT it = comments_begin; it != comments_end; ++it) {
+    for (data::Comments::iterator it = comments_begin;
+                                        it != comments_end; ++it) {
         const SourceRange comment = *it;
         const SourceLocation cloc = comment.getBegin();
         const unsigned cline = m.getPresumedLineNumber(cloc);
@@ -407,14 +474,6 @@ void report::critiqueContract(const FunctionDecl* func, SourceRange comment)
             }
         }
     }
-}
-
-bool report::areCognates(const FunctionDecl* a, const FunctionDecl* b)
-{
-    // Temporary simple version
-
-    return a->getLookupParent()->Equals(b->getLookupParent())
-        && a->getNameAsString() == b->getNameAsString();
 }
 
 void subscribe(Analyser& analyser, Visitor&, PPObserver& observer)
