@@ -86,33 +86,35 @@ check(cool::csabase::Analyser& analyser, clang::Decl const* decl)
             return;                                                   // RETURN
         }
 
-        clang::NamespaceDecl const* space(llvm::dyn_cast<clang::NamespaceDecl>(context));
+        clang::NamespaceDecl const* space =
+            llvm::dyn_cast<clang::NamespaceDecl>(context);
+        if (!space) {
+            return;                                                   // RETURN
+        }
+
         std::string pkgns = analyser.package();
-        if (space
-            && space->isAnonymousNamespace()
+        if (   space->isAnonymousNamespace()
             && llvm::dyn_cast<clang::NamespaceDecl>(space->getDeclContext())) {
             space =
                 llvm::dyn_cast<clang::NamespaceDecl>(space->getDeclContext());
-            if (space->getNameAsString() ==
-                analyser.config()->toplevel_namespace()) {
-                // Anonymous namespace in enterprise namespace without
-                // intervening package namespace.  This is OK if no package
-                // namespace has been seen, for the sake of legacy
-                // package_name components.
-                clang::DeclContext::decl_iterator b = space->decls_begin();
-                clang::DeclContext::decl_iterator e = space->decls_end();
-                bool found = false;
-                while (!found && b != e) {
-                    const clang::NamespaceDecl *ns =
-                        llvm::dyn_cast<clang::NamespaceDecl>(*b++);
-                    found = ns && ns->getNameAsString() == analyser.package();
-                }
-                if (!found) {
-                    pkgns = analyser.config()->toplevel_namespace();
-                }
+        }
+        if (space->getNameAsString() ==
+            analyser.config()->toplevel_namespace()) {
+            // No package namespace.  This is OK if no package namespace has
+            // been seen, for the sake of legacy "package_name" components.
+            clang::DeclContext::decl_iterator b = space->decls_begin();
+            clang::DeclContext::decl_iterator e = space->decls_end();
+            bool found = false;
+            while (!found && b != e) {
+                const clang::NamespaceDecl *ns =
+                    llvm::dyn_cast<clang::NamespaceDecl>(*b++);
+                found = ns && ns->getNameAsString() == analyser.package();
+            }
+            if (!found) {
+                pkgns = analyser.config()->toplevel_namespace();
             }
         }
-        if (space && name.length() > 0)
+        if (name.length() > 0)
         {
             std::string spname = space->getNameAsString();
             clang::NamespaceDecl const* outer = space;
@@ -133,7 +135,8 @@ check(cool::csabase::Analyser& analyser, clang::Decl const* decl)
                 && name.find("operator delete") == std::string::npos
                 && !isSpecialFunction(named)
                 && (   analyser.is_component_header(named)
-                    || named->hasLinkage())
+                    || named->hasLinkage()
+                    )
                 )
             {
                 //-dk:TODO check if this happens in the correct namespace

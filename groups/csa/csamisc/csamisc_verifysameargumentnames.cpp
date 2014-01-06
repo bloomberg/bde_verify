@@ -48,12 +48,16 @@ namespace
                         const clang::ParmVarDecl *pp = p->getParamDecl(i);
                         const clang::ParmVarDecl *cp = c->getParamDecl(i);
                         if (!arg_names_match(pp, cp)) {
-                            this->analyser_->report(c, check_name, "AN01: "
+                            this->analyser_->report(cp, check_name, "AN01: "
                                 "parameter name mismatch for %ordinal0 "
-                                "parameter; the other declaration used '%1'.")
+                                "parameter %1")
                                 << int(i + 1)
-                                << pp->getName()
+                                << cp
                                 << cp->getSourceRange();
+                            this->analyser_->report(pp, check_name, "AN01: "
+                                "the other declaration is %0")
+                                << pp
+                                << pp->getSourceRange();
                         }
                     }
                 }
