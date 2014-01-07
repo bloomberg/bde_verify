@@ -122,9 +122,9 @@ check_order(CB::Analyser*                              analyser,
 }
 
 static clang::SourceLocation const*
-check_order(CB::Analyser*                                                      analyser,
-            std::vector<std::pair<std::string, clang::SourceLocation> > const& headers,
-            bool                                                               header)
+check_order(CB::Analyser*                   analyser,
+            include_order::headers_t const& headers,
+            bool                            header)
 {
     clang::SourceLocation const* bdes_ident_location(0);
     if (headers.empty()) {
@@ -134,24 +134,22 @@ check_order(CB::Analyser*                                                      a
                          : "SHO: source without component include");
         return bdes_ident_location;
     }
-    std::vector<std::pair<std::string, clang::SourceLocation> >::const_iterator it(headers.begin());
-    if (it == headers.end()
-        || it->first != analyser->component()
-        || it++ == headers.end()) {
+    include_order::headers_t::const_iterator it(headers.begin());
+    if (it->first != analyser->component() || it++ == headers.end()) {
         analyser->report(headers[0].second, check_name,
                          header
                          ? "SHO: header without or with wrong include guard"
                          : "SHO: source doesn't include component header first");
     }
-    if (it == headers.end()
-        || (it->first != "bsls_ident"
-            && (analyser->group() == "bsl" || it->first != "bdes_ident")
-            )
-        ) {
-        analyser->report((it == headers.end()? it - 1: it)->second,
+    std::string ident =
+        analyser->group() == "bsl" ? "bsls_ident" : "bdes_ident";
+    if (analyser->component() == ident) {
+    }
+    else if (it == headers.end() || it->first != ident) {
+        analyser->report((it == headers.end() ? it - 1: it)->second,
                          check_name,
-                         "SHO: missing include for %0s_ident.h")
-            << (analyser->group() == "bsl"? "bsl": "bde");
+                         "SHO: missing include for %0.h")
+            << ident;
     }
     else {
         if (it->first == "bdes_ident") {

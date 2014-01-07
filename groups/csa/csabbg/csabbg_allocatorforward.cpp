@@ -304,13 +304,13 @@ void report::check_not_forwarded(Iter begin, Iter end)
 
             if (!uses_allocator && has_alloc_trait) {
                 analyser_.report(record, check_name,
-                        "MA02: class %0 does not use allocators but declares "
+                        "MA02: Class %0 does not use allocators but declares "
                         "the TypeTraitUsesBslmaAllocator trait")
                     << record;
             }
             else if (uses_allocator && !has_alloc_trait) {
                 analyser_.report(record, check_name,
-                        "MA02: class %0 uses allocators but does not declare "
+                        "MA02: Class %0 uses allocators but does not declare "
                         "the TypeTraitUsesBslmaAllocator trait")
                     << record;
             }
@@ -455,12 +455,12 @@ void report::check_not_forwarded(const CXXCtorInitializer* init,
 
     if (init->isBaseInitializer()) {
         analyser_.report(loc, check_name,
-                "MA01: allocator not passed to base %0")
+                "MA01: Allocator not passed to base %0")
             << init->getBaseClass()->getCanonicalTypeInternal().
             getAsString() << range;
     } else {
         analyser_.report(loc, check_name,
-                "MA01: allocator not passed to member %0")
+                "MA01: Allocator not passed to member %0")
             << init->getAnyMember()->getNameAsString() << range;
     }
 }
@@ -571,7 +571,7 @@ void report::check_wrong_parm(const CXXConstructExpr *expr)
             if (   is_allocator(arg->getType())
                 && !data_.bad_cexp_.count(std::make_pair(arg, decl))) {
                 analyser_.report(arg->getExprLoc(), check_name, "MA02: "
-                                "allocator argument initializes "
+                                "Allocator argument initializes "
                                 "non-allocator %0 of type '%1' rather than "
                                 "allocator %2")
                     << parm_name(wrongp, n - 1)

@@ -46,6 +46,27 @@ namespace
 
 // ----------------------------------------------------------------------------
 
+static std::pair<unsigned, unsigned>
+mismatch(const std::string &have, const std::string &want)
+{
+    std::pair<unsigned, unsigned> result(0, 0);
+    while (   result.first < have.size()
+           && result.first < want.size()
+           && have[result.first] == want[result.first]) {
+        ++result.first;
+    }
+    while (   result.second < have.size()
+           && result.second < want.size()
+           && have.size() - result.second - 1 >= result.first
+           && have[have.size() - result.second - 1] ==
+              want[want.size() - result.second - 1]) {
+        ++result.second;
+    }
+    return result;
+}
+
+// ----------------------------------------------------------------------------
+
 static void
 open_file(cool::csabase::Analyser& analyser,
           clang::SourceLocation    where, 
@@ -58,29 +79,38 @@ open_file(cool::csabase::Analyser& analyser,
         const clang::SourceManager &m = analyser.manager();
         llvm::StringRef buf = m.getBuffer(m.getFileID(where))->getBuffer();
         buf = buf.substr(0, buf.find('\n')).rtrim();
-        std::string expect("// " + filename);
-        expect.resize(70, ' ');
-        expect += "-*-C++-*-";
+        std::string expectcpp("// " + filename);
+        expectcpp.resize(70, ' ');
+        expectcpp += "-*-C++-*-";
+        std::string expectc("/* " + filename);
+        expectc.resize(69, ' ');
+        expectc += "-*-C-*- */";
 
-        if (!buf.equals(expect) && buf.find("GENERATED") == buf.npos) {
-            int i = 0;
-            while (buf[i] == expect[i]) {
-                ++i;
+        if (   !buf.equals(expectcpp)
+            && !buf.equals(expectc)
+            && buf.find("GENERATED") == buf.npos) {
+            std::pair<unsigned, unsigned> mcpp = mismatch(buf, expectcpp);
+            std::pair<unsigned, unsigned> mc   = mismatch(buf, expectc);
+            std::pair<unsigned, unsigned> m;
+            std::string expect;
+
+            if (mcpp.first >= mc.first || mcpp.second <= mc.second) {
+                m = mcpp;
+                expect = expectcpp;
+            } else {
+                m = mc;
+                expect = expectc;
             }
-            int j = 0;
-            while (j > i &&
-                   buf[buf.size() - j - 1] == expect[expect.size() - j - 1]) {
-                --j;
-            }
-            analyser.report(where.getLocWithOffset(i),
+            analyser.report(where.getLocWithOffset(m.first),
                             check_name,
                             "HL01: file headline incorrect",
                             true)
                 << clang::FixItHint::CreateReplacement(
                     clang::SourceRange(
-                        where.getLocWithOffset(i),
-                        where.getLocWithOffset(buf.size() - j)),
-                    llvm::StringRef(&expect[i], expect.size() - i - j));
+                        where.getLocWithOffset(m.first),
+                        where.getLocWithOffset(buf.size() - m.second)),
+                    expect.substr(m.first,
+                                  expect.size() - m.first - m.second));
         }
     }
 }

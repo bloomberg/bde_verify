@@ -41,7 +41,7 @@ namespace
         {
             if (clang::FunctionDecl const* p =
                                    llvm::dyn_cast<clang::FunctionDecl>(decl)) {
-                clang::FunctionDecl const* c(this->current_);
+                clang::FunctionDecl const* c(current_);
                 unsigned n = p->getNumParams();
                 if (n == c->getNumParams()) {
                     for (unsigned i = 0; i < n; ++i) {

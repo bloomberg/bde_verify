@@ -253,6 +253,24 @@ groups/csa/csabbg/csabbg_functioncontract.t.cpp:236:0: warning: FD01: Parameter 
 groups/csa/csabbg/csabbg_functioncontract.t.cpp:239:0: warning: FD01: Parameter 'luxuriantly' is not single-quoted in the function contract
                 // Optionally specify luxuriantly.
 ^~~~~~
+groups/csa/csabbg/csabbg_functioncontract.t.cpp:279:0: warning: FD01: Function contracts should be indented 4, not -4, spaces from their function declaration
+        // A lot too left.
+^~~~~~
+groups/csa/csabbg/csabbg_functioncontract.t.cpp:282:0: warning: FD01: Function contracts should be indented 4, not 0, spaces from their function declaration
+            // Too left.
+^~~~~~
+groups/csa/csabbg/csabbg_functioncontract.t.cpp:285:0: warning: FD01: Function contracts should be indented 4, not 3, spaces from their function declaration
+               // A bit too left.
+^~~~~~
+groups/csa/csabbg/csabbg_functioncontract.t.cpp:291:0: warning: FD01: Function contracts should be indented 4, not 5, spaces from their function declaration
+                 // A bit too right.
+^~~~~~
+groups/csa/csabbg/csabbg_functioncontract.t.cpp:294:0: warning: FD01: Function contracts should be indented 4, not 50, spaces from their function declaration
+                                                              // Way too right.
+^~~~~~
+groups/csa/csabbg/csabbg_functioncontract.t.cpp:321:0: warning: FD01: Function declaration requires contract
+        inline void spall()
+^~~~~
 groups/csa/csabbg/csabbg_functioncontract.t.cpp:243:0: warning: FD01: Parameter 'consortion' is not documented in the function contract
             void hatfield(int, int consortion);
 ^~~~~~
@@ -274,22 +292,4 @@ groups/csa/csabbg/csabbg_functioncontract.t.cpp:266:0: warning: FD01: Parameter 
 groups/csa/csabbg/csabbg_functioncontract.t.cpp:276:0: warning: FD01: Function contracts should be indented 4, not -12, spaces from their function declaration
 // Way too left.
 ^~~~~~
-groups/csa/csabbg/csabbg_functioncontract.t.cpp:279:0: warning: FD01: Function contracts should be indented 4, not -4, spaces from their function declaration
-        // A lot too left.
-^~~~~~
-groups/csa/csabbg/csabbg_functioncontract.t.cpp:282:0: warning: FD01: Function contracts should be indented 4, not 0, spaces from their function declaration
-            // Too left.
-^~~~~~
-groups/csa/csabbg/csabbg_functioncontract.t.cpp:285:0: warning: FD01: Function contracts should be indented 4, not 3, spaces from their function declaration
-               // A bit too left.
-^~~~~~
-groups/csa/csabbg/csabbg_functioncontract.t.cpp:291:0: warning: FD01: Function contracts should be indented 4, not 5, spaces from their function declaration
-                 // A bit too right.
-^~~~~~
-groups/csa/csabbg/csabbg_functioncontract.t.cpp:294:0: warning: FD01: Function contracts should be indented 4, not 50, spaces from their function declaration
-                                                              // Way too right.
-^~~~~~
-groups/csa/csabbg/csabbg_functioncontract.t.cpp:321:0: warning: FD01: Function declaration requires contract
-        inline void spall()
-^~~~~
 98 warnings generated.
