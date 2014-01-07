@@ -73,9 +73,13 @@ typedef_declaration(cool::csabase::Analyser&  analyser,
 {
     // Allow global scope typedef to a name that begins with "package_" for
     // legacy support of "typedef package::name package_name;".
+    std::string package = analyser.package() + "_";
+    if (package.find("bslfwd_") == 0) {
+        package = package.substr(7);
+    }
     if (llvm::dyn_cast<clang::NamespaceDecl>(decl->getDeclContext())
         && analyser.is_component_header(decl)
-        && decl->getNameAsString().find(analyser.package() + "_") != 0
+        && decl->getNameAsString().find(package) != 0
         ) {
         analyser.report(decl, check_name,
                         "TR17: typedef '%0' declared at global scope")

@@ -51,7 +51,7 @@ void cool::csabase::FileName::reset(llvm::StringRef sr)
     extra_ = name_.slice(name_.find('.'), name_.rfind('.'));
     component_ = name_.slice(0, name_.find('.'));
 
-    size_t under = component_.rfind('_');
+    size_t under = component_.find('_');
     package_ = component_.slice(0, under);
 
     size_t grouplen = 3;
