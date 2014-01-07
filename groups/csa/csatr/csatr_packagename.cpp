@@ -47,10 +47,12 @@ namespace
                 cool::csabase::Analyser& analyser(*this->d_analyser);
                 cool::csabase::FileName fn(name);
 
-                if (fn.component().count('_') != fn.package().count('_') + 1) {
+                if (fn.component().count('_') !=
+                        (fn.package() == "bslfwd" ?
+                             2 : fn.package().count('_') + 1)) {
                     analyser.report(where, check_name, "TR02: "
-                                    "component file name '%0' must consist of "
-                                    "package %1 followed by underscore and "
+                                    "component name '%0' must consist of "
+                                    "package '%1' followed by underscore and "
                                     "name with no underscores", true)
                         << fn.component()
                         << fn.package();
