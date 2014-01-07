@@ -87,10 +87,14 @@ comments::comments(Analyser& analyser)
 
 bool comments::isDirective(llvm::StringRef comment)
 {
-    // Look for "= default" and "= delete" comments.
-    static llvm::Regex re("^(//|/[*])" "[[:space:]]*" "=" "[[:space:]]*"
-                          "(delete|default)" "[[:space:]]*" ";?"
-                          "[[:space:]]*" "([*]/)?" "[[:space:]]*" "$",
+    // Look for "= default", "= delete", and "DEPRECATED" comments.
+    static llvm::Regex re("^(//|/[*])" "[[:space:]]*"
+                          "("
+                             "=" "[[:space:]]*" "delete"  "|"
+                             "=" "[[:space:]]*" "default" "|"
+                             "DEPRECATED"
+                          ")"
+                          "[[;.:space:]]*" "([*]/)?" "[[:space:]]*" "$",
                           llvm::Regex::IgnoreCase);
     return re.match(comment);
 }
@@ -374,6 +378,8 @@ void report::critiqueContract(const FunctionDecl* func, SourceRange comment)
         return;                                                       // RETURN
     }
 
+    // Ignore deprecated functions.
+
     const SourceLocation cloc = comment.getBegin();
 
     // Check for bad indentation.
@@ -408,8 +414,13 @@ void report::critiqueContract(const FunctionDecl* func, SourceRange comment)
         // parameters with the same spelling but different cases, but we'll
         // live with that.
         const std::string name = parm->getNameAsString();
+        std::string namepat = name;
+        std::string::size_type d = namepat.find_last_not_of("0123456789");
+        if (d != namepat.npos && d != name.size() - 1) {
+            namepat = namepat.substr(0, d + 1) + "[[:digit:]]+";
+        }
         llvm::Regex pre("^([^_[:alnum:]]*|.*[^_[:alnum:]])" +
-                        name +
+                        namepat +
                         "([^_[:alnum:]]*|[^_[:alnum:]].*)$",
                         llvm::Regex::IgnoreCase);
         llvm::SmallVector<llvm::StringRef, 3> matches;
@@ -427,7 +438,7 @@ void report::critiqueContract(const FunctionDecl* func, SourceRange comment)
                                                       -matches[2].size() - 1));
             llvm::Regex qre("^([^']|'[^']*')*"
                             "'([^_[:alnum:]']*|[^']*[^_[:alnum:]])" +
-                            name +
+                            namepat +
                             "([^_[:alnum:]']*|[^_[:alnum:]][^']*)'",
                             llvm::Regex::IgnoreCase);
             if (!qre.match(contract)) {
