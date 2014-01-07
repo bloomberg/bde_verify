@@ -1,0 +1,10 @@
+#!/bin/sh
+: ${VD:=/home/hrosen4/coolyser}
+: ${EXE:=$VD/Linux-clang-3.5/bdeverify}
+exec "$VD/scripts/bdeverify"                                                  \
+    --nodefinc                                                                \
+    --nodefdef                                                                \
+    --config=$VD/bdeverify.cfg                                                \
+    --exe=$EXE                                                                \
+    --verbose                                                                 \
+    $@
