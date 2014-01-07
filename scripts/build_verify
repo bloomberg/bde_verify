@@ -7,5 +7,4 @@ exec "$VD/scripts/bdeverify"                                                  \
     --config=$VD/bdeverify.cfg                                                \
     --exe=$EXE                                                                \
     --verbose                                                                 \
-    -fnocolor-diagnostics
     $@

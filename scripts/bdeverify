@@ -25,7 +25,6 @@ my @incs;
 my @defs;
 my @wflags;
 my @lflags = (
-    "color-diagnostics",
     "cxx-exceptions",
     "diagnostics-show-name",
     "diagnostics-show-option",
