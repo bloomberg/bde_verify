@@ -54,6 +54,7 @@ sub usage()
         --help
 
 ";
+    print "Invoked as\n", join(" \\\n", @ARGV), "\n";
     exit(1);
 }
 
