@@ -61,23 +61,25 @@ component_prefix(cool::csabase::Analyser&  analyser,
             )
         && (!llvm::dyn_cast<clang::FunctionDecl>(named)
             || !(llvm::dyn_cast<clang::FunctionDecl>(named)->isOverloadedOperator()
-                 || named->getNameAsString() == "swap")
+                 || name == "swap"
+                 || name == "debugprint")
             )
         && (!llvm::dyn_cast<clang::FunctionTemplateDecl>(named)
             || !(llvm::dyn_cast<clang::FunctionTemplateDecl>(named)->getTemplatedDecl()->isOverloadedOperator()
-                 || named->getNameAsString() == "swap")
+                 || name == "swap"
+                 || name == "debugprint")
             )
         && !llvm::dyn_cast<clang::ClassTemplateSpecializationDecl>(decl)
         && !llvm::dyn_cast<clang::ClassTemplatePartialSpecializationDecl>(decl)
         && !llvm::dyn_cast<clang::FunctionDecl>(decl->getDeclContext())
-        && !(llvm::dyn_cast<clang::CXXRecordDecl>(decl)
-             && llvm::dyn_cast<clang::CXXRecordDecl>(decl)->getDescribedClassTemplate())
+        && !(   llvm::dyn_cast<clang::CXXRecordDecl>(decl)
+             && llvm::dyn_cast<clang::CXXRecordDecl>(decl)->
+                                                   getDescribedClassTemplate())
         ) {
         analyser.report(decl, check_name,
                         "TR05: globally visible identifier '%0' "
                         "without component prefix")
-            << named->getQualifiedNameAsString()
-            ;
+            << named->getQualifiedNameAsString();
     }
 }
 
