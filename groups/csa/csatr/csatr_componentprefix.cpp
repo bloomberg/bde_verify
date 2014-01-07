@@ -46,11 +46,13 @@ component_prefix(cool::csabase::Analyser&  analyser,
                  clang::Decl const        *decl)
 {
     clang::NamedDecl const* named(llvm::dyn_cast<clang::NamedDecl>(decl));
-    std::string const& name(named? named->getNameAsString(): std::string());
+    std::string const& name(named ? named->getNameAsString() : std::string());
     if (!name.empty()
         && !named->isCXXClassMember()
-        && (named->hasLinkage()
-            || llvm::dyn_cast<clang::TypedefDecl>(named))
+        && (   named->hasLinkage()
+            || (   llvm::dyn_cast<clang::TypedefDecl>(named)
+                && name.find(analyser.package() + "_") != 0
+               ))
         && !llvm::dyn_cast<clang::NamespaceDecl>(named)
         && !llvm::dyn_cast<clang::UsingDirectiveDecl>(named)
         && !llvm::dyn_cast<clang::UsingDecl>(named)
