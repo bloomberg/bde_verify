@@ -87,14 +87,15 @@ comments::comments(Analyser& analyser)
 
 bool comments::isDirective(llvm::StringRef comment)
 {
-    // Look for "= default", "= delete", and "DEPRECATED".
+    // Look for a variety of directives in comments.
     static llvm::Regex re("^(//|/[*])" "[[:space:]]*"
                           "("
-                             "=" "[[:space:]]*" "delete"   "|"
-                             "=" "[[:space:]]*" "default"  "|"
-                             "DEPRECATED"
+                             "=" "[[:space:]]*" "delete"  "|"
+                             "=" "[[:space:]]*" "default" "|"
+                             "DEPRECATED"                 "|"
+                             "IMPLICIT"
                           ")"
-                          "[[;.:space:]]*" "([*]/)?" "[[:space:]]*" "$",
+                          "[;.[:space:]]*" "([*]/)?" "[[:space:]]*" "$",
                           llvm::Regex::IgnoreCase);
     return re.match(comment);
 }
