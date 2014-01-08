@@ -62,7 +62,7 @@ struct comments
         // Create a 'comments' object, accessing the specified 'analyser'.
 
     bool areConsecutive(const SourceRange& r1, const SourceRange& r2) const;
-        // Return whether the specified 'r1' is immediately followed by the
+        // Return true iff the specified 'r1' is immediately followed by the
         // specified 'r2', i.e., 'r2' begins in the same file in which 'r1'
         // ends, either on the same line or the line after.  Note that there
         // might be code (not comments) between the ranges, but this check is
@@ -87,11 +87,11 @@ comments::comments(Analyser& analyser)
 
 bool comments::isDirective(llvm::StringRef comment)
 {
-    // Look for "= default", "= delete", and "DEPRECATED" comments.
+    // Look for "= default", "= delete", and "DEPRECATED".
     static llvm::Regex re("^(//|/[*])" "[[:space:]]*"
                           "("
-                             "=" "[[:space:]]*" "delete"  "|"
-                             "=" "[[:space:]]*" "default" "|"
+                             "=" "[[:space:]]*" "delete"   "|"
+                             "=" "[[:space:]]*" "default"  "|"
                              "DEPRECATED"
                           ")"
                           "[[;.:space:]]*" "([*]/)?" "[[:space:]]*" "$",
@@ -157,6 +157,10 @@ struct report
                             data::FunDecls::iterator end);
         // Utility method to process function declarations from the specified
         // 'begin' up to the specified 'end'.
+
+    bool isGenerated(const FunctionDecl *func);
+        // Return true iff the specified 'func' appears between comments
+        // "// {{{ BEGIN GENERATED CODE" and "// }}} END GENERATED CODE".
 
     bool doesNotNeedContract(const FunctionDecl *func);
         // Return 'true' iff the specified 'func' does not need a contract.
@@ -288,6 +292,24 @@ void report::processAllFunDecls(data::FunDecls::iterator begin,
     }
 }
 
+bool report::isGenerated(const FunctionDecl *func)
+{
+    SourceManager&  m    = d_manager;
+    clang::FileID   file = m.getFileID(func->getLocStart());
+    llvm::StringRef buf  = m.getBufferData(file);
+    unsigned        pos  = m.getFileOffset(func->getLocStart());
+
+    const char *const bg = "// {{{ BEGIN GENERATED CODE";
+    const char *const eg = "// }}} END GENERATED CODE";
+
+    unsigned bpos = buf.npos;
+    for (unsigned p = 0; (p = buf.find(bg, p)) < pos; ++p) {
+        bpos = p;
+    }
+    unsigned epos = buf.find(eg, bpos);
+    return bpos != buf.npos && (epos == buf.npos || bpos < epos);
+}
+
 bool report::doesNotNeedContract(const FunctionDecl *func)
 {
     const CXXConstructorDecl *ctor;
@@ -303,7 +325,8 @@ bool report::doesNotNeedContract(const FunctionDecl *func)
                     && meth->isCopyAssignmentOperator())))
         || (   (ifmf = func->getInstantiatedFromMemberFunction())
             && (   func != ifmf
-                || doesNotNeedContract(ifmf)));
+                || doesNotNeedContract(ifmf)))
+        || isGenerated(func);
 }
 
 SourceRange report::getContract(const FunctionDecl *func,
