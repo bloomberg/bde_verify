@@ -166,7 +166,10 @@ onEndif(CB::Analyser* analyser,
                 analyser->report(context.d_conditions.top().second, check_name,
                                  "SEG: include guard without include file");
             }
-            else if (include != context.d_conditions.top().first) {
+            else if (   include != context.d_conditions.top().first
+                     && (   include.find('_') != include.npos
+                         || include + "_H" !=
+                                context.d_conditions.top().first)) {
                 analyser->report(context.d_conditions.top().second, check_name,
                                  "SEG: include guard mismatching include file");
             }
