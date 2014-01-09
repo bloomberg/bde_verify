@@ -157,14 +157,17 @@ check_order(CB::Analyser*                   analyser,
         }
         ++it;
     }
-    if (header
+
+    std::string version = analyser->group() + "scm_version";
+    if (   analyser->component() != version
+        && header
         && (it == headers.end()
-            || it->first != analyser->group() + "scm_version"
+            || it->first != version
             || it++ == headers.end())) {
-        analyser->report((it == headers.end()? it - 1: it)->second,
+        analyser->report((it == headers.end() ? it - 1 : it)->second,
                          check_name,
-                         "SHO: missing include for %0scm_version.h")
-            << analyser->group();
+                         "SHO: missing include for %0.h")
+            << version;
     }
 
     include_order::headers_t::const_iterator end
