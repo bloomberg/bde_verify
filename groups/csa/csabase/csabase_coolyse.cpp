@@ -73,13 +73,13 @@ AnalyseConsumer::AnalyseConsumer(clang::CompilerInstance& compiler,
     , compiler_(compiler)
     , source_(source)
 {
-    this->analyser_.toplevel(source);
-    this->compiler_.getLangOpts().CPlusPlus     = true;
-    this->compiler_.getLangOpts().CPlusPlus11   = true;
-    this->compiler_.getLangOpts().Exceptions    = true;
-    this->compiler_.getLangOpts().CXXExceptions = true;
+    analyser_.toplevel(source);
+    compiler_.getLangOpts().CPlusPlus     = true;
+    compiler_.getLangOpts().CPlusPlus11   = true;
+    compiler_.getLangOpts().Exceptions    = true;
+    compiler_.getLangOpts().CXXExceptions = true;
 
-    compiler.getDiagnostics().setClient(new cool::csabase::DiagnosticFilter(this->analyser_, compiler.getDiagnosticOpts()));
+    compiler.getDiagnostics().setClient(new cool::csabase::DiagnosticFilter(analyser_, compiler.getDiagnosticOpts()));
     compiler.getDiagnostics().getClient()->BeginSourceFile(compiler.getLangOpts(),
                                                            compiler.hasPreprocessor()? &compiler.getPreprocessor(): 0);
 }
@@ -89,7 +89,7 @@ AnalyseConsumer::AnalyseConsumer(clang::CompilerInstance& compiler,
 void
 AnalyseConsumer::Initialize(clang::ASTContext& context)
 {
-    this->analyser_.context(&context);
+    analyser_.context(&context);
 }
 
 // -----------------------------------------------------------------------------
@@ -97,7 +97,7 @@ AnalyseConsumer::Initialize(clang::ASTContext& context)
 bool
 AnalyseConsumer::HandleTopLevelDecl(clang::DeclGroupRef DG)
 {
-    this->analyser_.process_decls(DG.begin(), DG.end());
+    analyser_.process_decls(DG.begin(), DG.end());
     return true;
 }
 
@@ -106,7 +106,7 @@ AnalyseConsumer::HandleTopLevelDecl(clang::DeclGroupRef DG)
 void
 AnalyseConsumer::HandleTranslationUnit(clang::ASTContext&)
 {
-    this->analyser_.process_translation_unit_done();
+    analyser_.process_translation_unit_done();
 }
 
 // -----------------------------------------------------------------------------
@@ -136,18 +136,18 @@ PluginAction::ParseArgs(clang::CompilerInstance const& compiler, std::vector<std
         if (*it == "debug-on")
         {
             cool::csabase::Debug::set_debug(true);
-            this->debug_ = true;
+            debug_ = true;
         }
         else if (*it == "debug-off")
         {
             cool::csabase::Debug::set_debug(false);
-            this->debug_ = false;
+            debug_ = false;
         }
         else if(7 < it->size() && it->substr(0, 7) == "config=") {
-            this->config_ = it->substr(7);
+            config_ = it->substr(7);
         }
         else if(5 < it->size() && it->substr(0, 5) == "tool=") {
-            this->tool_name_ = "[" + it->substr(5) + "] ";
+            tool_name_ = "[" + it->substr(5) + "] ";
         }
         else
         {
@@ -160,19 +160,19 @@ PluginAction::ParseArgs(clang::CompilerInstance const& compiler, std::vector<std
 bool
 PluginAction::debug() const
 {
-    return this->debug_;
+    return debug_;
 }
 
 std::string
 PluginAction::config() const
 {
-    return this->config_;
+    return config_;
 }
 
 std::string
 PluginAction::tool_name() const
 {
-    return this->tool_name_;
+    return tool_name_;
 }
 
 // -----------------------------------------------------------------------------

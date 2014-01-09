@@ -48,7 +48,7 @@ template <typename T>
 llvm::raw_ostream&
 cool::csabase::Debug::operator<< (T const& value) const
 {
-    return this->indent() << value;
+    return indent() << value;
 }
 
 // -----------------------------------------------------------------------------

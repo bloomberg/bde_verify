@@ -49,9 +49,9 @@ namespace cool
         template <typename T>
         diagnostic_builder& operator<< (T const& argument)
         {
-            if (this->builder_.get())
+            if (builder_.get())
             {
-                *this->builder_ << argument;
+                *builder_ << argument;
             }
             return *this;
         }

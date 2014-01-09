@@ -28,14 +28,14 @@ class cool::csabase::Visitor:
     public cool::csabase::AbstractVisitor
 {
 public:
-#define DECL(CLASS, BASE)                                             \
-    cool::event<void(clang::CLASS##Decl const*)> on##CLASS##Decl;     \
+#define DECL(CLASS, BASE)                                                     \
+    cool::event<void(clang::CLASS##Decl const*)> on##CLASS##Decl;             \
     void do_visit(clang::CLASS##Decl const*);
 DECL(,)
 #include "clang/AST/DeclNodes.inc"
 
-#define STMT(CLASS, PARENT)                                           \
-    cool::event<void(clang::CLASS const*)> on##CLASS;                 \
+#define STMT(CLASS, PARENT)                                                   \
+    cool::event<void(clang::CLASS const*)> on##CLASS;                         \
     void do_visit(clang::CLASS const*);
 STMT(Stmt,)
 #include "clang/AST/StmtNodes.inc"

@@ -25,13 +25,13 @@ cool::csabase::AbstractVisitor::~AbstractVisitor()
 void
 cool::csabase::AbstractVisitor::visit_decl(clang::Decl const* decl)
 {
-    this->clang::DeclVisitor<cool::csabase::AbstractVisitor>::Visit(const_cast<clang::Decl*>(decl));
+    clang::DeclVisitor<cool::csabase::AbstractVisitor>::Visit(const_cast<clang::Decl*>(decl));
 }
 
 void
 cool::csabase::AbstractVisitor::visit(clang::Decl const* decl)
 {
-    this->visit_decl(decl);
+    visit_decl(decl);
 }
 
 void
@@ -39,14 +39,14 @@ cool::csabase::AbstractVisitor::visit_stmt(clang::Stmt const* stmt)
 {
     if (stmt)
     {
-        this->clang::StmtVisitor<cool::csabase::AbstractVisitor>::Visit(const_cast<clang::Stmt*>(stmt));
+        clang::StmtVisitor<cool::csabase::AbstractVisitor>::Visit(const_cast<clang::Stmt*>(stmt));
     }
 }
 
 void
 cool::csabase::AbstractVisitor::visit(clang::Stmt const* stmt)
 {
-    this->visit_stmt(stmt);
+    visit_stmt(stmt);
 }
 
 // -----------------------------------------------------------------------------
@@ -466,35 +466,36 @@ void
 cool::csabase::AbstractVisitor::process_decl(clang::Decl* decl, bool nest)
 {
     cool::csabase::Debug d("Decl", nest);
-    this->do_visit(decl);
+    do_visit(decl);
     ::process_decl(this, decl);
 }
 
 void
 cool::csabase::AbstractVisitor::VisitDecl (clang::Decl* decl)
 {
-    this->process_decl(decl, true);
+    process_decl(decl, true);
 }
 
 // -----------------------------------------------------------------------------
 
-#define DECL(CLASS, BASE)                                                         \
-void                                                                              \
-cool::csabase::AbstractVisitor::do_visit(clang::CLASS##Decl const*)               \
-{                                                                                 \
-}                                                                                 \
-void                                                                              \
-cool::csabase::AbstractVisitor::process_decl(clang::CLASS##Decl* decl, bool nest) \
-{                                                                                 \
-    cool::csabase::Debug d(#CLASS "Decl (gen)", nest);                            \
-    this->do_visit(decl);                                                         \
-    ::process_decl(this, decl);                                                   \
-    this->process_decl(static_cast<clang::BASE *>(decl), false);                  \
-}                                                                                 \
-void                                                                              \
-cool::csabase::AbstractVisitor::Visit##CLASS##Decl (clang::CLASS##Decl* decl)     \
-{                                                                                 \
-    this->process_decl(decl, true);                                               \
+#define DECL(CLASS, BASE)                                                     \
+void                                                                          \
+cool::csabase::AbstractVisitor::do_visit(clang::CLASS##Decl const*)           \
+{                                                                             \
+}                                                                             \
+void                                                                          \
+cool::csabase::AbstractVisitor::process_decl(clang::CLASS##Decl* decl,        \
+                                             bool nest)                       \
+{                                                                             \
+    cool::csabase::Debug d(#CLASS "Decl (gen)", nest);                        \
+    do_visit(decl);                                                           \
+    ::process_decl(this, decl);                                               \
+    process_decl(static_cast<clang::BASE *>(decl), false);                    \
+}                                                                             \
+void                                                                          \
+cool::csabase::AbstractVisitor::Visit##CLASS##Decl (clang::CLASS##Decl* decl) \
+{                                                                             \
+    process_decl(decl, true);                                                 \
 }
 #include "clang/AST/DeclNodes.inc"
 
@@ -509,35 +510,35 @@ void
 cool::csabase::AbstractVisitor::process_stmt(clang::Stmt* stmt, bool nest)
 {
     cool::csabase::Debug d("Stmt", nest);
-    this->do_visit(stmt);
+    do_visit(stmt);
     ::process_stmt(this, stmt);
 }
 
 void
 cool::csabase::AbstractVisitor::VisitStmt(clang::Stmt* stmt)
 {
-    this->process_stmt(stmt, true);
+    process_stmt(stmt, true);
 }
 
 // -----------------------------------------------------------------------------
 
-#define STMT(CLASS, BASE)                                                   \
-void                                                                        \
-cool::csabase::AbstractVisitor::do_visit(clang::CLASS const*)               \
-{                                                                           \
-}                                                                           \
-void                                                                        \
-cool::csabase::AbstractVisitor::process_stmt(clang::CLASS* stmt, bool nest) \
-{                                                                           \
-    cool::csabase::Debug d(#CLASS " (stmt)", nest);                         \
-    this->do_visit(stmt);                                                   \
-    if (nest) { this->visit_children(stmt->children()); }                   \
-    ::process_stmt(this, stmt);                                             \
-    this->process_stmt(static_cast<clang::BASE*>(stmt), false);             \
-}                                                                           \
-void                                                                        \
-cool::csabase::AbstractVisitor::Visit##CLASS(clang::CLASS* stmt)            \
-{                                                                           \
-    this->process_stmt(stmt, true);                                         \
+#define STMT(CLASS, BASE)                                                     \
+void                                                                          \
+cool::csabase::AbstractVisitor::do_visit(clang::CLASS const*)                 \
+{                                                                             \
+}                                                                             \
+void                                                                          \
+cool::csabase::AbstractVisitor::process_stmt(clang::CLASS* stmt, bool nest)   \
+{                                                                             \
+    cool::csabase::Debug d(#CLASS " (stmt)", nest);                           \
+    do_visit(stmt);                                                           \
+    if (nest) { visit_children(stmt->children()); }                           \
+    ::process_stmt(this, stmt);                                               \
+    process_stmt(static_cast<clang::BASE*>(stmt), false);                     \
+}                                                                             \
+void                                                                          \
+cool::csabase::AbstractVisitor::Visit##CLASS(clang::CLASS* stmt)              \
+{                                                                             \
+    process_stmt(stmt, true);                                                 \
 }
 #include "clang/AST/StmtNodes.inc"

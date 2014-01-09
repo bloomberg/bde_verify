@@ -29,12 +29,12 @@ cool::csabase::Location::Location(clang::SourceManager const& manager,
     clang::PresumedLoc loc(manager.getPresumedLoc(location));
     char const* filename(loc.getFilename());
     if (filename) {
-        this->d_file   = filename;
-        this->d_line   = loc.getLine();
-        this->d_column = loc.getColumn();
+        d_file   = filename;
+        d_line   = loc.getLine();
+        d_column = loc.getColumn();
     }
     else {
-        this->d_file = "<unknown>";
+        d_file = "<unknown>";
     }
 }
 
@@ -43,19 +43,19 @@ cool::csabase::Location::Location(clang::SourceManager const& manager,
 std::string
 cool::csabase::Location::file() const
 {
-    return this->d_file;
+    return d_file;
 }
 
 size_t
 cool::csabase::Location::line() const
 {
-    return this->d_line;
+    return d_line;
 }
 
 size_t
 cool::csabase::Location::column() const
 {
-    return this->d_column;
+    return d_column;
 }
 
 bool
@@ -138,13 +138,13 @@ cool::csabase::Range::Range(clang::SourceManager const& manager,
 const cool::csabase::Location&
 cool::csabase::Range::from() const
 {
-    return this->d_from;
+    return d_from;
 }
 
 const cool::csabase::Location&
 cool::csabase::Range::to() const
 {
-    return this->d_to;
+    return d_to;
 }
 
 bool

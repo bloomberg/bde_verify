@@ -29,7 +29,7 @@ namespace
                         std::string const&,
                         std::string const& name) const
         {
-            cool::csabase::Analyser& analyser(*this->d_analyser);
+            cool::csabase::Analyser& analyser(*d_analyser);
             if (name == analyser.toplevel()) {
                 cool::csabase::FileName fn(name);
                 struct stat buffer;

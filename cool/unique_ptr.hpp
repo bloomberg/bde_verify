@@ -101,10 +101,7 @@ cool::unique_ptr<T>::unique_ptr(cool::unique_ptr<TO>&& other):
 template <typename T>
 cool::unique_ptr<T>::~unique_ptr()
 {
-    if (this->get())
-    {
-        delete this->get();
-    }
+    delete get();
 }
 
 // -----------------------------------------------------------------------------
@@ -113,7 +110,7 @@ template <typename T>
 cool::unique_ptr<T>&
 cool::unique_ptr<T>::operator= (cool::unique_ptr<T>&& other)
 {
-    this->reset(other.release());
+    reset(other.release());
     return *this;
 }
 
@@ -122,7 +119,7 @@ template <typename T>
 cool::unique_ptr<T>&
 cool::unique_ptr<T>::operator= (cool::unique_ptr<TO>&& other)
 {
-    this->reset(other.release());
+    reset(other.release());
     return *this;
 }
 
@@ -132,27 +129,27 @@ template <typename T>
 T&
 cool::unique_ptr<T>::operator*() const
 {
-    return *this->pointer_;
+    return *pointer_;
 }
 
 template <typename T>
 typename cool::unique_ptr<T>::pointer
 cool::unique_ptr<T>::operator->() const
 {
-    return this->pointer_;
+    return pointer_;
 }
 
 template <typename T>
 typename cool::unique_ptr<T>::pointer
 cool::unique_ptr<T>::get() const
 {
-    return this->pointer_;
+    return pointer_;
 }
 
 template <typename T>
 cool::unique_ptr<T>::operator bool() const
 {
-    return this->pointer_ != nullptr;
+    return pointer_ != nullptr;
 }
 
 // -----------------------------------------------------------------------------
@@ -161,8 +158,8 @@ template <typename T>
 typename cool::unique_ptr<T>::pointer
 cool::unique_ptr<T>::release()
 {
-    typename cool::unique_ptr<T>::pointer rc(this->pointer_);
-    this->pointer_ = 0;
+    typename cool::unique_ptr<T>::pointer rc(pointer_);
+    pointer_ = 0;
     return rc;
 }
 
@@ -170,11 +167,11 @@ template <typename T>
 void
 cool::unique_ptr<T>::reset(pointer value)
 {
-    pointer rel(this->pointer_);
-    this->pointer_ = value;
+    pointer rel(pointer_);
+    pointer_ = value;
     if (rel)
     {
-        delete this->get();
+        delete get();
     }
 }
 
@@ -184,7 +181,7 @@ template<class T>
 void
 cool::unique_ptr<T>::swap(cool::unique_ptr<T>& p)
 {
-    cool::swap(this->pointer_, p.pointer_);
+    cool::swap(pointer_, p.pointer_);
 }
 
 template<class T>

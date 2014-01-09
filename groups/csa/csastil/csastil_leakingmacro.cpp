@@ -35,7 +35,7 @@ namespace
         std::stack<map_type> d_macros;
         leaking_macro()
         {
-            this->d_macros.push(map_type());
+            d_macros.push(map_type());
         }
     };
 }

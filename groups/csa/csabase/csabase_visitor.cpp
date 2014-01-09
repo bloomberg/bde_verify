@@ -13,24 +13,24 @@
 
 // -----------------------------------------------------------------------------
 
-#define DECL(CLASS, BASE)                                        \
-void                                                             \
-cool::csabase::Visitor::do_visit(clang::CLASS##Decl const* decl) \
-{                                                                \
-    if (this->on##CLASS##Decl)                                   \
-    {                                                            \
-        cool::csabase::Debug d("event on" #CLASS "Decl");        \
-        this->on##CLASS##Decl(decl);                             \
-    }                                                            \
+#define DECL(CLASS, BASE)                                                     \
+void                                                                          \
+cool::csabase::Visitor::do_visit(clang::CLASS##Decl const* decl)              \
+{                                                                             \
+    if (on##CLASS##Decl)                                                      \
+    {                                                                         \
+        cool::csabase::Debug d("event on" #CLASS "Decl");                     \
+        on##CLASS##Decl(decl);                                                \
+    }                                                                         \
 }
 DECL(,)
 #include "clang/AST/DeclNodes.inc"
 
-#define STMT(CLASS, PARENT)                                 \
-void                                                        \
- cool::csabase::Visitor::do_visit(clang::CLASS const* stmt) \
-{                                                           \
-    this->on##CLASS(stmt);                                  \
+#define STMT(CLASS, PARENT)                                                   \
+void                                                                          \
+cool::csabase::Visitor::do_visit(clang::CLASS const* stmt)                    \
+{                                                                             \
+    on##CLASS(stmt);                                                          \
 }
 STMT(Stmt,)
 #include "clang/AST/StmtNodes.inc"

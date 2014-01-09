@@ -87,7 +87,7 @@ cool::csabase::Config::Config(std::string const& name)
 , d_all(on)
 {
     //-dk:TODO load global and user configuration?
-    this->load(name);
+    load(name);
 }
 
 void
@@ -100,7 +100,7 @@ cool::csabase::Config::process(std::string const& line)
     else if (command == "namespace") {
         std::string name;
         if (args >> name) {
-            this->d_toplevel_namespace = name;
+            d_toplevel_namespace = name;
         }
         else {
             llvm::errs() << "WARNING: couldn't read namespace name from '" << line << "'\n";
@@ -120,7 +120,7 @@ cool::csabase::Config::process(std::string const& line)
         cool::csabase::Config::Status status;
         if (args >> check >> status) {
             std::vector<std::string> path;
-            set_status(this->d_checks, this->d_groups, check, status, path);
+            set_status(d_checks, d_groups, check, status, path);
         }
         else {
             llvm::errs() << "WARNING: couldn't read check configuration from '" << line << "'\n";
@@ -129,7 +129,7 @@ cool::csabase::Config::process(std::string const& line)
     else if (command == "group") {
         std::string name;
         if (args >> name) {
-            this->d_groups[name].assign(std::istream_iterator<std::string>(args),
+            d_groups[name].assign(std::istream_iterator<std::string>(args),
                     std::istream_iterator<std::string>());
         }
         else {
@@ -139,7 +139,7 @@ cool::csabase::Config::process(std::string const& line)
     else if (command == "load") {
         std::string name;
         if (args >> name) {
-            this->load(name);
+            load(name);
         }
         else {
             llvm::errs() << "WARNING: no file name given on line '" << line << "'\n";
@@ -150,7 +150,7 @@ cool::csabase::Config::process(std::string const& line)
         if (args >> key) {
             std::string value;
             if (std::getline(args, value)) {
-                this->d_values[key] = value;
+                d_values[key] = value;
             }
             else {
                 llvm::errs() << "WARNING: set could not read value on line '" << line << "'\n";
@@ -182,19 +182,19 @@ cool::csabase::Config::load(std::string const& original)
             return;
         }
     }
-    if (this->d_loadpath.end() != std::find(this->d_loadpath.begin(),
-                                            this->d_loadpath.end(), file)) {
+    if (d_loadpath.end() != std::find(d_loadpath.begin(),
+                                      d_loadpath.end(), file)) {
         llvm::errs() << "WARNING: recursive loading aborted for file '" << file << "'\n";
         return;
     }
 
-    this->d_loadpath.push_back(file);
+    d_loadpath.push_back(file);
     std::ifstream in(file.c_str());
     std::string line;
     while (std::getline(in, line)) {
         process(line);
     }
-    this->d_loadpath.pop_back();
+    d_loadpath.pop_back();
 }
 
 // ----------------------------------------------------------------------------
@@ -202,13 +202,13 @@ cool::csabase::Config::load(std::string const& original)
 std::string const&
 cool::csabase::Config::toplevel_namespace() const
 {
-    return this->d_toplevel_namespace;
+    return d_toplevel_namespace;
 }
 
 std::map<std::string, cool::csabase::Config::Status> const&
 cool::csabase::Config::checks() const
 {
-    return this->d_checks;
+    return d_checks;
 }
 
 const std::string& cool::csabase::Config::value(const std::string& key) const

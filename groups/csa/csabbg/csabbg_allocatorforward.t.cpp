@@ -72,7 +72,7 @@ cool::csabbg::test::test(bool, BloombergLP::bslma::Allocator* alloc):
     allocatorforward_alloc_used(-1, alloc),
     allocator_(alloc),
     used0_(cool::csabbg::dummy(alloc)),
-    used1_(1, this->allocator_),
+    used1_(1, allocator_),
     used2_(2, alloc)
 {
 }

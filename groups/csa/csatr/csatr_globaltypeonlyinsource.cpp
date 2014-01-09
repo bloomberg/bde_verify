@@ -30,8 +30,8 @@ namespace
         }
         bool operator()(clang::Decl const* decl) const
         {
-            return this->analyser_->get_location(decl).file()
-                != this->analyser_->toplevel();
+            return analyser_->get_location(decl).file()
+                != analyser_->toplevel();
         }
         cool::csabase::Analyser* analyser_;
     };

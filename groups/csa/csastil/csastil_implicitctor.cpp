@@ -50,7 +50,7 @@ namespace
         void
         operator()()
         {
-            cool::csabase::Analyser* analyser(this->analyser_);
+            cool::csabase::Analyser* analyser(analyser_);
             //-dk:TODO the suppression handling should be in a shared place!
             suppressions const& attachment(analyser->attachment<suppressions>());
             for (std::vector<clang::Decl const*>::const_iterator rit(attachment.reports_.begin()), rend(attachment.reports_.end());
@@ -101,11 +101,11 @@ namespace
         void
         operator()(clang::SourceRange range)
         {
-            cool::csabase::Location location(this->analyser_->get_location(range.getBegin()));
-            if (this->analyser_->is_component(location.file())) {
-                std::string comment(this->analyser_->get_source(range));
+            cool::csabase::Location location(analyser_->get_location(range.getBegin()));
+            if (analyser_->is_component(location.file())) {
+                std::string comment(analyser_->get_source(range));
                 if (comment == "// IMPLICIT") {
-                    this->analyser_->attachment<suppressions>().entries_.insert(location);
+                    analyser_->attachment<suppressions>().entries_.insert(location);
                 }
             }
         }

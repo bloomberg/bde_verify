@@ -91,7 +91,7 @@ template <typename T>
 T&
 cool::csabase::Attachment<T>::data()
 {
-    return this->data_;
+    return data_;
 }
 
 // -----------------------------------------------------------------------------
@@ -100,7 +100,7 @@ template <typename T>
 T&
 cool::csabase::Attachments::attachment()
 {
-    cool::shared_ptr<cool::csabase::AttachmentBase>& ref(this->access(cool::csabase::Attachment<T>::index()));
+    cool::shared_ptr<cool::csabase::AttachmentBase>& ref(access(cool::csabase::Attachment<T>::index()));
     if (!ref)
     {
         ref = cool::shared_ptr<cool::csabase::AttachmentBase>(new cool::csabase::Attachment<T>());

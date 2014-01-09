@@ -31,10 +31,10 @@ namespace
         }
         void operator()(clang::DeclRefExpr const* ref) const
         {
-            if (ref->getDecl() == this->decl_)
+            if (ref->getDecl() == decl_)
             {
-                this->analyser_.report(this->decl_, check_name, "variable %0 used for self-initialization")
-                    << this->decl_->getName()
+                analyser_.report(decl_, check_name, "variable %0 used for self-initialization")
+                    << decl_->getName()
                     << ref->getSourceRange();
             }
         }

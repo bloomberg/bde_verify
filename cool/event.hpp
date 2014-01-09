@@ -76,7 +76,7 @@ public:
     template <typename Functor> cool::event<void(T0, T1, T2)>& operator+= (Functor functor);
     void operator()(T0, T1, T2) const;
     operator bool() const;
-    int size() const { return this->functions_.size(); }
+    int size() const { return functions_.size(); }
 
 private:
     typedef std::list<cool::function<void(T0, T1, T2)> > Container;
@@ -103,19 +103,19 @@ template <typename Functor>
 inline cool::event<void()>&
 cool::event<void()>::operator+= (Functor functor)
 {
-    this->functions_.push_back(cool::function<void()>(functor));
+    functions_.push_back(cool::function<void()>(functor));
     return *this;
 }
 
 inline cool::event<void()>::operator bool() const
 {
-    return !this->functions_.empty();
+    return !functions_.empty();
 }
 
 inline void
 cool::event<void()>::operator()() const
 {
-    for (std::deque<cool::function<void()> >::const_iterator it(this->functions_.begin()), end(this->functions_.end());
+    for (std::deque<cool::function<void()> >::const_iterator it(functions_.begin()), end(functions_.end());
          it != end; ++it)
     {
         (*it)();
@@ -129,21 +129,21 @@ template <typename Functor>
 cool::event<void(T0)>&
 cool::event<void(T0)>::operator+= (Functor functor)
 {
-    this->functions_.push_back(cool::function<void(T0)>(functor));
+    functions_.push_back(cool::function<void(T0)>(functor));
     return *this;
 }
 
 template <typename T0>
 cool::event<void(T0)>::operator bool() const
 {
-    return !this->functions_.empty();
+    return !functions_.empty();
 }
 
 template <typename T0>
 void
 cool::event<void(T0)>::operator()(T0 a0) const
 {
-    for (typename std::deque<cool::function<void(T0)> >::const_iterator it(this->functions_.begin()), end(this->functions_.end());
+    for (typename std::deque<cool::function<void(T0)> >::const_iterator it(functions_.begin()), end(functions_.end());
          it != end; ++it)
     {
         (*it)(a0);
@@ -157,22 +157,22 @@ template <typename Functor>
 cool::event<void(T0, T1)>&
 cool::event<void(T0, T1)>::operator+= (Functor functor)
 {
-    this->functions_.push_back(cool::function<void(T0, T1)>(functor));
+    functions_.push_back(cool::function<void(T0, T1)>(functor));
     return *this;
 }
 
 template <typename T0, typename T1>
 cool::event<void(T0, T1)>::operator bool() const
 {
-    return !this->functions_.empty();
+    return !functions_.empty();
 }
 
 template <typename T0, typename T1>
 void
 cool::event<void(T0, T1)>::operator()(T0 a0, T1 a1) const
 {
-    for (typename std::deque<cool::function<void(T0, T1)> >::const_iterator it(this->functions_.begin()),
-             end(this->functions_.end()); it != end; ++it)
+    for (typename std::deque<cool::function<void(T0, T1)> >::const_iterator it(functions_.begin()),
+             end(functions_.end()); it != end; ++it)
     {
         (*it)(a0, a1);
     }
@@ -185,22 +185,22 @@ template <typename Functor>
 cool::event<void(T0, T1, T2)>&
 cool::event<void(T0, T1, T2)>::operator+= (Functor functor)
 {
-    this->functions_.push_back(cool::function<void(T0, T1, T2)>(functor));
+    functions_.push_back(cool::function<void(T0, T1, T2)>(functor));
     return *this;
 }
 
 template <typename T0, typename T1, typename T2>
 cool::event<void(T0, T1, T2)>::operator bool() const
 {
-    return !this->functions_.empty();
+    return !functions_.empty();
 }
 
 template <typename T0, typename T1, typename T2>
 void
 cool::event<void(T0, T1, T2)>::operator()(T0 a0, T1 a1, T2 a2) const
 {
-    for (typename Container::const_iterator it(this->functions_.begin()),
-             end(this->functions_.end()); it != end; ++it)
+    for (typename Container::const_iterator it(functions_.begin()),
+             end(functions_.end()); it != end; ++it)
     {
         (*it)(a0, a1, a2);
     }
@@ -213,22 +213,22 @@ template <typename Functor>
 cool::event<void(T0, T1, T2, T3)>&
 cool::event<void(T0, T1, T2, T3)>::operator+= (Functor functor)
 {
-    this->functions_.push_back(cool::function<void(T0, T1, T2, T3)>(functor));
+    functions_.push_back(cool::function<void(T0, T1, T2, T3)>(functor));
     return *this;
 }
 
 template <typename T0, typename T1, typename T2, typename T3>
 cool::event<void(T0, T1, T2, T3)>::operator bool() const
 {
-    return !this->functions_.empty();
+    return !functions_.empty();
 }
 
 template <typename T0, typename T1, typename T2, typename T3>
 void
 cool::event<void(T0, T1, T2, T3)>::operator()(T0 a0, T1 a1, T2 a2, T3 a3) const
 {
-    for (typename std::deque<cool::function<void(T0, T1, T2, T3)> >::const_iterator it(this->functions_.begin()),
-             end(this->functions_.end()); it != end; ++it)
+    for (typename std::deque<cool::function<void(T0, T1, T2, T3)> >::const_iterator it(functions_.begin()),
+             end(functions_.end()); it != end; ++it)
     {
         (*it)(a0, a1, a2, a3);
     }

@@ -39,7 +39,7 @@ namespace
                 header = header.substr(0u, pos);
             }
             
-            headers_t& headers(in_header? this->d_header: this->d_source);
+            headers_t& headers(in_header? d_header: d_source);
             if (headers.empty() || headers.back().first != header) {
                 headers.push_back(std::make_pair(header, where));
             }
@@ -60,7 +60,7 @@ namespace
         }
         bool operator()(argument_type entry) const
         {
-            return entry.first.find(this->d_prefix) == 0;
+            return entry.first.find(d_prefix) == 0;
         }
         std::string d_prefix;
     };
@@ -213,24 +213,24 @@ namespace
         void operator()(clang::SourceLocation,
                         clang::SourceRange range) const // onIf
         {
-            if (!this->d_analyser->is_component(range.getBegin())) {
+            if (!d_analyser->is_component(range.getBegin())) {
                 return;
             }
-            include_order& data(this->d_analyser->attachment<include_order>()); 
-            char const* begin(this->d_analyser->manager().getCharacterData(range.getBegin()));
-            char const* end(this->d_analyser->manager().getCharacterData(range.getEnd()));
+            include_order& data(d_analyser->attachment<include_order>()); 
+            char const* begin(d_analyser->manager().getCharacterData(range.getBegin()));
+            char const* end(d_analyser->manager().getCharacterData(range.getEnd()));
             std::string value(begin, end);
             value.erase(std::remove_if(value.begin(), value.end(),
                                        &is_space), value.end());
             std::transform(value.begin(), value.end(), value.begin(),
                            &to_lower);
             if (value.find(prefix1) == 0 && value[value.size() - 1] == ')') {
-                data.add_include(this->d_analyser->is_component_header(range.getBegin()),
+                data.add_include(d_analyser->is_component_header(range.getBegin()),
                                  value.substr(prefix1.size(), value.size() - prefix1.size() - 1),
                                  range.getBegin());
             }
             else if (value.find(prefix2) == 0) {
-                data.add_include(this->d_analyser->is_component_header(range.getBegin()),
+                data.add_include(d_analyser->is_component_header(range.getBegin()),
                                  value.substr(prefix2.size()),
                                  range.getBegin());
             }
@@ -238,18 +238,18 @@ namespace
         void operator()(clang::SourceLocation where,
                         clang::Token const& token) const // onIfndef
         {
-            if (!this->d_analyser->is_component(token.getLocation())) {
+            if (!d_analyser->is_component(token.getLocation())) {
                 return;
             }
 
-            include_order& data(this->d_analyser->attachment<include_order>());
+            include_order& data(d_analyser->attachment<include_order>());
             if (clang::IdentifierInfo const* id = token.getIdentifierInfo())
             {
                 std::string value(id->getNameStart());
                 std::transform(value.begin(), value.end(), value.begin(),
                                &to_lower);
                 if (value.find(prefix0) == 0) {
-                    data.add_include(this->d_analyser->is_component_header(token.getLocation()),
+                    data.add_include(d_analyser->is_component_header(token.getLocation()),
                                      value.substr(prefix0.size()),
                                      token.getLocation());
                 }
@@ -259,19 +259,19 @@ namespace
                         bool,
                         std::string const& name)
         {
-            if (this->d_analyser->is_component(where)) {
-                include_order& data(this->d_analyser->attachment<include_order>()); 
-                bool in_header(this->d_analyser->is_component_header(where));
+            if (d_analyser->is_component(where)) {
+                include_order& data(d_analyser->attachment<include_order>()); 
+                bool in_header(d_analyser->is_component_header(where));
                 data.add_include(in_header, name, where);
             }
         }
         void operator()() // translation unit done
         {
-            include_order& data(this->d_analyser->attachment<include_order>()); 
-            clang::SourceLocation const* header_bdes_ident(check_order(this->d_analyser, data.d_header, true));
-            clang::SourceLocation const* source_bdes_ident(check_order(this->d_analyser, data.d_source, false));
+            include_order& data(d_analyser->attachment<include_order>()); 
+            clang::SourceLocation const* header_bdes_ident(check_order(d_analyser, data.d_header, true));
+            clang::SourceLocation const* source_bdes_ident(check_order(d_analyser, data.d_source, false));
             if ((header_bdes_ident == 0) != (source_bdes_ident == 0)) {
-                this->d_analyser->report(*(header_bdes_ident? header_bdes_ident: source_bdes_ident),
+                d_analyser->report(*(header_bdes_ident? header_bdes_ident: source_bdes_ident),
                                          check_name,
                                          "SHO: bdes_ident.h is used inconsistently with the %0")
                     << (header_bdes_ident? "source": "header");

@@ -36,7 +36,7 @@ template <typename T>
 void
 ::binder<T>::operator()(T const* argument)
 {
-    this->check_(this->analyser_, argument);
+    check_(analyser_, argument);
 }
 
 // -----------------------------------------------------------------------------
@@ -65,7 +65,7 @@ template <typename T>
 void
 ::add_to_event<T>::operator()(cool::csabase::Analyser& a, cool::csabase::Visitor& v, cool::csabase::PPObserver&)
 {
-    v.*(this->member_) += binder<T>(a, this->check_);
+    v.*(member_) += binder<T>(a, check_);
 }
 
 // -----------------------------------------------------------------------------

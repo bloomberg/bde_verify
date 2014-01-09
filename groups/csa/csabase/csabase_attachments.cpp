@@ -28,7 +28,7 @@ cool::csabase::Attachments::alloc()
 
 cool::csabase::Attachments::Attachments()
 {
-    this->data_.resize(next_index);
+    data_.resize(next_index);
 }
 
 cool::csabase::Attachments::~Attachments()
@@ -40,9 +40,9 @@ cool::csabase::Attachments::~Attachments()
 cool::shared_ptr<cool::csabase::AttachmentBase>&
 cool::csabase::Attachments::access(size_t index)
 {
-    if (this->data_.size() <= index)
+    if (data_.size() <= index)
     {
-        this->data_.resize(index + 1u);
+        data_.resize(index + 1u);
     }
-    return this->data_[index];
+    return data_[index];
 }

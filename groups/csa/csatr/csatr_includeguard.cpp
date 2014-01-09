@@ -30,17 +30,17 @@ namespace
         {
         }
         bool isComplete() const {
-            return this->d_test && this->d_define;
+            return d_test && d_define;
         }
         std::string const& get_expect(cool::csabase::Analyser* analyser)
         {
-            if (this->d_expect.empty()) {
+            if (d_expect.empty()) {
                 d_expect = "INCLUDED_" + analyser->component();
-                std::transform(this->d_expect.begin(), this->d_expect.end(),
-                               this->d_expect.begin(),
+                std::transform(d_expect.begin(), d_expect.end(),
+                               d_expect.begin(),
                                my_toupper);
             }
-            return this->d_expect;
+            return d_expect;
         }
         std::string d_expect;
         bool        d_test;
@@ -57,22 +57,22 @@ namespace
         void operator()(clang::SourceLocation,
                         clang::SourceRange range) const // onIf
         {
-            if (!this->d_analyser->is_component_header(range.getBegin())) {
+            if (!d_analyser->is_component_header(range.getBegin())) {
                 return;
             }
-            include_guard& data(this->d_analyser->attachment<include_guard>());
+            include_guard& data(d_analyser->attachment<include_guard>());
             if (data.d_test) {
                 return;
             }
-            char const* begin(this->d_analyser->manager().getCharacterData(range.getBegin()));
-            char const* end(this->d_analyser->manager().getCharacterData(range.getEnd()));
+            char const* begin(d_analyser->manager().getCharacterData(range.getBegin()));
+            char const* end(d_analyser->manager().getCharacterData(range.getEnd()));
             std::string value(begin, end);
             value.erase(std::remove_if(value.begin(), value.end(),
                                        &my_isspace), value.end());
-            std::string const& expect(data.get_expect(this->d_analyser));
+            std::string const& expect(data.get_expect(d_analyser));
             if (value != "!defined(" + expect + ")"
                 && value != "!defined" + expect) {
-                this->d_analyser->report(range.getBegin(), check_name,
+                d_analyser->report(range.getBegin(), check_name,
                                          "TR14: wrong include guard "
                                          "(expected '!defined(%0)')")
                     << expect;
@@ -85,28 +85,28 @@ namespace
 #if 0
             //-dk:TODO
             llvm::errs() << "ifndef: "
-                         << "where=" << this->d_analyser->get_location(where) << " "
-                         << "token=" << this->d_analyser->get_location(token.getLocation()) << " "
+                         << "where=" << d_analyser->get_location(where) << " "
+                         << "token=" << d_analyser->get_location(token.getLocation()) << " "
                          << "\n";
             if (clang::IdentifierInfo const* id = token.getIdentifierInfo())
             {
                 llvm::errs() << "  value1='" << id->getNameStart() << "'\n";
             }
 #endif
-            if (!this->d_analyser->is_component_header(token.getLocation())) {
+            if (!d_analyser->is_component_header(token.getLocation())) {
                 return;
             }
 
             //-dk:TODO llvm::errs() << "  in header\n";
-            include_guard& data(this->d_analyser->attachment<include_guard>());
+            include_guard& data(d_analyser->attachment<include_guard>());
             if (clang::IdentifierInfo const* id
                 = data.d_test? 0: token.getIdentifierInfo())
             {
                 std::string value(id->getNameStart());
                 //-dk:TODO llvm::errs() << "  vlaue='" << value << "'\n";
-                std::string const& expect(data.get_expect(this->d_analyser));
+                std::string const& expect(data.get_expect(d_analyser));
                 if (value != expect) {
-                    this->d_analyser->report(token.getLocation(), check_name,
+                    d_analyser->report(token.getLocation(), check_name,
                                              "TR14: wrong name for include guard "
                                              "(expected '%0')")
                         << expect;
@@ -116,12 +116,12 @@ namespace
         }
         void operator()(clang::Token const& token, clang::MacroDirective const*) const
         {
-            include_guard& data(this->d_analyser->attachment<include_guard>());
-            if (this->d_analyser->is_component_header(token.getLocation())
+            include_guard& data(d_analyser->attachment<include_guard>());
+            if (d_analyser->is_component_header(token.getLocation())
                 && !data.d_define
                 && token.getIdentifierInfo()
                 && (std::string(token.getIdentifierInfo()->getNameStart())
-                    == data.get_expect(this->d_analyser))
+                    == data.get_expect(d_analyser))
                 ) {
                 data.d_define = true;
             }
@@ -130,11 +130,11 @@ namespace
                         std::string const&,
                         std::string const& filename) const
         {
-            if (this->d_analyser->is_component_header(filename)
-                && !this->d_analyser->attachment<include_guard>().isComplete())
+            if (d_analyser->is_component_header(filename)
+                && !d_analyser->attachment<include_guard>().isComplete())
             {
-                include_guard const& data(this->d_analyser->attachment<include_guard>());
-                this->d_analyser->report(location, check_name,
+                include_guard const& data(d_analyser->attachment<include_guard>());
+                d_analyser->report(location, check_name,
                                          data.d_test
                                          ? "TR14: missing define for include guard"
                                          : data.d_define

@@ -50,7 +50,7 @@ private:
     {
         concrete(Functor functor): functor_(functor) {}
         base* clone() { return new concrete<Functor>(*this); }
-        RC    call() { return this->functor_(); }
+        RC    call() { return functor_(); }
 
         Functor functor_;
     };
@@ -87,7 +87,7 @@ private:
     {
         concrete(Functor functor): functor_(functor) {}
         base* clone() { return new concrete<Functor>(*this); }
-        RC    call(T0 a0) { return this->functor_(a0); }
+        RC    call(T0 a0) { return functor_(a0); }
 
         Functor functor_;
     };
@@ -124,7 +124,7 @@ private:
     {
         concrete(Functor functor): functor_(functor) {}
         base* clone() { return new concrete<Functor>(*this); }
-        RC    call(T0 a0, T1 a1) { return this->functor_(a0, a1); }
+        RC    call(T0 a0, T1 a1) { return functor_(a0, a1); }
 
         Functor functor_;
     };
@@ -161,7 +161,7 @@ private:
     {
         concrete(Functor functor): functor_(functor) {}
         base* clone() { return new concrete<Functor>(*this); }
-        RC    call(T0 a0, T1 a1, T2 a2) { return this->functor_(a0, a1, a2); }
+        RC    call(T0 a0, T1 a1, T2 a2) { return functor_(a0, a1, a2); }
 
         Functor functor_;
     };
@@ -196,19 +196,19 @@ cool::function<RC()>::operator=(cool::function<RC()> const& other)
 template <typename RC>
 cool::function<RC()>::~function()
 {
-    delete this->function_;
+    delete function_;
 }
 
 template <typename RC>
 void cool::function<RC()>::swap(cool::function<RC()>& other)
 {
-    std::swap(this->function_, other.function_);
+    std::swap(function_, other.function_);
 }
 
 template <typename RC>
 RC cool::function<RC()>::operator()() const
 {
-    return this->function_->call();
+    return function_->call();
 }
 
 // -----------------------------------------------------------------------------
@@ -237,19 +237,19 @@ cool::function<RC(T0)>::operator=(cool::function<RC(T0)> const& other)
 template <typename RC, typename T0>
 cool::function<RC(T0)>::~function()
 {
-    delete this->function_;
+    delete function_;
 }
 
 template <typename RC, typename T0>
 void cool::function<RC(T0)>::swap(cool::function<RC(T0)>& other)
 {
-    std::swap(this->function_, other.function_);
+    std::swap(function_, other.function_);
 }
 
 template <typename RC, typename T0>
 RC cool::function<RC(T0)>::operator()(T0 a0) const
 {
-    return this->function_->call(a0);
+    return function_->call(a0);
 }
 
 // -----------------------------------------------------------------------------
@@ -278,19 +278,19 @@ cool::function<RC(T0, T1)>::operator=(cool::function<RC(T0, T1)> const& other)
 template <typename RC, typename T0, typename T1>
 cool::function<RC(T0, T1)>::~function()
 {
-    delete this->function_;
+    delete function_;
 }
 
 template <typename RC, typename T0, typename T1>
 void cool::function<RC(T0, T1)>::swap(cool::function<RC(T0, T1)>& other)
 {
-    std::swap(this->function_, other.function_);
+    std::swap(function_, other.function_);
 }
 
 template <typename RC, typename T0, typename T1>
 RC cool::function<RC(T0, T1)>::operator()(T0 a0, T1 a1) const
 {
-    return this->function_->call(a0, a1);
+    return function_->call(a0, a1);
 }
 
 // -----------------------------------------------------------------------------
@@ -319,19 +319,19 @@ cool::function<RC(T0, T1, T2)>::operator=(cool::function<RC(T0, T1, T2)> const& 
 template <typename RC, typename T0, typename T1, typename T2>
 cool::function<RC(T0, T1, T2)>::~function()
 {
-    delete this->function_;
+    delete function_;
 }
 
 template <typename RC, typename T0, typename T1, typename T2>
 void cool::function<RC(T0, T1, T2)>::swap(cool::function<RC(T0, T1, T2)>& other)
 {
-    std::swap(this->function_, other.function_);
+    std::swap(function_, other.function_);
 }
 
 template <typename RC, typename T0, typename T1, typename T2>
 RC cool::function<RC(T0, T1, T2)>::operator()(T0 a0, T1 a1, T2 a2) const
 {
-    return this->function_->call(a0, a1, a2);
+    return function_->call(a0, a1, a2);
 }
 
 // -----------------------------------------------------------------------------

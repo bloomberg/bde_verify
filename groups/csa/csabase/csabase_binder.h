@@ -48,7 +48,7 @@ public:
     }
     void operator()() const
     {
-        (this->d_function)(this->d_analyser);
+        (d_function)(d_analyser);
     }
 };
 
@@ -69,7 +69,7 @@ public:
     }
     void operator()(T0 a0) const
     {
-        (this->d_function)(this->d_analyser, a0);
+        (d_function)(d_analyser, a0);
     }
 };
 
@@ -90,7 +90,7 @@ public:
     }
     void operator()(T0 a0, T1 a1) const
     {
-        (this->d_function)(this->d_analyser, a0, a1);
+        (d_function)(d_analyser, a0, a1);
     }
 };
 
@@ -111,7 +111,7 @@ public:
     }
     void operator()(T0 a0, T1 a1, T2 a2) const
     {
-        (this->d_function)(this->d_analyser, a0, a1, a2);
+        (d_function)(d_analyser, a0, a1, a2);
     }
 };
 

@@ -299,7 +299,7 @@ namespace
         void
         operator()(clang::SourceLocation location, std::string const& from, std::string const& file) const
         {
-            (*this->function_)(*this->analyser_, location, from, file);
+            (*function_)(*analyser_, location, from, file);
         }
         void          (*function_)(cool::csabase::Analyser&, clang::SourceLocation, std::string const&, std::string const&);
         cool::csabase::Analyser* analyser_;
@@ -318,7 +318,7 @@ namespace
         void
         operator()(std::string const& from, std::string const& file)
         {
-            (*this->function_)(*this->analyser_, from, file);
+            (*function_)(*analyser_, from, file);
         }
         void          (*function_)(cool::csabase::Analyser&, std::string const&, std::string const&);
         cool::csabase::Analyser* analyser_;

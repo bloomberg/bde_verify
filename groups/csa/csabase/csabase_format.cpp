@@ -47,14 +47,14 @@ template <typename T>
 void
 cool::csabase::Formatter<T>::print(llvm::raw_ostream& out) const
 {
-    ::print(out, this->value_);
+    ::print(out, value_);
 }
 
 template <typename T>
 void
 cool::csabase::Formatter<T>::print(clang::DiagnosticBuilder& out) const
 {
-    ::print(out, this->value_);
+    ::print(out, value_);
 }
 
 // -----------------------------------------------------------------------------

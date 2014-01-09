@@ -42,13 +42,13 @@ void
 CB::DiagnosticFilter::BeginSourceFile(clang::LangOptions const&  opts,
                                       clang::Preprocessor const* pp)
 {
-    this->d_client->BeginSourceFile(opts, pp);
+    d_client->BeginSourceFile(opts, pp);
 }
 
 void
 CB::DiagnosticFilter::EndSourceFile()
 {
-    this->d_client->EndSourceFile();
+    d_client->EndSourceFile();
 }
 
 bool
@@ -78,19 +78,19 @@ CB::DiagnosticFilter::HandleDiagnostic(clang::DiagnosticsEngine::Level level,
     if (clang::DiagnosticsEngine::Note != level
         && (clang::DiagnosticsEngine::Warning < level
             || !info.getLocation().isFileID()
-            || this->d_analyser->is_component(get_filename(info)))
+            || d_analyser->is_component(get_filename(info)))
         )
      */
     {
-        this->DiagnosticConsumer::HandleDiagnostic(level, info);
-        this->d_client->HandleDiagnostic(level, info);
+        DiagnosticConsumer::HandleDiagnostic(level, info);
+        d_client->HandleDiagnostic(level, info);
     }
 }
 
 clang::DiagnosticConsumer*
 CB::DiagnosticFilter::clone(clang::DiagnosticsEngine&) const
 {
-    return new CB::DiagnosticFilter(*this->d_analyser, *this->d_options);
+    return new CB::DiagnosticFilter(*d_analyser, *d_options);
 }
 
 // ----------------------------------------------------------------------------

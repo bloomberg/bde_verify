@@ -55,16 +55,16 @@ cool::csabase::Debug::Debug(char const* message, bool nest):
 {
     if (do_debug)
     {
-        start(::indent) << (this->nest_? "\\ ": "| ") << "'" << this->message_ << "'\n";
+        start(::indent) << (nest_? "\\ ": "| ") << "'" << message_ << "'\n";
         ::indent += nest;
     }
 }
 
 cool::csabase::Debug::~Debug()
 {
-    if (do_debug && this->nest_)
+    if (do_debug && nest_)
     {
-        start(::indent -= this->nest_) << (this->nest_? "/ ": "| ") << message_ << "\n";
+        start(::indent -= nest_) << (nest_? "/ ": "| ") << message_ << "\n";
     }
 }
 

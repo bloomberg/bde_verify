@@ -62,7 +62,7 @@ public:
     }
     void do_visit(argument_type arg)
     {
-        this->functor_(arg);
+        functor_(arg);
     }
 private:
     F0 functor_;
@@ -84,7 +84,7 @@ public:
     }
     void do_visit(argument_type arg)
     {
-        this->functor_(arg);
+        functor_(arg);
     }
 private:
     F0 functor_;
@@ -109,11 +109,11 @@ public:
     }
     void visit(clang::Decl const* ptr)
     {
-        this->visitor_->visit(ptr);
+        visitor_->visit(ptr);
     }
     void visit(clang::Stmt const* ptr)
     {
-        this->visitor_->visit(ptr);
+        visitor_->visit(ptr);
     }
     
 private:

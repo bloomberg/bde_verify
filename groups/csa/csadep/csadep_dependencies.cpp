@@ -36,7 +36,7 @@ cool::csadep::dependencies::add(std::string const&           source,
     llvm::errs() << "add(" << source << ", loc, "
                  << (need_definition? "definition": "declaration") << ", "
                  << name << ")\n";
-    container& decls = this->d_sources[source];
+    container& decls = d_sources[source];
     iterator it(decls.insert(std::make_pair(std::string(name),
                                             dependency(location,
                                                        need_definition,

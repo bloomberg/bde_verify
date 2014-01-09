@@ -42,9 +42,9 @@ namespace
         void operator()(clang::SourceLocation where, std::string const&, std::string const& name) const
         {
             packagename& attachment(d_analyser->attachment<packagename>());
-            if (!attachment.d_done && name == this->d_analyser->toplevel()) {
+            if (!attachment.d_done && name == d_analyser->toplevel()) {
                 attachment.d_done = true;
-                cool::csabase::Analyser& analyser(*this->d_analyser);
+                cool::csabase::Analyser& analyser(*d_analyser);
                 cool::csabase::FileName fn(name);
 
                 if (fn.component().count('_') !=

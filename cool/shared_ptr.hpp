@@ -36,14 +36,14 @@ public:
         ptr_(other.ptr_),
         count_(other.count_)
     {
-        ++*this->count_;
+        ++*count_;
     }
     template <typename S>
     shared_ptr(cool::shared_ptr<S> const& other):
         ptr_(other.ptr_),
         count_(other.count_)
     {
-        ++*this->count_;
+        ++*count_;
     }
     cool::shared_ptr<T>& operator= (cool::shared_ptr<T> const& other)
     {
@@ -52,37 +52,37 @@ public:
     }
     ~shared_ptr()
     {
-        this->reset();
+        reset();
     }
     void reset()
     {
-        if (this->count_ && !--*this->count_)
+        if (count_ && !--*count_)
         {
-            delete this->count_;
-            delete this->ptr_;
+            delete count_;
+            delete ptr_;
         }
-        this->count_ = 0;
-        this->ptr_   = 0;
+        count_ = 0;
+        ptr_   = 0;
     }
     void swap(cool::shared_ptr<T>& other)
     {
-        std::swap(this->ptr_, other.ptr_);
-        std::swap(this->count_, other.count_);
+        std::swap(ptr_, other.ptr_);
+        std::swap(count_, other.count_);
     }
-    operator bool() const { return this->ptr_; }
-    T*       operator->() const { return this->ptr_; }
-    T&       operator*() const  { return *this->ptr_; }
-    T*       get() const { return this->ptr_; }
+    operator bool() const { return ptr_; }
+    T*       operator->() const { return ptr_; }
+    T&       operator*() const  { return *ptr_; }
+    T*       get() const { return ptr_; }
 
     template <typename S>
     cool::shared_ptr<S> cast() const
     {
-        S* ptr(dynamic_cast<S*>(this->ptr_));
-        return ptr? cool::shared_ptr<S>(ptr, this->count_): cool::shared_ptr<S>();
+        S* ptr(dynamic_cast<S*>(ptr_));
+        return ptr? cool::shared_ptr<S>(ptr, count_): cool::shared_ptr<S>();
     }
 
 private:
-    shared_ptr(T* ptr, size_t* count): ptr_(ptr), count_(count) { ++*this->count_; }
+    shared_ptr(T* ptr, size_t* count): ptr_(ptr), count_(count) { ++*count_; }
     T*      ptr_;
     size_t* count_;
 };

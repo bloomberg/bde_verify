@@ -56,7 +56,7 @@ struct on_group_open
                     std::string const&    ,
                     std::string const&    name) const
     {
-        cool::csabase::Analyser& analyser(*this->d_analyser);
+        cool::csabase::Analyser& analyser(*d_analyser);
         groupname& attachment(analyser.attachment<groupname>());
         if (!attachment.d_done && name == analyser.toplevel()) {
             attachment.d_done = true;

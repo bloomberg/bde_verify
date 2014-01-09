@@ -121,7 +121,7 @@ namespace
         }
         void operator()(clang::SourceLocation where, T arg, std::string const& name) const
         {
-            this->function_(this->analyser_, where, arg, name);
+            function_(analyser_, where, arg, name);
         }
         void          (*function_)(cool::csabase::Analyser&, clang::SourceLocation, T, std::string const&);
         cool::csabase::Analyser& analyser_;
