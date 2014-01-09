@@ -254,7 +254,7 @@ check-current: $(OBJ)/$(TARGET)
       $(PLUGIN) \
         -plugin-arg-bdeverify debug-$(DEBUG) \
         -plugin-arg-bdeverify config=$$$$ \
-        -plugin-arg-bdeverify tool=bdechk \
+        -plugin-arg-bdeverify tool=bdeverify \
         $(CPPFLAGS) $(PFLAGS) $$f; \
     fi
 

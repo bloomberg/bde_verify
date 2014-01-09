@@ -72,11 +72,15 @@ void
 CB::DiagnosticFilter::HandleDiagnostic(clang::DiagnosticsEngine::Level level,
                                        clang::Diagnostic const&        info)
 {
+    if (!info.getLocation().isFileID() ||
+        d_analyser->is_component(get_filename(info)))
+    /*
     if (clang::DiagnosticsEngine::Note != level
         && (clang::DiagnosticsEngine::Warning < level
             || !info.getLocation().isFileID()
             || this->d_analyser->is_component(get_filename(info)))
         )
+     */
     {
         this->DiagnosticConsumer::HandleDiagnostic(level, info);
         this->d_client->HandleDiagnostic(level, info);

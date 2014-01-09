@@ -50,12 +50,13 @@ namespace
                         if (!arg_names_match(pp, cp)) {
                             this->analyser_->report(cp, check_name, "AN01: "
                                 "parameter name mismatch for %ordinal0 "
-                                "parameter %1")
+                                "parameter %1", false)
                                 << int(i + 1)
                                 << cp
                                 << cp->getSourceRange();
                             this->analyser_->report(pp, check_name, "AN01: "
-                                "the other declaration is %0")
+                                "the other declaration uses %0", false,
+                                clang::DiagnosticsEngine::Note)
                                 << pp
                                 << pp->getSourceRange();
                         }

@@ -85,8 +85,20 @@ public:
     bool               is_global_package() const;
     bool               is_global_package(std::string const&) const;
 
-    cool::diagnostic_builder report(clang::SourceLocation, std::string const&, std::string const&, bool always = false);
-    template <typename T> cool::diagnostic_builder report(T, std::string const&, std::string const&, bool always = false);
+    cool::diagnostic_builder report(clang::SourceLocation,
+                                    std::string const&,
+                                    std::string const&,
+                                    bool always = false,
+                                    clang::DiagnosticsEngine::Level =
+                                        clang::DiagnosticsEngine::Warning);
+
+    template <typename T>
+    cool::diagnostic_builder report(T,
+                                    std::string const&,
+                                    std::string const&,
+                                    bool always = false,
+                                    clang::DiagnosticsEngine::Level =
+                                        clang::DiagnosticsEngine::Warning);
 
     clang::SourceManager& manager();
     llvm::StringRef         get_source(clang::SourceRange, bool exact = false);
@@ -102,7 +114,7 @@ public:
 
     clang::NamedDecl* lookup_name(std::string const& name);
     clang::TypeDecl*  lookup_type(std::string const& name);
-    bool hasContext() const { return this->context_; }
+    bool hasContext() const { return context_; }
 
 private:
     Analyser(cool::csabase::Analyser const&);
@@ -135,15 +147,19 @@ cool::csabase::Analyser::process_decls(InIt it, InIt end)
 {
     for (; it != end; ++it)
     {
-        this->process_decl(*it);
+        process_decl(*it);
     }
 }
 
 template <typename T>
 cool::diagnostic_builder
-cool::csabase::Analyser::report(T where, std::string const& check, std::string const& message, bool always)
+cool::csabase::Analyser::report(T where,
+                                std::string const& check,
+                                std::string const& message,
+                                bool always,
+                                clang::DiagnosticsEngine::Level level)
 {
-    return this->report(where->getLocStart(), check, message, always);
+    return report(where->getLocStart(), check, message, always, level);
 }
 
 // -----------------------------------------------------------------------------
@@ -152,21 +168,21 @@ template <typename T>
 bool
 cool::csabase::Analyser::is_component(T const* value)
 {
-    return this->is_component(this->get_location(value).file());
+    return is_component(get_location(value).file());
 }
 
 template <typename T>
 bool
 cool::csabase::Analyser::is_component_header(T const* value)
 {
-    return this->is_component_header(this->get_location(value).file());
+    return is_component_header(get_location(value).file());
 }
 
 template <typename T>
 bool
 cool::csabase::Analyser::is_component_source(T const* value)
 {
-    return this->is_component_source(this->get_location(value).file());
+    return is_component_source(get_location(value).file());
 }
 
 // -----------------------------------------------------------------------------

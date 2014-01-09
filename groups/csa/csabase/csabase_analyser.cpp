@@ -38,23 +38,23 @@ cool::csabase::Analyser::Analyser(clang::CompilerInstance& compiler,
     : d_config(new cool::csabase::Config(config.empty()? ".bdeverify": config))
     , tool_name_(name)
     , compiler_(compiler)
-    , d_source_manager(this->compiler_.getSourceManager())
+    , d_source_manager(compiler_.getSourceManager())
     , visitor_(new cool::csabase::Visitor())
     , pp_observer_(0)
     , context_(0)
 {
-    std::auto_ptr<cool::csabase::PPObserver> observer(new cool::csabase::PPObserver(&this->d_source_manager));
-    this->pp_observer_ = observer.get();
-    cool::csabase::CheckRegistry::attach(*this, *this->visitor_, *observer);
-    this->compiler_.getPreprocessor().addCommentHandler(observer->get_comment_handler());
-    this->compiler_.getPreprocessor().addPPCallbacks(observer.release());
+    std::auto_ptr<cool::csabase::PPObserver> observer(new cool::csabase::PPObserver(&d_source_manager));
+    pp_observer_ = observer.get();
+    cool::csabase::CheckRegistry::attach(*this, *visitor_, *observer);
+    compiler_.getPreprocessor().addCommentHandler(observer->get_comment_handler());
+    compiler_.getPreprocessor().addPPCallbacks(observer.release());
 }
 
 cool::csabase::Analyser::~Analyser()
 {
-    if (this->pp_observer_)
+    if (pp_observer_)
     {
-        this->pp_observer_->detach();
+        pp_observer_->detach();
     }
 }
 
@@ -63,7 +63,7 @@ cool::csabase::Analyser::~Analyser()
 cool::csabase::Config const*
 cool::csabase::Analyser::config() const
 {
-    return this->d_config.get();
+    return d_config.get();
 }
 
 // -----------------------------------------------------------------------------
@@ -71,7 +71,7 @@ cool::csabase::Analyser::config() const
 std::string const&
 cool::csabase::Analyser::tool_name() const
 {
-    return this->tool_name_;
+    return tool_name_;
 }
 
 // -----------------------------------------------------------------------------
@@ -79,26 +79,26 @@ cool::csabase::Analyser::tool_name() const
 clang::ASTContext const*
 cool::csabase::Analyser::context() const
 {
-    return this->context_;
+    return context_;
 }
 
 clang::ASTContext*
 cool::csabase::Analyser::context()
 {
-    return this->context_;
+    return context_;
 }
 
 void
 cool::csabase::Analyser::context(clang::ASTContext* context)
 {
-    this->context_ = context;
-    this->pp_observer_->Context();
+    context_ = context;
+    pp_observer_->Context();
 }
 
 clang::CompilerInstance&
 cool::csabase::Analyser::compiler()
 {
-    return this->compiler_;
+    return compiler_;
 }
 
 // -----------------------------------------------------------------------------
@@ -106,7 +106,7 @@ cool::csabase::Analyser::compiler()
 clang::Sema&
 cool::csabase::Analyser::sema()
 {
-    return this->compiler_.getSema();
+    return compiler_.getSema();
 }
 
 // -----------------------------------------------------------------------------
@@ -129,38 +129,38 @@ namespace
 std::string const&
 cool::csabase::Analyser::toplevel() const
 {
-    return this->toplevel_;
+    return toplevel_;
 }
 
 std::string const&
 cool::csabase::Analyser::directory() const
 {
-    return this->directory_;
+    return directory_;
 }
 
 
 std::string const&
 cool::csabase::Analyser::prefix() const
 {
-    return this->prefix_;
+    return prefix_;
 }
 
 std::string const&
 cool::csabase::Analyser::package() const
 {
-    return this->package_;
+    return package_;
 }
 
 std::string const&
 cool::csabase::Analyser::group() const
 {
-    return this->group_;
+    return group_;
 }
 
 std::string const&
 cool::csabase::Analyser::component() const
 {
-    return this->component_;
+    return component_;
 }
 
 void
@@ -184,8 +184,8 @@ cool::csabase::Analyser::toplevel(std::string const& path)
 bool
 cool::csabase::Analyser::is_component_header(std::string const& name) const
 {
-    IsComponentHeader::iterator in = this->is_component_header_.find(name);
-    if (in != this->is_component_header_.end()) {
+    IsComponentHeader::iterator in = is_component_header_.find(name);
+    if (in != is_component_header_.end()) {
         return in->second;
     }
 
@@ -194,12 +194,12 @@ cool::csabase::Analyser::is_component_header(std::string const& name) const
     for (int i = 0; i < NHS; ++i) {
         if (fn.extension().equals(header_suffixes[i])) {
             if (fn.component() == component_) {
-                return this->is_component_header_[name] = true;       // RETURN
+                return is_component_header_[name] = true;             // RETURN
             }
             break;
         }
     }
-    return this->is_component_header_[name] = false;
+    return is_component_header_[name] = false;
 
     llvm::StringRef srname(name);
     llvm::StringRef srsuffix = srname.substr(srname.rfind('.'));
@@ -212,8 +212,8 @@ cool::csabase::Analyser::is_component_header(std::string const& name) const
 
     for (int i = 0; i < NHS; ++i) {
         if (srsuffix.equals(header_suffixes[i])) {
-            llvm::StringRef srpre(this->prefix_);
-            llvm::StringRef srdir(this->prefix_);
+            llvm::StringRef srpre(prefix_);
+            llvm::StringRef srdir(prefix_);
             while (srdir.size() > 0 && 
                    !llvm::sys::path::is_separator(srdir.back())) {
                 srdir = srdir.drop_back(1);
@@ -221,29 +221,29 @@ cool::csabase::Analyser::is_component_header(std::string const& name) const
             srpre = srpre.drop_front(srdir.size());
             if (srbase.equals(srpre) ||
                 (srpre.endswith(".t") && srbase.equals(srpre.drop_back(2)))) {
-                return this->is_component_header_[name] = true;       // RETURN
+                return is_component_header_[name] = true;             // RETURN
             }
             break;
         }
     }
-    return this->is_component_header_[name] = false;
+    return is_component_header_[name] = false;
 }
 
 bool
 cool::csabase::Analyser::is_component_header(clang::SourceLocation loc) const
 {
-    return this->is_component_header(this->get_location(loc).file());
+    return is_component_header(get_location(loc).file());
 }
 
 bool
 cool::csabase::Analyser::is_global_package(std::string const& pkg) const
 {
-    IsGlobalPackage::iterator in = this->is_global_package_.find(pkg);
-    if (in == this->is_global_package_.end()) {
+    IsGlobalPackage::iterator in = is_global_package_.find(pkg);
+    if (in == is_global_package_.end()) {
         llvm::Regex re("(" "^[[:space:]]*" "|" "[^[:alnum:]]" ")" +
                        pkg +
                        "(" "[^[:alnum:]]" "|" "[[:space:]]*$" ")");
-        in = this->is_global_package_.insert(
+        in = is_global_package_.insert(
               std::make_pair(pkg, re.match(config()->value("global_packages")))
              ).first;
     }
@@ -259,58 +259,61 @@ cool::csabase::Analyser::is_global_package() const
 bool
 cool::csabase::Analyser::is_component_source(std::string const& file) const
 {
-    std::string::size_type pos(file.find(this->toplevel()));
-    return pos != file.npos && pos + this->toplevel().size() == file.size();
+    std::string::size_type pos(file.find(toplevel()));
+    return pos != file.npos && pos + toplevel().size() == file.size();
 }
 
 bool
 cool::csabase::Analyser::is_component_source(clang::SourceLocation loc) const
 {
-    return this->is_component_source(this->get_location(loc).file());
+    return is_component_source(get_location(loc).file());
 }
 
 bool
 cool::csabase::Analyser::is_component(std::string const& file) const
 {
-    return this->is_component_source(file)
-        || this->is_component_header(file);
+    return is_component_source(file)
+        || is_component_header(file);
 }
 
 bool
 cool::csabase::Analyser::is_component(clang::SourceLocation loc) const
 {
-    return this->is_component(this->get_location(loc).file());
+    return is_component(get_location(loc).file());
 }
 
 bool
 cool::csabase::Analyser::is_test_driver() const
 {
     //-dk:TODO this should be configurable, e.g. using regexp
-    return 6 < this->toplevel().size()
-        && this->toplevel().substr(this->toplevel().size() - 6) == ".t.cpp";
+    return 6 < toplevel().size()
+        && toplevel().substr(toplevel().size() - 6) == ".t.cpp";
 }
 
 bool
 cool::csabase::Analyser::is_main() const
 {
-    std::string::size_type size(this->toplevel().size());
-    std::string suffix(this->toplevel().substr(size - std::min(size, std::string::size_type(6))));
+    std::string::size_type size(toplevel().size());
+    std::string suffix(toplevel().substr(size - std::min(size, std::string::size_type(6))));
     return suffix == ".m.cpp" || suffix == ".t.cpp";
 }
 
 // -----------------------------------------------------------------------------
 
 cool::diagnostic_builder
-cool::csabase::Analyser::report(clang::SourceLocation where, std::string const& check, std::string const& message, bool always)
+cool::csabase::Analyser::report(clang::SourceLocation where,
+                                std::string const& check,
+                                std::string const& message,
+                                bool always,
+                                clang::DiagnosticsEngine::Level level)
 {
-    cool::csabase::Location location(this->get_location(where));
-    // if (always || location.file().find(this->prefix_) == 0)
-    if (always || this->is_component(location.file()))
+    cool::csabase::Location location(get_location(where));
+    if (always || is_component(location.file()))
     {
-        clang::FullSourceLoc location(where, this->d_source_manager);
-        unsigned int id(this->compiler_.getDiagnostics().getCustomDiagID(clang::DiagnosticsEngine::Warning,
-                                                                         this->tool_name() + message));
-        return cool::diagnostic_builder(this->compiler_.getDiagnostics().Report(where, id));
+        unsigned int id(compiler_.getDiagnostics().
+            getCustomDiagID(level, tool_name() + message));
+        return cool::diagnostic_builder(
+            compiler_.getDiagnostics().Report(where, id));
     }
     return cool::diagnostic_builder();
 }
@@ -320,7 +323,7 @@ cool::csabase::Analyser::report(clang::SourceLocation where, std::string const& 
 clang::SourceManager&
 cool::csabase::Analyser::manager()
 {
-    return this->compiler_.getSourceManager();
+    return compiler_.getSourceManager();
 }
 
 llvm::StringRef
@@ -330,7 +333,7 @@ cool::csabase::Analyser::get_source(clang::SourceRange range, bool exact)
     const char *pe = pb + 1;
 
     if (range.isValid()) {
-        clang::SourceManager& sm(this->manager());
+        clang::SourceManager& sm(manager());
         clang::SourceLocation b = sm.getSpellingLoc(range.getBegin());
         clang::SourceLocation e = sm.getSpellingLoc(range.getEnd());
         clang::SourceLocation t = exact ? e : sm.getSpellingLoc(
@@ -355,14 +358,14 @@ cool::csabase::Analyser::get_source(clang::SourceRange range, bool exact)
 cool::csabase::Location
 cool::csabase::Analyser::get_location(clang::SourceLocation sl) const
 {
-    return cool::csabase::Location(this->d_source_manager, sl);
+    return cool::csabase::Location(d_source_manager, sl);
 }
 
 cool::csabase::Location
 cool::csabase::Analyser::get_location(clang::Decl const* decl) const
 {
     return decl
-        ? this->get_location(decl->getLocStart())
+        ? get_location(decl->getLocStart())
         : cool::csabase::Location();
 }
 
@@ -370,7 +373,7 @@ cool::csabase::Location
 cool::csabase::Analyser::get_location(clang::Expr const* expr) const
 {
     return expr
-        ? this->get_location(expr->getLocStart())
+        ? get_location(expr->getLocStart())
         : cool::csabase::Location();
 }
 
@@ -378,7 +381,7 @@ cool::csabase::Location
 cool::csabase::Analyser::get_location(clang::Stmt const* stmt) const
 {
     return stmt
-        ? this->get_location(stmt->getLocStart())
+        ? get_location(stmt->getLocStart())
         : cool::csabase::Location();
 }
 
@@ -387,13 +390,13 @@ cool::csabase::Analyser::get_location(clang::Stmt const* stmt) const
 void
 cool::csabase::Analyser::process_decl(clang::Decl const* decl)
 {
-    this->visitor_->visit(decl);
+    visitor_->visit(decl);
 }
 
 void
 cool::csabase::Analyser::process_translation_unit_done()
 {
-    this->onTranslationUnitDone();
+    onTranslationUnitDone();
 }
 
 // -----------------------------------------------------------------------------
@@ -439,12 +442,12 @@ namespace
 clang::NamedDecl*
 cool::csabase::Analyser::lookup_name(std::string const& name)
 {
-    return ::lookup_name(this->sema(), name);
+    return ::lookup_name(sema(), name);
 }
 
 clang::TypeDecl*
 cool::csabase::Analyser::lookup_type(std::string const& name)
 {
-    clang::NamedDecl* decl(this->lookup_name(name));
+    clang::NamedDecl* decl(lookup_name(name));
     return decl? llvm::dyn_cast<clang::TypeDecl>(decl): 0;
 }
