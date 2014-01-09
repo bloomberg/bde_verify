@@ -101,10 +101,11 @@ push(@defs, (
 for (@ARGV) {
     if (m{^(.*)/.*$}) {
         push(@incs, $1) unless grep($1, @incs);
+    } else {
+        push(@incs, ".") unless grep(".", @incs);
     }
 }
 push(@incs, (
-    ".",
     "$bb/include",
     "$bb/include/stlport",
 )) if $definc;
