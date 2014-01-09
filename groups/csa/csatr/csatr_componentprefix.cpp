@@ -47,7 +47,8 @@ component_prefix(cool::csabase::Analyser&  analyser,
 {
     clang::NamedDecl const* named(llvm::dyn_cast<clang::NamedDecl>(decl));
     std::string const& name(named ? named->getNameAsString() : std::string());
-    if (!name.empty()
+    if (   !name.empty()
+        && !analyser.is_global_package()
         && !named->isCXXClassMember()
         && (   named->hasLinkage()
             || (   llvm::dyn_cast<clang::TypedefDecl>(named)

@@ -24,6 +24,7 @@ using_directive_in_header(cool::csabase::Analyser&         analyser,
     if (context->isFileContext()
         && analyser.get_location(decl).file() != analyser.toplevel()
         && !decl->getNominatedNamespace()->isAnonymousNamespace()
+        && !analyser.is_global_package()
         )
     {
         clang::NamedDecl const* name(decl->getNominatedNamespaceAsWritten());

@@ -48,6 +48,10 @@ check(cool::csabase::Analyser& analyser, clang::Decl const* decl)
         return;                                                       // RETURN
     }
 
+    if (analyser.is_global_package()) {
+        return;                                                       // RETURN
+    }
+
     cool::csabase::Location location(analyser.get_location(decl));
     clang::NamedDecl const* named(llvm::dyn_cast<clang::NamedDecl>(decl));
     if (analyser.is_component(location.file()) && named) {

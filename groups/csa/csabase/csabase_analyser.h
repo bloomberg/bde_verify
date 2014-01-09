@@ -63,7 +63,7 @@ public:
     void                     context(clang::ASTContext*);
     clang::CompilerInstance& compiler();
     clang::Sema&             sema();
-        
+
     std::string const& toplevel() const;
     std::string const& directory() const;
     std::string const& prefix() const;
@@ -82,6 +82,8 @@ public:
     template <typename T> bool is_component_source(T const*);
     bool               is_test_driver() const;
     bool               is_main() const;
+    bool               is_global_package() const;
+    bool               is_global_package(std::string const&) const;
 
     cool::diagnostic_builder report(clang::SourceLocation, std::string const&, std::string const&, bool always = false);
     template <typename T> cool::diagnostic_builder report(T, std::string const&, std::string const&, bool always = false);
@@ -121,6 +123,8 @@ private:
     std::string                           component_;
     typedef std::map<std::string, bool>   IsComponentHeader;
     mutable IsComponentHeader             is_component_header_;
+    typedef std::map<std::string, bool>   IsGlobalPackage;
+    mutable IsGlobalPackage               is_global_package_;
 };
 
 // -----------------------------------------------------------------------------

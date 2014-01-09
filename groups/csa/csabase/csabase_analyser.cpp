@@ -22,6 +22,7 @@
 #include <clang/Sema/Sema.h>
 #include <clang/Sema/Lookup.h>
 #include <llvm/Support/Path.h>
+#include <llvm/Support/Regex.h>
 #include <llvm/Support/raw_ostream.h>
 #include <algorithm>
 #include <functional>
@@ -34,7 +35,7 @@ cool::csabase::Analyser::Analyser(clang::CompilerInstance& compiler,
                                   bool                     debug,
                                   std::string const&       config,
                                   std::string const&       name)
-    : d_config(new cool::csabase::Config(config.empty()? ".coolyser": config))
+    : d_config(new cool::csabase::Config(config.empty()? ".bdeverify": config))
     , tool_name_(name)
     , compiler_(compiler)
     , d_source_manager(this->compiler_.getSourceManager())
@@ -232,6 +233,27 @@ bool
 cool::csabase::Analyser::is_component_header(clang::SourceLocation loc) const
 {
     return this->is_component_header(this->get_location(loc).file());
+}
+
+bool
+cool::csabase::Analyser::is_global_package(std::string const& pkg) const
+{
+    IsGlobalPackage::iterator in = this->is_global_package_.find(pkg);
+    if (in == this->is_global_package_.end()) {
+        llvm::Regex re("(" "^[[:space:]]*" "|" "[^[:alnum:]]" ")" +
+                       pkg +
+                       "(" "[^[:alnum:]]" "|" "[[:space:]]*$" ")");
+        in = this->is_global_package_.insert(
+              std::make_pair(pkg, re.match(config()->value("global_packages")))
+             ).first;
+    }
+    return in->second;
+}
+
+bool
+cool::csabase::Analyser::is_global_package() const
+{
+    return is_global_package(package());
 }
 
 bool
