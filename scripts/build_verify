@@ -6,5 +6,4 @@ exec "$VD/scripts/bdeverify"                                                  \
     --nodefdef                                                                \
     --config=$VD/bdeverify.cfg                                                \
     --exe=$EXE                                                                \
-    --verbose                                                                 \
     $@
