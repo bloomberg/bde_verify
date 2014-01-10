@@ -10,6 +10,7 @@
 #include <csabase_format.h>
 #include <csabase_cast_ptr.h>
 #include <csabase_registercheck.h>
+#include <clang/Sema/Sema.h>
 #ident "$Id$"
 
 // ----------------------------------------------------------------------------
@@ -141,6 +142,7 @@ check(cool::csabase::Analyser& analyser, clang::Decl const* decl)
                 && (   analyser.is_component_header(named)
                     || named->hasLinkage()
                     )
+                && !analyser.is_ADL_candidate(decl)
                 )
             {
                 //-dk:TODO check if this happens in the correct namespace

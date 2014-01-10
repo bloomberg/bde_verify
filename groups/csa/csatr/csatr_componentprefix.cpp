@@ -46,6 +46,11 @@ component_prefix(cool::csabase::Analyser&  analyser,
                  clang::Decl const        *decl)
 {
     clang::NamedDecl const* named(llvm::dyn_cast<clang::NamedDecl>(decl));
+    clang::FunctionDecl const* fd = llvm::dyn_cast<clang::FunctionDecl>(decl);
+    if (clang::FunctionTemplateDecl const* ftd =
+            llvm::dyn_cast<clang::FunctionTemplateDecl>(decl)) {
+        fd = ftd->getTemplatedDecl();
+    }
     std::string const& name(named ? named->getNameAsString() : std::string());
     if (   !name.empty()
         && !analyser.is_global_package()
@@ -62,19 +67,14 @@ component_prefix(cool::csabase::Analyser&  analyser,
         && (!llvm::dyn_cast<clang::RecordDecl>(named)
             || llvm::dyn_cast<clang::RecordDecl>(named)->isCompleteDefinition()
             )
-        && (!llvm::dyn_cast<clang::FunctionDecl>(named)
-            || !(llvm::dyn_cast<clang::FunctionDecl>(named)->isOverloadedOperator()
-                 || name == "swap"
-                 || name == "debugprint")
-            )
-        && (!llvm::dyn_cast<clang::FunctionTemplateDecl>(named)
-            || !(llvm::dyn_cast<clang::FunctionTemplateDecl>(named)->getTemplatedDecl()->isOverloadedOperator()
-                 || name == "swap"
-                 || name == "debugprint")
+        && (   !fd
+            || (!fd->isOverloadedOperator()
+                 && name != "swap"
+                 && name != "debugprint"
+                 && !analyser.is_ADL_candidate(fd))
             )
         && !llvm::dyn_cast<clang::ClassTemplateSpecializationDecl>(decl)
         && !llvm::dyn_cast<clang::ClassTemplatePartialSpecializationDecl>(decl)
-        && !llvm::dyn_cast<clang::FunctionDecl>(decl->getDeclContext())
         && !(   llvm::dyn_cast<clang::CXXRecordDecl>(decl)
              && llvm::dyn_cast<clang::CXXRecordDecl>(decl)->
                                                    getDescribedClassTemplate())

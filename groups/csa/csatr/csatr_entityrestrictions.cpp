@@ -58,6 +58,7 @@ function_declaration(cool::csabase::Analyser&   analyser,
         && !is_swap(decl)
         && decl->getNameAsString() != "debugprint"
         && decl->isFirstDecl()
+        && !analyser.is_ADL_candidate(decl)
         ) {
         analyser.report(decl, check_name,
                         "TR17: function '%0' declared at global scope")

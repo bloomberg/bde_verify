@@ -84,6 +84,7 @@ public:
     bool               is_main() const;
     bool               is_global_package() const;
     bool               is_global_package(std::string const&) const;
+    bool               is_ADL_candidate(clang::Decl const*);
 
     cool::diagnostic_builder report(clang::SourceLocation,
                                     std::string const&,
@@ -114,6 +115,8 @@ public:
 
     clang::NamedDecl* lookup_name(std::string const& name);
     clang::TypeDecl*  lookup_type(std::string const& name);
+    template <typename T> T* lookup_name_as(std::string const& name);
+
     bool hasContext() const { return context_; }
 
 private:
@@ -183,6 +186,14 @@ bool
 cool::csabase::Analyser::is_component_source(T const* value)
 {
     return is_component_source(get_location(value).file());
+}
+
+template <typename T>
+T*
+cool::csabase::Analyser::lookup_name_as(const std::string& name)
+{
+    clang::NamedDecl* nd = lookup_name(name);
+    return nd ? llvm::dyn_cast<T>(nd) : 0;
 }
 
 // -----------------------------------------------------------------------------

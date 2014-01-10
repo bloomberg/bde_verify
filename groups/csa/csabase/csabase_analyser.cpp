@@ -124,6 +124,20 @@ namespace
         ".h", ".hpp", ".hxx", ".hh", ".H", ".HH", ".h++"
     };
     const int NHS = sizeof header_suffixes / sizeof *header_suffixes;
+
+    static char
+    to_lower(unsigned char c)
+    {
+        return std::tolower(c);
+    }
+
+    static std::string
+    to_lower(std::string s)
+    {
+        std::transform(s.begin(), s.end(), s.begin(),
+                       static_cast<char(*)(unsigned char)>(&to_lower));
+        return s;
+    }
 }
 
 std::string const&
@@ -450,4 +464,60 @@ cool::csabase::Analyser::lookup_type(std::string const& name)
 {
     clang::NamedDecl* decl(lookup_name(name));
     return decl? llvm::dyn_cast<clang::TypeDecl>(decl): 0;
+}
+
+// ----------------------------------------------------------------------------
+
+bool
+cool::csabase::Analyser::is_ADL_candidate(clang::Decl const* decl)
+    // Return true iff the specified 'decl' is a function or function template
+    // with a parameter whose type is declared inside the package namespace.
+    // This check is used to determine whether to complain about a "mis-scoped"
+    // function declaration.  We wish to allow other top-level namespaces (than
+    // the package namespace) to contain function declarations if those
+    // functions take arguments whose types are defined in the package
+    // namespace, on the suspicion that they are declaring specializations or
+    // overloads which will then be found by ADL.  As an additional
+    // complication, we also wish to allow legacy 'package_name' constructs, so
+    // we check whether the parameter type associated classes are prefixed by
+    // the component name.
+{
+    bool adl = false;
+    clang::NamespaceDecl *pspace = lookup_name_as<clang::NamespaceDecl>(
+        "::" + config()->toplevel_namespace() + "::" + package()
+    );
+    const clang::FunctionDecl *fd =
+        llvm::dyn_cast<clang::FunctionDecl>(decl);
+    if (const clang::FunctionTemplateDecl *ftd =
+            llvm::dyn_cast<clang::FunctionTemplateDecl>(decl)) {
+        fd = ftd->getTemplatedDecl();
+    }
+    if (fd) {
+        unsigned n = fd->getNumParams();
+        for (unsigned i = 0; !adl && i < n; ++i) {
+            const clang::ParmVarDecl *pd = fd->getParamDecl(i);
+            // Gain access to the protected constructors of Expr.
+            struct MyExpr : public clang::Expr {
+                MyExpr(clang::QualType t) :
+                    clang::Expr(clang::Stmt::NoStmtClass,
+                            clang::Stmt::EmptyShell()) {
+                        setType(t);
+                    }
+            } e(pd->getOriginalType().getNonReferenceType());
+            llvm::ArrayRef<clang::Expr *> ar(&e);
+            clang::Sema::AssociatedNamespaceSet ns;
+            clang::Sema::AssociatedClassSet cs;
+            sema().FindAssociatedClassesAndNamespaces(
+                    fd->getLocation(), ar, ns, cs);
+            adl = ns.count(const_cast<clang::NamespaceDecl *>(pspace));
+
+            clang::Sema::AssociatedClassSet::iterator csb = cs.begin();
+            clang::Sema::AssociatedClassSet::iterator cse = cs.end();
+            while (!adl && csb != cse) {
+                std::string s = to_lower((*csb++)->getNameAsString());
+                adl = s == component() || 0 == s.find(component() + "_");
+            }
+        }
+    }
+    return adl;
 }
