@@ -100,9 +100,9 @@ push(@defs, (
 
 for (@ARGV) {
     if (m{^(.*)/.*$}) {
-        push(@incs, $1) unless grep($1, @incs);
+        push(@incs, $1) unless grep($_ eq $1, @incs);
     } else {
-        push(@incs, ".") unless grep(".", @incs);
+        push(@incs, ".") unless grep($_ eq ".", @incs);
     }
 }
 push(@incs, (
