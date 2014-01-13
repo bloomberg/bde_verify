@@ -28,7 +28,7 @@ check(cool::csabase::Analyser& analyser, clang::VarDecl const* decl)
             expr = expr? expr->IgnoreParenCasts(): expr;
             std::string exprType(expr? expr->getType().getAsString(): "<none>");
             clang::QualType deduced(at->getDeducedType());
-            analyser.report(decl, check_name, "VarDecl: %0 %1 %2")
+            analyser.report(decl, check_name, "AU01", "VarDecl: %0 %1 %2")
                 << (expr? expr->getSourceRange(): decl->getSourceRange())
                 << deduced.getAsString()
                 << tsinfo->getType().getAsString()

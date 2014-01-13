@@ -77,7 +77,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="groups\csa\csabase\csabase_tool.cpp" />
     <ClCompile Include="groups\csa\csabase\csabase_abstractvisitor.cpp" />
     <ClCompile Include="groups\csa\csabase\csabase_analyser.cpp" />
     <ClCompile Include="groups\csa\csabase\csabase_attachments.cpp" />
@@ -91,12 +90,15 @@
     <ClCompile Include="groups\csa\csabase\csabase_location.cpp" />
     <ClCompile Include="groups\csa\csabase\csabase_ppobserver.cpp" />
     <ClCompile Include="groups\csa\csabase\csabase_registercheck.cpp" />
+    <ClCompile Include="groups\csa\csabase\csabase_tool.cpp" />
+    <ClCompile Include="groups\csa\csabase\csabase_util.cpp" />
     <ClCompile Include="groups\csa\csabase\csabase_visitor.cpp" />
     <ClCompile Include="groups\csa\csabbg\csabbg_allocatorforward.cpp" />
     <ClCompile Include="groups\csa\csabbg\csabbg_allocatornewwithpointer.cpp" />
     <ClCompile Include="groups\csa\csabbg\csabbg_enumvalue.cpp" />
     <ClCompile Include="groups\csa\csabbg\csabbg_functioncontract.cpp" />
     <ClCompile Include="groups\csa\csabbg\csabbg_midreturn.cpp" />
+    <ClCompile Include="groups\csa\csafmt\csafmt_banner.cpp" />
     <ClCompile Include="groups\csa\csafmt\csafmt_headline.cpp" />
     <ClCompile Include="groups\csa\csafmt\csafmt_nonascii.cpp" />
     <ClCompile Include="groups\csa\csamisc\csamisc_charvsstring.cpp" />

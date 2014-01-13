@@ -86,19 +86,21 @@ public:
     bool               is_global_package(std::string const&) const;
     bool               is_ADL_candidate(clang::Decl const*);
 
-    cool::diagnostic_builder report(clang::SourceLocation,
-                                    std::string const&,
-                                    std::string const&,
+    cool::diagnostic_builder report(clang::SourceLocation where,
+                                    std::string const& check,
+                                    std::string const& tag,
+                                    std::string const& message,
                                     bool always = false,
-                                    clang::DiagnosticsEngine::Level =
+                                    clang::DiagnosticsEngine::Level level =
                                         clang::DiagnosticsEngine::Warning);
 
     template <typename T>
-    cool::diagnostic_builder report(T,
-                                    std::string const&,
-                                    std::string const&,
+    cool::diagnostic_builder report(T where,
+                                    std::string const& check,
+                                    std::string const& tag,
+                                    std::string const& message,
                                     bool always = false,
-                                    clang::DiagnosticsEngine::Level =
+                                    clang::DiagnosticsEngine::Level level =
                                         clang::DiagnosticsEngine::Warning);
 
     clang::SourceManager& manager();
@@ -158,11 +160,12 @@ template <typename T>
 cool::diagnostic_builder
 cool::csabase::Analyser::report(T where,
                                 std::string const& check,
+                                std::string const& tag,
                                 std::string const& message,
                                 bool always,
                                 clang::DiagnosticsEngine::Level level)
 {
-    return report(where->getLocStart(), check, message, always, level);
+    return report(where->getLocStart(), check, tag, message, always, level);
 }
 
 // -----------------------------------------------------------------------------

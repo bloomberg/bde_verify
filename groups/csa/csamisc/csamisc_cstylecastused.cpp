@@ -16,7 +16,7 @@ static std::string const check_name("c-cast");
 static void
 check(cool::csabase::Analyser& analyser, clang::CStyleCastExpr const* expr)
 {
-    analyser.report(expr, check_name, "C-style cast is used")
+    analyser.report(expr, check_name, "CC01", "C-style cast is used")
         << expr->getSourceRange();
 }
 

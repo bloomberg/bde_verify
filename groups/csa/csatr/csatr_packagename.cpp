@@ -50,8 +50,8 @@ namespace
                 if (fn.component().count('_') !=
                         (fn.package() == "bslfwd" ?
                              2 : fn.package().count('_') + 1)) {
-                    analyser.report(where, check_name, "TR02: "
-                                    "component name '%0' must consist of "
+                    analyser.report(where, check_name, "TR02",
+                                    "Component name '%0' must consist of "
                                     "package '%1' followed by underscore and "
                                     "name with no underscores", true)
                         << fn.component()
@@ -63,8 +63,8 @@ namespace
                 llvm::StringRef srgroup = fn.group();
                 int pkgsize = srpackage.size() - srgroup.size();
                 if (pkgsize < 1 || pkgsize > 4) {
-                    analyser.report(where, check_name, "TR02: "
-                            "package name %0 must consist of 1-4 characters "
+                    analyser.report(where, check_name, "TR02",
+                            "Package name %0 must consist of 1-4 characters "
                             "preceded by the group name: '%0'", true)
                         << srgroup.str();
                 }
@@ -91,8 +91,8 @@ namespace
                     }
                 }
                 if (bad) {
-                    analyser.report(where, check_name, "TR02: "
-                            "package and group names must consist of lower "
+                    analyser.report(where, check_name, "TR02",
+                            "Package and group names must consist of lower "
                             "case alphanumeric characters, start with a lower "
                             "case letter, and be separated by underscores: "
                             "'%0'", true)
@@ -110,8 +110,8 @@ namespace
                     struct stat indirect;
                     if (stat(expect.c_str(), &indirect) != 0 ||
                         direct.st_ino != indirect.st_ino) {
-                        analyser.report(where, check_name, "TR02: "
-                                "component '%0' doesn't seem to be in package "
+                        analyser.report(where, check_name, "TR02",
+                                "Component '%0' doesn't seem to be in package "
                                 "'%1'", true)
                             << fn.component()
                             << srpackage;

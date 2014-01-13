@@ -83,8 +83,8 @@ check(cool::csabase::Analyser& analyser, clang::Decl const* decl)
                 && name.find("operator new") == std::string::npos
                 && name.find("operator delete") == std::string::npos
                 ) {
-                analyser.report(decl, check_name, "TR04: "
-                                "declaration of '%0' at global scope", true)
+                analyser.report(decl, check_name, "TR04",
+                                "Declaration of '%0' at global scope", true)
                     << decl->getSourceRange()
                     << name;
             }
@@ -146,7 +146,9 @@ check(cool::csabase::Analyser& analyser, clang::Decl const* decl)
                 )
             {
                 //-dk:TODO check if this happens in the correct namespace
-                analyser.report(decl, check_name, "TR04: declaration of '%0' not within package namespace '%1'", true)
+                analyser.report(decl, check_name, "TR04",
+                    "Declaration of '%0' not within package namespace '%1'",
+                    true)
                     << decl->getSourceRange()
                     << name
                     << (analyser.config()->toplevel_namespace() + "::" + analyser.package())

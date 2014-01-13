@@ -71,8 +71,8 @@ struct on_group_open
                   groupchar(group[2]) &&
                   groupchar(group[3]) &&
                   groupchar(group[4])))) {
-                analyser.report(where, check_name, "TR01: "
-                        "group names must consist of three lower-case letters "
+                analyser.report(where, check_name, "TR01",
+                        "Group names must consist of three lower-case letters "
                         "possibly prefixed by a single lowercase letter and "
                         "underscore: %0", true)
                     << group;
@@ -90,8 +90,8 @@ struct on_group_open
                 struct stat indirect;
                 if (stat(groupdir.c_str(), &indirect)
                     || direct.st_ino != indirect.st_ino) {
-                    analyser.report(where, check_name, "TR01: "
-                            "component '%0' doesn't seem to be in package "
+                    analyser.report(where, check_name, "TR01",
+                            "Component '%0' doesn't seem to be in package "
                             "group '%1'", true)
                         << analyser.component()
                         << group;

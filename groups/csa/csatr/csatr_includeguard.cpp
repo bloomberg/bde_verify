@@ -72,8 +72,8 @@ namespace
             std::string const& expect(data.get_expect(d_analyser));
             if (value != "!defined(" + expect + ")"
                 && value != "!defined" + expect) {
-                d_analyser->report(range.getBegin(), check_name,
-                                         "TR14: wrong include guard "
+                d_analyser->report(range.getBegin(), check_name, "TR14",
+                                         "Wrong include guard "
                                          "(expected '!defined(%0)')")
                     << expect;
             }
@@ -106,8 +106,8 @@ namespace
                 //-dk:TODO llvm::errs() << "  vlaue='" << value << "'\n";
                 std::string const& expect(data.get_expect(d_analyser));
                 if (value != expect) {
-                    d_analyser->report(token.getLocation(), check_name,
-                                             "TR14: wrong name for include guard "
+                    d_analyser->report(token.getLocation(), check_name, "TR14",
+                                             "Wrong name for include guard "
                                              "(expected '%0')")
                         << expect;
                 }
@@ -134,12 +134,12 @@ namespace
                 && !d_analyser->attachment<include_guard>().isComplete())
             {
                 include_guard const& data(d_analyser->attachment<include_guard>());
-                d_analyser->report(location, check_name,
+                d_analyser->report(location, check_name, "TR14",
                                          data.d_test
-                                         ? "TR14: missing define for include guard"
+                                         ? "Missing define for include guard"
                                          : data.d_define
-                                         ? "TR14: missing test for include guard"
-                                         : "TR14: missing include guard");
+                                         ? "Missing test for include guard"
+                                         : "Missing include guard");
             }
         }
 

@@ -94,8 +94,8 @@ onCloseFile(cool::csabase::Analyser* analyser,
                 : it->first.size() < 4)
             )
         {
-            analyser->report(it->second, check_name,
-                             "SLM: macro definition '%0' leaks from header",
+            analyser->report(it->second, check_name, "SLM01",
+                             "Macro definition '%0' leaks from header",
                              true)
                 << it->first;
         }

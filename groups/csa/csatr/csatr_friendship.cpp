@@ -39,8 +39,8 @@ local_friendship_only(cool::csabase::Analyser&  analyser,
         if (clang::CXXMethodDecl const* method
             = llvm::dyn_cast<clang::CXXMethodDecl>(named)) {
             if (!analyser.is_component(method->getParent())) {
-                analyser.report(decl->getFriendLoc(), check_name,
-                                "TR19: friendship to a method "
+                analyser.report(decl->getFriendLoc(), check_name, "TR19",
+                                "Friendship to a method "
                                 "can only be granted within a component")
                     << decl->getSourceRange();
             }
@@ -48,8 +48,8 @@ local_friendship_only(cool::csabase::Analyser&  analyser,
         else if (clang::FunctionDecl const* function
                  = llvm::dyn_cast<clang::FunctionDecl>(named)) {
             if (!analyser.is_component(function->getCanonicalDecl())) {
-                analyser.report(decl->getFriendLoc(), check_name,
-                                "TR19: friendship to a function "
+                analyser.report(decl->getFriendLoc(), check_name, "TR19",
+                                "Friendship to a function "
                                 "can only be granted within a component")
                     << decl->getSourceRange();
             }
@@ -57,8 +57,8 @@ local_friendship_only(cool::csabase::Analyser&  analyser,
         else if (clang::FunctionTemplateDecl const* function
                  = llvm::dyn_cast<clang::FunctionTemplateDecl>(named)) {
             if (!analyser.is_component(function->getCanonicalDecl())) {
-                analyser.report(decl->getFriendLoc(), check_name,
-                                "TR19: friendship to a function template "
+                analyser.report(decl->getFriendLoc(), check_name,  "TR19",
+                                "Friendship to a function template "
                                 "can only be granted within a component")
                     << decl->getSourceRange();
             }
@@ -66,15 +66,15 @@ local_friendship_only(cool::csabase::Analyser&  analyser,
         else if (clang::ClassTemplateDecl const* cls
                  = llvm::dyn_cast<clang::ClassTemplateDecl>(named)) {
             if (!analyser.is_component(cls->getCanonicalDecl())) {
-                analyser.report(decl->getFriendLoc(), check_name,
-                                "TR19: friendship to a class template "
+                analyser.report(decl->getFriendLoc(), check_name, "TR19",
+                                "Friendship to a class template "
                                 "can only be granted within a component")
                     << decl->getSourceRange();
             }
         }
         else {
-            analyser.report(decl, check_name,
-                            "TR19: unknonwn kind of friendship (%0)")
+            analyser.report(decl, check_name,  "TR19",
+                            "Unknonwn kind of friendship (%0)")
                 << decl->getSourceRange()
                 << cool::csabase::format(named->getKind());
         }
@@ -84,8 +84,8 @@ local_friendship_only(cool::csabase::Analyser&  analyser,
         clang::TypeLoc loc(typeInfo->getTypeLoc());
         clang::Type const* type(loc.getTypePtr());
         if (is_extern_type(analyser, type)) {
-            analyser.report(decl, check_name,
-                            "TR19: friendship to a class "
+            analyser.report(decl, check_name, "TR19",
+                            "Friendship to a class "
                             "can only be granted within a component"
                             )
                 << decl->getSourceRange()

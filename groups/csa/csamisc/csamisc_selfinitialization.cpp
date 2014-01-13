@@ -33,7 +33,8 @@ namespace
         {
             if (ref->getDecl() == decl_)
             {
-                analyser_.report(decl_, check_name, "variable %0 used for self-initialization")
+                analyser_.report(decl_, check_name, "SI01",
+                                 "Variable %0 used for self-initialization")
                     << decl_->getName()
                     << ref->getSourceRange();
             }

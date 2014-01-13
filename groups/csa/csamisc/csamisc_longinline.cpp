@@ -133,8 +133,9 @@ struct report
                   ss << "Unknown inline function problem " << it->second;
               } break;
             }
-            d_analyser->report(it->first->getNameInfo().getLoc(), check_name,
-                                                                     ss.str());
+            d_analyser->report(it->first->getNameInfo().getLoc(),
+                               check_name, "LI01",
+                               ss.str());
         }
     }
 };

@@ -25,8 +25,8 @@ using_declaration_in_header(cool::csabase::Analyser&  analyser,
         && analyser.get_location(decl).file() != analyser.toplevel()
         && !analyser.is_global_package())
     {
-        analyser.report(decl, check_name,
-                        "TR16: namespace level using declaration "
+        analyser.report(decl, check_name, "TR16",
+                        "Namespace level using declaration "
                         "in header file")
             << decl->getSourceRange();
     }

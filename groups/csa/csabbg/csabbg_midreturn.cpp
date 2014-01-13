@@ -116,7 +116,7 @@ struct report
             // Ignore final top-level return statements.
             if (!d.d_last_returns.count(*it)) {
                 if (!is_commented(*it, d.d_rcs.begin(), d.d_rcs.end())) {
-                    d_analyser->report(*it, check_name, "MR01: "
+                    d_analyser->report(*it, check_name, "MR01",
                         "Mid-function 'return' requires '// RETURN' comment");
                 }
             }
@@ -141,12 +141,12 @@ struct report
                 && cfile == sfile) {
                 if (ccolm != 71) {
                     std::ostringstream ss;
-                    ss << "MR01: '// RETURN' comment must end in column 79, "
+                    ss << "'// RETURN' comment must end in column 79, "
                        << "not " << (ccolm + 8);
                     if (scolm >= 69 && ccolm > 71) {
                         ss << " (place it alone on the next line)";
                     }
-                    d_analyser->report(*it, check_name, ss.str());
+                    d_analyser->report(*it, check_name, "MR01", ss.str());
                 }
                 return true;
             }

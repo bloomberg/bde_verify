@@ -61,7 +61,9 @@ namespace
         cool::csabase::FileName fn(analyser->get_location(begin).file());
         if (cool::end(suffixes) == std::find(cool::begin(suffixes), cool::end(suffixes), fn.extension().str()))
         {
-            analyser->report(begin, check_name, "unknown header file suffix: '" + fn.extension().str() + "'");
+            analyser->report(begin, check_name, "HS01",
+                             "Unknown header file suffix: '" +
+                             fn.extension().str() + "'");
         }
         else
         {
@@ -73,7 +75,8 @@ namespace
             std::transform(file.begin(), file.end(), file.begin(), to_upper);
             if (file != name)
             {
-                analyser->report(begin, check_name, "expected include guard '" + name + "'");
+                analyser->report(begin, check_name, "IG01",
+                                 "expected include guard '" + name + "'");
             }
         }
     }

@@ -9,6 +9,7 @@
 #include <csabase_filenames.h>
 #include <csabase_registercheck.h>
 #include <csabase_ppobserver.h>
+#include <csabase_util.h>
 #include <fstream>
 #include <string>
 
@@ -46,27 +47,6 @@ namespace
 
 // ----------------------------------------------------------------------------
 
-static std::pair<unsigned, unsigned>
-mismatch(const std::string &have, const std::string &want)
-{
-    std::pair<unsigned, unsigned> result(0, 0);
-    while (   result.first < have.size()
-           && result.first < want.size()
-           && have[result.first] == want[result.first]) {
-        ++result.first;
-    }
-    while (   result.second < have.size()
-           && result.second < want.size()
-           && have.size() - result.second - 1 >= result.first
-           && have[have.size() - result.second - 1] ==
-              want[want.size() - result.second - 1]) {
-        ++result.second;
-    }
-    return result;
-}
-
-// ----------------------------------------------------------------------------
-
 static void
 open_file(cool::csabase::Analyser& analyser,
           clang::SourceLocation    where, 
@@ -89,8 +69,10 @@ open_file(cool::csabase::Analyser& analyser,
         if (   !buf.equals(expectcpp)
             && !buf.equals(expectc)
             && buf.find("GENERATED") == buf.npos) {
-            std::pair<unsigned, unsigned> mcpp = mismatch(buf, expectcpp);
-            std::pair<unsigned, unsigned> mc   = mismatch(buf, expectc);
+            std::pair<unsigned, unsigned> mcpp =
+                cool::csabase::mid_mismatch(buf, expectcpp);
+            std::pair<unsigned, unsigned> mc =
+                cool::csabase::mid_mismatch(buf, expectc);
             std::pair<unsigned, unsigned> m;
             std::string expect;
 
@@ -102,9 +84,8 @@ open_file(cool::csabase::Analyser& analyser,
                 expect = expectc;
             }
             analyser.report(where.getLocWithOffset(m.first),
-                            check_name,
-                            "HL01: file headline incorrect",
-                            true)
+                            check_name, "HL01",
+                            "file headline incorrect", true)
                 << clang::FixItHint::CreateReplacement(
                     clang::SourceRange(
                         where.getLocWithOffset(m.first),

@@ -16,8 +16,8 @@ enum_declaration(cool::csabase::Analyser&  analyser,
 {
     if (llvm::dyn_cast<clang::NamespaceDecl>(decl->getDeclContext())
         && analyser.is_component_header(decl)) {
-        analyser.report(decl, check_name,
-                        "TR17: enum '%0' declared at global scope")
+        analyser.report(decl, check_name, "TR17",
+                        "Enum '%0' declared at global scope")
             << decl->getName();
     }
 }
@@ -30,8 +30,8 @@ var_declaration(cool::csabase::Analyser&  analyser,
 {
     if (llvm::dyn_cast<clang::NamespaceDecl>(decl->getDeclContext())
         && analyser.is_component_header(decl)) {
-        analyser.report(decl, check_name,
-                        "TR17: variable '%0' declared at global scope")
+        analyser.report(decl, check_name, "TR17",
+                        "Variable '%0' declared at global scope")
             << decl->getName();
     }
 }
@@ -60,8 +60,8 @@ function_declaration(cool::csabase::Analyser&   analyser,
         && decl->isFirstDecl()
         && !analyser.is_ADL_candidate(decl)
         ) {
-        analyser.report(decl, check_name,
-                        "TR17: function '%0' declared at global scope")
+        analyser.report(decl, check_name, "TR17",
+                        "Function '%0' declared at global scope")
             << decl->getNameAsString();
     }
 }
@@ -82,8 +82,8 @@ typedef_declaration(cool::csabase::Analyser&  analyser,
         && analyser.is_component_header(decl)
         && decl->getNameAsString().find(package) != 0
         ) {
-        analyser.report(decl, check_name,
-                        "TR17: typedef '%0' declared at global scope")
+        analyser.report(decl, check_name, "TR17",
+                        "Typedef '%0' declared at global scope")
             << decl->getNameAsString();
     }
 }

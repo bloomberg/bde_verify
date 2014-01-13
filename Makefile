@@ -30,6 +30,7 @@ TSTCXXFILES +=                                                                \
         groups/csa/csabbg/csabbg_functioncontract.cpp                         \
         groups/csa/csabbg/csabbg_midreturn.cpp                                \
         groups/csa/csafmt/csafmt_headline.cpp                                 \
+        groups/csa/csafmt/csafmt_banner.cpp                                   \
         groups/csa/csafmt/csafmt_nonascii.cpp                                 \
         groups/csa/csatr/csatr_groupname.cpp                                  \
         groups/csa/csatr/csatr_componentprefix.cpp                            \
@@ -71,7 +72,6 @@ TODO =                                                                        \
         groups/csa/csadep/csadep_types.cpp                                    \
 
 LIBCXXFILES +=                                                                \
-        groups/csa/csabase/csabase_tool.cpp                                   \
         groups/csa/csabase/csabase_abstractvisitor.cpp                        \
         groups/csa/csabase/csabase_analyser.cpp                               \
         groups/csa/csabase/csabase_attachments.cpp                            \
@@ -85,6 +85,8 @@ LIBCXXFILES +=                                                                \
         groups/csa/csabase/csabase_location.cpp                               \
         groups/csa/csabase/csabase_ppobserver.cpp                             \
         groups/csa/csabase/csabase_registercheck.cpp                          \
+        groups/csa/csabase/csabase_tool.cpp                                   \
+        groups/csa/csabase/csabase_util.cpp                                   \
         groups/csa/csabase/csabase_visitor.cpp                                \
         $(TSTCXXFILES)
 

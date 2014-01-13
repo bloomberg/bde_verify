@@ -49,14 +49,14 @@ checkSwitch(cool::csabase::Analyser& analyser, clang::SwitchStmt const* stmt)
         cases.push_back(label);
     }
     if (cases.empty()) {
-        analyser.report(stmt, check_name, "empty switch statement");
+        analyser.report(stmt, check_name, "ES01", "Empty switch statement");
         return;
     }
     std::reverse(cases.begin(), cases.end());
     
     const_iterator it(cases.begin()), end(cases.end());
     if (cool::csabase::cast_ptr<clang::DefaultStmt> label = *it) {
-        analyser.report(*it, check_name, "switch starts with default")
+        analyser.report(*it, check_name, "SD01", "Switch starts with default")
             << label.get();
         checkBreak(analyser, *it, true);
         ++it;
@@ -64,8 +64,8 @@ checkSwitch(cool::csabase::Analyser& analyser, clang::SwitchStmt const* stmt)
     else if (cool::csabase::cast_ptr<clang::CaseStmt> label = *it) {
         long result(0);
         if (!getValue(analyser, label->getLHS(), result) || result != 0) {
-            analyser.report(*it, check_name,
-                            "switch doesn't start with `case 0:`")
+            analyser.report(*it, check_name, "SZ01",
+                            "Switch doesn't start with `case 0:`")
                 << label.get();
             checkBreak(analyser, *it, true);
         }
@@ -75,7 +75,7 @@ checkSwitch(cool::csabase::Analyser& analyser, clang::SwitchStmt const* stmt)
         }
     }
     else {
-        analyser.report(*it, check_name, "unknown switch case")
+        analyser.report(*it, check_name, "US01", "Unknown switch case")
             << cases.front();
     }
 
@@ -83,14 +83,14 @@ checkSwitch(cool::csabase::Analyser& analyser, clang::SwitchStmt const* stmt)
         long previous(0);
         if (cool::csabase::cast_ptr<clang::CaseStmt> label = *it) {
             if (!getValue(analyser, label->getLHS(), previous)) {
-                analyser.report(*it, check_name,
-                                "can't get value from case label")
+                analyser.report(*it, check_name, "NC01",
+                                "Can't get value from case label")
                     << *it;
             }
         }
         else if (cool::csabase::cast_ptr<clang::DefaultStmt> label = *it) {
             if (it + 1 != end) {
-                analyser.report(label.get(), check_name,
+                analyser.report(label.get(), check_name, "MD01",
                                 "`default:` label in the middle of labels")
                     << *it;
             }
@@ -103,15 +103,15 @@ checkSwitch(cool::csabase::Analyser& analyser, clang::SwitchStmt const* stmt)
             long value(0);
             if (cool::csabase::cast_ptr<clang::CaseStmt> label = *it) {
                 if (!getValue(analyser, label->getLHS(), value)) {
-                    analyser.report(*it, check_name,
-                                    "can't get value from case label")
+                    analyser.report(*it, check_name, "NC01",
+                                    "Can't get value from case label")
                         << *it;
                 }
                 else if ((1 < previous && previous - 1 != value)
                          || value == 0
                          || (previous <= value)) {
-                    analyser.report(*it, check_name,
-                                    "case label out of order: "
+                    analyser.report(*it, check_name, "LO01",
+                                    "Case label out of order: "
                                     "previous=%0 value=%1")
                         << previous << value;
                 }
@@ -119,7 +119,7 @@ checkSwitch(cool::csabase::Analyser& analyser, clang::SwitchStmt const* stmt)
             }
             else if (cool::csabase::cast_ptr<clang::DefaultStmt> label = *it) {
                 if (it + 1 != end) {
-                    analyser.report(label.get(), check_name,
+                    analyser.report(label.get(), check_name, "MD01",
                                     "`default:` label in the middle of labels")
                         << *it;
                 }
@@ -130,8 +130,8 @@ checkSwitch(cool::csabase::Analyser& analyser, clang::SwitchStmt const* stmt)
             checkBreak(analyser, *it, true);
         }
         if (!default_at_end) {
-            analyser.report(stmt, check_name,
-                            "switch doesn't end with `default:` label");
+            analyser.report(stmt, check_name, "ED01",
+                            "Switch doesn't end with `default:` label");
         }
     }
 }

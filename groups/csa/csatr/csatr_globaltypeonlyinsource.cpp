@@ -55,8 +55,8 @@ global_type_only_in_source(cool::csabase::Analyser&  analyser,
         && !decl->getDeclName().getAsString().empty()
         )
     {
-        analyser.report(decl, check_name,
-                       "TR10: globally visible type '%0' "
+        analyser.report(decl, check_name, "TR10",
+                       "Globally visible type '%0' "
                         "is not declared in header.")
             << decl->getQualifiedNameAsString();
     }

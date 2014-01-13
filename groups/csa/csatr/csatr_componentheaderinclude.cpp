@@ -80,9 +80,8 @@ include_file(cool::csabase::Analyser& analyser,
                  && "bdes_ident.h" != name
                  && !analyser.is_main())
         {
-            analyser.report(where,
-                            check_name,
-                            "TR09: include files precede component header",
+            analyser.report(where, check_name, "TR09",
+                            "Include files precede component header",
                             true);
             status.check_ = false;
         }
@@ -115,9 +114,8 @@ declaration(cool::csabase::Analyser& analyser, clang::Decl const* decl)
                                                           ->getNameAsString()))
                  && !analyser.is_main())
         {
-            analyser.report(decl,
-                            check_name,
-                            "TR09: declarations precede component header",
+            analyser.report(decl, check_name, "TR09",
+                            "Declarations precede component header",
                             true);
             status.check_ = false;
         }

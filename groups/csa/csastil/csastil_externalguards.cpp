@@ -164,14 +164,14 @@ onEndif(CB::Analyser* analyser,
             std::string include(getInclude(source));
             if (include.empty()) {
                 analyser->report(context.d_conditions.top().second, check_name,
-                                 "SEG: include guard without include file");
+                                 "SEG01", "include guard without include file");
             }
             else if (   include != context.d_conditions.top().first
                      && (   include.find('_') != include.npos
                          || include + "_H" !=
                                 context.d_conditions.top().first)) {
                 analyser->report(context.d_conditions.top().second, check_name,
-                                 "SEG: include guard mismatching include file");
+                                 "SEG02", "include guard mismatching include file");
             }
         }
         context.d_conditions.pop();
@@ -199,7 +199,7 @@ onInclude(CB::Analyser*         analyser,
         )
     {
         analyser->report(where, check_name,
-                         "SEG: include without external include guard");
+                         "SEG03", "include without external include guard");
     }
 }
 

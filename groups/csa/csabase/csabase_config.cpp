@@ -6,6 +6,7 @@
 // ----------------------------------------------------------------------------
 
 #include "groups/csa/csabase/csabase_config.h"
+#include "groups/csa/csabase/csabase_filenames.h"
 #include <llvm/Support/raw_ostream.h>
 #include <algorithm>
 #include <fstream>
@@ -160,6 +161,18 @@ cool::csabase::Config::process(std::string const& line)
             llvm::errs() << "WARNING: set needs name and value on line '" << line << "'\n";
         }
     }
+    else if (command == "suppress") {
+        std::string tag;
+        if (args >> tag) {
+            std::string file;
+            while (args >> file) {
+                d_suppressions.insert(std::make_pair(tag, file));
+            }
+        }
+        else {
+            llvm::errs() << "WARNING: suppress needs tag and files on line '" << line << "'\n";
+        }
+    }
     else if (command.empty() || command[0] != '#') {
         std::cout << "unknown configuration command='" << command << "' arguments='" << line << "'\n";
     }
@@ -223,4 +236,14 @@ const std::string& cool::csabase::Config::value(const std::string& key) const
 bool cool::csabase::Config::all() const
 {
     return d_all;
+}
+
+bool
+cool::csabase::Config::suppressed(const std::string& tag,
+                                  const std::string& file) const
+{
+    cool::csabase::FileName fn(file);
+    return d_suppressions.count(std::make_pair(tag, fn.name())) +
+           d_suppressions.count(std::make_pair("*", fn.name())) +
+           d_suppressions.count(std::make_pair(tag, "*"));
 }

@@ -96,9 +96,8 @@ check_order(CB::Analyser*                              analyser,
 {
     for (; end != (it = std::adjacent_find(it, end, &first_is_greater));
          ++it) {
-        analyser->report(it[1].second,
-                         check_name,
-                         "SHO: %0 header out of order")
+        analyser->report(it[1].second, check_name, "SHO01",
+                         "%0 header out of order")
             << message;
     }
 }
@@ -114,9 +113,8 @@ check_order(CB::Analyser*                              analyser,
     for (it = section_end;
          end != (it = std::find_if(it, end, has_prefix(analyser->package() + "_")));
          ++it) {
-        analyser->report(it->second,
-                         check_name,
-                         "SHO: %0 header coming late")
+        analyser->report(it->second, check_name, "SH02",
+                         "%0 header coming late")
             << message;
     }
 }
@@ -128,18 +126,18 @@ check_order(CB::Analyser*                   analyser,
 {
     clang::SourceLocation const* bdes_ident_location(0);
     if (headers.empty()) {
-        analyser->report(clang::SourceLocation(), check_name,
+        analyser->report(clang::SourceLocation(), check_name, "SH003",
                          header
-                         ? "SHO: header without include guard included"
-                         : "SHO: source without component include");
+                         ? "Header without include guard included"
+                         : "Source without component include");
         return bdes_ident_location;
     }
     include_order::headers_t::const_iterator it(headers.begin());
     if (it->first != analyser->component() || it++ == headers.end()) {
-        analyser->report(headers[0].second, check_name,
+        analyser->report(headers[0].second, check_name, "SHO04",
                          header
-                         ? "SHO: header without or with wrong include guard"
-                         : "SHO: source doesn't include component header first");
+                         ? "Header without or with wrong include guard"
+                         : "Source doesn't include component header first");
     }
     std::string ident =
         analyser->group() == "bsl" ? "bsls_ident" : "bdes_ident";
@@ -147,8 +145,8 @@ check_order(CB::Analyser*                   analyser,
     }
     else if (it == headers.end() || it->first != ident) {
         analyser->report((it == headers.end() ? it - 1: it)->second,
-                         check_name,
-                         "SHO: missing include for %0.h")
+                         check_name, "SHO06",
+                         "Missing include for %0.h")
             << ident;
     }
     else {
@@ -165,8 +163,8 @@ check_order(CB::Analyser*                   analyser,
             || it->first != version
             || it++ == headers.end())) {
         analyser->report((it == headers.end() ? it - 1 : it)->second,
-                         check_name,
-                         "SHO: missing include for %0.h")
+                         check_name, "SHO07",
+                         "Missing include for %0.h")
             << version;
     }
 
@@ -275,8 +273,8 @@ namespace
             clang::SourceLocation const* source_bdes_ident(check_order(d_analyser, data.d_source, false));
             if ((header_bdes_ident == 0) != (source_bdes_ident == 0)) {
                 d_analyser->report(*(header_bdes_ident? header_bdes_ident: source_bdes_ident),
-                                         check_name,
-                                         "SHO: bdes_ident.h is used inconsistently with the %0")
+                                         check_name, "SHO08",
+                                         "bdes_ident.h is used inconsistently with the %0")
                     << (header_bdes_ident? "source": "header");
             }
         }

@@ -28,8 +28,8 @@ using_directive_in_header(cool::csabase::Analyser&         analyser,
         )
     {
         clang::NamedDecl const* name(decl->getNominatedNamespaceAsWritten());
-        analyser.report(decl, check_name,
-                        "TR16: namespace level using directive for '"
+        analyser.report(decl, check_name, "TR16",
+                        "Namespace level using directive for '"
                         + name->getQualifiedNameAsString()
                         + "' in header file");
     }

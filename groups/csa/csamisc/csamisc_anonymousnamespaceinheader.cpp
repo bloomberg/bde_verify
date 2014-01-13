@@ -20,7 +20,8 @@ anonymous_namespace_in_header(cool::csabase::Analyser& analyser, clang::Namespac
     if (decl->isAnonymousNamespace()
         && analyser.get_location(decl).file() != analyser.toplevel())
     {
-        analyser.report(decl, check_name, "anonymous namespace in header");
+        analyser.report(decl, check_name, "AN01",
+                "Anonymous namespace in header");
     }
 }
 

@@ -11,6 +11,7 @@
 
 #include <iosfwd>
 #include <map>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -43,6 +44,9 @@ public:
     std::map<std::string, Status> const& checks() const;
     std::string const&                   value(const std::string& key) const;
     bool                                 all() const;
+    bool                                 suppressed(
+                                            const std::string& tag,
+                                            const std::string& file) const;
 
 private:
     std::string                                      d_toplevel_namespace;
@@ -50,6 +54,7 @@ private:
     std::map<std::string, Status>                    d_checks;
     std::map<std::string, std::vector<std::string> > d_groups;
     std::map<std::string, std::string>               d_values;
+    std::set<std::pair<std::string, std::string> >   d_suppressions;
     Status                                           d_all;
 };
 

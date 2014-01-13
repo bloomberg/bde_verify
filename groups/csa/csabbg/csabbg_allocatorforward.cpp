@@ -303,14 +303,14 @@ void report::check_not_forwarded(Iter begin, Iter end)
                 data_.records_with_allocator_trait_.count(record);
 
             if (!uses_allocator && has_alloc_trait) {
-                analyser_.report(record, check_name,
-                        "MA02: Class %0 does not use allocators but declares "
+                analyser_.report(record, check_name, "MA02",
+                        "Class %0 does not use allocators but declares "
                         "the TypeTraitUsesBslmaAllocator trait")
                     << record;
             }
             else if (uses_allocator && !has_alloc_trait) {
-                analyser_.report(record, check_name,
-                        "MA02: Class %0 uses allocators but does not declare "
+                analyser_.report(record, check_name, "MA02",
+                        "Class %0 uses allocators but does not declare "
                         "the TypeTraitUsesBslmaAllocator trait")
                     << record;
             }
@@ -350,7 +350,7 @@ void report::check_not_forwarded(Iter begin, Iter end)
 
             if (!found) {
                 if (decl->isUserProvided()) {
-                    analyser_.report(decl, check_name, "MA04: "
+                    analyser_.report(decl, check_name, "MA04",
                                  "This constructor has no version that can be "
                                  "called with an allocator.")
                         << decl;
@@ -361,7 +361,7 @@ void report::check_not_forwarded(Iter begin, Iter end)
                         decl->isCopyOrMoveConstructor() ? "copy "    :
                                                           "";
 
-                    analyser_.report(decl, check_name, "MA04: "
+                    analyser_.report(decl, check_name, "MA04",
                                  "Implicit " + type + "constructor cannot be "
                                  "called with an allocator")
                         << decl;
@@ -454,13 +454,13 @@ void report::check_not_forwarded(const CXXCtorInitializer* init,
     }
 
     if (init->isBaseInitializer()) {
-        analyser_.report(loc, check_name,
-                "MA01: Allocator not passed to base %0")
+        analyser_.report(loc, check_name, "MA01",
+                "Allocator not passed to base %0")
             << init->getBaseClass()->getCanonicalTypeInternal().
             getAsString() << range;
     } else {
-        analyser_.report(loc, check_name,
-                "MA01: Allocator not passed to member %0")
+        analyser_.report(loc, check_name, "MA01",
+                "Allocator not passed to member %0")
             << init->getAnyMember()->getNameAsString() << range;
     }
 }
@@ -570,7 +570,7 @@ void report::check_wrong_parm(const CXXConstructExpr *expr)
 
             if (   is_allocator(arg->getType())
                 && !data_.bad_cexp_.count(std::make_pair(arg, decl))) {
-                analyser_.report(arg->getExprLoc(), check_name, "MA02: "
+                analyser_.report(arg->getExprLoc(), check_name, "MA02",
                                 "Allocator argument initializes "
                                 "non-allocator %0 of type '%1' rather than "
                                 "allocator %2")

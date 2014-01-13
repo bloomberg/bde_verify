@@ -25,8 +25,8 @@ checkTemplate(cool::csabase::Analyser& analyser,
         for (const_iterator it(parms->begin()), end(parms->end()); it != end; ++it) {
             cool::csabase::cast_ptr<clang::TemplateTypeParmDecl> parm(*it);
             if (parm && parm->wasDeclaredWithTypename()) {
-                analyser.report(decl, check_name,
-                                "template parameter uses typename");
+                analyser.report(decl, check_name, "TY01",
+                                "Template parameter uses typename");
             }
         }
     }

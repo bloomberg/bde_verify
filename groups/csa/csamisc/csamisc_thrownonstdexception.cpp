@@ -27,7 +27,8 @@ check(cool::csabase::Analyser& analyser, clang::CXXThrowExpr const* expr)
         clang::TypeDecl*  exceptionType(analyser.lookup_type("::std::exception"));
         if (!exceptionType || !sema.IsDerivedFrom(object->getType(), exceptionType->getTypeForDecl()->getCanonicalTypeInternal()))
         {
-            analyser.report(expr, check_name, "Object of type %0 not derived from std::exception is thrown.")
+            analyser.report(expr, check_name, "FE01",
+                "Object of type %0 not derived from std::exception is thrown.")
                 << object->getType();
         }
     }

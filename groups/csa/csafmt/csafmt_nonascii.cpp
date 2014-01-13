@@ -61,8 +61,8 @@ void files::operator()(SourceLocation     loc,
             if (begin != 0) {
                 SourceRange bad(loc.getLocWithOffset(begin - b),
                                 loc.getLocWithOffset(s - b - 1));
-                d_analyser.report(bad.getBegin(), check_name,
-                                  "NA01: Non-ASCII characters")
+                d_analyser.report(bad.getBegin(), check_name, "NA01",
+                                  "Non-ASCII characters")
                     << bad;
                 begin = 0;
             }

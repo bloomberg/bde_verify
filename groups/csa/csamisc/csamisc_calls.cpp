@@ -69,7 +69,7 @@ process(cool::csabase::Analyser& analyser, clang::Expr const* expr, clang::Decl 
             ;
     }
     else {
-        analyser.report(expr, check_name, "unresolved function call")
+        analyser.report(expr, check_name, "UF01", "Unresolved function call")
             << expr->getSourceRange();
     }
 }

@@ -43,12 +43,17 @@ check(cool::csabase::Analyser& analyser, clang::FunctionDecl const* decl)
             if (!expr->isValueDependent() &&
                 expr->isIntegerConstantExpr(result, *analyser.context()))
             {
-                analyser.report(expr, check_name, "function %0() has only one statement which returns the constant '%1'") 
+                analyser.report(expr, check_name, "CR01",
+                                "Function %0() has only one statement which "
+                                "returns the constant '%1'") 
                     << decl->getNameAsString()
                     << result.toString(10);
                 for (clang::FunctionDecl::redecl_iterator it(decl->redecls_begin()), end(decl->redecls_end()); it != end; ++it)
                 {
-                    analyser.report(*it, check_name, "declaration of %0() (which always returns the constant %1)")
+                    analyser.report(*it, check_name, "CR01",
+                                    "declaration of %0() (which always "
+                                    "returns the constant %1)", false,
+                                    clang::DiagnosticsEngine::Note)
                         << decl->getNameAsString()
                         << result.toString(10);
                 }

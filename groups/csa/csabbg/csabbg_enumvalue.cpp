@@ -14,8 +14,8 @@ static void
 enum_value(cool::csabase::Analyser& analyser, clang::EnumDecl const *decl)
 {
     if (analyser.is_component(decl) && decl->getNameAsString() == "Value") {
-        analyser.report(decl, check_name,
-                        "EV01: do not use 'Value' as enum name")
+        analyser.report(decl, check_name, "EV01",
+                        "Do not use 'Value' as enum name")
             << decl->getDeclName();
     }
 }

@@ -317,15 +317,17 @@ cool::csabase::Analyser::is_main() const
 cool::diagnostic_builder
 cool::csabase::Analyser::report(clang::SourceLocation where,
                                 std::string const& check,
+                                std::string const& tag,
                                 std::string const& message,
                                 bool always,
                                 clang::DiagnosticsEngine::Level level)
 {
     cool::csabase::Location location(get_location(where));
-    if (always || is_component(location.file()))
+    if (   (always || is_component(location.file()))
+        && !config()->suppressed(tag, location.file()))
     {
         unsigned int id(compiler_.getDiagnostics().
-            getCustomDiagID(level, tool_name() + message));
+            getCustomDiagID(level, tool_name() + tag + ": " + message));
         return cool::diagnostic_builder(
             compiler_.getDiagnostics().Report(where, id));
     }

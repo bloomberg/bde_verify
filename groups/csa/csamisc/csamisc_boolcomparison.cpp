@@ -51,8 +51,8 @@ check(cool::csabase::Analyser& analyser, clang::BinaryOperator const* expr)
         && (is_bool_comparison(expr->getLHS(), expr->getRHS())
             || is_bool_comparison(expr->getRHS(), expr->getLHS())))
     {
-        analyser.report(expr, check_name,
-                        "comparing a Boolean expression to a Boolean literal")
+        analyser.report(expr, check_name, "BC01",
+                        "Comparing a Boolean expression to a Boolean literal")
             << expr->getSourceRange();
     }
 }

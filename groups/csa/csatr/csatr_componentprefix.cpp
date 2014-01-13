@@ -79,8 +79,8 @@ component_prefix(cool::csabase::Analyser&  analyser,
              && llvm::dyn_cast<clang::CXXRecordDecl>(decl)->
                                                    getDescribedClassTemplate())
         ) {
-        analyser.report(decl, check_name,
-                        "TR05: globally visible identifier '%0' "
+        analyser.report(decl, check_name, "TR05",
+                        "Globally visible identifier '%0' "
                         "without component prefix")
             << named->getQualifiedNameAsString();
     }

@@ -101,7 +101,7 @@ check_type(cool::csabase::Analyser& analyser,
         break; //-dk:TODO C++0x
     case clang::Type::Record: // fall through
     case clang::Type::Enum:
-        analyser.report(decl, check_name, "enum");
+        analyser.report(decl, check_name, "CT01", "enum");
         //-dk:TODO check_declref(analyser, decl, llvm::dyn_cast<clang::TagType>(type)->getDecl());
         break;
     case clang::Type::Elaborated:
@@ -112,7 +112,7 @@ check_type(cool::csabase::Analyser& analyser,
     case clang::Type::Attributed:
     case clang::Type::TemplateTypeParm:
     case clang::Type::SubstTemplateTypeParmPack:
-        analyser.report(decl, check_name, "TODO type class: %0") << cool::csabase::format(type->getTypeClass());
+        analyser.report(decl, check_name, "CT01", "TODO type class: %0") << cool::csabase::format(type->getTypeClass());
         break;
     case clang::Type::TemplateSpecialization:
         {
@@ -132,11 +132,11 @@ check_type(cool::csabase::Analyser& analyser,
     case clang::Type::DependentName:
     case clang::Type::DependentTemplateSpecialization:
     case clang::Type::PackExpansion:
-        analyser.report(decl, check_name, "TODO type class: %0") << cool::csabase::format(type->getTypeClass());
+        analyser.report(decl, check_name, "CT01", "TODO type class: %0") << cool::csabase::format(type->getTypeClass());
         break;
         break; // don't care about objective C
     default:
-        analyser.report(decl, check_name, "unknown type class: %0") << cool::csabase::format(type->getTypeClass());
+        analyser.report(decl, check_name, "CT01", "Unknown type class: %0") << cool::csabase::format(type->getTypeClass());
         break;
     }
 
@@ -359,7 +359,7 @@ on_valuedecl(cool::csabase::Analyser& analyser, clang::DeclaratorDecl const* dec
 {
     if (check_type(analyser, decl, decl->getType().getTypePtr()))
     {
-        analyser.report(decl, check_name, "value decl");
+        analyser.report(decl, check_name, "VD01", "value decl");
     }
 }
 
