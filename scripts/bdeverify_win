@@ -1,0 +1,156 @@
+#!/usr/bin/perl -w
+#  -*-perl-*- check
+#  -----------------------------------------------------------------------------
+#  Copyright 2012 Dietmar Kuehl http://www.dietmar-kuehl.de              
+#  Modified  2013 Hyman Rosen (hrosen4@bloomberg.net)
+#  Distributed under the Boost Software License, Version 1.0. (See file  
+#  LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt).     
+#  -----------------------------------------------------------------------------
+# $Id$
+
+use strict;
+use Getopt::Long;
+
+my $home     = "w:\\coolyser";
+my $bb       = "c:\\BPCDEVTOOLS\\bde\\2.19.0";
+my $config   = "$home\\bdeverify.cfg";
+my $exe      = "c:\\bde-verify\\Release\\BDEVerify.exe";
+my $debug    = "";
+my $verbose  = "";
+my $help     = "";
+my $definc   = 1;
+my $defdef   = 1;
+my @incs;
+my @defs;
+my @wflags;
+my @lflags = (
+    "cxx-exceptions",
+    "diagnostics-show-name",
+    "diagnostics-show-option",
+    "ms-compatibility",
+    "ms-extensions",
+    "msc-version=1800",
+    #"delayed-template-parsing",
+);
+my $dummy;
+my @dummy;
+my $std;
+my @std;
+
+sub usage()
+{
+    print "
+    usage: $0 [options] [additional compiler options] file.cpp ...
+        -I{directory}
+        -D{macro}
+        -W{warning}
+        -f{flag}
+        --config=config_file     [$config]  
+        --bb=dir                 [$bb]
+        --exe=BDEVerify.exe      [$exe]
+        --[no]definc             [$definc]
+        --[no]defdef             [$defdef]
+        --std=type
+        --debug
+        --verbose
+        --help
+
+";
+    print "Invoked as\n", join(" \\\n", @ARGV), "\n";
+    exit(1);
+}
+
+@ARGV = map { /^(-+[DIOWf])(.+)/ ? ($1, $2) : $_ } @ARGV;
+
+GetOptions(
+    'bb=s'       => \$bb,
+    'config=s'   => \$config,
+    'debug'      => \$debug,
+    'help|?'     => \$help,
+    'exe=s'      => \$exe,
+    'verbose'    => \$verbose,
+    'definc!'    => \$definc,
+    'defdef!'    => \$defdef,
+    "I=s"        => \@incs,
+    "D=s"        => \@defs,
+    "W=s"        => \@wflags,
+    "f=s"        => \@lflags,
+    "std=s"      => \$std,
+    "m32|m64|pipe|pthread|MMD|g|c" => \$dummy,
+    "O|MF|o=s"   => \@dummy,
+) and !$help and $#ARGV >= 0 or usage();
+
+my @config = ("-plugin-arg-bdeverify", "config=$config") if $config ne "";
+my @debug  = ("-plugin-arg-bdeverify", "debug-on")       if $debug;
+
+@lflags = map { "-f$_" if $_ ne "no-strict-aliasing" } @lflags;
+@wflags = map { "-W$_" } @wflags;
+
+push(@defs, (
+    "BDE_BUILD_TARGET_DBG",
+    "BDE_BUILD_TARGET_EXC",
+    "BDE_BUILD_TARGET_MT",
+    "_CRT_SECURE_NO_DEPRECATE",
+    "_SCL_SECURE_NO_DEPRECATE",
+    "NOMINMAX",
+    "NOGDI",
+    "_WIN32_WINNT=0x0500",
+    "WINVER=0x0500",
+    "DEBUG",
+    "_MT",
+    "BSLS_IDENT_OFF",
+    "BSL_OVERRIDES_STD",
+    "BDE_OMIT_INTERNAL_DEPRECATED",
+    "_STLP_USE_STATIC_LIB",
+    "_STLP_HAS_NATIVE_FLOAT_ABS",
+    "BDE_DCL=",
+    "BSL_DCL=",
+)) if $defdef;
+@defs = map { "-D$_" } @defs;
+
+for (@ARGV) {
+    if (m{^(.*)[/\\].*$}) {
+        push(@incs, $1) unless grep($1, @incs);
+    } else {
+        push(@incs, ".") unless grep($_ eq ".", @incs);
+    }
+}
+push(@incs, (
+    "$bb/include",
+    "$bb/include/stlport",
+)) if $definc;
+push(@incs, (
+    "$bb\\include",
+    "$bb\\include\\bsl+stdhdrs",
+));
+
+my $inc = $ENV{INCLUDE};
+if ($inc ne '') {
+    push(@incs, split(/;/, $ENV{INCLUDE}));
+} else {
+    push(@incs, "c:\\Program Files (x86)" .
+                  "\\Microsoft Visual Studio 11.0" .
+                  "\\VC" .
+                  "\\include");
+}
+@incs = map { ("-I", $_, "-cxx-isystem", $_ ) } @incs;
+
+push(@std, "-std=$std") if $std;
+
+my @command = (
+    "$exe",
+    "-plugin",
+    "bdeverify",
+    @std,
+    @debug,
+    @config,
+    @defs,
+    @incs,
+    @lflags,
+    @wflags,
+    @ARGV,
+);
+
+print join(' ', @command), "\n" if $verbose;
+
+exec @command;
