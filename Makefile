@@ -152,8 +152,7 @@ WARNFLAGS = \
         -Wwrite-strings
 LDFLAGS = -L$(LLVMLIB) -g
 
-PLUGIN   = $(OBJ)/$(TARGET) \
-           -plugin bdeverify -plugin-arg-bdeverify config=test.cfg
+PLUGIN   = $(OBJ)/$(TARGET) -plugin bdeverify
 OFILES = $(LIBCXXFILES:%.cpp=$(OBJ)/%.o)
 POSTPROCESS = sed -e 's/\([^:]*:[0-9][0-9]*\):[^:]*:/\1:0:/' \
             | sed -e '/\^/s/ //g' \
@@ -241,60 +240,91 @@ LIBS     =                                                                    \
 
 # -----------------------------------------------------------------------------
 
-check-current: $(OBJ)/$(TARGET)
+current: $(OBJ)/$(TARGET)
 	$(VERBOSE) \
     f=groups/csa/$(CURRENT); \
     if echo $(TODO) | grep -q $(SOURCE); then echo skipping $$f; else \
       trap "rm -f $$$$" EXIT; \
       (echo namespace cool; \
        echo all on) > $$$$; \
-      if [ -f "$(SOURCE)" ]; then if [ ! -z "$(CHECK_NAME)" ]; then \
+      if [ -f "$(SOURCE)" -a ! -z "$(CHECK_NAME)" ]; then \
         (echo namespace cool; \
          echo all off; \
          echo check $(CHECK_NAME) on) > $$$$; \
-      fi; fi; \
+      fi; \
       $(PLUGIN) \
         -plugin-arg-bdeverify debug-$(DEBUG) \
         -plugin-arg-bdeverify config=$$$$ \
-        -plugin-arg-bdeverify tool=bdeverify \
         $(CPPFLAGS) $(PFLAGS) $$f; \
     fi
 
 check: check-all
 	@echo '*** SUCCESS ***'
 
-check-all: $(OBJ)/$(TARGET)
+check-current: $(OBJ)/$(TARGET)
 	$(VERBOSE) \
-	success=1; \
-	for f in $$(find groups -name \*.[vt].cpp -or -name \*test.cpp); \
-	do \
-      if echo $(TODO) | grep -q $(SOURCE); \
-        then echo skipping $$f; continue; fi; \
-	  $(ECHON) "testing $$f "; \
+    success=1; \
+    f=groups/csa/$(CURRENT); \
+    if echo $(TODO) | grep -q $(SOURCE); then echo skipping $$f; else \
       trap "rm -f $$$$" EXIT; \
       (echo namespace cool; \
        echo all on) > $$$$; \
-      if [ -f "$(SOURCE)" ]; then if [ ! -z "$(CHECK_NAME)" ]; then \
+      if [ -f "$(SOURCE)" -a ! -z "$(CHECK_NAME)" ]; then \
         (echo namespace cool; \
          echo all off; \
          echo check $(CHECK_NAME) on) > $$$$; \
-      fi; fi; \
-	  if $(PLUGIN) -plugin-arg-bdeverify \
-          config=$$$$ $(CPPFLAGS) $(PFLAGS) $$f 2>&1 \
-             | $(POSTPROCESS) \
-             | diff - $(EXPECT) $(REDIRECT); \
-	  then \
-	    echo OK; \
-	  else \
-	    success=0; \
-        cat $$$$; \
-        $(PLUGIN) -plugin-arg-bdeverify config=$$$$ $(CPPFLAGS) $(PFLAGS) $$f 2>&1 \
+      fi; \
+      if $(PLUGIN) -plugin-arg-bdeverify config=$$$$ \
+        $(CPPFLAGS) $(PFLAGS) $$f 2>&1 \
           | $(POSTPROCESS) \
-          | diff - $(EXPECT); \
+          | diff - $(EXPECT) $(REDIRECT); \
+      then \
+        echo OK; \
+      else \
+        success=0; \
+        cat $$$$; \
+        $(PLUGIN) -plugin-arg-bdeverify config=$$$$ \
+          $(CPPFLAGS) $(PFLAGS) $$f 2>&1 \
+            | $(POSTPROCESS) \
+            | diff - $(EXPECT); \
         echo -e "\x1b[31mfail\x1b[0m"; \
-	  fi; \
-	done; \
-	[ $$success = 1 ]
+      fi; \
+    fi; \
+    [ $$success = 1 ]
+
+check-all: $(OBJ)/$(TARGET)
+	$(VERBOSE) \
+    success=1; \
+    for f in $$(find groups -name \*.[vt].cpp -or -name \*test.cpp); \
+    do \
+      if echo $(TODO) | grep -q $(SOURCE); \
+        then echo skipping $$f; continue; fi; \
+      $(ECHON) "testing $$f "; \
+      trap "rm -f $$$$" EXIT; \
+      (echo namespace cool; \
+       echo all on) > $$$$; \
+      if [ -f "$(SOURCE)" -a ! -z "$(CHECK_NAME)" ]; then \
+        (echo namespace cool; \
+         echo all off; \
+         echo check $(CHECK_NAME) on) > $$$$; \
+      fi; \
+      if $(PLUGIN) -plugin-arg-bdeverify config=$$$$ \
+        $(CPPFLAGS) $(PFLAGS) $$f 2>&1 \
+          | $(POSTPROCESS) \
+          | diff - $(EXPECT) $(REDIRECT); \
+      then \
+        echo OK; \
+      else \
+        success=0; \
+        cat $$$$; \
+        $(PLUGIN) -plugin-arg-bdeverify config=$$$$ \
+          $(CPPFLAGS) $(PFLAGS) $$f 2>&1 \
+            | $(POSTPROCESS) \
+            | diff - $(EXPECT); \
+        echo -e "\x1b[31mfail\x1b[0m"; \
+      fi; \
+    done; \
+    [ $$success = 1 ]
 
 plugin: $(OBJ)/$(TARGET)
 
