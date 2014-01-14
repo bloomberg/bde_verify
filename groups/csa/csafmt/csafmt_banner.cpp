@@ -91,13 +91,15 @@ void files::operator()(SourceLocation     loc,
 #undef NL
 
     llvm::SmallVector<llvm::StringRef, 3> matches;
+    size_t offset = 0;
+    size_t end    = 0;
 
-    while (loose_inline_banner.match(buf, &matches)) {
+    while (loose_inline_banner.match(buf.drop_front(end), &matches)) {
         llvm::StringRef match = matches[0];
-        size_t offset         = buf.find(match);
-        size_t end            = offset + match.size();
+        offset = end + buf.drop_front(end).find(match);
+        end    = offset + match.size();
 
-        if (!tight_inline_banner.match(buf)) {
+        if (!tight_inline_banner.match(buf.substr(offset, end - offset))) {
             std::pair<unsigned, unsigned> m =
                 cool::csabase::mid_mismatch(match, inline_banner_expect);
             SourceRange r(loc.getLocWithOffset(offset + m.first),
@@ -112,7 +114,6 @@ void files::operator()(SourceLocation     loc,
                             m.first,
                             inline_banner_expect.size() - m.first - m.second));
         }
-        buf = buf.drop_front(end);
     }
 }
 

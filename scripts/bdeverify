@@ -76,7 +76,7 @@ GetOptions(
     "f=s"        => \@lflags,
     "std=s"      => \$std,
     "m32|m64|pipe|pthread|MMD|g|c" => \$dummy,
-    "O|MF|o=s"   => \@dummy,
+    "O|MF|o|march|mtune=s"         => \@dummy,
 ) and !$help and $#ARGV >= 0 or usage();
 
 my @config = ("-plugin-arg-bdeverify", "config=$config") if $config ne "";
