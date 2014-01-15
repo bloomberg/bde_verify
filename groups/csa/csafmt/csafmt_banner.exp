@@ -1,21 +1,23 @@
-groups/csa/csafmt/csafmt_banner.t.cpp:3:0: warning: BAN01: Inline banner with incorrect form is
+groups/csa/csafmt/csafmt_banner.t.cpp:3:0: warning: BAN01: Inline banner with incorrect form
+// =====
+^
+groups/csa/csafmt/csafmt_banner.t.cpp:3:0: note: BAN01: Incorrect banner is
 // =====
 // INLINE
 // ---
-and should be
+groups/csa/csafmt/csafmt_banner.t.cpp:3:0: note: BAN01: Correct banner is
 // ============================================================================
 //                         INLINE FUNCTION DEFINITIONS
 // ============================================================================
-// =====
+groups/csa/csafmt/csafmt_banner.t.cpp:11:0: warning: BAN01: Inline banner with incorrect form
+// -----
 ^
-groups/csa/csafmt/csafmt_banner.t.cpp:11:0: warning: BAN01: Inline banner with incorrect form is
+groups/csa/csafmt/csafmt_banner.t.cpp:11:0: note: BAN01: Incorrect banner is
 // -----
 // INLINE
 // ===
-and should be
+groups/csa/csafmt/csafmt_banner.t.cpp:11:0: note: BAN01: Correct banner is
 // ============================================================================
 //                         INLINE FUNCTION DEFINITIONS
 // ============================================================================
-// -----
-^
 2 warnings generated.

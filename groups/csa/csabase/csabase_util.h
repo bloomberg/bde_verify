@@ -9,6 +9,7 @@
 #define INCLUDED_CSABASE_UTIL 1
 #ident "$Id$"
 
+#include <clang/Basic/SourceManager.h>
 #include <string>
 #include <utility>
 
@@ -21,6 +22,11 @@ mid_mismatch(const std::string &have, const std::string &want);
     // common prefix of the specified 'have' and 'want' and 'b' is the maximum
     // length of a common suffix of 'have.substr(a)' and 'want.substr(a)'.
 
+bool areConsecutive(clang::SourceManager& manager,
+                    clang::SourceRange    first,
+                    clang::SourceRange    second);
+    // Return 'true' iff the specified 'first' range is immediately followed by
+    // the specified 'second' range, with only whitespace in between.
 }
 }
 

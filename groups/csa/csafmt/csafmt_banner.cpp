@@ -34,7 +34,8 @@ namespace
 struct comments
     // Data holding seen comments.
 {
-    typedef std::map<std::string, std::vector<SourceRange> > Comments;
+    typedef std::vector<SourceRange> Ranges;
+    typedef std::map<std::string, Ranges> Comments;
     Comments d_comments;
 
     void append(Analyser& analyser, SourceRange range);
@@ -43,15 +44,8 @@ struct comments
 void comments::append(Analyser& analyser, SourceRange range)
 {
     SourceManager& m = analyser.manager();
-    std::vector<SourceRange>& c = d_comments[m.getFilename(range.getBegin())];
-    if (c.size() != 0 &&
-        m.getFilename(c.back().getEnd()) == m.getFilename(range.getBegin()) &&
-        m.getPresumedLineNumber(range.getBegin()) ==
-        m.getPresumedLineNumber(c.back().getEnd()) + 1 &&
-        analyser.get_source(SourceRange(c.back().getEnd(),
-                                        range.getBegin().getLocWithOffset(-1)),
-                            true).find_first_not_of(" \t\n\r\v\f") ==
-            llvm::StringRef::npos) {
+    comments::Ranges& c = d_comments[m.getFilename(range.getBegin())];
+    if (c.size() != 0 && cool::csabase::areConsecutive(m, c.back(), range)) {
         c.back().setEnd(range.getEnd());
     } else {
         c.push_back(range);
@@ -83,58 +77,102 @@ void files::operator()(SourceRange range)
     d_analyser.attachment<comments>().append(d_analyser, range);
 }
 
-static const std::string sep = "// " + std::string(76, '=');
-static const std::string inline_banner_expect =  // correct banner
-    sep + "\n//" + std::string(25, ' ') + "INLINE FUNCTION DEFINITIONS\n" + sep;
-
 #undef NL
 #define NL "\r*[\r\n]"
 #undef SP
 #define SP "[ \t]*"
 
-static llvm::Regex loose_inline_banner(    // match sloppy banner
-    SP "//" SP "[-=]*"  SP                NL
-    SP "//" SP "INLINE"
-            SP "(" "FUNCTIONS?"   SP ")?"
-            SP "(" "DEFINITIONS?" SP ")?" NL
-    SP "//" SP "[-=]*"  SP,
+static llvm::Regex generic_banner(   // things that look like banners
+       "//" SP "(" "[-=_]" "(" SP "[-=_]" ")*" ")"                SP  NL
+    SP "//" SP "(" "[_[:alnum:]]" "(" SP "[_[:alnum:]]" ")*" ")"  SP  NL
+    SP "//" SP "(" "[-=_]" "(" SP "[-=_]" ")*" ")"                SP,
     llvm::Regex::IgnoreCase);
-
-static llvm::Regex tight_inline_banner(    // match correct banner
-    "// ={76}"                            NL
-    "// {25}INLINE FUNCTION DEFINITIONS"  NL
-    "// ={76}",
-    llvm::Regex::NoFlags);
 
 #undef SP
 #undef NL
 
 void files::operator()()
 {
-    comments::Comments& c = d_analyser.attachment<comments>().d_comments;
-    for (comments::Comments::iterator itr = c.begin(); itr != c.end(); ++itr) {
-        if (d_analyser.is_component(itr->first)) {
-            std::vector<SourceRange>& b = itr->second;
-            size_t n = b.size();
-            for (size_t i = 0; i < n; ++i) {
-                llvm::StringRef s = d_analyser.get_source(b[i], true);
-                if (loose_inline_banner.match(s) &&
-                    !tight_inline_banner.match(s)) {
-                    std::pair<unsigned, unsigned> m =
-                        cool::csabase::mid_mismatch(s, inline_banner_expect);
-                    SourceRange r(b[i].getBegin().getLocWithOffset(m.first),
-                                  b[i].getEnd().getLocWithOffset(m.second));
-                    d_analyser.report(r.getBegin(), check_name, "BAN01",
-                                      "Inline banner with incorrect form "
-                                      "is\n%0\nand should be\n%1")
-                        << s
-                        << inline_banner_expect
-                        << FixItHint::CreateReplacement(
-                               r,
-                               inline_banner_expect.substr(
-                                   m.first,
-                                   inline_banner_expect.size() - m.first -
-                                       m.second));
+    SourceManager& manager = d_analyser.manager();
+    comments::Comments& file_comments =
+        d_analyser.attachment<comments>().d_comments;
+    llvm::SmallVector<llvm::StringRef, 7> matches;
+
+    for (comments::Comments::iterator file_begin = file_comments.begin(),
+                                      file_end   = file_comments.end(),
+                                      file_itr   = file_begin;
+         file_itr != file_end;
+         ++file_itr) {
+        const std::string &file_name = file_itr->first;
+        if (!d_analyser.is_component(file_name)) {
+            continue;
+        }
+        comments::Ranges& comments = file_itr->second;
+        for (comments::Ranges::iterator comments_begin = comments.begin(),
+                                        comments_end   = comments.end(),
+                                        comments_itr   = comments_begin;
+             comments_itr != comments_end;
+             ++comments_itr) {
+            SourceRange comment_range = *comments_itr;
+            llvm::StringRef comment =
+                d_analyser.get_source(comment_range, true);
+            unsigned comment_offset = 0;
+            for (llvm::StringRef comment_suffix = comment; 
+                 generic_banner.match(comment_suffix, &matches);
+                 comment_suffix = comment.drop_front(comment_offset)) {
+                llvm::StringRef banner = matches[0];
+                unsigned banner_pos =
+                    comment_offset + comment_suffix.find(banner);
+                comment_offset = banner_pos + banner.size();
+                SourceLocation banner_start =
+                    comment_range.getBegin().getLocWithOffset(banner_pos);
+                if (manager.getPresumedColumnNumber(banner_start) != 1) {
+                    continue;
+                }
+                unsigned end_of_first_line = banner.find('\n');
+                if (end_of_first_line != 80) {
+                    d_analyser.report(
+                        banner_start.getLocWithOffset(end_of_first_line - 1),
+                        check_name, "BAN02",
+                        "Banner ends at column %0 instead of 79")
+                        << end_of_first_line;
+                }
+
+                llvm::StringRef text = matches[3];
+                unsigned text_pos = banner.find(text);
+                unsigned actual_last_space_pos =
+                    manager.getPresumedColumnNumber(
+                        banner_start.getLocWithOffset(text_pos)) -
+                    1;
+                unsigned expected_last_space_pos =
+                    ((79 - 2 - text.size()) / 2 + 2) & ~3;
+                if (actual_last_space_pos != expected_last_space_pos) {
+                    std::string expected_text =
+                        "//" + std::string(expected_last_space_pos - 2, ' ') +
+                        text.str();
+                    const char* error = (actual_last_space_pos & 3) ?
+                        "Improperly centered banner text"
+                        " (not reachable using tab key)" :
+                        "Improperly centered banner text";
+                    d_analyser.report(
+                        banner_start.getLocWithOffset(text_pos),
+                        check_name, "BAN03", error);
+                    d_analyser.report(
+                        banner_start.getLocWithOffset(text_pos),
+                        check_name, "BAN03", "Correct text is\n%0", false,
+                        clang::DiagnosticsEngine::Note)
+                        << expected_text;
+                }
+
+                unsigned end_of_second_line = banner.rfind('\n');
+                if (banner.size() - end_of_second_line != 80) {
+                    d_analyser.report(banner_start.getLocWithOffset(
+                                          banner.size() - 1),
+                                      check_name,
+                                      "BAN02",
+                                      "Banner ends at column %0 instead of 79")
+                        << static_cast<int>(banner.size() -
+                                            (end_of_second_line + 1));
                 }
             }
         }

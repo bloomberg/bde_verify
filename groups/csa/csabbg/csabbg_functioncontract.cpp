@@ -5,6 +5,7 @@
 #include <csabase_location.h>
 #include <csabase_ppobserver.h>
 #include <csabase_registercheck.h>
+#include <csabase_util.h>
 #include <llvm/Support/Regex.h>
 #include <map>
 #include <string>
@@ -44,8 +45,9 @@ namespace
 struct data
     // Data attached to analyzer for this check.
 {
-    typedef std::vector<SourceRange>           Comments;
-    Comments d_comments;  // Comment blocks.
+    typedef std::vector<SourceRange> Ranges;
+    typedef std::map<std::string, Ranges> Comments;
+    Comments d_comments;  // Comment blocks per file.
 
     typedef std::map<const FunctionDecl*, SourceRange> FunDecls;
     FunDecls d_fundecls;  // FunDecl, comment
@@ -54,9 +56,9 @@ struct data
 struct comments
     // Callback object for inspecting comments.
 {
-    Analyser& d_analyser;                   // Analyser object.
-    SourceManager& d_manager;               // SourceManager within Analyser.
-    std::vector<SourceRange>& d_comments;   // Analyser's comment data.
+    Analyser& d_analyser;         // Analyser object.
+    SourceManager& d_manager;     // SourceManager within Analyser.
+    data::Comments& d_comments;   // Analyser's comment data.
 
     comments(Analyser& analyser);
         // Create a 'comments' object, accessing the specified 'analyser'.
@@ -103,10 +105,7 @@ bool comments::isDirective(llvm::StringRef comment)
 bool
 comments::areConsecutive(const SourceRange& r1, const SourceRange& r2) const
 {
-    SourceRange between(r1.getEnd(), r2.getBegin());
-    llvm::StringRef s = d_analyser.get_source(between, true);
-    static llvm::Regex re("^[[:space:]]*$");
-    return re.match(s) &&
+    return cool::csabase::areConsecutive(d_manager, r1, r2) &&
            !comments::isDirective(d_analyser.get_source(r1)) &&
            !comments::isDirective(d_analyser.get_source(r2));
 }
@@ -115,11 +114,11 @@ void comments::operator()(SourceRange range)
 {
     Location location(d_analyser.get_location(range.getBegin()));
     if (d_analyser.is_component(location.file())) {
-        if (d_comments.size() == 0 ||
-            !areConsecutive(d_comments.back(), range)) {
-            d_comments.push_back(range);
+        data::Ranges& c = d_comments[location.file()];
+        if (c.size() == 0 || !areConsecutive(c.back(), range)) {
+            c.push_back(range);
         } else {
-            d_comments.back().setEnd(range.getEnd());
+            c.back().setEnd(range.getEnd());
         }
     }
 }
@@ -173,8 +172,8 @@ struct report
         //: o Template method specialization.
 
     SourceRange getContract(const FunctionDecl *func,
-                            data::Comments::iterator comments_begin,
-                            data::Comments::iterator comments_end);
+                            data::Ranges::iterator comments_begin,
+                            data::Ranges::iterator comments_end);
         // Return the 'SourceRange' of the function contract of the specified
         // 'func' if it is present in the specified range of 'comments_begin'
         // up to 'comments_end', and return an invalid 'SourceRange' otherwise.
@@ -274,8 +273,9 @@ void report::processAllFunDecls(data::FunDecls::iterator begin,
                                 data::FunDecls::iterator end)
 {
     for (data::FunDecls::iterator it = begin; it != end; ++it) {
-        it->second =
-              getContract(it->first, d.d_comments.begin(), d.d_comments.end());
+        Location location(d_analyser.get_location(it->first->getLocStart()));
+        data::Ranges& c = d.d_comments[location.file()];
+        it->second = getContract(it->first, c.begin(), c.end());
     }
 
     for (data::FunDecls::iterator it = begin; it != end; ++it) {
@@ -330,9 +330,9 @@ bool report::doesNotNeedContract(const FunctionDecl *func)
         || isGenerated(func);
 }
 
-SourceRange report::getContract(const FunctionDecl *func,
-                                data::Comments::iterator comments_begin,
-                                data::Comments::iterator comments_end)
+SourceRange report::getContract(const FunctionDecl     *func,
+                                data::Ranges::iterator  comments_begin,
+                                data::Ranges::iterator  comments_end)
 {
     SourceManager& m = d_manager;
     SourceRange declarator = func->getSourceRange();
@@ -349,7 +349,6 @@ SourceRange report::getContract(const FunctionDecl *func,
         // if they're not all on the same line.
         SourceLocation bodyloc = func->getBody()->getLocStart();
         declarator.setEnd(bodyloc);
-        sfile = m.getFileID(bodyloc);
 
         unsigned bodyBegin = m.getPresumedLineNumber(bodyloc);
         unsigned funcBegin = m.getPresumedLineNumber(func->getLocStart());
@@ -364,29 +363,24 @@ SourceRange report::getContract(const FunctionDecl *func,
     } else {
         // For plain declarations, use the line after.
         SourceLocation declloc = func->getLocEnd();
-        sfile = m.getFileID(declloc);
         bline = m.getPresumedLineNumber(declloc);
         eline = bline + 1;
     }
 
-    for (data::Comments::iterator it = comments_begin;
-                                        it != comments_end; ++it) {
+    for (data::Ranges::iterator it = comments_begin; it != comments_end; ++it) {
         const SourceRange comment = *it;
         const SourceLocation cloc = comment.getBegin();
         const unsigned cline = m.getPresumedLineNumber(cloc);
-        const clang::FileID cfile = m.getFileID(cloc);
 
-        // Find a comment that encompasses the contract line, in the same file
-        // as the 'FunctionDecl' and starting after it.  (We want to avoid
-        // taking a commnted parameter name as a function contract!)
-        if (cfile == sfile) {
-            if ((m.getPresumedLineNumber(declarator.getBegin()) == cline &&
-                 m.getPresumedColumnNumber(declarator.getEnd()) <=
+        // Find a comment that encompasses the contract line, starting after
+        // the 'FunctionDecl'.  (We want to avoid taking a commnted parameter
+        // name as a function contract!)
+        if ((m.getPresumedLineNumber(declarator.getBegin()) == cline &&
+             m.getPresumedColumnNumber(declarator.getEnd()) <=
                  m.getPresumedColumnNumber(comment.getBegin())) ||
-                (bline < cline && cline <= eline)) {
-                contract = comment;
-                break;
-            }
+            (bline < cline && cline <= eline)) {
+            contract = comment;
+            break;
         }
     }
 

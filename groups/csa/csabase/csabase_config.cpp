@@ -166,7 +166,8 @@ cool::csabase::Config::process(std::string const& line)
         if (args >> tag) {
             std::string file;
             while (args >> file) {
-                d_suppressions.insert(std::make_pair(tag, file));
+                cool::csabase::FileName fn(file);
+                d_suppressions.insert(std::make_pair(tag, fn.name()));
             }
         }
         else {
