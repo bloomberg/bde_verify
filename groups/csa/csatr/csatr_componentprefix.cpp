@@ -45,6 +45,11 @@ static void
 component_prefix(cool::csabase::Analyser&  analyser,
                  clang::Decl const        *decl)
 {
+    const clang::DeclContext *dc = decl->getDeclContext();
+    if (dc->isClosure() || dc->isFunctionOrMethod() || dc->isRecord()) {
+        return;                                                       // RETURN
+    }
+
     clang::NamedDecl const* named(llvm::dyn_cast<clang::NamedDecl>(decl));
     clang::FunctionDecl const* fd = llvm::dyn_cast<clang::FunctionDecl>(decl);
     if (clang::FunctionTemplateDecl const* ftd =
