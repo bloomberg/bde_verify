@@ -1,0 +1,21 @@
+groups/csa/csafmt/csafmt_banner.t.cpp:3:0: warning: BAN01: Inline banner with incorrect form is
+// =====
+// INLINE
+// ---
+and should be
+// ============================================================================
+//                         INLINE FUNCTION DEFINITIONS
+// ============================================================================
+// =====
+^
+groups/csa/csafmt/csafmt_banner.t.cpp:11:0: warning: BAN01: Inline banner with incorrect form is
+// -----
+// INLINE
+// ===
+and should be
+// ============================================================================
+//                         INLINE FUNCTION DEFINITIONS
+// ============================================================================
+// -----
+^
+2 warnings generated.
