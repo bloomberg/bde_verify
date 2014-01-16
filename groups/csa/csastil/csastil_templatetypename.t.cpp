@@ -6,7 +6,7 @@
 template <typename T>
 static void bad();
 
-template <typename T>
+template <typename TT>
 static void good();
 
 namespace cool
@@ -18,7 +18,7 @@ namespace cool
             template <typename T>
             static void localBad();
 
-            template <class T>
+            template <class TT>
             static void localGood();
         }
     }

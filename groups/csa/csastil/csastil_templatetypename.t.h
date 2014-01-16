@@ -18,35 +18,35 @@ namespace cool
         {
         public:
             template <typename S> TemplateTypenameBad();
-            template <typename S> void foo();
+            template <typename SS> void foo();
         };
 
         struct TemplateTypenameMember
         {
         public:
-            template <typename S> TemplateTypenameMember();
+            template <typename SS> TemplateTypenameMember();
             template <typename S> void foo();
         };
 
         template <typename T>
         void swap(TemplateTypenameBad<T>&, TemplateTypenameBad<T>&);
 
-        template <class T>
+        template <class TT>
         class TemplateTypenameGood
         {
         public:
             template <class S> TemplateTypenameGood();
-            template <class S> void foo();
+            template <class SS> void foo();
         };
 
-        template <class T>
-        void swap(TemplateTypenameGood<T>&, TemplateTypenameGood<T>&);
+        template <class TT>
+        void swap(TemplateTypenameGood<TT>&, TemplateTypenameGood<TT>&);
     }
 }
 
-template <typename T>
+template <typename TT>
 inline void
-cool::csastil::swap(TemplateTypenameBad<T>&, TemplateTypenameBad<T>&)
+cool::csastil::swap(TemplateTypenameBad<TT>&, TemplateTypenameBad<TT>&)
 {
 }
 

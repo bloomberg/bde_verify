@@ -19,14 +19,19 @@ static void
 checkTemplate(cool::csabase::Analyser& analyser,
               clang::TemplateDecl const* decl)
 {
-    if (decl) {
-        clang::TemplateParameterList const* parms(decl->getTemplateParameters());
-        typedef clang::TemplateParameterList::const_iterator const_iterator;
-        for (const_iterator it(parms->begin()), end(parms->end()); it != end; ++it) {
-            cool::csabase::cast_ptr<clang::TemplateTypeParmDecl> parm(*it);
-            if (parm && parm->wasDeclaredWithTypename()) {
-                analyser.report(decl, check_name, "TY01",
-                                "Template parameter uses typename");
+    clang::TemplateParameterList const* parms = decl->getTemplateParameters();
+    unsigned n = parms->size();
+    for (unsigned i = 0; i < n; ++i) {
+        const clang::TemplateTypeParmDecl *parm =
+            llvm::dyn_cast<clang::TemplateTypeParmDecl>(parms->getParam(i));
+        if (parm) {
+            if (parm->wasDeclaredWithTypename()) {
+                 analyser.report(parm, check_name, "TY01",
+                     "Template parameter uses 'typename' instead of 'class'");
+            }
+            if (parm->getName().size() == 1) {
+                 analyser.report(parm, check_name, "TY02",
+                     "Template parameter uses single-letter name");
             }
         }
     }
