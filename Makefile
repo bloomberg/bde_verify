@@ -31,6 +31,7 @@ TSTCXXFILES +=                                                                \
         groups/csa/csabbg/csabbg_midreturn.cpp                                \
         groups/csa/csafmt/csafmt_headline.cpp                                 \
         groups/csa/csafmt/csafmt_banner.cpp                                   \
+        groups/csa/csafmt/csafmt_comments.cpp                                 \
         groups/csa/csafmt/csafmt_nonascii.cpp                                 \
         groups/csa/csatr/csatr_groupname.cpp                                  \
         groups/csa/csatr/csatr_componentprefix.cpp                            \
