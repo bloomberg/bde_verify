@@ -1,37 +1,37 @@
-groups/csa/csamisc/csamisc_contiguousswitch.t.cpp:35:0: warning: empty switch statement
+groups/csa/csamisc/csamisc_contiguousswitch.t.cpp:35:0: warning: ES01: Empty switch statement
     switch (ac) {
 ^
-groups/csa/csamisc/csamisc_contiguousswitch.t.cpp:39:0: warning: switch starts with default
+groups/csa/csamisc/csamisc_contiguousswitch.t.cpp:39:0: warning: SD01: Switch starts with default
     default:
 ^
-groups/csa/csamisc/csamisc_contiguousswitch.t.cpp:38:0: warning: switch doesn't end with `default:` label
+groups/csa/csamisc/csamisc_contiguousswitch.t.cpp:38:0: warning: ED01: Switch doesn't end with `default:` label
     switch (ac) { // starts with `default:` instead of `case 0:`
 ^
-groups/csa/csamisc/csamisc_contiguousswitch.t.cpp:51:0: warning: switch doesn't start with `case 0:`
+groups/csa/csamisc/csamisc_contiguousswitch.t.cpp:51:0: warning: SZ01: Switch doesn't start with `case 0:`
     case 1: {
 ^
-groups/csa/csamisc/csamisc_contiguousswitch.t.cpp:54:0: warning: case label out of order: previous=1 value=0
+groups/csa/csamisc/csamisc_contiguousswitch.t.cpp:54:0: warning: LO01: Case label out of order: previous=1 value=0
     case 0: {
 ^
-groups/csa/csamisc/csamisc_contiguousswitch.t.cpp:63:0: warning: `default:` label in the middle of labels
+groups/csa/csamisc/csamisc_contiguousswitch.t.cpp:63:0: warning: MD01: `default:` label in the middle of labels
     default: break;
 ^
-groups/csa/csamisc/csamisc_contiguousswitch.t.cpp:64:0: warning: case label out of order: previous=0 value=1
+groups/csa/csamisc/csamisc_contiguousswitch.t.cpp:64:0: warning: LO01: Case label out of order: previous=0 value=1
     case 1: break;
 ^
-groups/csa/csamisc/csamisc_contiguousswitch.t.cpp:61:0: warning: switch doesn't end with `default:` label
+groups/csa/csamisc/csamisc_contiguousswitch.t.cpp:61:0: warning: ED01: Switch doesn't end with `default:` label
     switch (ac) { // `default:` not at end
 ^
-groups/csa/csamisc/csamisc_contiguousswitch.t.cpp:70:0: warning: `default:` label in the middle of labels
+groups/csa/csamisc/csamisc_contiguousswitch.t.cpp:70:0: warning: MD01: `default:` label in the middle of labels
     default: break;
 ^
-groups/csa/csamisc/csamisc_contiguousswitch.t.cpp:67:0: warning: switch doesn't end with `default:` label
+groups/csa/csamisc/csamisc_contiguousswitch.t.cpp:67:0: warning: ED01: Switch doesn't end with `default:` label
     switch (ac) { // `default:` not at end
 ^
-groups/csa/csamisc/csamisc_contiguousswitch.t.cpp:74:0: warning: switch doesn't end with `default:` label
+groups/csa/csamisc/csamisc_contiguousswitch.t.cpp:74:0: warning: ED01: Switch doesn't end with `default:` label
     switch (ac) // missing default
 ^
-groups/csa/csamisc/csamisc_contiguousswitch.t.cpp:92:0: warning: case label out of order: previous=100 value=5
+groups/csa/csamisc/csamisc_contiguousswitch.t.cpp:92:0: warning: LO01: Case label out of order: previous=100 value=5
     case 5: break;
 ^
 12 warnings generated.

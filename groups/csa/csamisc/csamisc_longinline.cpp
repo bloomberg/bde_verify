@@ -116,7 +116,6 @@ struct report
         const data& d = d_analyser->attachment<data>();
         for (IT it = begin; it != end; ++it) {
             std::ostringstream ss;
-            ss << "LI01: ";
             switch (it->second) {
               case data::e_ENDS_IN_OTHER_FILE: {
                   ss << "Inline function spans source files";

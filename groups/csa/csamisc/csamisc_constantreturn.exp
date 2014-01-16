@@ -1,21 +1,19 @@
-groups/csa/csamisc/csamisc_constantreturn.t.cpp:13:0: warning: function f() has only one statement which returns the constant '0'
+groups/csa/csamisc/csamisc_constantreturn.t.cpp:13:0: warning: CR01: Function f() has only one statement which returns the constant '0'
     return 0;
 ^
-groups/csa/csamisc/csamisc_constantreturn.t.cpp:11:0: warning: declaration of f() (which always returns the constant 0)
+groups/csa/csamisc/csamisc_constantreturn.t.cpp:11:0: note: CR01: Declaration of f() (which always returns the constant 0)
 int cool::csamisc::constantreturn::f()
 ^
-In file included from groups/csa/csamisc/csamisc_constantreturn.t.cpp:8:
-groups/csa/csamisc/csamisc_constantreturn.t.hpp:26:0: warning: declaration of f() (which always returns the constant 0)
+groups/csa/csamisc/csamisc_constantreturn.t.hpp:26:0: note: CR01: Declaration of f() (which always returns the constant 0)
             static int f();
 ^
-groups/csa/csamisc/csamisc_constantreturn.t.cpp:18:0: warning: function g() has only one statement which returns the constant '13'
+groups/csa/csamisc/csamisc_constantreturn.t.cpp:18:0: warning: CR01: Function g() has only one statement which returns the constant '13'
     return 5 + 8;
 ^
-groups/csa/csamisc/csamisc_constantreturn.t.cpp:16:0: warning: declaration of g() (which always returns the constant 13)
+groups/csa/csamisc/csamisc_constantreturn.t.cpp:16:0: note: CR01: Declaration of g() (which always returns the constant 13)
 int cool::csamisc::constantreturn::g()
 ^
-In file included from groups/csa/csamisc/csamisc_constantreturn.t.cpp:8:
-groups/csa/csamisc/csamisc_constantreturn.t.hpp:27:0: warning: declaration of g() (which always returns the constant 13)
+groups/csa/csamisc/csamisc_constantreturn.t.hpp:27:0: note: CR01: Declaration of g() (which always returns the constant 13)
             static int g();
 ^
-6 warnings generated.
+2 warnings generated.

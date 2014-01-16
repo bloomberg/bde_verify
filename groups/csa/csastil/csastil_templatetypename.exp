@@ -1,32 +1,32 @@
 In file included from groups/csa/csastil/csastil_templatetypename.t.cpp:3:
-groups/csa/csastil/csastil_templatetypename.t.h:20:0: warning: template parameter uses typename
+groups/csa/csastil/csastil_templatetypename.t.h:20:0: warning: TY01: Template parameter uses typename
             template <typename S> TemplateTypenameBad();
 ^
-groups/csa/csastil/csastil_templatetypename.t.h:21:0: warning: template parameter uses typename
+groups/csa/csastil/csastil_templatetypename.t.h:21:0: warning: TY01: Template parameter uses typename
             template <typename S> void foo();
 ^
-groups/csa/csastil/csastil_templatetypename.t.h:16:0: warning: template parameter uses typename
+groups/csa/csastil/csastil_templatetypename.t.h:16:0: warning: TY01: Template parameter uses typename
         template <typename T>
 ^
-groups/csa/csastil/csastil_templatetypename.t.h:27:0: warning: template parameter uses typename
+groups/csa/csastil/csastil_templatetypename.t.h:27:0: warning: TY01: Template parameter uses typename
             template <typename S> TemplateTypenameMember();
 ^
-groups/csa/csastil/csastil_templatetypename.t.h:28:0: warning: template parameter uses typename
+groups/csa/csastil/csastil_templatetypename.t.h:28:0: warning: TY01: Template parameter uses typename
             template <typename S> void foo();
 ^
-groups/csa/csastil/csastil_templatetypename.t.h:31:0: warning: template parameter uses typename
+groups/csa/csastil/csastil_templatetypename.t.h:31:0: warning: TY01: Template parameter uses typename
         template <typename T>
 ^
-groups/csa/csastil/csastil_templatetypename.t.h:47:0: warning: template parameter uses typename
+groups/csa/csastil/csastil_templatetypename.t.h:47:0: warning: TY01: Template parameter uses typename
 template <typename T>
 ^
-groups/csa/csastil/csastil_templatetypename.t.cpp:6:0: warning: template parameter uses typename
+groups/csa/csastil/csastil_templatetypename.t.cpp:6:0: warning: TY01: Template parameter uses typename
 template <typename T>
 ^
-groups/csa/csastil/csastil_templatetypename.t.cpp:9:0: warning: template parameter uses typename
+groups/csa/csastil/csastil_templatetypename.t.cpp:9:0: warning: TY01: Template parameter uses typename
 template <typename T>
 ^
-groups/csa/csastil/csastil_templatetypename.t.cpp:18:0: warning: template parameter uses typename
+groups/csa/csastil/csastil_templatetypename.t.cpp:18:0: warning: TY01: Template parameter uses typename
             template <typename T>
 ^
 10 warnings generated.

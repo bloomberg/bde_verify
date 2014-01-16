@@ -53,14 +53,14 @@ void cool::csabase::FileName::reset(llvm::StringRef sr)
 
     size_t under = component_.find('_');
     package_ = component_.slice(0, under);
-
-    size_t grouplen = 3;
-    if (component_.size() > 1 &&
-        component_[1] == '_' &&
-        component_[0] != 'a') {
-        grouplen += 2;
+    group_   = package_.slice(0, 3);
+    if (under == 1) {
+        under = component_.find('_', under + 1);
+        package_ = component_.slice(0, under);
+        if (package_[0] != 'a') {
+            group_ = package_.slice(0, 5);
+        }
     }
-    group_ = package_.slice(0, grouplen);
     pkgdir_ = subdir(directory_, package_);
     grpdir_ = subdir(pkgdir_, group_);
 #if 0

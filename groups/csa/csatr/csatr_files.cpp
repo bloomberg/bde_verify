@@ -23,14 +23,14 @@ namespace
     struct on_files_open
     {
         on_files_open(cool::csabase::Analyser& analyser)
-            : d_analyser(&analyser) {}
+            : d_analyser(analyser) {}
 
         void operator()(clang::SourceLocation where,
                         std::string const&,
                         std::string const& name) const
         {
-            cool::csabase::Analyser& analyser(*d_analyser);
-            if (name == analyser.toplevel()) {
+            cool::csabase::FileName fn(name);
+            if (fn.name().find("m_") != 0 && name == d_analyser.toplevel()) {
                 cool::csabase::FileName fn(name);
                 struct stat buffer;
                 std::string prefix =
@@ -39,20 +39,20 @@ namespace
                     fn.pkgdir().str()   + fn.component().str();
                 if (stat((    prefix + ".h").c_str(), &buffer) &&
                     stat((pkg_prefix + ".h").c_str(), &buffer)) {
-                    analyser.report(where, check_name, "TR03",
+                    d_analyser.report(where, check_name, "TR03",
                             "Header file '%0' not accessible", true)
                         << (pkg_prefix + ".h");
                 }
                 if (stat((    prefix + ".t.cpp").c_str(), &buffer) &&
                     stat((pkg_prefix + ".t.cpp").c_str(), &buffer)) {
-                    analyser.report(where, check_name, "TR03",
+                    d_analyser.report(where, check_name, "TR03",
                             "Test file '%0' not accessible", true)
                         << (pkg_prefix + ".t.cpp");
                 }
             }
         }
 
-        cool::csabase::Analyser* d_analyser;
+        cool::csabase::Analyser& d_analyser;
     };
 }
 

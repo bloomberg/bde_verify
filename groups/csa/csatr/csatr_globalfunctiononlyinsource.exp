@@ -1,4 +1,4 @@
-groups/csa/csatr/csatr_globalfunctiononlyinsource.v.cpp:16:0: warning: TR10: globally visible function 'cool::csatr::in_namespace' is not declared in header.
+groups/csa/csatr/csatr_globalfunctiononlyinsource.v.cpp:16:0: warning: TR10: Globally visible function 'cool::csatr::in_namespace' is not declared in header.
         void in_namespace();
 ^
 1 warning generated.

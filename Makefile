@@ -170,7 +170,9 @@ SOURCE      = $$(echo $$f | \
                sed -e 's/\.t.cpp$$/.cpp/' | \
                sed -e 's/\.v.cpp$$/.cpp/')
 
-CHECK_NAME  = $$(echo | sed -n 's/.*check_name("\([^"]*\)".*/\1/p' $(SOURCE))
+CHECK_NAME  = $$(echo | \
+                 sed -n 's/.*check_name("\([^"]*\)".*/\1/p' \
+                    $(SOURCE) 2>/dev/null)
 
 LIBS     =                                                                    \
               -lLLVMX86AsmParser                                              \

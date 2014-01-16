@@ -38,18 +38,34 @@ namespace
 {
     struct on_open
     {
-        on_open(cool::csabase::Analyser& analyser): d_analyser(&analyser) {}
-        void operator()(clang::SourceLocation where, std::string const&, std::string const& name) const
+        on_open(cool::csabase::Analyser& analyser) : d_analyser(&analyser)
+        {
+        }
+
+        void operator()(clang::SourceLocation where,
+                        std::string const&,
+                        std::string const&    name) const
         {
             packagename& attachment(d_analyser->attachment<packagename>());
+            cool::csabase::FileName fn(name);
+
             if (!attachment.d_done && name == d_analyser->toplevel()) {
                 attachment.d_done = true;
                 cool::csabase::Analyser& analyser(*d_analyser);
-                cool::csabase::FileName fn(name);
 
-                if (fn.component().count('_') !=
-                        (fn.package() == "bslfwd" ?
-                             2 : fn.package().count('_') + 1)) {
+                bool standalone = fn.name().find("m_") == 0;
+
+                if (standalone && fn.name().find('_', 2) == fn.name().npos) {
+                    analyser.report(where, check_name, "TR02",
+                                    "Component file name '%0' in standalone "
+                                    "component contains only one underscore",
+                                    true)
+                        << fn.name();
+                    return;                                           // RETURN
+                }
+
+                if (fn.component().count('_') != (fn.package() == "bslfwd" ?
+                            2 : fn.package().count('_') + 1)) {
                     analyser.report(where, check_name, "TR02",
                                     "Component name '%0' must consist of "
                                     "package '%1' followed by underscore and "

@@ -294,25 +294,6 @@ namespace cool
                                                               // Way too right.
         };
 
-        struct casabbg_f {
-            void pectorales();
-                // This function does nothing.
-
-            // The definition of this function has a contract but the
-            // declaration does not, and the two are widely separated.
-            // This does not result in a warning. TBD Should it?
-            void godiva();
-        };
-
-        inline void casabbg_f::pectorales()
-        {
-        }
-
-        inline void casabbg_f::godiva()
-            // This function does nothing.
-        {
-        }
-
         inline void rigoristic()
             // This function does nothing.
         {

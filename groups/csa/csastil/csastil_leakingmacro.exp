@@ -1,8 +1,8 @@
 In file included from groups/csa/csastil/csastil_leakingmacro.t.cpp:3:
-groups/csa/csastil/csastil_leakingmacro.t.h:15:0: warning: SLM: macro definition 'BAD' leaks from header
+groups/csa/csastil/csastil_leakingmacro.t.h:15:0: warning: SLM01: Macro definition 'BAD' leaks from header
 #define BAD
 ^
-groups/csa/csastil/csastil_leakingmacro.t.h:14:0: warning: SLM: macro definition 'CSASTIL_LEAKINGMARCO_BAD' leaks from header
+groups/csa/csastil/csastil_leakingmacro.t.h:14:0: warning: SLM01: Macro definition 'CSASTIL_LEAKINGMARCO_BAD' leaks from header
 #define CSASTIL_LEAKINGMARCO_BAD
 ^
 2 warnings generated.

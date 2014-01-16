@@ -58,7 +58,10 @@ struct on_group_open
     {
         cool::csabase::Analyser& analyser(*d_analyser);
         groupname& attachment(analyser.attachment<groupname>());
-        if (!attachment.d_done && name == analyser.toplevel()) {
+        cool::csabase::FileName fn(name);
+        if (   !attachment.d_done
+            && name == analyser.toplevel()
+            && fn.name().find("m_") != 0) {
             attachment.d_done = true;
             std::string const& group(analyser.group());
             if (!((group.size() == 3 &&
@@ -78,7 +81,6 @@ struct on_group_open
                     << group;
             }
 
-            cool::csabase::FileName fn(name);
             llvm::SmallVector<char, 1024> vpath(fn.pkgdir().begin(),
                                                 fn.pkgdir().end());
             llvm::sys::path::append(vpath, "..");

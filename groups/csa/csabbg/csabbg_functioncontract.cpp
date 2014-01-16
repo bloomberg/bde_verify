@@ -53,6 +53,45 @@ struct data
     FunDecls d_fundecls;  // FunDecl, comment
 };
 
+struct fmap
+{
+    typedef std::multimap<unsigned, data::FunDecls::iterator> FMap;
+    FMap fmap_;
+
+    enum Status { e_Empty, e_Found, e_NotFound };
+
+    Status find_contract(unsigned line) const;
+        // Return the status of finding a function contract at the specified
+        // 'line'.  The status is 'e_Empty' if there are no functions there,
+        // 'e_Found' if a function has a contract, and 'e_NotFound' if none do.
+
+    void insert(unsigned from, unsigned to, data::FunDecls::iterator itr);
+        // Insert the specified 'itr' into the function map for all keys
+        // inclusively between the specified 'from' and 'to'.
+};
+
+fmap::Status fmap::find_contract(unsigned line) const
+{
+    std::pair<FMap::const_iterator, FMap::const_iterator> itrs =
+        fmap_.equal_range(line);
+    if (itrs.first == itrs.second) {
+        return e_Empty;                                               // RETURN
+    }
+    while (itrs.first != itrs.second) {
+        if (itrs.first++->second->second.isValid()) {
+            return e_Found;                                           // RETURN
+        }
+    }
+    return e_NotFound;
+}
+
+void fmap::insert(unsigned from, unsigned to, data::FunDecls::iterator itr)
+{
+    while (from <= to) {
+        fmap_.insert(std::make_pair(from++, itr));
+    }
+}
+
 struct comments
     // Callback object for inspecting comments.
 {
@@ -153,10 +192,9 @@ struct report
     void operator()();
         // Invoked to process reports.
 
-    void processAllFunDecls(data::FunDecls::iterator begin,
-                            data::FunDecls::iterator end);
+    void processAllFunDecls(data::FunDecls& decls);
         // Utility method to process function declarations from the specified
-        // 'begin' up to the specified 'end'.
+        // 'decls' container.
 
     bool isGenerated(const FunctionDecl *func);
         // Return true iff the specified 'func' appears between comments
@@ -182,14 +220,10 @@ struct report
         // Issue diagnostics for deficiencies in the specified 'comment' with
         // respect to being a contract for the specified 'func'.
 
-    bool hasCommentedCognate(data::FunDecls::iterator itr,
-                             data::FunDecls::iterator begin,
-                             data::FunDecls::iterator end);
-        // Return 'true' iff the function declaration of the specified 'itr'
-        // can be satisfied by a function contract appearing on a declaration
-        // in the sequence from the specified 'begin' to just before the
-        // specified 'end'.  Note that 'itr' itself is expected to be a member
-        // of this sequence.
+    bool hasCommentedCognate(const FunctionDecl *func, data::FunDecls& decls);
+        // Return 'true' iff the specified function declaration 'decl' can be
+        // satisfied by a function contract appearing on a declaration in the
+        // specified 'decls' container.
 };
 
 report::report(Analyser& analyser)
@@ -201,90 +235,76 @@ report::report(Analyser& analyser)
 
 void report::operator()()
 {
-    processAllFunDecls(d.d_fundecls.begin(), d.d_fundecls.end());
+    processAllFunDecls(d.d_fundecls);
 }
 
-bool report::hasCommentedCognate(data::FunDecls::iterator itr,
-                                 data::FunDecls::iterator begin,
-                                 data::FunDecls::iterator end)
+bool report::hasCommentedCognate(const clang::FunctionDecl *func,
+                                 data::FunDecls& decls)
 {
-    const clang::FunctionDecl *func = itr->first;
     const clang::DeclContext *parent = func->getLookupParent();
     std::string name = func->getNameAsString();
-    clang::FileID fileb = d_manager.getFileID(func->getLocStart());
-    clang::FileID filee = d_manager.getFileID(func->getLocEnd());
-    unsigned bl = d_manager.getPresumedLineNumber(func->getLocStart());
-    unsigned el = d_manager.getPresumedLineNumber(func->getLocEnd());
-    typedef std::multimap<unsigned, data::FunDecls::iterator> FMap;
-    FMap fmap;
+    fmap fm;
 
-    for (data::FunDecls::iterator cit = begin; cit != end; ++cit) {
-        const clang::FunctionDecl *cfunc = cit->first;
-        if (cfunc->getLookupParent()->Equals(parent)) {
-            if (cit->second.isValid() && cfunc->getNameAsString() == name) {
+    clang::DeclContext::decl_iterator declsb = parent->decls_begin();
+    clang::DeclContext::decl_iterator declse = parent->decls_end();
+    while (declsb != declse) {
+        const clang::Decl *decl = *declsb++;
+        const clang::FunctionDecl* cfunc =
+            llvm::dyn_cast<clang::FunctionDecl>(decl);
+        const clang::FunctionTemplateDecl* ctplt =
+            llvm::dyn_cast<clang::FunctionTemplateDecl>(decl);
+        if (ctplt) {
+            cfunc = ctplt->getTemplatedDecl();
+        }
+        data::FunDecls::iterator itr = decls.find(cfunc);
+        if (itr != decls.end()) {
+            if (itr->second.isValid() && cfunc->getNameAsString() == name) {
                 // Functions in the same scope with the same name are cognates.
                 // (This is, perhaps, simplistic.)
                 return true;                                          // RETURN
             }
-            if (   fileb == filee
-                && cfunc != func
-                && d_manager.getFileID(cfunc->getLocStart()) == fileb
-                && d_manager.getFileID(cfunc->getLocEnd())   == filee) {
-                unsigned cbl =
-                    d_manager.getPresumedLineNumber(cfunc->getLocStart());
-                unsigned cel =
-                    d_manager.getPresumedLineNumber(cfunc->getLocEnd());
-                for (unsigned i = cbl; i <= cel; ++i) {
-                    fmap.insert(std::make_pair(i, cit));
-                }
+            if (cfunc != func) {
+                fm.insert(d_manager.getPresumedLineNumber(cfunc->getLocStart()),
+                          d_manager.getPresumedLineNumber(cfunc->getLocEnd()),
+                          itr);
             }
         }
     }
-    
+
     // A consecutive set of function declarations with nothing else intervening
     // are cognates.
-    for (;;) {
-        std::pair<FMap::iterator, FMap::iterator> li = fmap.equal_range(++el);
-        if (li.first == li.second) {
-            break;
-        }
-        while (li.first != li.second) {
-            if (li.first++->second->second.isValid()) {
-                return true;                                          // RETURN
-            }
+    unsigned el = d_manager.getPresumedLineNumber(func->getLocEnd());
+    while (fmap::Status status = fm.find_contract(++el)) {
+        if (status == fmap::e_Found) {
+            return true;                                              // RETURN
         }
     }
-    while (bl) {
-        std::pair<FMap::iterator, FMap::iterator> li = fmap.equal_range(--bl);
-        if (li.first == li.second) {
-            break;
-        }
-        while (li.first != li.second) {
-            if (li.first++->second->second.isValid()) {
-                return true;                                          // RETURN
-            }
+
+    unsigned bl = d_manager.getPresumedLineNumber(func->getLocStart());
+    while (fmap::Status status = fm.find_contract(--bl)) {
+        if (status == fmap::e_Found) {
+            return true;                                              // RETURN
         }
     }
 
     return false;
 }
 
-void report::processAllFunDecls(data::FunDecls::iterator begin,
-                                data::FunDecls::iterator end)
+void report::processAllFunDecls(data::FunDecls& decls)
 {
-    for (data::FunDecls::iterator it = begin; it != end; ++it) {
+    for (data::FunDecls::iterator it = decls.begin(); it != decls.end(); ++it) {
         Location location(d_analyser.get_location(it->first->getLocStart()));
         data::Ranges& c = d.d_comments[location.file()];
         it->second = getContract(it->first, c.begin(), c.end());
     }
 
-    for (data::FunDecls::iterator it = begin; it != end; ++it) {
+    for (data::FunDecls::iterator it = decls.begin(); it != decls.end(); ++it) {
         if (doesNotNeedContract(it->first)) {
         }
         else if (it->second.isValid()) {
             critiqueContract(it->first, it->second);
         }
-        else if (!hasCommentedCognate(it, begin, end)) {
+        else if (!hasCommentedCognate(it->first, decls)) {
             d_analyser.report(it->first->getNameInfo().getLoc(),
                               check_name, "FD01",
                               "Function declaration requires contract")
@@ -295,13 +315,26 @@ void report::processAllFunDecls(data::FunDecls::iterator begin,
 
 bool report::isGenerated(const FunctionDecl *func)
 {
+    // Note that it is necessary to scan the file buffer rather than using the
+    // comments callback from the preprocessor because the generator brackets
+    // its generated code awkwardly within '#if/#else' constructs, and thus
+    // some of the brackets never show up:
+    //..
+    //  #if !BSLS_COMPILERFEATURES_SIMULATE_CPP11_FEATURES
+    //  #elif BSLS_COMPILERFEATURES_SIMULATE_VARIADIC_TEMPLATES
+    //  // {{{ BEGIN GENERATED CODE
+    //  #else
+    //  // }}} END GENERATED CODE
+    //  #endif
+    //..
+
     SourceManager&  m    = d_manager;
     clang::FileID   file = m.getFileID(func->getLocStart());
     llvm::StringRef buf  = m.getBufferData(file);
     unsigned        pos  = m.getFileOffset(func->getLocStart());
 
-    const char *const bg = "// {{{ BEGIN GENERATED CODE";
-    const char *const eg = "// }}} END GENERATED CODE";
+    const char *const bg = "\n// {{{ BEGIN GENERATED CODE";
+    const char *const eg = "\n// }}} END GENERATED CODE";
 
     unsigned bpos = buf.npos;
     for (unsigned p = 0; (p = buf.find(bg, p)) < pos; ++p) {

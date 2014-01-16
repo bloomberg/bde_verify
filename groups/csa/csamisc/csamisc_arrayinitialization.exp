@@ -1,13 +1,13 @@
-groups/csa/csamisc/csamisc_arrayinitialization.t.cpp:43:0: warning: incomplete initialization with non-defaulted last value
+groups/csa/csamisc/csamisc_arrayinitialization.t.cpp:43:0: warning: II01: Incomplete initialization with non-defaulted last value
     int array03[5] = { ' ' };
 ^~~~
-groups/csa/csamisc/csamisc_arrayinitialization.t.cpp:49:0: warning: incomplete initialization with non-defaulted last value
+groups/csa/csamisc/csamisc_arrayinitialization.t.cpp:49:0: warning: II01: Incomplete initialization with non-defaulted last value
     int array09[5] = { ' ', int(' ') };
 ^~~~~~
-groups/csa/csamisc/csamisc_arrayinitialization.t.cpp:55:0: warning: incomplete initialization with non-defaulted last value
+groups/csa/csamisc/csamisc_arrayinitialization.t.cpp:55:0: warning: II01: Incomplete initialization with non-defaulted last value
     cool::csamisc::s   array14[5] = { cool::csamisc::s(1) };
 ^~~~~~
-groups/csa/csamisc/csamisc_arrayinitialization.t.cpp:60:0: warning: incomplete initialization with non-defaulted last value
+groups/csa/csamisc/csamisc_arrayinitialization.t.cpp:60:0: warning: II01: Incomplete initialization with non-defaulted last value
     cool::csamisc::t   array18[5] = { cool::csamisc::t(1) };
 ^~~~~~
 4 warnings generated.

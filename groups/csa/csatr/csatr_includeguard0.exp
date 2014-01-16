@@ -1,6 +1,9 @@
-groups/csa/csatr/csatr_includeguard0.t.cpp:4:0: warning: TR14: missing include guard
+groups/csa/csatr/csatr_includeguard0.t.cpp:1:0: warning: TR03: Header file 'groups/csa/csatr/csatr_includeguard0.h' not accessible
+// csatr_includeguard0.t.cpp                                          -*-C++-*-
 ^
-groups/csa/csatr/csatr_includeguard0.t.cpp:3:0: warning: SHO: missing include for bdes_ident.h
+groups/csa/csatr/csatr_includeguard0.t.cpp:4:0: warning: TR14: Missing include guard
+^
+groups/csa/csatr/csatr_includeguard0.t.cpp:3:0: warning: SHO06: Missing include for bdes_ident.h
 #include "csatr_includeguard0.t.h"
 ^
-2 warnings generated.
+3 warnings generated.

@@ -113,7 +113,7 @@ check_order(CB::Analyser*                              analyser,
     for (it = section_end;
          end != (it = std::find_if(it, end, has_prefix(analyser->package() + "_")));
          ++it) {
-        analyser->report(it->second, check_name, "SH02",
+        analyser->report(it->second, check_name, "SHO02",
                          "%0 header coming late")
             << message;
     }
@@ -173,11 +173,11 @@ check_order(CB::Analyser*                   analyser,
                          std::not1(std::ptr_fun(&is_component)));
     include_order::headers_t::const_iterator package_end
           = std::find_if(it, end, std::not1(has_prefix(analyser->package() + "_")));
-    check_order(analyser, "package", it, package_end, end);
+    check_order(analyser, "Package", it, package_end, end);
     include_order::headers_t::const_iterator group_end
           = std::find_if(it, end, std::not1(has_prefix(analyser->group())));
-    check_order(analyser, "group", package_end, group_end, end);
-    check_order(analyser, "component", group_end, end);
+    check_order(analyser, "Group", package_end, group_end, end);
+    check_order(analyser, "Component", group_end, end);
 
     return bdes_ident_location;
 }

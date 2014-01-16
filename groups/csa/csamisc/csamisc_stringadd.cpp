@@ -46,7 +46,7 @@ check(cool::csabase::Analyser& analyser, clang::BinaryOperator const* expr)
         analyser.report(expr->getOperatorLoc(), check_name, "SA01",
                         "%0 integer %1 string literal")
             << expr->getSourceRange()
-            << (expr->getOpcode() == clang::BO_Add? "adding": "subtracting")
+            << (expr->getOpcode() == clang::BO_Add? "Adding": "Subtracting")
             << (expr->getOpcode() == clang::BO_Add? "to": "from")
             ;
     }

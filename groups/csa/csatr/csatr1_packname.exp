@@ -1,4 +1,5 @@
-groups/csa/csatr/csatr1_packname.t.cpp:1:0: warning: TR02: component 'csatr1_packname' doesn't seem to be in package 'csatr1'
+groups/csa/csatr/csatr1_packname.t.cpp:1:0: warning: TR03: Header file 'groups/csa/csatr/csatr1_packname.h' not accessible
 // csatr1_packname.t.cpp                                              -*-C++-*-
 ^
-1 warning generated.
+groups/csa/csatr/csatr1_packname.t.cpp:1:0: warning: TR02: Component 'csatr1_packname' doesn't seem to be in package 'csatr1'
+2 warnings generated.

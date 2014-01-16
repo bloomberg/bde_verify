@@ -1,11 +1,11 @@
+groups/csa/csatr/csatr_packagelegacy.t.cpp:1:0: warning: TR03: Header file 'groups/csa/csatr/csatr_packagelegacy.h' not accessible
+// csatr_packagelegacy.t.cpp                                          -*-C++-*-
+^
 In file included from groups/csa/csatr/csatr_packagelegacy.t.cpp:3:
-groups/csa/csatr/csatr_packagelegacy.t.h:22:0: warning: TR05: globally visible identifier 'cool::csat_packagelegacy' without component prefix
+groups/csa/csatr/csatr_packagelegacy.t.h:22:0: warning: TR05: Globally visible identifier 'cool::csat_packagelegacy' without component prefix
     struct csat_packagelegacy
 ^
-groups/csa/csatr/csatr_packagelegacy.t.h:22:0: warning: TR04: declaration of 'csat_packagelegacy' not within package namespace 'cool::csatr'
-    struct csat_packagelegacy
-^~~~~~
-groups/csa/csatr/csatr_packagelegacy.t.h:26:0: warning: TR05: globally visible identifier 'cool::csatr_packagelegac' without component prefix
+groups/csa/csatr/csatr_packagelegacy.t.h:26:0: warning: TR05: Globally visible identifier 'cool::csatr_packagelegac' without component prefix
     struct csatr_packagelegac
 ^
 3 warnings generated.

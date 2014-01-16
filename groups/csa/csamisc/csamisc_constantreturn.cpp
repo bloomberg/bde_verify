@@ -51,7 +51,7 @@ check(cool::csabase::Analyser& analyser, clang::FunctionDecl const* decl)
                 for (clang::FunctionDecl::redecl_iterator it(decl->redecls_begin()), end(decl->redecls_end()); it != end; ++it)
                 {
                     analyser.report(*it, check_name, "CR01",
-                                    "declaration of %0() (which always "
+                                    "Declaration of %0() (which always "
                                     "returns the constant %1)", false,
                                     clang::DiagnosticsEngine::Note)
                         << decl->getNameAsString()

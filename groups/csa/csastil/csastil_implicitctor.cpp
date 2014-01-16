@@ -83,7 +83,7 @@ namespace
                     || it->column() != 69
                     ) {
                     analyser->report(decl, check_name, "IC01",
-                            "constructor suitable for implicit conversions")
+                            "Constructor suitable for implicit conversions")
                         << decl->getSourceRange();
                 }
             }

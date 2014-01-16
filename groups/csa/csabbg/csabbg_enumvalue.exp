@@ -1,37 +1,37 @@
-groups/csa/csabbg/csabbg_enumvalue.t.cpp:9:0: warning: EV01: do not use 'Value' as enum name
+groups/csa/csabbg/csabbg_enumvalue.t.cpp:9:0: warning: EV01: Do not use 'Value' as enum name
 enum    Value { Nb = -1, Zb = 0 };
 ^
-groups/csa/csabbg/csabbg_enumvalue.t.cpp:13:0: warning: EV01: do not use 'Value' as enum name
+groups/csa/csabbg/csabbg_enumvalue.t.cpp:13:0: warning: EV01: Do not use 'Value' as enum name
     enum    Value { Nb = -1, Zb = 0 };
 ^
-groups/csa/csabbg/csabbg_enumvalue.t.cpp:19:0: warning: EV01: do not use 'Value' as enum name
+groups/csa/csabbg/csabbg_enumvalue.t.cpp:19:0: warning: EV01: Do not use 'Value' as enum name
     enum    Value { Nb = -1, Zb = 0 };
 ^
-groups/csa/csabbg/csabbg_enumvalue.t.cpp:25:0: warning: EV01: do not use 'Value' as enum name
+groups/csa/csabbg/csabbg_enumvalue.t.cpp:25:0: warning: EV01: Do not use 'Value' as enum name
     enum    Value { Nb = -1, Zb = 0 };
 ^
-groups/csa/csabbg/csabbg_enumvalue.t.cpp:29:0: warning: EV01: do not use 'Value' as enum name
+groups/csa/csabbg/csabbg_enumvalue.t.cpp:29:0: warning: EV01: Do not use 'Value' as enum name
         enum    Value { Nb = -1, Zb = 0 };
 ^
-groups/csa/csabbg/csabbg_enumvalue.t.cpp:35:0: warning: EV01: do not use 'Value' as enum name
+groups/csa/csabbg/csabbg_enumvalue.t.cpp:35:0: warning: EV01: Do not use 'Value' as enum name
         enum    Value { Nb = -1, Zb = 0 };
 ^
-groups/csa/csabbg/csabbg_enumvalue.t.cpp:41:0: warning: EV01: do not use 'Value' as enum name
+groups/csa/csabbg/csabbg_enumvalue.t.cpp:41:0: warning: EV01: Do not use 'Value' as enum name
         enum    Value { Nb = -1, Zb = 0 };
 ^
-groups/csa/csabbg/csabbg_enumvalue.t.cpp:45:0: warning: EV01: do not use 'Value' as enum name
+groups/csa/csabbg/csabbg_enumvalue.t.cpp:45:0: warning: EV01: Do not use 'Value' as enum name
             enum    Value { Nb = -1, Zb = 0 };
 ^
-groups/csa/csabbg/csabbg_enumvalue.t.cpp:51:0: warning: EV01: do not use 'Value' as enum name
+groups/csa/csabbg/csabbg_enumvalue.t.cpp:51:0: warning: EV01: Do not use 'Value' as enum name
             enum    Value { Nb = -1, Zb = 0 };
 ^
-groups/csa/csabbg/csabbg_enumvalue.t.cpp:57:0: warning: EV01: do not use 'Value' as enum name
+groups/csa/csabbg/csabbg_enumvalue.t.cpp:57:0: warning: EV01: Do not use 'Value' as enum name
             enum    Value { Nb = -1, Zb = 0 };
 ^
-groups/csa/csabbg/csabbg_enumvalue.t.cpp:61:0: warning: EV01: do not use 'Value' as enum name
+groups/csa/csabbg/csabbg_enumvalue.t.cpp:61:0: warning: EV01: Do not use 'Value' as enum name
                 enum    Value { Nb = -1, Zb = 0 };
 ^
-groups/csa/csabbg/csabbg_enumvalue.t.cpp:67:0: warning: EV01: do not use 'Value' as enum name
+groups/csa/csabbg/csabbg_enumvalue.t.cpp:67:0: warning: EV01: Do not use 'Value' as enum name
                 enum    Value { Nb = -1, Zb = 0 };
 ^
 12 warnings generated.
