@@ -110,6 +110,7 @@
     <ClCompile Include="groups\csa\csamisc\csamisc_contiguousswitch.cpp" />
     <ClCompile Include="groups\csa\csamisc\csamisc_longinline.cpp" />
     <ClCompile Include="groups\csa\csamisc\csamisc_memberdefinitioninclassdefinition.cpp" />
+    <ClCompile Include="groups\csa\csamisc\csamisc_opvoidstar.cpp" />
     <ClCompile Include="groups\csa\csamisc\csamisc_thrownonstdexception.cpp" />
     <ClCompile Include="groups\csa\csamisc\csamisc_verifysameargumentnames.cpp" />
     <ClCompile Include="groups\csa\csamisc\csamisc_stringadd.cpp" />
