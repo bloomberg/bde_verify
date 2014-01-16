@@ -1,4 +1,8 @@
 #!/bin/sh
+
+# Script by which bde_build.pl can invoke bdeverify:
+#   bde_build.pl -k -DCC={this} -DCXX={this} -c bdeverify ...
+
 : ${VD:=/home/hrosen4/coolyser}
 : ${EXE:=$VD/Linux-clang-3.5/bdeverify}
 exec "$VD/scripts/bdeverify"                                                  \
