@@ -1,4 +1,4 @@
-; // csamisc_longinline.t.cpp                                           -*-C++-*-
+// csamisc_longinline.t.cpp                                           -*-C++-*-
 
 namespace cool
 {
@@ -7,7 +7,7 @@ namespace cool
         inline
         void f()
         { ; //  1
-        } ; //  2
+        }   //  2
 
         inline
         void g()
@@ -81,10 +81,10 @@ namespace cool
     }
 }
 
-; // -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 
 int main()
 {
-        ; // this space is intentionally left empty
+        // this space is intentionally left empty
 }
 

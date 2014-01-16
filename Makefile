@@ -59,6 +59,7 @@ TSTCXXFILES +=                                                                \
         groups/csa/csamisc/csamisc_contiguousswitch.cpp                       \
         groups/csa/csamisc/csamisc_longinline.cpp                             \
         groups/csa/csamisc/csamisc_memberdefinitioninclassdefinition.cpp      \
+        groups/csa/csamisc/csamisc_opvoidstar.cpp                             \
         groups/csa/csamisc/csamisc_thrownonstdexception.cpp                   \
         groups/csa/csamisc/csamisc_verifysameargumentnames.cpp                \
         groups/csa/csamisc/csamisc_stringadd.cpp                              \
