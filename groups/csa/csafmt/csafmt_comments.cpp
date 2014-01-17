@@ -103,12 +103,7 @@ void files::operator()()
     }
 }
 
-static llvm::Regex description_tag(
-    "@" "[[:space:]]*" "DESCRIPTION" "[[:space:]]*" ":",
-    llvm::Regex::IgnoreCase
-);
-
-static llvm::Regex fully_value_semantic(
+static llvm::Regex fvs(
     "fully" "[^_[:alnum:]]*" "value" "[^_[:alnum:]]*" "semantic",
     llvm::Regex::IgnoreCase);
 
@@ -117,17 +112,20 @@ void files::check(SourceRange range)
     llvm::SmallVector<llvm::StringRef, 7> matches;
     llvm::StringRef comment = d_analyser.get_source(range, true);
 
-    if (   description_tag.match(comment)
-        && fully_value_semantic.match(comment, &matches)) {
-        std::pair<unsigned, unsigned> m =
-            cool::csabase::mid_match(comment, matches[0]);
-        d_analyser.report(range.getBegin().getLocWithOffset(m.first),
+    unsigned offset = 0;
+    llvm::StringRef s;
+    while (fvs.match(s = comment.drop_front(offset), &matches)) {
+        llvm::StringRef text = matches[0];
+        std::pair<unsigned, unsigned> m = cool::csabase::mid_match(s, text);
+        unsigned matchpos = offset + m.first;
+        offset = matchpos + text.size();
+        d_analyser.report(range.getBegin().getLocWithOffset(matchpos),
                           check_name, "FVS01",
                           "The term \"%0\" is deprecated; use a description "
                           "appropriate to the component type")
-            << matches[0]
-            << SourceRange(range.getBegin().getLocWithOffset(m.first),
-                           range.getEnd().getLocWithOffset(-m.second));
+            << text
+            << SourceRange(range.getBegin().getLocWithOffset(matchpos),
+                           range.getBegin().getLocWithOffset(offset - 1));
     }
 }
 
