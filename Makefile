@@ -64,6 +64,7 @@ TSTCXXFILES +=                                                                \
         groups/csa/csamisc/csamisc_thrownonstdexception.cpp                   \
         groups/csa/csamisc/csamisc_verifysameargumentnames.cpp                \
         groups/csa/csamisc/csamisc_stringadd.cpp                              \
+        groups/csa/csamisc/csamisc_swapab.cpp                                 \
 
 TODO =                                                                        \
         groups/csa/csamisc/csamisc_calls.cpp                                  \

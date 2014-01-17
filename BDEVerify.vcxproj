@@ -115,6 +115,7 @@
     <ClCompile Include="groups\csa\csamisc\csamisc_thrownonstdexception.cpp" />
     <ClCompile Include="groups\csa\csamisc\csamisc_verifysameargumentnames.cpp" />
     <ClCompile Include="groups\csa\csamisc\csamisc_stringadd.cpp" />
+    <ClCompile Include="groups\csa\csamisc\csamisc_swapab.cpp" />
     <ClCompile Include="groups\csa\csastil\csastil_implicitctor.cpp" />
     <ClCompile Include="groups\csa\csastil\csastil_includeorder.cpp" />
     <ClCompile Include="groups\csa\csastil\csastil_templatetypename.cpp" />
