@@ -27,7 +27,8 @@ void allFunDecls(Analyser& analyser, const FunctionDecl* func)
     const ParmVarDecl *pa;
     const ParmVarDecl *pb;
 
-    if (   func->getName() == "swap"
+    if (   func->getDeclName().isIdentifier()
+        && func->getName() == "swap"
         && func->getNumParams() == 2
         && (pa = func->getParamDecl(0))->getType() ==
            (pb = func->getParamDecl(1))->getType()

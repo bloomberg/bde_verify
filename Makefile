@@ -58,6 +58,7 @@ TSTCXXFILES +=                                                                \
         groups/csa/csamisc/csamisc_cstylecastused.cpp                         \
         groups/csa/csamisc/csamisc_constantreturn.cpp                         \
         groups/csa/csamisc/csamisc_contiguousswitch.cpp                       \
+        groups/csa/csamisc/csamisc_funcalpha.cpp                              \
         groups/csa/csamisc/csamisc_longinline.cpp                             \
         groups/csa/csamisc/csamisc_memberdefinitioninclassdefinition.cpp      \
         groups/csa/csamisc/csamisc_opvoidstar.cpp                             \

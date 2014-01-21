@@ -48,17 +48,18 @@ namespace
                         const clang::ParmVarDecl *pp = p->getParamDecl(i);
                         const clang::ParmVarDecl *cp = c->getParamDecl(i);
                         if (!arg_names_match(pp, cp)) {
-                            analyser_->report(cp, check_name, "AN01",
-                                "parameter name mismatch for %ordinal0 "
-                                "parameter %1", false)
+                            analyser_->report(cp->getLocation(),
+                                              check_name, "AN01",
+                                              "Parameter name mismatch for "
+                                              "%ordinal0 parameter %1")
                                 << int(i + 1)
-                                << cp
-                                << cp->getSourceRange();
-                            analyser_->report(pp, check_name, "AN01",
-                                "the other declaration uses %0", false,
-                                clang::DiagnosticsEngine::Note)
-                                << pp
-                                << pp->getSourceRange();
+                                << cp;
+                            analyser_->report(pp->getLocation(),
+                                              check_name, "AN01",
+                                              "The other declaration uses %0",
+                                              false,
+                                              clang::DiagnosticsEngine::Note)
+                                << pp;
                         }
                     }
                 }

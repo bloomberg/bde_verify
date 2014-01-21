@@ -109,6 +109,7 @@
     <ClCompile Include="groups\csa\csamisc\csamisc_cstylecastused.cpp" />
     <ClCompile Include="groups\csa\csamisc\csamisc_constantreturn.cpp" />
     <ClCompile Include="groups\csa\csamisc\csamisc_contiguousswitch.cpp" />
+    <ClCompile Include="groups\csa\csamisc\csamisc_funcalpha.cpp" />
     <ClCompile Include="groups\csa\csamisc\csamisc_longinline.cpp" />
     <ClCompile Include="groups\csa\csamisc\csamisc_memberdefinitioninclassdefinition.cpp" />
     <ClCompile Include="groups\csa\csamisc\csamisc_opvoidstar.cpp" />
