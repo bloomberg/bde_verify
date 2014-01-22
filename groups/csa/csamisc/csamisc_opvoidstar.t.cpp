@@ -1,4 +1,4 @@
-// csamisc_longinline.t.cpp                                           -*-C++-*-
+// csamisc_opvoidstar.t.cpp                                           -*-C++-*-
 
 namespace cool
 {

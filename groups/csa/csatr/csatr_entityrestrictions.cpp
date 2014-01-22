@@ -62,7 +62,8 @@ function_declaration(cool::csabase::Analyser&   analyser,
         ) {
         analyser.report(decl, check_name, "TR17",
                         "Function '%0' declared at global scope")
-            << decl->getNameAsString();
+            << decl->getNameAsString()
+            << decl->getNameInfo().getSourceRange();
     }
 }
 

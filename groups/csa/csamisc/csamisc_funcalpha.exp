@@ -1,7 +1,7 @@
 groups/csa/csamisc/csamisc_funcalpha.t.cpp:7:0: warning: FABC01: Function 'f3' not in alphabetical order
             void f3();
-^
+^~
 groups/csa/csamisc/csamisc_funcalpha.t.cpp:8:0: note: FABC01: Next function is 'f2'
             void f2();
-^
+^~
 1 warning generated.

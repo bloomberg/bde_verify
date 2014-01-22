@@ -170,12 +170,14 @@ void report::operator()(const FunctionDecl *decl)
                     d_analyser.report(decl->getLocation(),
                                       check_name, "FABC01",
                                       "Function '%0' not in alphabetical order")
-                        << name.getAsString();
+                        << name.getAsString()
+                        << decl->getNameInfo().getSourceRange();
                     d_analyser.report(nextf->getLocation(),
                                       check_name, "FABC01",
                                       "Next function is '%0'",
                                       false, clang::DiagnosticsEngine::Note)
-                        << next_name.getAsString();
+                        << next_name.getAsString()
+                        << nextf->getNameInfo().getSourceRange();
                 }
             }
         }

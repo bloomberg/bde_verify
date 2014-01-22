@@ -165,7 +165,8 @@ cool::csabase::Analyser::report(T where,
                                 bool always,
                                 clang::DiagnosticsEngine::Level level)
 {
-    return report(where->getLocStart(), check, tag, message, always, level);
+    return report(get_location(where).location(),
+                  check, tag, message, always, level);
 }
 
 // -----------------------------------------------------------------------------

@@ -10,18 +10,12 @@
 #ident "$Id$"
 
 #include <llvm/Support/raw_ostream.h>
+#include <clang/Basic/SourceManager.h>
 #include <iosfwd>
 #include <string>
 #include <stddef.h>
 
 // -----------------------------------------------------------------------------
-
-namespace clang
-{
-    class SourceLocation;
-    class SourceManager;
-    class SourceRange;
-}
 
 namespace cool
 {
@@ -46,18 +40,20 @@ namespace cool
 class cool::csabase::Location
 {
 private:
-    std::string d_file;
-    size_t      d_line;
-    size_t      d_column;
+    std::string           d_file;
+    size_t                d_line;
+    size_t                d_column;
+    clang::SourceLocation d_location;
 
 public:
     Location();
     Location(clang::SourceManager const& manager,
              clang::SourceLocation location);
 
-    std::string file() const;
-    size_t      line() const;
-    size_t      column() const;
+    std::string           file() const;
+    size_t                line() const;
+    size_t                column() const;
+    clang::SourceLocation location() const;
 
     bool operator< (cool::csabase::Location const& location) const;
 };

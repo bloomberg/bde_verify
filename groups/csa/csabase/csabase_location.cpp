@@ -17,6 +17,7 @@ cool::csabase::Location::Location()
     : d_file("<unknown>")
     , d_line(0)
     , d_column(0)
+    , d_location()
 {
 }
 
@@ -25,6 +26,7 @@ cool::csabase::Location::Location(clang::SourceManager const& manager,
     : d_file()
     , d_line(0)
     , d_column(0)
+    , d_location(location)
 {
     clang::PresumedLoc loc(manager.getPresumedLoc(location));
     char const* filename(loc.getFilename());
@@ -56,6 +58,12 @@ size_t
 cool::csabase::Location::column() const
 {
     return d_column;
+}
+
+clang::SourceLocation
+cool::csabase::Location::location() const
+{
+    return d_location;
 }
 
 bool

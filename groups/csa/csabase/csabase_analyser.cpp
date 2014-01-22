@@ -381,7 +381,7 @@ cool::csabase::Location
 cool::csabase::Analyser::get_location(clang::Decl const* decl) const
 {
     return decl
-        ? get_location(decl->getLocStart())
+        ? get_location(decl->getLocation())
         : cool::csabase::Location();
 }
 

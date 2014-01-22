@@ -52,7 +52,8 @@ global_function_only_in_source(cool::csabase::Analyser&   analyser,
         analyser.report(decl, check_name, "TR10",
                         "Globally visible function '%0' "
                         "is not declared in header.")
-                        << decl->getQualifiedNameAsString();
+                        << decl->getQualifiedNameAsString()
+                        << decl->getNameInfo().getSourceRange();
     }
 }
 
