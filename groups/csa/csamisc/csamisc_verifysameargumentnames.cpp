@@ -77,9 +77,11 @@ static void
 verify_arg_names_match(cool::csabase::Analyser& analyser,
                        clang::FunctionDecl const* decl)
 {
-    std::for_each(decl->redecls_begin(),
-                  decl->redecls_end(),
-                  same_argument_names(&analyser, decl));
+    if (!decl->isFirstDecl()) {
+        std::for_each(decl->redecls_begin(),
+                      decl->redecls_end(),
+                      same_argument_names(&analyser, decl));
+    }
 }
 
 // -----------------------------------------------------------------------------

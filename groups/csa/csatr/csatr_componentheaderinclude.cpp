@@ -69,7 +69,8 @@ include_file(cool::csabase::Analyser& analyser,
     ::status& status(analyser.attachment< ::status>());
     if (status.check_)
     {
-        if (analyser.is_component_header(name))
+        if (analyser.is_component_header(name) ||
+            analyser.is_component_header(analyser.toplevel()))
         {
             status.header_seen_ = true;
         }
