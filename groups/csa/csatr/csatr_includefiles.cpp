@@ -101,7 +101,7 @@ check_type(cool::csabase::Analyser& analyser,
         break; //-dk:TODO C++0x
     case clang::Type::Record: // fall through
     case clang::Type::Enum:
-        analyser.report(decl, check_name, "CT01", "enum");
+        analyser.report(decl, check_name, "CT01", "Enum");
         //-dk:TODO check_declref(analyser, decl, llvm::dyn_cast<clang::TagType>(type)->getDecl());
         break;
     case clang::Type::Elaborated:
@@ -359,7 +359,7 @@ on_valuedecl(cool::csabase::Analyser& analyser, clang::DeclaratorDecl const* dec
 {
     if (check_type(analyser, decl, decl->getType().getTypePtr()))
     {
-        analyser.report(decl, check_name, "VD01", "value decl");
+        analyser.report(decl, check_name, "VD01", "Value decl");
     }
 }
 

@@ -41,6 +41,7 @@ global_function_only_in_source(cool::csabase::Analyser&   analyser,
 {
     if (decl->isGlobal()
         && llvm::dyn_cast<clang::CXXMethodDecl>(decl) == 0
+        && !analyser.is_component_header(analyser.toplevel())
         && analyser.get_location(decl).file() == analyser.toplevel()
         && std::find_if(decl->redecls_begin(), decl->redecls_end(),
                         decl_not_in_toplevel(&analyser))

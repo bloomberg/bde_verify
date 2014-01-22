@@ -58,8 +58,11 @@ int main(int argc_, const char **argv_)
 
     cl::ExpandResponseFiles(Saver, cl::TokenizeGNUCommandLine, argv);
 
-    OwningPtr<CompilerInstance>           Clang(new CompilerInstance());
-    IntrusiveRefCntPtr<DiagnosticIDs>     DiagID(new DiagnosticIDs());
+    argv.insert(argv.begin() == argv.end() ? argv.begin() : argv.begin() + 1,
+                "-xc++");
+
+    OwningPtr<CompilerInstance> Clang(new CompilerInstance());
+    IntrusiveRefCntPtr<DiagnosticIDs> DiagID(new DiagnosticIDs());
 
     llvm::InitializeNativeTarget();
     llvm::InitializeNativeTargetAsmParser();

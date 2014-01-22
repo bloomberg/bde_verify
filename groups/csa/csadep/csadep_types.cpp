@@ -38,7 +38,7 @@ record_needed_declaration(cool::csabase::Analyser& analyser,
     if (print) {
         clang::SourceLocation location(decl->getLocStart());
         analyser.report(location, check_name, "IF01",
-                "in file %2 need %0 for %1")
+                "In file %2 need %0 for %1")
             << (need_definition? "definition": "declaration")
             << named->getQualifiedNameAsString()
             << analyser.get_location(decl).file()
@@ -202,7 +202,7 @@ check_type(cool::csabase::Analyser& analyser,
         break; // these become available with C++2011 only
     default:
         analyser.report(decl, check_name, "UT01",
-                "unknown type class: %0")
+                "Unknown type class: %0")
             << cool::csabase::format(type->getTypeClass());
         break;
     }

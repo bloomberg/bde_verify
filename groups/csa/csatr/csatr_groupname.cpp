@@ -77,7 +77,7 @@ struct on_group_open
                 analyser.report(where, check_name, "TR01",
                         "Group names must consist of three lower-case letters "
                         "possibly prefixed by a single lowercase letter and "
-                        "underscore: %0", true)
+                        "underscore: '%0'", true)
                     << group;
             }
 

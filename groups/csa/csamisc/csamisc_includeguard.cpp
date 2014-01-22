@@ -76,7 +76,7 @@ namespace
             if (file != name)
             {
                 analyser->report(begin, check_name, "IG01",
-                                 "expected include guard '" + name + "'");
+                                 "Expected include guard '" + name + "'");
             }
         }
     }

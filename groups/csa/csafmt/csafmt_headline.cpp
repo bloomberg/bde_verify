@@ -85,7 +85,7 @@ open_file(cool::csabase::Analyser& analyser,
             }
             analyser.report(where.getLocWithOffset(m.first),
                             check_name, "HL01",
-                            "file headline incorrect", true)
+                            "File headline incorrect", true)
                 << clang::FixItHint::CreateReplacement(
                     clang::SourceRange(
                         where.getLocWithOffset(m.first),
