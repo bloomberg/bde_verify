@@ -6,10 +6,10 @@
 namespace cool {
 namespace csabase {
 
-std::pair<unsigned, unsigned>
+std::pair<size_t, size_t>
 mid_mismatch(const std::string &have, const std::string &want)
 {
-    std::pair<unsigned, unsigned> result(0, 0);
+    std::pair<size_t, size_t> result(0, 0);
     while (   result.first < have.size()
            && result.first < want.size()
            && have[result.first] == want[result.first]) {
@@ -25,10 +25,10 @@ mid_mismatch(const std::string &have, const std::string &want)
     return result;
 }
 
-std::pair<unsigned, unsigned>
+std::pair<size_t, size_t>
 mid_match(const std::string &have, const std::string &want)
 {
-    std::pair<unsigned, unsigned> result(have.find(want), have.npos);
+    std::pair<size_t, size_t> result(have.find(want), have.npos);
     if (result.first != have.npos) {
         result.second = have.size() - want.size() - result.first;
     }
@@ -41,10 +41,10 @@ bool areConsecutive(clang::SourceManager& manager,
 {
     clang::FileID fidf = manager.getFileID(first.getEnd());
     clang::FileID fids = manager.getFileID(second.getBegin());
-    unsigned colf = manager.getPresumedColumnNumber(first.getBegin());
-    unsigned cols = manager.getPresumedColumnNumber(second.getBegin());
-    unsigned offf = manager.getFileOffset(first.getEnd());
-    unsigned offs = manager.getFileOffset(second.getBegin());
+    size_t colf = manager.getPresumedColumnNumber(first.getBegin());
+    size_t cols = manager.getPresumedColumnNumber(second.getBegin());
+    size_t offf = manager.getFileOffset(first.getEnd());
+    size_t offs = manager.getFileOffset(second.getBegin());
 
     return fidf == fids && colf == cols && offf <= offs &&
            llvm::StringRef::npos == manager.getBufferData(fidf)

@@ -16,13 +16,13 @@
 namespace cool {
 namespace csabase {
 
-std::pair<unsigned, unsigned>
+std::pair<size_t, size_t>
 mid_mismatch(const std::string &have, const std::string &want);
     // Return a pair of values '(a,b)' such that 'a' is the maximum length of a
     // common prefix of the specified 'have' and 'want' and 'b' is the maximum
     // length of a common suffix of 'have.substr(a)' and 'want.substr(a)'.
 
-std::pair<unsigned, unsigned>
+std::pair<size_t, size_t>
 mid_match(const std::string &have, const std::string &want);
     // Return a pair of values '(a,b)' such that 'a' is the count of characters
     // in the specified 'have' before the first appearance of the specified

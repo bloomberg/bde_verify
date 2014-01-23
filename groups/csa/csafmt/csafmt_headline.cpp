@@ -69,11 +69,11 @@ open_file(cool::csabase::Analyser& analyser,
         if (   !buf.equals(expectcpp)
             && !buf.equals(expectc)
             && buf.find("GENERATED") == buf.npos) {
-            std::pair<unsigned, unsigned> mcpp =
+            std::pair<size_t, size_t> mcpp =
                 cool::csabase::mid_mismatch(buf, expectcpp);
-            std::pair<unsigned, unsigned> mc =
+            std::pair<size_t, size_t> mc =
                 cool::csabase::mid_mismatch(buf, expectc);
-            std::pair<unsigned, unsigned> m;
+            std::pair<size_t, size_t> m;
             std::string expect;
 
             if (mcpp.first >= mc.first || mcpp.second <= mc.second) {

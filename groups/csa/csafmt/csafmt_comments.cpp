@@ -76,6 +76,9 @@ struct files
     void report_bubble(const Range &r, llvm::StringRef text);
         // Warn about a single bad inheritance bubble at the specified 'r'
         // containing the specified 'text'.
+
+    void check_wrapped(SourceRange range);
+        // Warn about comment containing incorrectly wrapped text.
 };
 
 files::files(Analyser& analyser)
@@ -110,6 +113,7 @@ void files::operator()()
              ++comments_itr) {
             check_fvs(*comments_itr);
             check_bubble(*comments_itr);
+            check_wrapped(*comments_itr);
         }
     }
 }
@@ -123,12 +127,12 @@ void files::check_fvs(SourceRange range)
     llvm::SmallVector<llvm::StringRef, 7> matches;
     llvm::StringRef comment = d_analyser.get_source(range, true);
 
-    unsigned offset = 0;
+    size_t offset = 0;
     llvm::StringRef s;
     while (fvs.match(s = comment.drop_front(offset), &matches)) {
         llvm::StringRef text = matches[0];
-        std::pair<unsigned, unsigned> m = cool::csabase::mid_match(s, text);
-        unsigned matchpos = offset + m.first;
+        std::pair<size_t, size_t> m = cool::csabase::mid_match(s, text);
+        size_t matchpos = offset + m.first;
         offset = matchpos + text.size();
         d_analyser.report(range.getBegin().getLocWithOffset(matchpos),
                           check_name, "FVS01",
@@ -154,7 +158,7 @@ llvm::Regex bad_bubble(
                               "[)])",
     llvm::Regex::Newline);
 
-std::string bubble(llvm::StringRef s, unsigned column)
+std::string bubble(llvm::StringRef s, size_t column)
 {
     std::string lead = "\n//" + std::string(column > 4 ? column - 4 : 1, ' ');
     return lead + " ,"  + std::string(s.size() + 1, '-') + "." +
@@ -183,13 +187,13 @@ void files::check_bubble(SourceRange range)
     llvm::SmallVector<llvm::StringRef, 7> matches;
     llvm::StringRef comment = d_analyser.get_source(range, true);
 
-    unsigned offset = 0;
+    size_t offset = 0;
     llvm::StringRef s;
     while (bad_bubble.match(s = comment.drop_front(offset), &matches)) {
         llvm::StringRef text = matches[0];
-        std::pair<unsigned, unsigned> m = cool::csabase::mid_match(s, text);
-        unsigned matchpos = offset + m.first;
-        offset = matchpos + text.size();
+        std::pair<size_t, size_t> m = cool::csabase::mid_match(s, text);
+        size_t matchpos = offset + m.first;
+        offset = matchpos + matches[1].size();
 
         Range b1(d_analyser.manager(),
                  SourceRange(range.getBegin().getLocWithOffset(matchpos),
@@ -204,6 +208,138 @@ void files::check_bubble(SourceRange range)
                         range.getBegin().getLocWithOffset(
                             matchpos + matches[0].size() - 1)));
         report_bubble(b2, matches[6]);
+    }
+}
+
+std::pair<size_t, size_t> bad_wrap_pos(llvm::StringRef text, size_t ll)
+    // Return the position of a word in the specified 'text' that can fit on
+    // the previous line, where line length is the specified 'll'.  If there is
+    // no such word, return a pair of 'npos'.
+{
+    size_t offset = 0;
+    for (;;) {
+        size_t b = text.find("// ", offset);
+        if (b == text.npos) {
+            break;
+        }
+        size_t e = text.find("\n", b);
+        if (e == text.npos) {
+            e = text.size();
+        }
+        offset = e;
+        size_t nextb = text.find("// ", e);
+        if (nextb == text.npos) {
+            break;
+        }
+        size_t nexte = text.find("\n", nextb);
+        if (nexte == text.npos) {
+            nexte = text.size();
+        }
+        enum State { e_C, e_Q1, e_Q2 } state = e_C;
+        size_t i;
+        for (i = nextb + 3; i < nexte; ++i) {
+            char c = text[i];
+            if (state == e_C) {
+                if (c == ' ') {
+                    break;
+                }
+                state = c == '\'' && text[i - 1] == ' ' ? e_Q1 :
+                        c == '"'  && text[i - 1] == ' ' ? e_Q2 :
+                                                          e_C;
+            }
+            else if (state == e_Q1) {
+                state = c == '\'' ? e_C : e_Q1;
+            }
+            else if (state == e_Q2) {
+                state = c == '"'  ? e_C : e_Q2;
+            }
+        }
+
+        if (e > 0 && text[e - 1] == '.') {
+            // Double space after periods.
+            ++e;
+        }
+
+        if ((e - (b + 3)) + (i - (nextb + 3)) + 1 <= ll) {
+            return std::make_pair(nextb + 3, i - 1);
+        }
+    }
+    return std::make_pair(text.npos, text.npos);
+}
+
+llvm::Regex display("^( *//[.][.])$", llvm::Regex::Newline);
+
+void get_displays(llvm::StringRef text,
+                  llvm::SmallVector<std::pair<size_t, size_t>, 7>* displays)
+{
+    llvm::SmallVector<llvm::StringRef, 7> matches;
+
+    size_t offset = 0;
+    llvm::StringRef s;
+    int n = 0;
+    displays->clear();
+    while (display.match(s = text.drop_front(offset), &matches)) {
+        llvm::StringRef d = matches[0];
+        std::pair<size_t, size_t> m = cool::csabase::mid_match(s, d);
+        size_t matchpos = offset + m.first;
+        offset = matchpos + d.size();
+
+        if (n++ & 1) {
+            displays->back().second = matchpos;
+        } else {
+            displays->push_back(std::make_pair(matchpos, text.size()));
+        }
+    }
+}
+
+llvm::Regex block_comment("((^ *// [^ ].*$\n?){2,})", llvm::Regex::Newline);
+llvm::Regex banner("^ *(// ?([-=_] ?)+)$", llvm::Regex::Newline);
+
+void files::check_wrapped(SourceRange range)
+{
+    llvm::SmallVector<llvm::StringRef, 7> matches;
+    llvm::SmallVector<llvm::StringRef, 7> banners;
+    llvm::SmallVector<std::pair<size_t, size_t>, 7> displays;
+    llvm::StringRef comment = d_analyser.get_source(range, true);
+
+    get_displays(comment, &displays);
+    size_t dnum = 0;
+
+    size_t offset = 0;
+    llvm::StringRef s;
+    while (block_comment.match(s = comment.drop_front(offset), &matches)) {
+        llvm::StringRef text = matches[0];
+        std::pair<size_t, size_t> m = cool::csabase::mid_match(s, text);
+        size_t matchpos = offset + m.first;
+        offset = matchpos + text.size();
+
+        while (dnum < displays.size() && displays[dnum].second < matchpos) {
+            ++dnum;
+        }
+        if (   dnum < displays.size()
+            && displays[dnum].first <= matchpos
+            && matchpos <= displays[dnum].second) {
+            offset = displays[dnum].second;
+            continue;
+        }
+
+        size_t n = text.find('\n');
+        size_t c = text.find("//", n);
+        size_t ll = banner.match(text, &banners) ? banners[1].size() - 3 :
+                                                   77 - (c - n);
+
+        std::pair<size_t, size_t> bad_pos = bad_wrap_pos(text, ll);
+        if (bad_pos.first != text.npos) {
+            d_analyser.report(
+                range.getBegin().getLocWithOffset(matchpos + bad_pos.first),
+                check_name, "BW01",
+                "This text fits on the previous line - "
+                "consider using bdewrap")
+                << SourceRange(range.getBegin().getLocWithOffset(
+                                   matchpos + bad_pos.first),
+                               range.getBegin().getLocWithOffset(
+                                   matchpos + bad_pos.second));
+        }
     }
 }
 
