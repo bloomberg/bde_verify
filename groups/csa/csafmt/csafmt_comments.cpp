@@ -295,12 +295,19 @@ void get_displays(llvm::StringRef text,
 llvm::Regex block_comment("((^ *// [^ ].*$\n?){2,})", llvm::Regex::Newline);
 llvm::Regex banner("^ *(// ?([-=_] ?)+)$", llvm::Regex::Newline);
 
+llvm::Regex copyright("Copyright.*Bloomberg.*END-OF-FILE",
+                      llvm::Regex::IgnoreCase);
+
 void files::check_wrapped(SourceRange range)
 {
     llvm::SmallVector<llvm::StringRef, 7> matches;
     llvm::SmallVector<llvm::StringRef, 7> banners;
     llvm::SmallVector<std::pair<size_t, size_t>, 7> displays;
     llvm::StringRef comment = d_analyser.get_source(range, true);
+
+    if (copyright.match(comment)) {
+        return;                                                       // RETURN
+    }
 
     get_displays(comment, &displays);
     size_t dnum = 0;

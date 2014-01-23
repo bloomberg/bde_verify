@@ -102,6 +102,7 @@
     <ClCompile Include="groups\csa\csafmt\csafmt_comments.cpp" />
     <ClCompile Include="groups\csa\csafmt\csafmt_headline.cpp" />
     <ClCompile Include="groups\csa\csafmt\csafmt_nonascii.cpp" />
+    <ClCompile Include="groups\csa\csafmt\csafmt_whitespace.cpp" />
     <ClCompile Include="groups\csa\csamisc\csamisc_charvsstring.cpp" />
     <ClCompile Include="groups\csa\csamisc\csamisc_arrayinitialization.cpp" />
     <ClCompile Include="groups\csa\csamisc\csamisc_anonymousnamespaceinheader.cpp" />

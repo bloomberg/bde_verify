@@ -33,6 +33,7 @@ TSTCXXFILES +=                                                                \
         groups/csa/csafmt/csafmt_banner.cpp                                   \
         groups/csa/csafmt/csafmt_comments.cpp                                 \
         groups/csa/csafmt/csafmt_nonascii.cpp                                 \
+        groups/csa/csafmt/csafmt_whitespace.cpp                               \
         groups/csa/csatr/csatr_groupname.cpp                                  \
         groups/csa/csatr/csatr_componentprefix.cpp                            \
         groups/csa/csatr/csatr_packagename.cpp                                \
