@@ -154,11 +154,12 @@ llvm::Regex bad_bubble(
                               "[)])",
     llvm::Regex::Newline);
 
-std::string bubble(llvm::StringRef s)
+std::string bubble(llvm::StringRef s, unsigned column)
 {
-    return "\n ," + std::string(s.size() + 1, '-') + ".\n" +
-           "(  "  + s.str()                        + " )\n" +
-           " `"   + std::string(s.size() + 1, '-') + "'\n";
+    std::string lead = "\n//" + std::string(column > 4 ? column - 4 : 1, ' ');
+    return lead + " ,"  + std::string(s.size() + 1, '-') + "." +
+           lead + "(  " + s.str()                        + " )" +
+           lead + " `"  + std::string(s.size() + 1, '-') + "'";
 }
 
 void files::report_bubble(const Range &r, llvm::StringRef text)
@@ -173,7 +174,7 @@ void files::report_bubble(const Range &r, llvm::StringRef text)
         d_analyser.report(r.from().location(), check_name, "BADB01",
                           "Correct format is%0",
                           false, clang::DiagnosticsEngine::Note)
-            << bubble(text);
+            << bubble(text, r.from().column());
     }
 }
 
