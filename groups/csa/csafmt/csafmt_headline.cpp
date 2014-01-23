@@ -86,12 +86,14 @@ open_file(cool::csabase::Analyser& analyser,
             analyser.report(where.getLocWithOffset(m.first),
                             check_name, "HL01",
                             "File headline incorrect", true)
-                << clang::FixItHint::CreateReplacement(
-                    clang::SourceRange(
+                << clang::SourceRange(
                         where.getLocWithOffset(m.first),
-                        where.getLocWithOffset(buf.size() - m.second)),
-                    expect.substr(m.first,
-                                  expect.size() - m.first - m.second));
+                        where.getLocWithOffset(buf.size() - m.second));
+            analyser.report(where.getLocWithOffset(m.first),
+                            check_name, "HL01",
+                            "Correct format is\n%0",
+                            true, clang::DiagnosticsEngine::Note)
+                << expect;
         }
     }
 }
