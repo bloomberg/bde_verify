@@ -38,6 +38,8 @@ bool areConsecutive(clang::SourceManager& manager,
     // two begin at the same column.  (This is used to paste consecutive '//'
     // comments into single blocks.)
 
+std::string to_lower(std::string s);
+    // Return a copy of the specified 's' with all letters in lower case.
 }
 }
 

@@ -52,5 +52,15 @@ bool areConsecutive(clang::SourceManager& manager,
                                         .find_first_not_of(" \t\n\r\f\v");
 }
 
+std::string to_lower(std::string s)
+{
+    std::string::iterator b = s.begin();
+    std::string::iterator e = s.end();
+    for (std::string::iterator i = b; i != e; ++i) {
+        *i = std::tolower(static_cast<unsigned char>(*i));
+    }
+    return s;
+}
+
 }
 }

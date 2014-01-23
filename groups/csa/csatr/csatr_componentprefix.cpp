@@ -6,9 +6,11 @@
 // ----------------------------------------------------------------------------
 
 #include <csabase_analyser.h>
+#include <csabase_config.h>
+#include <csabase_format.h>
 #include <csabase_location.h>
 #include <csabase_registercheck.h>
-#include <csabase_format.h>
+#include <csabase_util.h>
 #include <llvm/Support/raw_ostream.h>
 #include <algorithm>
 #include <sstream>
@@ -21,22 +23,20 @@ static std::string const check_name("component-prefix");
 
 // ----------------------------------------------------------------------------
 
-static char
-to_lower(unsigned char c)
-{
-    return std::tolower(c);
-}
-
 static bool
-wrong_prefix(cool::csabase::Analyser& analyser,
-             std::string              name)
+wrong_prefix(cool::csabase::Analyser&  analyser,
+             const clang::NamedDecl   *named)
 {
     std::string package_prefix = analyser.package() + "_";
+    std::string name = named->getNameAsString();
     if (name.find(package_prefix) != 0) {
         name = package_prefix + name;
     }
-    std::transform(name.begin(), name.end(), name.begin(), &to_lower);
-    return name.find(analyser.component()) != 0;
+    return 0 != cool::csabase::to_lower(name).find(analyser.component()) &&
+           0 != cool::csabase::to_lower(named->getQualifiedNameAsString())
+                    .find(cool::csabase::to_lower(
+                         analyser.config()->toplevel_namespace() + "::" +
+                         analyser.component() + "::"));
 }
 
 // ----------------------------------------------------------------------------
@@ -68,7 +68,7 @@ component_prefix(cool::csabase::Analyser&  analyser,
         && !llvm::dyn_cast<clang::UsingDirectiveDecl>(named)
         && !llvm::dyn_cast<clang::UsingDecl>(named)
         && analyser.is_component_header(decl)
-        && wrong_prefix(analyser, name)
+        && wrong_prefix(analyser, named)
         && (!llvm::dyn_cast<clang::RecordDecl>(named)
             || llvm::dyn_cast<clang::RecordDecl>(named)->isCompleteDefinition()
             )

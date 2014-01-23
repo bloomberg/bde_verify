@@ -10,6 +10,7 @@
 #include <csabase_format.h>
 #include <csabase_cast_ptr.h>
 #include <csabase_registercheck.h>
+#include <csabase_util.h>
 #include <clang/Sema/Sema.h>
 #ident "$Id$"
 
@@ -134,6 +135,8 @@ check(cool::csabase::Analyser& analyser, clang::Decl const* decl)
                 && (   spname != analyser.config()->toplevel_namespace()
                     || name.find(analyser.package() + '_') != 0
                     )
+                && cool::csabase::to_lower(spname) !=
+                   cool::csabase::to_lower(analyser.component())
                 && !llvm::dyn_cast<clang::ClassTemplateSpecializationDecl>(decl)
                 && !llvm::dyn_cast<clang::ClassTemplatePartialSpecializationDecl>(decl)
                 && name.find("operator new") == std::string::npos

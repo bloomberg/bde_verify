@@ -6,9 +6,10 @@
 // ----------------------------------------------------------------------------
 
 #include <csabase_analyser.h>
-#include <csabase_registercheck.h>
-#include <csabase_ppobserver.h>
 #include <csabase_location.h>
+#include <csabase_ppobserver.h>
+#include <csabase_registercheck.h>
+#include <csabase_util.h>
 #include <cctype>
 #include <algorithm>
 #include <functional>
@@ -190,12 +191,6 @@ is_space(unsigned char c)
     return std::isspace(c);
 }
 
-static inline char
-to_lower(unsigned char c)
-{
-    return std::tolower(c);
-}
-
 // ----------------------------------------------------------------------------
 
 namespace
@@ -223,8 +218,7 @@ namespace
             std::string value(begin, end);
             value.erase(std::remove_if(value.begin(), value.end(),
                                        &is_space), value.end());
-            std::transform(value.begin(), value.end(), value.begin(),
-                           &to_lower);
+            value = cool::csabase::to_lower(value);
             if (value.find(prefix1) == 0 && value[value.size() - 1] == ')') {
                 data.add_include(d_analyser->is_component_header(range.getBegin()),
                                  value.substr(prefix1.size(), value.size() - prefix1.size() - 1),
@@ -247,8 +241,7 @@ namespace
             if (clang::IdentifierInfo const* id = token.getIdentifierInfo())
             {
                 std::string value(id->getNameStart());
-                std::transform(value.begin(), value.end(), value.begin(),
-                               &to_lower);
+                value = cool::csabase::to_lower(value);
                 if (value.find(prefix0) == 0) {
                     data.add_include(d_analyser->is_component_header(token.getLocation()),
                                      value.substr(prefix0.size()),

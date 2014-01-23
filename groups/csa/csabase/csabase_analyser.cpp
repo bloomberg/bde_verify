@@ -11,6 +11,7 @@
 #include <csabase_filenames.h>
 #include <csabase_location.h>
 #include <csabase_ppobserver.h>
+#include <csabase_util.h>
 #include <csabase_visitor.h>
 #include <cool/array.hpp>
 #include <clang/AST/AST.h>
@@ -125,19 +126,6 @@ namespace
     };
     const int NHS = sizeof header_suffixes / sizeof *header_suffixes;
 
-    static char
-    to_lower(unsigned char c)
-    {
-        return std::tolower(c);
-    }
-
-    static std::string
-    to_lower(std::string s)
-    {
-        std::transform(s.begin(), s.end(), s.begin(),
-                       static_cast<char(*)(unsigned char)>(&to_lower));
-        return s;
-    }
 }
 
 std::string const&
@@ -516,7 +504,8 @@ cool::csabase::Analyser::is_ADL_candidate(clang::Decl const* decl)
             clang::Sema::AssociatedClassSet::iterator csb = cs.begin();
             clang::Sema::AssociatedClassSet::iterator cse = cs.end();
             while (!adl && csb != cse) {
-                std::string s = to_lower((*csb++)->getNameAsString());
+                std::string s =
+                    cool::csabase::to_lower((*csb++)->getNameAsString());
                 adl = s == component() || 0 == s.find(component() + "_");
             }
         }
