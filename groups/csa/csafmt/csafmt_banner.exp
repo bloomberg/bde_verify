@@ -9,9 +9,6 @@ groups/csa/csafmt/csafmt_banner.t.cpp:4:0: note: BAN03: Correct text is
 groups/csa/csafmt/csafmt_banner.t.cpp:5:0: warning: BAN02: Banner ends at column 6 instead of 79
 // ---
 ^
-groups/csa/csafmt/csafmt_banner.t.cpp:7:0: warning: BAN02: Banner ends at column 79 instead of 79
-// ============================================================================
-^
 groups/csa/csafmt/csafmt_banner.t.cpp:8:0: warning: BAN03: Improperly centered banner text (not reachable using tab key)
 //                         INLINE FUNCTION DEFINITIONS
 ^
@@ -28,36 +25,24 @@ groups/csa/csafmt/csafmt_banner.t.cpp:12:0: note: BAN03: Correct text is
 groups/csa/csafmt/csafmt_banner.t.cpp:13:0: warning: BAN02: Banner ends at column 6 instead of 79
 // ===
 ^
-groups/csa/csafmt/csafmt_banner.t.cpp:15:0: warning: BAN02: Banner ends at column 79 instead of 79
-// ============================================================================
-^
 groups/csa/csafmt/csafmt_banner.t.cpp:16:0: warning: BAN03: Improperly centered banner text (not reachable using tab key)
 //HELLO WORLD
 ^
 groups/csa/csafmt/csafmt_banner.t.cpp:16:0: note: BAN03: Correct text is
 //                              HELLO WORLD
-groups/csa/csafmt/csafmt_banner.t.cpp:18:0: warning: BAN02: Banner ends at column 79 instead of 79
-// ============================================================================
-^
 groups/csa/csafmt/csafmt_banner.t.cpp:19:0: warning: BAN03: Improperly centered banner text
 //                                  HELLO WORLD
 ^
 groups/csa/csafmt/csafmt_banner.t.cpp:19:0: note: BAN03: Correct text is
 //                              HELLO WORLD
-groups/csa/csafmt/csafmt_banner.t.cpp:21:0: warning: BAN02: Banner ends at column 79 instead of 79
-// ============================================================================
-^
 groups/csa/csafmt/csafmt_banner.t.cpp:22:0: warning: BAN03: Improperly centered banner text (not reachable using tab key)
 //                                 HELLO WORLD
 ^
 groups/csa/csafmt/csafmt_banner.t.cpp:22:0: note: BAN03: Correct text is
 //                              HELLO WORLD
-groups/csa/csafmt/csafmt_banner.t.cpp:24:0: warning: BAN02: Banner ends at column 79 instead of 79
-// ============================================================================
-^
 groups/csa/csafmt/csafmt_banner.t.cpp:25:0: warning: BAN03: Improperly centered banner text (not reachable using tab key)
 //                                   HELLO WORLD
 ^
 groups/csa/csafmt/csafmt_banner.t.cpp:25:0: note: BAN03: Correct text is
 //                              HELLO WORLD
-16 warnings generated.
+11 warnings generated.

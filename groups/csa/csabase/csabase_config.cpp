@@ -151,7 +151,7 @@ cool::csabase::Config::process(std::string const& line)
         if (args >> key) {
             std::string value;
             if (std::getline(args, value)) {
-                d_values[key] = value;
+                d_values[key] = llvm::StringRef(value).trim();
             }
             else {
                 llvm::errs() << "WARNING: set could not read value on line '" << line << "'\n";

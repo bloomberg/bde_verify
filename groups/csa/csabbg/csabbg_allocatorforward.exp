@@ -34,13 +34,7 @@ groups/csa/csabbg/csabbg_allocatorforward.t.cpp:154:0: warning: MA02: Class 'not
 groups/csa/csabbg/csabbg_allocatorforward.t.cpp:157:0: warning: MA02: Class 'object' uses allocators but does not declare the TypeTraitUsesBslmaAllocator trait
             struct object {
 ^
-groups/csa/csabbg/csabbg_allocatorforward.t.cpp:154:0: warning: MA04: Implicit copy constructor cannot be called with an allocator
-            struct not_alloc {
-^
-groups/csa/csabbg/csabbg_allocatorforward.t.cpp:157:0: warning: MA04: Implicit copy constructor cannot be called with an allocator
-            struct object {
-^
 groups/csa/csabbg/csabbg_allocatorforward.t.cpp:164:0: warning: MA02: Allocator argument initializes non-allocator parameter 1 ('na') of type 'struct cool::csabbg::<anonymous>::not_alloc' rather than allocator parameter 2
                 object o(a);
 ^
-15 warnings generated.
+13 warnings generated.

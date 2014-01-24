@@ -63,6 +63,12 @@ struct files
     void operator()(SourceRange range);
         // The specified comment 'range' is added to the stored data.
 
+    void check_comment(SourceRange comment_range);
+        // Check banner in one comment.
+
+    void check_file_comments(comments::Ranges& comments);
+        // Check all banners in a file.
+
     void operator()();
         // Report improper banners.
 };
@@ -91,90 +97,108 @@ static llvm::Regex generic_banner(   // things that look like banners
 #undef SP
 #undef NL
 
-void files::operator()()
+void files::check_comment(SourceRange comment_range)
 {
     SourceManager& manager = d_analyser.manager();
-    comments::Comments& file_comments =
-        d_analyser.attachment<comments>().d_comments;
     llvm::SmallVector<llvm::StringRef, 7> matches;
 
-    for (comments::Comments::iterator file_begin = file_comments.begin(),
-                                      file_end   = file_comments.end(),
-                                      file_itr   = file_begin;
-         file_itr != file_end;
-         ++file_itr) {
-        const std::string &file_name = file_itr->first;
-        if (!d_analyser.is_component(file_name)) {
+    llvm::StringRef comment = d_analyser.get_source(comment_range, true);
+    unsigned comment_offset = 0;
+
+    for (llvm::StringRef comment_suffix = comment; 
+         generic_banner.match(comment_suffix, &matches);
+         comment_suffix = comment.drop_front(comment_offset)) {
+        llvm::StringRef banner = matches[0];
+        unsigned banner_pos =
+            comment_offset + comment_suffix.find(banner);
+        comment_offset = banner_pos + banner.rfind('\n');
+        SourceLocation banner_start =
+            comment_range.getBegin().getLocWithOffset(banner_pos);
+        if (manager.getPresumedColumnNumber(banner_start) != 1) {
             continue;
         }
-        comments::Ranges& comments = file_itr->second;
-        for (comments::Ranges::iterator comments_begin = comments.begin(),
-                                        comments_end   = comments.end(),
-                                        comments_itr   = comments_begin;
-             comments_itr != comments_end;
-             ++comments_itr) {
-            SourceRange comment_range = *comments_itr;
-            llvm::StringRef comment =
-                d_analyser.get_source(comment_range, true);
-            unsigned comment_offset = 0;
-            for (llvm::StringRef comment_suffix = comment; 
-                 generic_banner.match(comment_suffix, &matches);
-                 comment_suffix = comment.drop_front(comment_offset)) {
-                llvm::StringRef banner = matches[0];
-                unsigned banner_pos =
-                    comment_offset + comment_suffix.find(banner);
-                comment_offset = banner_pos + banner.size();
-                SourceLocation banner_start =
-                    comment_range.getBegin().getLocWithOffset(banner_pos);
-                if (manager.getPresumedColumnNumber(banner_start) != 1) {
-                    continue;
-                }
-                unsigned end_of_first_line = banner.find('\n');
-                if (end_of_first_line != 80) {
-                    d_analyser.report(
-                        banner_start.getLocWithOffset(end_of_first_line - 1),
+        unsigned end_of_first_line = banner.find('\n');
+        if (end_of_first_line != 79) {
+            d_analyser.report(
+                    banner_start.getLocWithOffset(end_of_first_line - 1),
+                    check_name, "BAN02",
+                    "Banner ends at column %0 instead of 79")
+                << end_of_first_line;
+        }
+
+        llvm::StringRef text = matches[3];
+        unsigned text_pos = banner.find(text);
+        unsigned actual_last_space_pos =
+            manager.getPresumedColumnNumber(
+                    banner_start.getLocWithOffset(text_pos)) - 1;
+        unsigned expected_last_space_pos =
+            ((79 - 2 - text.size()) / 2 + 2) & ~3;
+        if (actual_last_space_pos != expected_last_space_pos) {
+            std::string expected_text =
+                "//" + std::string(expected_last_space_pos - 2, ' ') +
+                text.str();
+            const char* error = (actual_last_space_pos & 3) ?
+                "Improperly centered banner text"
+                " (not reachable using tab key)" :
+                "Improperly centered banner text";
+            d_analyser.report(
+                    banner_start.getLocWithOffset(text_pos),
+                    check_name, "BAN03", error);
+            d_analyser.report(
+                    banner_start.getLocWithOffset(text_pos),
+                    check_name, "BAN03", "Correct text is\n%0", false,
+                    clang::DiagnosticsEngine::Note)
+                << expected_text;
+        }
+
+        llvm::StringRef bottom_rule = matches[5];
+        unsigned end_of_second_line = banner.rfind('\n');
+        if (banner.size() - end_of_second_line != 80) {
+            if (text.size() != bottom_rule.size()) {
+                // It's the second banner rule line.
+                d_analyser.report(
+                        banner_start.getLocWithOffset(banner.size() - 1),
                         check_name, "BAN02",
                         "Banner ends at column %0 instead of 79")
-                        << end_of_first_line;
-                }
-
-                llvm::StringRef text = matches[3];
-                unsigned text_pos = banner.find(text);
-                unsigned actual_last_space_pos =
-                    manager.getPresumedColumnNumber(
-                        banner_start.getLocWithOffset(text_pos)) -
-                    1;
-                unsigned expected_last_space_pos =
-                    ((79 - 2 - text.size()) / 2 + 2) & ~3;
-                if (actual_last_space_pos != expected_last_space_pos) {
-                    std::string expected_text =
-                        "//" + std::string(expected_last_space_pos - 2, ' ') +
-                        text.str();
-                    const char* error = (actual_last_space_pos & 3) ?
-                        "Improperly centered banner text"
-                        " (not reachable using tab key)" :
-                        "Improperly centered banner text";
-                    d_analyser.report(
-                        banner_start.getLocWithOffset(text_pos),
-                        check_name, "BAN03", error);
-                    d_analyser.report(
-                        banner_start.getLocWithOffset(text_pos),
-                        check_name, "BAN03", "Correct text is\n%0", false,
-                        clang::DiagnosticsEngine::Note)
-                        << expected_text;
-                }
-
-                unsigned end_of_second_line = banner.rfind('\n');
-                if (banner.size() - end_of_second_line != 80) {
-                    d_analyser.report(banner_start.getLocWithOffset(
-                                          banner.size() - 1),
-                                      check_name,
-                                      "BAN02",
-                                      "Banner ends at column %0 instead of 79")
-                        << static_cast<int>(banner.size() -
-                                            (end_of_second_line + 1));
-                }
+                    << static_cast<int>(banner.size() -
+                            (end_of_second_line + 1));
             }
+            else {
+                // It's an underline for the banner text.
+                SourceLocation bottom_loc = banner_start.getLocWithOffset(
+                    banner.size() - bottom_rule.size());
+                d_analyser.report(bottom_loc, check_name, "BAN04",
+                        "Improperly centered underlining");
+                d_analyser.report(bottom_loc, check_name, "BAN04",
+                        "Correct version is\n%0",
+                        false, clang::DiagnosticsEngine::Note)
+                    << "//" +
+                       std::string(expected_last_space_pos - 2, ' ') +
+                       bottom_rule.str();
+            }
+        }
+    }
+}
+
+void files::check_file_comments(comments::Ranges& comments)
+{
+    comments::Ranges::iterator b = comments.begin();
+    comments::Ranges::iterator e = comments.end();
+    for (comments::Ranges::iterator itr = b; itr != e; ++itr) {
+        check_comment(*itr);
+    }
+}
+
+void files::operator()()
+{
+    comments::Comments& file_comments =
+        d_analyser.attachment<comments>().d_comments;
+    comments::Comments::iterator b = file_comments.begin();
+    comments::Comments::iterator e = file_comments.end();
+
+    for (comments::Comments::iterator itr = b; itr != e; ++itr) {
+        if (d_analyser.is_component(itr->first)) {
+            check_file_comments(itr->second);
         }
     }
 }

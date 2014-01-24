@@ -59,7 +59,6 @@ namespace
 
     private:
         cool::csabase::Analyser  analyser_;
-        clang::CompilerInstance& compiler_;
         std::string const        source_;
     };
 }
@@ -70,18 +69,15 @@ AnalyseConsumer::AnalyseConsumer(clang::CompilerInstance& compiler,
                                  std::string const&       source,
                                  PluginAction const&      plugin)
     : analyser_(compiler, plugin.debug(), plugin.config(), plugin.tool_name())
-    , compiler_(compiler)
     , source_(source)
 {
     analyser_.toplevel(source);
-    compiler_.getLangOpts().CPlusPlus     = true;
-    compiler_.getLangOpts().CPlusPlus11   = true;
-    compiler_.getLangOpts().Exceptions    = true;
-    compiler_.getLangOpts().CXXExceptions = true;
 
-    compiler.getDiagnostics().setClient(new cool::csabase::DiagnosticFilter(analyser_, compiler.getDiagnosticOpts()));
-    compiler.getDiagnostics().getClient()->BeginSourceFile(compiler.getLangOpts(),
-                                                           compiler.hasPreprocessor()? &compiler.getPreprocessor(): 0);
+    compiler.getDiagnostics().setClient(new cool::csabase::DiagnosticFilter(
+        analyser_, compiler.getDiagnosticOpts()));
+    compiler.getDiagnostics().getClient()->BeginSourceFile(
+        compiler.getLangOpts(),
+        compiler.hasPreprocessor() ? &compiler.getPreprocessor() : 0);
 }
 
 // -----------------------------------------------------------------------------
