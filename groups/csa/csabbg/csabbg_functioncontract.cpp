@@ -165,10 +165,14 @@ void comments::operator()(SourceRange range)
 void allFunDecls(Analyser& analyser, const FunctionDecl* func)
     // Callback function for inspecting function declarations.
 {
-    // Don't process compiler-defaulted methods, main, or macro expansions.
+    // Don't process compiler-defaulted methods, main, template instantiations,
+    // or macro expansions
     if (   !func->isDefaulted()
         && !func->isMain()
-        && !func->getLocation().isMacroID()) {
+        && !func->getLocation().isMacroID()
+        && (   func->getTemplatedKind() == func->TK_NonTemplate
+            || func->getTemplatedKind() == func->TK_FunctionTemplate)
+            ) {
         analyser.attachment<data>().d_fundecls[func];
     }
 }
@@ -348,7 +352,6 @@ bool report::doesNotNeedContract(const FunctionDecl *func)
 {
     const CXXConstructorDecl *ctor;
     const CXXMethodDecl *meth;
-    const FunctionDecl *ifmf;
 
     return func != func->getCanonicalDecl()
         || (   func->getAccess() == clang::AS_private
@@ -357,9 +360,6 @@ bool report::doesNotNeedContract(const FunctionDecl *func)
                     && ctor->isCopyConstructor())
                 || (   (meth = llvm::dyn_cast<CXXMethodDecl>(func))
                     && meth->isCopyAssignmentOperator())))
-        || (   (ifmf = func->getInstantiatedFromMemberFunction())
-            && (   func != ifmf
-                || doesNotNeedContract(ifmf)))
         || isGenerated(func);
 }
 

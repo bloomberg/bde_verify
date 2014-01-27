@@ -53,8 +53,10 @@ struct comments
         Location location(d_analyser->get_location(range.getBegin()));
         if (d_analyser->is_component(location.file())) {
             std::string comment(d_analyser->get_source(range));
-            if (comment == "// RETURN") {
-                d_analyser->attachment<data>().d_rcs.insert(range.getBegin());
+            size_t rpos = comment.rfind("// RETURN");
+            if (rpos != comment.npos) {
+                d_analyser->attachment<data>().d_rcs.insert(
+                    range.getBegin().getLocWithOffset(rpos));
             }
         }
     }
@@ -108,11 +110,11 @@ struct report
         process_all_returns(d.d_all_returns.begin(), d.d_all_returns.end());
     }
 
-    template <class IT>
-    void process_all_returns(IT begin, IT end)
+    void process_all_returns(std::set<const Stmt*>::iterator begin,
+                             std::set<const Stmt*>::iterator end)
     {
         const data& d = d_analyser->attachment<data>();
-        for (IT it = begin; it != end; ++it) {
+        for (std::set<const Stmt*>::iterator it = begin; it != end; ++it) {
             // Ignore final top-level return statements.
             if (!d.d_last_returns.count(*it)) {
                 if (!is_commented(*it, d.d_rcs.begin(), d.d_rcs.end())) {
@@ -124,15 +126,18 @@ struct report
     }
 
     // Determine if a statement has a proper '// RETURN' comment.
-    template <class IT>
-    bool is_commented(const Stmt *stmt, IT comments_begin, IT comments_end)
+    bool is_commented(const Stmt* stmt,
+                      std::set<SourceLocation>::iterator comments_begin,
+                      std::set<SourceLocation>::iterator comments_end)
     {
         SourceManager& m = d_analyser->manager();
         unsigned       sline = m.getPresumedLineNumber(stmt->getLocEnd());
         unsigned       scolm = m.getPresumedColumnNumber(stmt->getLocEnd());
         clang::FileID  sfile = m.getFileID(stmt->getLocEnd());
 
-        for (IT it = comments_begin; it != comments_end; ++it) {
+        for (std::set<SourceLocation>::iterator it = comments_begin;
+             it != comments_end;
+             ++it) {
             unsigned      cline = m.getPresumedLineNumber(*it);
             unsigned      ccolm = m.getPresumedColumnNumber(*it);
             clang::FileID cfile = m.getFileID(*it);

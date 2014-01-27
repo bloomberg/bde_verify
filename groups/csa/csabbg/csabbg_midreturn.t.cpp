@@ -65,5 +65,19 @@ namespace cool
         {
             return g<char>() + g<double>();
         }
+
+        int i()
+        {
+            if (i()) {
+                return 5;          // Comment                        // RETURN
+            }
+            if (i()) {
+                return 6;          // Comment                         // RETURN
+            }
+            if (i()) {
+                return 7;          // Comment                          // RETURN
+            }
+            return 0;
+        }
     }
 }

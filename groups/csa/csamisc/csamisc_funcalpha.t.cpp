@@ -12,6 +12,16 @@ namespace cool {
             void a1();
             void a2();
             void a3();
+
+            // = = = =
+
+            void a9();
+            void a10();
+
+            // - - - -
+
+            void a100();
+            void a99();
         };
     }
 }

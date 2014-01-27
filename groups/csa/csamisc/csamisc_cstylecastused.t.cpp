@@ -26,5 +26,11 @@ namespace cool
             t<char>();
             return (char*)0;
         }
+
+        static void g()
+        {
+            int m = 0;
+            (void) m;
+        }
     }
 }
