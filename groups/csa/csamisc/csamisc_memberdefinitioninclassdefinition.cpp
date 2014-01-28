@@ -35,6 +35,7 @@ member_definition_in_class_definition(cool::csabase::Analyser& analyser, clang::
     if (decl->getLexicalDeclContext() == decl->getDeclContext()
         && decl->hasInlineBody()
         && !decl->isTrivial()
+        && !decl->getParent()->isLocalClass()
         && (!ctor || !ctor->isImplicit())
         && (!dtor || !dtor->isImplicit())
         && !analyser.attachment<member_definition>().reported_[decl->getCanonicalDecl()]

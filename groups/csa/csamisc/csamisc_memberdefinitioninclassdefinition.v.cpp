@@ -54,6 +54,13 @@ namespace cool
             cool::csamisc::foobar o(u);
             o.f();
         }
+
+        void f() {
+            struct g {
+                g() { }
+                void foo() { }
+            };
+        }
     }
 }
 
