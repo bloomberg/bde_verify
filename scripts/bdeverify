@@ -90,12 +90,14 @@ push(@defs, (
     "BDE_BUILD_TARGET_DBG",
     "BDE_BUILD_TARGET_EXC",
     "BDE_BUILD_TARGET_MT",
-    "BSL_OVERRIDES_STD",
     "_LINUX_SOURCE",
     "_REENTRANT",
     "_SYS_SYSMACROS_H",
     "_THREAD_SAFE",
 )) if $defdef;
+if ($defdef && !grep(m{\bbsl[^/]*$}, @ARGV)) {
+    push(@defs, "BSL_OVERRIDES_STD");
+}
 @defs = map { "-D$_" } @defs;
 
 for (@ARGV) {

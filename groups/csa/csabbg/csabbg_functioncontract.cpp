@@ -129,6 +129,10 @@ comments::comments(Analyser& analyser)
 bool comments::isDirective(llvm::StringRef comment)
 {
     // Look for a variety of directives in comments.
+    size_t last_line_pos = comment.rfind('\n');
+    if (last_line_pos != comment.npos) {
+        comment = comment.substr(last_line_pos + 1);
+    }
     static llvm::Regex re("^(//|/[*])" "[[:space:]]*"
                           "("
                              "=" "[[:space:]]*" "delete"  "|"

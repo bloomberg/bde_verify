@@ -40,6 +40,9 @@ struct data
     QualType bslma_allocator_;
         // The type of 'BloombergLP::bslma::Allocator'.
 
+    QualType bsl_true_type_;
+        // The type of 'BloombergLP::bsl::true_type'.
+
     typedef std::set<std::pair<const Expr*, const Decl*> > BadCexp;
     BadCexp bad_cexp_;
         // The set of constructor expressions with an explicit allocator
@@ -596,12 +599,24 @@ void subscribe(Analyser& analyser, Visitor&, PPObserver&)
 
 static void
 find_allocator(Analyser& analyser, TagDecl const* decl)
-    // Callback to set up the type "BloombergLP::bslma::Allocator";
+    // Callback to set up the type "BloombergLP::bslma::Allocator".
 {
     static const std::string allocator = "BloombergLP::bslma::Allocator";
     if (allocator == decl->getQualifiedNameAsString()) {
         analyser.attachment<data>().bslma_allocator_ =
                             decl->getTypeForDecl()->getCanonicalTypeInternal();
+    }
+}
+
+// -----------------------------------------------------------------------------
+
+static void
+find_true_type(Analyser& analyser, const TypedefNameDecl *decl)
+    // Callback to set up the typedef "bsl::true_type".
+{
+    static const std::string true_type = "bsl::true_type";
+    if (decl->getQualifiedNameAsString() == true_type) {
+        analyser.attachment<data>().bsl_true_type_ = decl->getUnderlyingType();
     }
 }
 
@@ -628,7 +643,7 @@ gather_ctor_decls(Analyser& analyser, CXXConstructorDecl const* decl)
 // -----------------------------------------------------------------------------
 
 static void
-gather_allocator_traits(Analyser& analyser, CXXConversionDecl const* decl)
+gather_nested_traits(Analyser& analyser, CXXConversionDecl const* decl)
     // Accumulate the record declaration of the specified 'decl' within the
     // specified 'analyser' if the conversion represents a declaration of an
     // allocator trait in the record.  Expanded from macros, the declaration
@@ -666,6 +681,36 @@ gather_allocator_traits(Analyser& analyser, CXXConversionDecl const* decl)
     }
 }
 
+static void
+gather_traits(Analyser& analyser, ClassTemplateSpecializationDecl const* decl)
+    // Accumulate the record declaration of the specified 'decl' within the
+    // specified 'analyser' if it represents a declaration of an allocator
+    // trait.  It looks like
+    //..
+    //  namespace BloombergLP { namsepace bslma {
+    //    template <> struct UsesBslmaAllocator<MyClass> : bsl::true_type { };
+    //  } }
+    //..
+{
+    data& info = analyser.attachment<data>();
+    const CXXRecordDecl* ttr =
+        info.bsl_true_type_.isNull() ?
+            0 :
+            info.bsl_true_type_.getCanonicalType()->getAsCXXRecordDecl();
+    if (   ttr
+        && decl->getQualifiedNameAsString() == "BloombergLP::bslma::"
+                                               "UsesBslmaAllocator"
+        && decl->isEmpty()
+        && !decl->isLocalClass()
+        && decl->isDerivedFrom(ttr)
+        && decl->getTemplateArgs().size() == 1) {
+        if (const CXXRecordDecl* arg =
+                decl->getTemplateArgs()[0].getAsType()->getAsCXXRecordDecl()) {
+            info.records_with_allocator_trait_.insert(arg);
+        }
+    }
+}
+
 // -----------------------------------------------------------------------------
 
 }  // close anonymous namespace
@@ -674,4 +719,6 @@ static cool::csabase::RegisterCheck c1(check_name, &find_allocator);
 static cool::csabase::RegisterCheck c2(check_name, &gather_ctor_decls);
 static cool::csabase::RegisterCheck c3(check_name, &gather_ctor_exprs);
 static cool::csabase::RegisterCheck c4(check_name, &subscribe);
-static cool::csabase::RegisterCheck c5(check_name, &gather_allocator_traits);
+static cool::csabase::RegisterCheck c5(check_name, &gather_nested_traits);
+static cool::csabase::RegisterCheck c6(check_name, &gather_traits);
+static cool::csabase::RegisterCheck c7(check_name, &find_true_type);
