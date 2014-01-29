@@ -2,6 +2,7 @@
 // ----------------------------------------------------------------------------
 
 #include <csabase_analyser.h>
+#include <csabase_debug.h>
 #include <csabase_location.h>
 #include <csabase_ppobserver.h>
 #include <csabase_registercheck.h>
@@ -24,6 +25,7 @@ static std::string const check_name("alphabetical-functions");
 // ----------------------------------------------------------------------------
 
 using clang::Decl;
+using clang::DeclContext;
 using clang::DeclarationName;
 using clang::FunctionDecl;
 using clang::FunctionTemplateDecl;
@@ -45,6 +47,9 @@ struct data
     typedef std::set<unsigned> Lines;
     typedef std::map<std::string, Lines> Comments;
     Comments d_comments;  // Comment lines per file.
+
+    typedef std::set<const FunctionDecl *> Functions;
+    Functions d_functions;
 };
 
 struct comments
@@ -149,11 +154,17 @@ struct report
     report(Analyser& analyser);
         // Create a 'report' object, accessing the specified 'analyser'.
 
+    void operator()();
+        // Invoked at end;
+
     void operator()(const FunctionDecl *decl);
         // Invoked to process function declarations.
 
     void operator()(const FunctionTemplateDecl *decl);
         // Invoked to process function template declarations.
+
+    void check_order(const FunctionDecl *decl);
+        // Check if function is in alphanumeric order.
 };
 
 report::report(Analyser& analyser)
@@ -163,6 +174,15 @@ report::report(Analyser& analyser)
 {
 }
 
+void report::operator()()
+{
+    data::Functions::iterator b = d.d_functions.begin();
+    data::Functions::iterator e = d.d_functions.end();
+    for (data::Functions::iterator i = b; i != e; ++i) {
+        check_order(*i);
+    }
+}
+
 void report::operator()(const FunctionTemplateDecl *decl)
 {
     (*this)(decl->getTemplatedDecl());
@@ -170,10 +190,15 @@ void report::operator()(const FunctionTemplateDecl *decl)
 
 void report::operator()(const FunctionDecl *decl)
 {
+    d.d_functions.insert(decl);
+}
+
+void report::check_order(const FunctionDecl *decl)
+{
     DeclarationName name = decl->getDeclName();
     const Decl *next = decl->getNextDeclInContext();
-    if (   (   d_analyser.is_component_header(decl)
-            || d_analyser.is_component_source(decl))
+
+    if (   d_analyser.is_component(decl)
         && next
         && name.isIdentifier()
         && !name.isEmpty()) {
@@ -218,6 +243,7 @@ void subscribe(Analyser& analyser, Visitor& visitor, PPObserver& observer)
     observer.onComment             += comments(analyser);
     visitor.onFunctionDecl         += report(analyser);
     visitor.onFunctionTemplateDecl += report(analyser);
+    analyser.onTranslationUnitDone += report(analyser);
 }
 
 }  // close anonymous namespace

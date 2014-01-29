@@ -89,9 +89,9 @@ void files::operator()(SourceRange range)
 #define SP "[ \t]*"
 
 static llvm::Regex generic_banner(   // things that look like banners
-       "//" SP "(" "[-=_]" "(" SP "[-=_]" ")*" ")"                SP  NL
-    SP "//" SP "(" "[_[:alnum:]]" "(" SP "[_[:alnum:]]" ")*" ")"  SP  NL
-    SP "//" SP "(" "[-=_]" "(" SP "[-=_]" ")*" ")"                SP,
+       "//" SP "(" "[-=_]" "(" SP "[-=_]" ")*" ")"                        SP NL
+    SP "//" "(" SP ")" "(" "[_[:alnum:]]" "(" SP "[_[:alnum:]]" ")*" ")"  SP NL
+    SP "//" "(" SP ")" "(" "[-=_]" "(" SP "[-=_]" ")*" ")"                SP,
     llvm::Regex::IgnoreCase);
 
 #undef SP
@@ -100,7 +100,7 @@ static llvm::Regex generic_banner(   // things that look like banners
 void files::check_comment(SourceRange comment_range)
 {
     SourceManager& manager = d_analyser.manager();
-    llvm::SmallVector<llvm::StringRef, 7> matches;
+    llvm::SmallVector<llvm::StringRef, 8> matches;
 
     llvm::StringRef comment = d_analyser.get_source(comment_range, true);
     unsigned comment_offset = 0;
@@ -126,7 +126,7 @@ void files::check_comment(SourceRange comment_range)
                 << end_of_first_line;
         }
 
-        llvm::StringRef text = matches[3];
+        llvm::StringRef text = matches[4];
         unsigned text_pos = banner.find(text);
         unsigned actual_last_space_pos =
             manager.getPresumedColumnNumber(
@@ -151,7 +151,7 @@ void files::check_comment(SourceRange comment_range)
                 << expected_text;
         }
 
-        llvm::StringRef bottom_rule = matches[5];
+        llvm::StringRef bottom_rule = matches[7];
         unsigned end_of_second_line = banner.rfind('\n');
         if (banner.size() - end_of_second_line != 80) {
             if (text.size() != bottom_rule.size()) {
@@ -163,8 +163,8 @@ void files::check_comment(SourceRange comment_range)
                     << static_cast<int>(banner.size() -
                             (end_of_second_line + 1));
             }
-            else {
-                // It's an underline for the banner text.
+            else if (matches[3] != matches[6]) {
+                // It's a misaligned underline for the banner text.
                 SourceLocation bottom_loc = banner_start.getLocWithOffset(
                     banner.size() - bottom_rule.size());
                 d_analyser.report(bottom_loc, check_name, "BAN04",

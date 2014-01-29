@@ -313,5 +313,7 @@ namespace cool
                 // This is the third useless line.
                 // This is the fourth useless line.
         };
+
+        void aSsErT();
     }
 }

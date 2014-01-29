@@ -364,6 +364,8 @@ bool report::doesNotNeedContract(const FunctionDecl *func)
                     && ctor->isCopyConstructor())
                 || (   (meth = llvm::dyn_cast<CXXMethodDecl>(func))
                     && meth->isCopyAssignmentOperator())))
+        || (   d_analyser.is_test_driver()
+            && func->getNameAsString() == "aSsErT")
         || isGenerated(func);
 }
 

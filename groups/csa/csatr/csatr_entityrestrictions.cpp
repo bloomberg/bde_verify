@@ -43,9 +43,11 @@ is_swap(clang::FunctionDecl const* decl)
 {
     return decl->getNameAsString() == "swap"
         && decl->getNumParams() == 2
-        && decl->getParamDecl(0)->getType() == decl->getParamDecl(1)->getType()
+        && decl->getParamDecl(0)->getType()->getCanonicalTypeInternal() ==
+           decl->getParamDecl(1)->getType()->getCanonicalTypeInternal()
         && decl->getParamDecl(0)->getType().getTypePtr()->isReferenceType()
-        && !decl->getParamDecl(0)->getType().getNonReferenceType().isConstQualified();
+        && !decl->getParamDecl(0)->getType().getNonReferenceType()
+                .isConstQualified();
 }
 
 static void

@@ -53,4 +53,6 @@ cool::csabase::Debug::operator<< (T const& value) const
 
 // -----------------------------------------------------------------------------
 
+#define ERRS() (llvm::errs() << __FUNCTION__ << " " << __LINE__ << " ")
+
 #endif
