@@ -163,6 +163,14 @@ namespace cool
             {
                 object o(a);
             }
+            object ra(bool b, const object &o)
+            {
+                if (b) {
+                    return o;
+                } else {
+                    return object(o);
+                }
+            }
         }
     }
 }

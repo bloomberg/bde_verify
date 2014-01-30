@@ -69,6 +69,9 @@ struct data
     typedef std::map<const CXXConstructorDecl*, bool> CtorTakesAllocator;
     CtorTakesAllocator ctor_takes_allocator_;
         // A map of whether a constructor has an allocator parameter.
+
+    typedef std::set<const ReturnStmt*> Returns;
+    Returns returns_;
 };
 
 struct report
@@ -160,6 +163,15 @@ struct report
         //..
         // typically occurring when a bdef_Function member is added to a class
         // which did not have one.
+
+    template <typename Iter>
+    void check_alloc_returns(Iter begin, Iter end);
+        // Check that the return statements in the specified half-open range
+        // '[ begin .. end )' do not return items that take allocators.
+
+    void check_alloc_return(const ReturnStmt* stmt);
+        // Check that the specified return 'stmt' does not return an item that 
+        // takes allocators.
 
     cool::csabase::Analyser &analyser_;  // afford access to compiler data
     data &data_;                         // data held for this set of checks
@@ -287,6 +299,7 @@ void report::operator()()
 {
     check_not_forwarded(data_.ctors_.begin(), data_.ctors_.end());
     check_wrong_parm(data_.cexprs_.begin(), data_.cexprs_.end());
+    check_alloc_returns(data_.returns_.begin(), data_.returns_.end());
 }
 
 template <typename Iter>
@@ -588,6 +601,23 @@ void report::check_wrong_parm(const CXXConstructExpr *expr)
     }
 }
 
+template <typename Iter>
+void report::check_alloc_returns(Iter begin, Iter end)
+{
+    for (Iter itr = begin; itr != end; ++itr) {
+        check_alloc_return(*itr);
+    }
+}
+
+void report::check_alloc_return(const ReturnStmt *stmt)
+{
+    if (stmt->getRetValue() &&
+        takes_allocator(stmt->getRetValue()->getType())) {
+        analyser_.report(stmt, check_name, "AR01",
+                "Type using allocator returned by value");
+    }
+}
+
 void subscribe(Analyser& analyser, Visitor&, PPObserver&)
     // Create a callback within the specified 'analyser' which will be invoked
     // after a translation unit has been processed.
@@ -638,6 +668,16 @@ gather_ctor_decls(Analyser& analyser, CXXConstructorDecl const* decl)
 {
     data& info(analyser.attachment<data>());
     info.ctors_.insert(decl);
+}
+
+// -----------------------------------------------------------------------------
+
+static void
+gather_return_stmts(Analyser& analyser, ReturnStmt const* stmt)
+    // Accumulate the specified 'stmt' within the specified 'analyser'.
+{
+    data& info(analyser.attachment<data>());
+    info.returns_.insert(stmt);
 }
 
 // -----------------------------------------------------------------------------
@@ -722,3 +762,4 @@ static cool::csabase::RegisterCheck c4(check_name, &subscribe);
 static cool::csabase::RegisterCheck c5(check_name, &gather_nested_traits);
 static cool::csabase::RegisterCheck c6(check_name, &gather_traits);
 static cool::csabase::RegisterCheck c7(check_name, &find_true_type);
+static cool::csabase::RegisterCheck c8(check_name, &gather_return_stmts);

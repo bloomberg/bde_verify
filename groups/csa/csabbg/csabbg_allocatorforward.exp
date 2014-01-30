@@ -37,4 +37,10 @@ groups/csa/csabbg/csabbg_allocatorforward.t.cpp:157:0: warning: MA02: Class 'obj
 groups/csa/csabbg/csabbg_allocatorforward.t.cpp:164:0: warning: MA02: Allocator argument initializes non-allocator parameter 1 ('na') of type 'struct cool::csabbg::<anonymous>::not_alloc' rather than allocator parameter 2
                 object o(a);
 ^
-13 warnings generated.
+groups/csa/csabbg/csabbg_allocatorforward.t.cpp:169:0: warning: AR01: Type using allocator returned by value
+                    return o;
+^
+groups/csa/csabbg/csabbg_allocatorforward.t.cpp:171:0: warning: AR01: Type using allocator returned by value
+                    return object(o);
+^
+15 warnings generated.
