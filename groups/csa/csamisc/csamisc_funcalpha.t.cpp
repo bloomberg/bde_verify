@@ -23,5 +23,9 @@ namespace cool {
             void a100();
             void a99();
         };
+
+        void X::f3() { }
+        void X::f2() { }
+        void f1() { }
     }
 }

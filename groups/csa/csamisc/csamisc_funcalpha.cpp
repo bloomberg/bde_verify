@@ -2,7 +2,6 @@
 // ----------------------------------------------------------------------------
 
 #include <csabase_analyser.h>
-#include <csabase_debug.h>
 #include <csabase_location.h>
 #include <csabase_ppobserver.h>
 #include <csabase_registercheck.h>
@@ -25,7 +24,6 @@ static std::string const check_name("alphabetical-functions");
 // ----------------------------------------------------------------------------
 
 using clang::Decl;
-using clang::DeclContext;
 using clang::DeclarationName;
 using clang::FunctionDecl;
 using clang::FunctionTemplateDecl;
@@ -199,6 +197,7 @@ void report::check_order(const FunctionDecl *decl)
     const Decl *next = decl->getNextDeclInContext();
 
     if (   d_analyser.is_component(decl)
+        && !decl->isTemplateInstantiation()
         && next
         && name.isIdentifier()
         && !name.isEmpty()) {
@@ -208,21 +207,31 @@ void report::check_order(const FunctionDecl *decl)
         if (nextt) {
             nextf = nextt->getTemplatedDecl();
         }
-        if (nextf) {
+        if (nextf && !nextf->isTemplateInstantiation()) {
             DeclarationName next_name = nextf->getDeclName();
-            if (next_name.isIdentifier() && !next_name.isEmpty() &&
+            if (next_name.isIdentifier() &&
+                !next_name.isEmpty() &&
                 comments::less(next_name.getAsString(), name.getAsString())) {
-                Location l1 = d_analyser.get_location(decl);
-                Location l2 = d_analyser.get_location(nextf);
-                const data::Lines &lines = d.d_comments[l1.file()];
-                bool reset = false;
-                for (unsigned i = l1.line(); !reset && i <= l2.line(); ++i) {
-                    reset = lines.count(i);
-                }
+                llvm::StringRef q1 = decl->getQualifiedNameAsString();
+                llvm::StringRef q2 = nextf->getQualifiedNameAsString();
+                q1 = q1.substr(0, q1.rfind(':'));
+                q2 = q2.substr(0, q2.rfind(':'));
+                bool reset = q1 != q2;
                 if (!reset) {
-                    d_analyser.report(decl->getLocation(),
-                                      check_name, "FABC01",
-                                      "Function '%0' not in alphanumeric order")
+                    Location l1 = d_analyser.get_location(decl);
+                    Location l2 = d_analyser.get_location(nextf);
+                    const data::Lines &lines = d.d_comments[l1.file()];
+                    for (unsigned i = l1.line(); i <= l2.line(); ++i) {
+                        if ((reset = lines.count(i)) == true) {
+                            break;
+                        }
+                    }
+                }
+                if (!reset && q1 == q2) {
+                    d_analyser.report(
+                            decl->getLocation(),
+                            check_name, "FABC01",
+                            "Function '%0' not in alphanumeric order")
                         << name.getAsString()
                         << decl->getNameInfo().getSourceRange();
                     d_analyser.report(nextf->getLocation(),

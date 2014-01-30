@@ -8,12 +8,15 @@
 #include <csabase_analyser.h>
 #include <csabase_registercheck.h>
 #include <csabase_cast_ptr.h>
+#include <llvm/Support/Regex.h>
 
 // ----------------------------------------------------------------------------
 
 static std::string const check_name("template-typename");
 
 // ----------------------------------------------------------------------------
+
+static llvm::Regex all_upper("^[[:upper:]](_?[[:upper:][:digit:]]+)*$");
 
 static void
 checkTemplate(cool::csabase::Analyser& analyser,
@@ -32,6 +35,10 @@ checkTemplate(cool::csabase::Analyser& analyser,
             if (parm->getName().size() == 1) {
                  analyser.report(parm, check_name, "TY02",
                      "Template parameter uses single-letter name");
+            }
+            if (!all_upper.match(parm->getName())) {
+                 analyser.report(parm, check_name, "TY03",
+                     "Template parameter is not in ALL_CAPS format");
             }
         }
     }
