@@ -89,7 +89,9 @@ const ReturnStmt* last_return(ConstStmtRange s)
 void last_returns(Analyser& analyser, const FunctionDecl* func)
 {
     // Process only function definitions, not declarations.
-    if (func->hasBody() && func->getBody()) {
+    if (func->hasBody() &&
+        func->getBody() &&
+        !func->isTemplateInstantiation()) {
         const ReturnStmt* ret = last_return(func->getBody()->children());
         if (ret) {
             analyser.attachment<data>().d_last_returns.insert(ret);
