@@ -292,7 +292,7 @@ void get_displays(llvm::StringRef text,
     }
 }
 
-llvm::Regex block_comment("((^ *// [^ ].*$\n?){2,})", llvm::Regex::Newline);
+llvm::Regex block_comment("((^ *// [^[ ].*$\n?){2,})", llvm::Regex::Newline);
 llvm::Regex banner("^ *(// ?([-=_] ?)+)$", llvm::Regex::Newline);
 llvm::Regex copyright("Copyright.*[[:digit:]]{4}", llvm::Regex::IgnoreCase);
 

@@ -1,6 +1,8 @@
 // csatr_includeguard.cpp                                             -*-C++-*-
 
 #include <csabase_analyser.h>
+#include <csabase_debug.h>
+#include <csabase_location.h>
 #include <csabase_ppobserver.h>
 #include <csabase_registercheck.h>
 #include <cctype>
@@ -79,20 +81,10 @@ namespace
             }
             data.d_test = true;
         }
+
         void operator()(clang::SourceLocation where,
-                        clang::Token const& token) const // onIfndef
+                        clang::Token const& token) const  // onIfndef
         {
-#if 0
-            //-dk:TODO
-            llvm::errs() << "ifndef: "
-                         << "where=" << d_analyser->get_location(where) << " "
-                         << "token=" << d_analyser->get_location(token.getLocation()) << " "
-                         << "\n";
-            if (clang::IdentifierInfo const* id = token.getIdentifierInfo())
-            {
-                llvm::errs() << "  value1='" << id->getNameStart() << "'\n";
-            }
-#endif
             if (!d_analyser->is_component_header(token.getLocation())) {
                 return;
             }
@@ -114,7 +106,9 @@ namespace
                 data.d_test = true;
             }
         }
-        void operator()(clang::Token const& token, clang::MacroDirective const*) const
+
+        void operator()(clang::Token const& token,
+                        clang::MacroDirective const*) const
         {
             include_guard& data(d_analyser->attachment<include_guard>());
             if (d_analyser->is_component_header(token.getLocation())
@@ -126,20 +120,23 @@ namespace
                 data.d_define = true;
             }
         }
+
         void operator()(clang::SourceLocation location,
                         std::string const&,
                         std::string const& filename) const
         {
-            if (d_analyser->is_component_header(filename)
-                && !d_analyser->attachment<include_guard>().isComplete())
-            {
-                include_guard const& data(d_analyser->attachment<include_guard>());
+            if (d_analyser->is_component_header(filename) &&
+                !d_analyser->attachment<include_guard>().isComplete()) {
+                include_guard const& data(
+                    d_analyser->attachment<include_guard>());
                 d_analyser->report(location, check_name, "TR14",
-                                         data.d_test
-                                         ? "Missing define for include guard"
-                                         : data.d_define
-                                         ? "Missing test for include guard"
-                                         : "Missing include guard");
+                                   data.d_test ?
+                                        "Missing define for include guard %0"
+                                   : data.d_define ?
+                                        "Missing test for include guard %0"
+                                   :    "Missing include guard %0")
+                    << d_analyser->attachment<include_guard>().
+                                                        get_expect(d_analyser);
             }
         }
 

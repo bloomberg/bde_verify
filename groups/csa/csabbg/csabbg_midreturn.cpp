@@ -36,9 +36,10 @@ namespace
 // Data attached to analyzer for this check.
 struct data
 {
-    std::set<const Stmt*>    d_last_returns; // Last top-level 'return'
-    std::set<const Stmt*>    d_all_returns;  // All 'return' statements
-    std::set<SourceLocation> d_rcs;          // Suppression comments
+    std::set<const Stmt*>    d_last_returns;  // Last top-level 'return'
+    std::set<const Stmt*>    d_all_returns;   // All 'return'
+    std::set<const Stmt*>    d_inst_returns;  // Instantiation 'return'
+    std::set<SourceLocation> d_rcs;           // Suppression comments
 };
 
 // Callback object for inspecting comments.
@@ -69,17 +70,21 @@ void all_returns(Analyser& analyser, const ReturnStmt* ret)
 }
 
 // Function for searching for return statements.
-const ReturnStmt* last_return(ConstStmtRange s)
+const ReturnStmt*
+last_return(Analyser& analyser, ConstStmtRange s, bool instantiation_flag)
 {
     const ReturnStmt* ret = 0;
     for (; s; ++s) {
         if (llvm::dyn_cast<CompoundStmt>(*s)) {
             // Recurse into simple compound statements.
-            ret = last_return((*s)->children());
+            ret = last_return(analyser, (*s)->children(), instantiation_flag);
         } else {
             // Try to cast each statement to a ReturnStmt. Therefore 'ret'
             // will only be non-zero if the final statement is a 'return'.
             ret = llvm::dyn_cast<ReturnStmt>(*s);
+            if (instantiation_flag && ret) {
+                analyser.attachment<data>().d_inst_returns.insert(ret);
+            }
         }
     }
     return ret;
@@ -89,10 +94,10 @@ const ReturnStmt* last_return(ConstStmtRange s)
 void last_returns(Analyser& analyser, const FunctionDecl* func)
 {
     // Process only function definitions, not declarations.
-    if (func->hasBody() &&
-        func->getBody() &&
-        !func->isTemplateInstantiation()) {
-        const ReturnStmt* ret = last_return(func->getBody()->children());
+    if (func->hasBody() && func->getBody()) {
+        const ReturnStmt* ret = last_return(analyser,
+                                            func->getBody()->children(),
+                                            func->isTemplateInstantiation());
         if (ret) {
             analyser.attachment<data>().d_last_returns.insert(ret);
         }
@@ -118,11 +123,11 @@ struct report
         const data& d = d_analyser->attachment<data>();
         for (std::set<const Stmt*>::iterator it = begin; it != end; ++it) {
             // Ignore final top-level return statements.
-            if (!d.d_last_returns.count(*it)) {
-                if (!is_commented(*it, d.d_rcs.begin(), d.d_rcs.end())) {
+            if (!d.d_last_returns.count(*it) &&
+                !d.d_inst_returns.count(*it) &&
+                !is_commented(*it, d.d_rcs.begin(), d.d_rcs.end())) {
                     d_analyser->report(*it, check_name, "MR01",
                         "Mid-function 'return' requires '// RETURN' comment");
-                }
             }
         }
     }

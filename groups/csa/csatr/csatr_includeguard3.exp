@@ -1,7 +1,7 @@
 groups/csa/csatr/csatr_includeguard3.t.cpp:1:0: warning: TR03: Header file 'groups/csa/csatr/csatr_includeguard3.h' not accessible
 // csatr_includeguard3.t.cpp                                          -*-C++-*-
 ^
-groups/csa/csatr/csatr_includeguard3.t.cpp:4:0: warning: TR14: Missing test for include guard
+groups/csa/csatr/csatr_includeguard3.t.cpp:4:0: warning: TR14: Missing test for include guard INCLUDED_CSATR_INCLUDEGUARD3
 ^
 groups/csa/csatr/csatr_includeguard3.t.cpp:3:0: warning: SHO06: Missing include for bdes_ident.h
 #include "csatr_includeguard3.t.h"
