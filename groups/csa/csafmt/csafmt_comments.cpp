@@ -2,6 +2,7 @@
 // ----------------------------------------------------------------------------
 
 #include <csabase_analyser.h>
+#include <csabase_debug.h>
 #include <csabase_location.h>
 #include <csabase_ppobserver.h>
 #include <csabase_registercheck.h>
@@ -79,6 +80,9 @@ struct files
 
     void check_wrapped(SourceRange range);
         // Warn about comment containing incorrectly wrapped text.
+
+    void check_purpose(SourceRange range);
+        // Warn about incorrectly formatted @PURPOSE line.
 };
 
 files::files(Analyser& analyser)
@@ -114,6 +118,7 @@ void files::operator()()
             check_fvs(*comments_itr);
             check_bubble(*comments_itr);
             check_wrapped(*comments_itr);
+            check_purpose(*comments_itr);
         }
     }
 }
@@ -145,16 +150,16 @@ void files::check_fvs(SourceRange range)
 }
 
 llvm::Regex bad_bubble(
-                             "([(]" "[[:space:]]*"              // 1
+                             "([(]" "[[:blank:]]*"              // 1
                                     "([[:alnum:]_:]+)"          // 2
-                                    "[[:space:]]*"
+                                    "[[:blank:]]*"
                              "[)])" ".*\n"
-        "//" "([[:space:]]+)" "[|]" "[[:space:]]*.*\n"          // 3
-    "(" "//" "\\3"            "[|]" "[[:space:]]*.*\n" ")*"     // 4
-        "//" "\\3"            "[V]" "[[:space:]]*.*\n"     
-        "//" "[[:space:]]*"  "([(]" "[[:space:]]*"              // 5
+        "//" "([[:blank:]]+)" "[|]" "[[:blank:]]*.*\n"          // 3
+    "(" "//" "\\3"            "[|]" "[[:blank:]]*.*\n" ")*"     // 4
+        "//" "\\3"            "[V]" "[[:blank:]]*.*\n"     
+        "//" "[[:blank:]]*"  "([(]" "[[:blank:]]*"              // 5
                                     "([[:alnum:]_:]+)"          // 6
-                                    "[[:space:]]*"
+                                    "[[:blank:]]*"
                               "[)])",
     llvm::Regex::Newline);
 
@@ -344,6 +349,58 @@ void files::check_wrapped(SourceRange range)
                                    matchpos + bad_pos.first),
                                range.getBegin().getLocWithOffset(
                                    matchpos + bad_pos.second));
+        }
+    }
+}
+
+llvm::Regex loose_purpose(
+    "^//"
+    "[[:blank:]]*"
+    "@"
+    "[[:blank:]]*"
+    "PURPOSE"
+    "[[:blank:]]*"
+    ":?"
+    "[[:blank:]]*"
+    "(([.]*[^.])*)([.]*)",
+    llvm::Regex::Newline | llvm::Regex::IgnoreCase);
+
+llvm::Regex strict_purpose(
+    "^//@PURPOSE: [^[:blank:]].*[^.[:blank:]][.]$",
+    llvm::Regex::Newline);
+
+void files::check_purpose(SourceRange range)
+{
+    llvm::SmallVector<llvm::StringRef, 7> matches;
+    llvm::StringRef comment = d_analyser.get_source(range, true);
+
+    size_t offset = 0;
+    llvm::StringRef s;
+    while (loose_purpose.match(s = comment.drop_front(offset), &matches)) {
+        llvm::StringRef text = matches[0];
+        std::pair<size_t, size_t> m = cool::csabase::mid_match(s, text);
+        size_t matchpos = offset + m.first;
+        offset = matchpos + text.size();
+
+        if (!strict_purpose.match(text)) {
+            std::string expected = "//@PURPOSE: " + matches[1].str() + ".";
+            std::pair<size_t, size_t> m =
+                cool::csabase::mid_mismatch(text, expected);
+            d_analyser.report(
+                    range.getBegin().getLocWithOffset(matchpos + m.first),
+                    check_name, "PRP01",
+                    "Invalid format for @PURPOSE line")
+                << text
+                << SourceRange(
+                       range.getBegin().getLocWithOffset(matchpos + m.first),
+                       range.getBegin().getLocWithOffset(offset - 1 -
+                                                         m.second));
+            d_analyser.report(
+                range.getBegin().getLocWithOffset(matchpos + m.first),
+                    check_name, "PRP01",
+                    "Correct format is\n%0",
+                    false, clang::DiagnosticsEngine::Note)
+                << expected;
         }
     }
 }

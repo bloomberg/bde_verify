@@ -68,3 +68,7 @@
 
 // This can't wrap.                                               Hello.
 // world! This can't wrap. 
+
+//@PURPOSE: None. Why even go on?
+//@PURPOSE: Lots! Tell you later.
+// @ Purpose :Too much space, too many dots...

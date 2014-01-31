@@ -2,6 +2,7 @@
 #include <csabase_util.h>
 #include <csabase_location.h>
 #include <csabase_debug.h>
+#include <llvm/Support/Regex.h>
 
 namespace cool {
 namespace csabase {
@@ -35,6 +36,10 @@ mid_match(const std::string &have, const std::string &want)
     return result;
 }
 
+static llvm::Regex between_comments(
+    "^[[:blank:]]*[[:space:]]?[[:blank:]]*$",
+    llvm::Regex::NoFlags);
+
 bool areConsecutive(clang::SourceManager& manager,
                     clang::SourceRange    first,
                     clang::SourceRange    second)
@@ -47,9 +52,8 @@ bool areConsecutive(clang::SourceManager& manager,
     size_t offs = manager.getFileOffset(second.getBegin());
 
     return fidf == fids && colf == cols && offf <= offs &&
-           llvm::StringRef::npos == manager.getBufferData(fidf)
-                                        .substr(offf, offs - offf)
-                                        .find_first_not_of(" \t\n\r\f\v");
+           between_comments.match(
+               manager.getBufferData(fidf).substr(offf, offs - offf));
 }
 
 std::string to_lower(std::string s)
