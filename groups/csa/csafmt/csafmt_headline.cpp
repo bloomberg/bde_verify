@@ -76,7 +76,7 @@ open_file(cool::csabase::Analyser& analyser,
             std::pair<size_t, size_t> m;
             std::string expect;
 
-            if (mcpp.first >= mc.first || mcpp.second <= mc.second) {
+            if (mcpp.first >= mc.first || mcpp.second >= mc.second) {
                 m = mcpp;
                 expect = expectcpp;
             } else {

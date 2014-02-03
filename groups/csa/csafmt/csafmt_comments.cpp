@@ -265,7 +265,9 @@ std::pair<size_t, size_t> bad_wrap_pos(llvm::StringRef text, size_t ll)
             ++e;
         }
 
-        if ((e - (b + 3)) + (i - (nextb + 3)) + 1 <= ll) {
+        if ((e - (b + 3)) + (i - (nextb + 3)) + 1 <= ll &&
+            text.substr(nextb + 3, i - (nextb + 3)).find_first_of(
+                "abcdefghijklmnopqrstuvwxyz") != text.npos) {
             return std::make_pair(nextb + 3, i - 1);
         }
     }
