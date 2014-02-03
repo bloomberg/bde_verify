@@ -105,7 +105,7 @@ SourceRange report::get_test_plan()
     return SourceRange();
 }
 
-llvm::Regex separator("//-+\n", llvm::Regex::Newline);
+llvm::Regex separator("//[[:blank:]]*-{60,}$\n", llvm::Regex::Newline);
 
 llvm::Regex test_plan(
     "//"  "[[:blank:]]*"
