@@ -59,6 +59,8 @@ void cool::csabase::FileName::reset(llvm::StringRef sr)
         package_ = component_.slice(0, under);
         if (package_[0] != 'a') {
             group_ = package_.slice(0, 5);
+        } else {
+            group_ = package_.slice(2, 5);
         }
     }
     pkgdir_ = subdir(directory_, package_);

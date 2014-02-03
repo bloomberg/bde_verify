@@ -142,7 +142,7 @@ check_order(CB::Analyser*                   analyser,
     }
     std::string ident =
         analyser->group() == "bsl" ? "bsls_ident" : "bdes_ident";
-    if (analyser->component() == ident) {
+    if (analyser->component() == ident || analyser->is_test_driver()) {
     }
     else if (it == headers.end() || it->first != ident) {
         analyser->report((it == headers.end() ? it - 1: it)->second,
@@ -159,6 +159,7 @@ check_order(CB::Analyser*                   analyser,
 
     std::string version = analyser->group() + "scm_version";
     if (   analyser->component() != version
+        && !analyser->is_test_driver()
         && header
         && (it == headers.end()
             || it->first != version
