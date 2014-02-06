@@ -296,24 +296,30 @@ void report::operator()()
             }
             typedef data::CasesOfTests::const_iterator Ci;
             std::pair<Ci, Ci> be = d_data.d_cases_of_tests.equal_range(line);
-            for (Ci i = be.first; i != be.second; ++i) {
-                if (i->second != case_value) {
-                    size_t off = plan_pos;
-                    off += plan.drop_front(off).find(line);
-                    off = plan.rfind(']', off) - 1;
-                    d_analyser.report(
-                        plan_range.getBegin().getLocWithOffset(off),
-                        check_name, "TP08",
-                        i->second == std::numeric_limits<long long>::min() ?
-                            "Test plan should have case number %0 (not "
-                            "blank) for '%2'" :
-                            "Test plan should have case number %0 (not "
-                            "%1) for '%2'")
-                        << case_value.getSExtValue()
-                        << static_cast<long>(i->second) << line;
+            Ci match_itr;
+            for (match_itr = be.first; match_itr != be.second; ++match_itr) {
+                if (match_itr->second == case_value) {
+                    break;
                 }
             }
-            if (be.first == be.second && test_item.match(line)) {
+            if (match_itr != be.second) {
+                continue;
+            }
+            if (be.first != be.second) {
+                size_t off = plan_pos;
+                off += plan.drop_front(off).find(line);
+                off = plan.rfind(']', off) - 1;
+                d_analyser.report(cr.getBegin().getLocWithOffset(line_pos),
+                        check_name, "TP08",
+                        "Test plan does not have case number %0 for this item")
+                    << case_value.getSExtValue();
+                d_analyser.report(
+                        plan_range.getBegin().getLocWithOffset(off),
+                        check_name, "TP08",
+                        "Test plan item is", false,
+                        clang::DiagnosticsEngine::Note);
+            }
+            else if (test_item.match(line)) {
                 d_analyser.report(cr.getBegin().getLocWithOffset(line_pos),
                                   check_name, "TP09",
                                   "Test plan should contain this item from "

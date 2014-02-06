@@ -10,10 +10,16 @@ groups/csa/csabbg/csabbg_testdriver.t.cpp:30:0: warning: TP03: Missing test numb
 groups/csa/csabbg/csabbg_testdriver.t.cpp:167:0: warning: TP05: Test case has no comment
       case -1: {
 ^
-groups/csa/csabbg/csabbg_testdriver.t.cpp:29:0: warning: TP08: Test plan should have case number 1 (not blank) for 'BREATHING TEST'
+groups/csa/csabbg/csabbg_testdriver.t.cpp:159:0: warning: TP08: Test plan does not have case number 1 for this item
+        //   BREATHING TEST
+^
+groups/csa/csabbg/csabbg_testdriver.t.cpp:29:0: note: TP08: Test plan item is
 // [  ] BREATHING TEST
 ^
-groups/csa/csabbg/csabbg_testdriver.t.cpp:27:0: warning: TP08: Test plan should have case number 2 (not 5) for 'int F() const;'
+groups/csa/csabbg/csabbg_testdriver.t.cpp:138:0: warning: TP08: Test plan does not have case number 2 for this item
+        //   int F() const;
+^
+groups/csa/csabbg/csabbg_testdriver.t.cpp:27:0: note: TP08: Test plan item is
 // [ 5] int F() const;
 ^
 groups/csa/csabbg/csabbg_testdriver.t.cpp:139:0: warning: TP09: Test plan should contain this item from 'Testing' section of case 2
@@ -22,7 +28,10 @@ groups/csa/csabbg/csabbg_testdriver.t.cpp:139:0: warning: TP09: Test plan should
 groups/csa/csabbg/csabbg_testdriver.t.cpp:25:0: warning: TP06: 'Testing' section of case 2 should contain this item from test plan
 // [ 2] void setG();
 ^
-groups/csa/csabbg/csabbg_testdriver.t.cpp:30:0: warning: TP08: Test plan should have case number 3 (not blank) for 'USAGE EXAMPLE'
+groups/csa/csabbg/csabbg_testdriver.t.cpp:120:0: warning: TP08: Test plan does not have case number 3 for this item
+        //   USAGE EXAMPLE
+^
+groups/csa/csabbg/csabbg_testdriver.t.cpp:30:0: note: TP08: Test plan item is
 // [  ] USAGE EXAMPLE
 ^
 9 warnings generated.
