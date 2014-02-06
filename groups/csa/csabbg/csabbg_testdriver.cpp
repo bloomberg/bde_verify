@@ -31,6 +31,7 @@ using clang::SourceRange;
 using clang::Stmt;
 using clang::SwitchCase;
 using clang::SwitchStmt;
+using clang::Token;
 using cool::csabase::Analyser;
 using cool::csabase::Location;
 using cool::csabase::PPObserver;
@@ -46,6 +47,9 @@ struct data
     typedef std::vector<SourceRange> Comments;
     Comments d_comments;  // Comment blocks per file.
 
+    typedef std::map<size_t /* line */, size_t /* index */> CommentsOfLines;
+    CommentsOfLines d_comments_of_lines;
+
     typedef std::map<const FunctionDecl*, SourceRange> FunDecls;
     FunDecls d_fundecls;  // FunDecl, comment
 
@@ -54,6 +58,9 @@ struct data
 
     typedef std::multimap<std::string, long long> CasesOfTests;
     CasesOfTests d_cases_of_tests;  // Map test numbers to functions.
+
+    typedef std::set<size_t> CCLines;  // Conditional compilation lines.
+    CCLines d_cclines;
 
     const clang::Stmt *d_main;  // The compond statement of 'main()'.
 };
@@ -66,18 +73,31 @@ struct report
     data&          d_data;
 
     report(Analyser& analyser);
+        // Initialize an object of this type.
 
     SourceRange get_test_plan();
         // Return the TEST PLAN comment block.
 
     void operator()();
-        // Callback method for the end of the translation unit.
+        // Callback for the end of the translation unit.
 
     void operator()(SourceRange comment);
-        // Callback method for the specified 'comment'.
+        // Callback for the specified 'comment'.
 
-    void operator()(const clang::FunctionDecl *function);
-        // Callback method for the specified 'function'.
+    void mark_ccline(SourceLocation loc);
+        // Mark the line of the specified 'loc' as a preprocessor conditional.
+
+    void operator()(const FunctionDecl *function);
+        // Callback for the specified 'function'.
+
+    void operator()(SourceLocation loc, SourceRange);
+        // Callback for '#if' and '#elif' at the specified 'loc'.
+
+    void operator()(SourceLocation loc, const Token&);
+        // Callback for '#ifdef' and '#ifndef' at the specified 'loc'.
+
+    void operator()(SourceLocation loc, SourceLocation);
+        // Callback for '#else' and '#endif' at the specified 'loc'.
 };
 
 report::report(Analyser& analyser)
@@ -87,11 +107,12 @@ report::report(Analyser& analyser)
 {
 }
 
+
 llvm::Regex test_plan_banner(
     "//[[:blank:]]*" "[-=_]([[:blank:]]?[-=_])*"  "[[:blank:]]*\n"
     "//[[:blank:]]*" "TEST" "[[:blank:]]*" "PLAN" "[[:blank:]]*\n"
     "//[[:blank:]]*" "[-=_]([[:blank:]]?[-=_])*"  "[[:blank:]]*\n",
-    llvm::Regex::Newline);
+    llvm::Regex::Newline);  // Loosely match the banner of a TEST PLAN.
 
 SourceRange report::get_test_plan()
 {
@@ -107,25 +128,23 @@ SourceRange report::get_test_plan()
 }
 
 llvm::Regex separator("//[[:blank:]]*-{60,}$\n", llvm::Regex::Newline);
+    // Loosely match a long dashed separator.
 
 llvm::Regex test_plan(
     "//"  "[[:blank:]]*"
     "\\[" "[[:blank:]]*" "(" "-?" "[[:digit:]]*" ")" "\\]"
           "[[:blank:]]*"
     "(.*)$",
-    llvm::Regex::Newline);
+    llvm::Regex::Newline);  // Match a test plan item.  [ ] are essential.
 
 llvm::Regex testing(
     "//[[:blank:]]*Test(ing|ed|s)?[[:blank:]]*:?[[:blank:]]*\n",
-    llvm::Regex::IgnoreCase);
-
-llvm::Regex testing_strict(
-    "// Testing:\n",
-    llvm::Regex::IgnoreCase);
+    llvm::Regex::IgnoreCase);  // Loosely match 'Testing:' in a case comment.
 
 llvm::Regex test_item(
     "^[^.;]*[[:alpha:]][^.;]*;?[^.;]*$",
-    llvm::Regex::Newline);
+    llvm::Regex::Newline);  // Loosely match a test item; at least one letter,
+                            // no more than one ';', and no '.'.
 
 void report::operator()()
 {
@@ -147,9 +166,12 @@ void report::operator()()
     llvm::SmallVector<llvm::StringRef, 7> matches;
     size_t offset = 0;
 
+    // Hack off the banner.
     if (test_plan_banner.match(plan.drop_front(offset), &matches)) {
         offset += plan.drop_front(offset).find(matches[0]) + matches[0].size();
     }
+
+    // Hack off past the separator if there is one.
     if (separator.match(plan.drop_front(offset), &matches)) {
         offset += plan.drop_front(offset).find(matches[0]) + matches[0].size();
     } else {
@@ -158,6 +180,8 @@ void report::operator()()
                           "TEST PLAN section is missing '//---...---' "
                           "separator line");
     }
+
+    // Hack off everything before the first item with brackets.
     if (test_plan.match(plan.drop_front(offset), &matches)) {
         offset += plan.drop_front(offset).find(matches[0]);
     }
@@ -231,14 +255,16 @@ void report::operator()()
     const SwitchCase* sc;
     for (sc = ss->getSwitchCaseList(); sc; sc = sc->getNextSwitchCase()) {
         size_t line = Location(d_manager, sc->getColonLoc()).line() + 1;
-        data::Comments& c = d_data.d_comments;
-        SourceRange cr;
 
-        for (size_t i = 0; i < c.size(); ++i) {
-            if (line == Location(d_manager, c[i].getBegin()).line()) {
-                cr = c[i];
-                break;
-            }
+        // Skip over preprocessor conditionals.
+        while (d_data.d_cclines.find(line) != d_data.d_cclines.end()) {
+            ++line;
+        }
+
+        SourceRange cr;
+        if (d_data.d_comments_of_lines.find(line) !=
+            d_data.d_comments_of_lines.end()) {
+            cr = d_data.d_comments[d_data.d_comments_of_lines[line]];
         }
 
         const CaseStmt* cs = llvm::dyn_cast<CaseStmt>(sc);
@@ -353,18 +379,43 @@ void report::operator()(SourceRange range)
         data::Comments& c = d_data.d_comments;
         if (c.size() == 0 ||
             !cool::csabase::areConsecutive(d_manager, c.back(), range)) {
+            d_data.d_comments_of_lines[location.line()] = c.size();
             c.push_back(range);
-        } else {
+        }
+        else {
             c.back().setEnd(range.getEnd());
         }
     }
 }
 
-void report::operator()(const clang::FunctionDecl *function)
+void report::operator()(const FunctionDecl *function)
 {
     if (function->isMain() && function->hasBody()) {
         d_data.d_main = function->getBody();
     }
+}
+
+void report::mark_ccline(SourceLocation loc)
+{
+    Location location(d_analyser.get_location(loc));
+    if (location.file() == d_analyser.toplevel()) {
+        d_data.d_cclines.insert(location.line());
+    }
+}
+
+void report::operator()(SourceLocation loc, SourceRange)
+{
+    mark_ccline(loc);
+}
+
+void report::operator()(SourceLocation loc, const Token&)
+{
+    mark_ccline(loc);
+}
+
+void report::operator()(SourceLocation loc, SourceLocation)
+{
+    mark_ccline(loc);
 }
 
 void subscribe(Analyser& analyser, Visitor& visitor, PPObserver& observer)
@@ -373,6 +424,12 @@ void subscribe(Analyser& analyser, Visitor& visitor, PPObserver& observer)
     analyser.onTranslationUnitDone += report(analyser);
     visitor.onFunctionDecl += report(analyser);
     observer.onComment += report(analyser);
+    observer.onIf += report(analyser);
+    observer.onElif += report(analyser);
+    observer.onIfdef += report(analyser);
+    observer.onIfndef += report(analyser);
+    observer.onElse += report(analyser);
+    observer.onEndif += report(analyser);
 }
 
 }  // close anonymous namespace
