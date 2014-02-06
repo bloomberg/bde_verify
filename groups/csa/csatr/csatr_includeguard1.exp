@@ -23,4 +23,7 @@ groups/csa/csatr/csatr_includeguard1.t.h:3:0: warning: SHO07: Missing include fo
 groups/csa/csatr/csatr_includeguard1.t.cpp:4:0: warning: SHO08: bdes_ident.h is used inconsistently with the header
 #include <bdes_ident.h>
 ^
-8 warnings generated.
+groups/csa/csatr/csatr_includeguard1.t.cpp:1:0: warning: TP14: TEST PLAN section is absent
+// csatr_includeguard1.t.cpp                                          -*-C++-*-
+^
+9 warnings generated.

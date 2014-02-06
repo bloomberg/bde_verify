@@ -10,6 +10,8 @@
 #ident "$Id$"
 
 #include <clang/Basic/SourceManager.h>
+
+#include <stddef.h>
 #include <string>
 #include <utility>
 
@@ -40,6 +42,7 @@ bool areConsecutive(clang::SourceManager& manager,
 
 std::string to_lower(std::string s);
     // Return a copy of the specified 's' with all letters in lower case.
+
 }
 }
 

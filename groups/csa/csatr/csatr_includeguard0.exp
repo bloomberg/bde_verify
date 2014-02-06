@@ -3,7 +3,7 @@ groups/csa/csatr/csatr_includeguard0.t.cpp:1:0: warning: TR03: Header file 'grou
 ^
 groups/csa/csatr/csatr_includeguard0.t.cpp:4:0: warning: TR14: Missing include guard INCLUDED_CSATR_INCLUDEGUARD0
 ^
-groups/csa/csatr/csatr_includeguard0.t.cpp:3:0: warning: SHO06: Missing include for bdes_ident.h
-#include "csatr_includeguard0.t.h"
+groups/csa/csatr/csatr_includeguard0.t.cpp:1:0: warning: TP14: TEST PLAN section is absent
+// csatr_includeguard0.t.cpp                                          -*-C++-*-
 ^
 3 warnings generated.

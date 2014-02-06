@@ -18,7 +18,21 @@
 
 namespace BloombergLP
 {
-    namespace bslma { class Allocator; }
+    namespace bslma
+    {
+        class Allocator;
+
+        template <typename TYPE> struct UsesBslmaAllocator;
+    }
+
+}
+
+namespace bsl
+{
+    template <class Type, Type Value>
+    struct Base { static const Type value = Value; };
+    typedef Base<bool, true>  true_type;
+    typedef Base<bool, false> false_type;
 }
 
 namespace cool

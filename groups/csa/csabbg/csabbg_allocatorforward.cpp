@@ -43,6 +43,9 @@ struct data
     QualType bsl_true_type_;
         // The type of 'BloombergLP::bsl::true_type'.
 
+    QualType bsl_false_type_;
+        // The type of 'BloombergLP::bsl::false_type'.
+
     typedef std::set<std::pair<const Expr*, const Decl*> > BadCexp;
     BadCexp bad_cexp_;
         // The set of constructor expressions with an explicit allocator
@@ -54,8 +57,11 @@ struct data
         // The set of constructor declarations seen.
 
     typedef std::set<const CXXRecordDecl*> RecordsWithAllocatorTrait;
-    RecordsWithAllocatorTrait records_with_allocator_trait_;
-        // The set of record declarations having an allocator trait.
+    RecordsWithAllocatorTrait records_with_true_allocator_trait_;
+        // The set of record declarations having a true allocator trait.
+
+    RecordsWithAllocatorTrait records_with_false_allocator_trait_;
+        // The set of record declarations having a false allocator trait.
 
     typedef std::set<const CXXConstructExpr*> Cexprs;
     Cexprs cexprs_;
@@ -123,10 +129,9 @@ struct report
         // Invoke the forwarding check on the items in the range from the
         // specified 'begin' up to but not including the specified 'end'.
 
-    bool check_not_forwarded(const CXXConstructorDecl *decl);
+    void check_not_forwarded(const CXXConstructorDecl *decl);
         // If the specified constructor 'decl' takes an allocator parameter,
-        // return 'true' and check whether it passes the parameter to its
-        // subobjects.
+        // check whether it passes the parameter to its subobjects.
 
     template <typename Iter>
     void check_not_forwarded(Iter begin, Iter end, const ParmVarDecl* palloc);
@@ -310,32 +315,34 @@ void report::check_not_forwarded(Iter begin, Iter end)
     for (Iter itr = begin; itr != end; ++itr) {
         const CXXConstructorDecl *decl = *itr;
         const CXXRecordDecl *record = decl->getParent();
-        bool uses_allocator = check_not_forwarded(decl);
+        bool uses_allocator = takes_allocator(
+                   record->getTypeForDecl()->getCanonicalTypeInternal(), true);
+
+        check_not_forwarded(decl);
 
         if (records.count(record) == 0) {
             records.insert(record);
+            bool has_true_alloc_trait =
+                data_.records_with_true_allocator_trait_.count(record);
+            bool has_false_alloc_trait =
+                data_.records_with_true_allocator_trait_.count(record);
 
-            bool has_alloc_trait =
-                data_.records_with_allocator_trait_.count(record);
-
-            if (!uses_allocator && has_alloc_trait) {
-                analyser_.report(record, check_name, "MA02",
-                        "Class %0 does not use allocators but declares "
-                        "the TypeTraitUsesBslmaAllocator trait")
+            if (!uses_allocator && has_true_alloc_trait) {
+                analyser_.report(record, check_name, "AT01",
+                        "Class %0 does not use allocators but has a "
+                        "positive allocator trait")
                     << record;
-            }
-            else if (uses_allocator && !has_alloc_trait) {
-                analyser_.report(record, check_name, "MA02",
-                        "Class %0 uses allocators but does not declare "
-                        "the TypeTraitUsesBslmaAllocator trait")
+            } else if (uses_allocator && !has_true_alloc_trait &&
+                       !has_false_alloc_trait) {
+                analyser_.report(record, check_name, "AT02",
+                        "Class %0 uses allocators but does not have an "
+                        "allocator trait")
                     << record;
             }
         }
 
         if (decl == decl->getCanonicalDecl() &&
-            takes_allocator(record->
-                            getTypeForDecl()->
-                            getCanonicalTypeInternal(), true) &&
+            uses_allocator &&
             !takes_allocator(decl, true)) {
             // Warn if the class does not have a constructor that matches this
             // one, but with a final allocator parameter.
@@ -366,7 +373,7 @@ void report::check_not_forwarded(Iter begin, Iter end)
 
             if (!found) {
                 if (decl->isUserProvided()) {
-                    analyser_.report(decl, check_name, "MA04",
+                    analyser_.report(decl, check_name, "AC01",
                                  "This constructor has no version that can be "
                                  "called with an allocator.")
                         << decl;
@@ -377,7 +384,7 @@ void report::check_not_forwarded(Iter begin, Iter end)
                         decl->isCopyOrMoveConstructor() ? "copy "    :
                                                           "";
 
-                    analyser_.report(decl, check_name, "MA04",
+                    analyser_.report(decl, check_name, "AC02",
                                  "Implicit " + type + "constructor cannot be "
                                  "called with an allocator")
                         << decl;
@@ -387,27 +394,20 @@ void report::check_not_forwarded(Iter begin, Iter end)
     }
 }
 
-bool report::check_not_forwarded(const CXXConstructorDecl *decl)
+void report::check_not_forwarded(const CXXConstructorDecl *decl)
 {
     if (data_.bslma_allocator_.isNull()) {
         // We have not seen the declaration for the allocator yet, so this
         // constructor cannot be using it.
-        return false;                                                 // RETURN
+        return;                                                       // RETURN
     }
 
     if (!decl->hasBody()) {
-        return false;                                                 // RETURN
-    }
-
-    const CXXRecordDecl *record =
-        llvm::dyn_cast<CXXRecordDecl>(decl->getParent());
-
-    if (!record) {
-        return false;                                                 // RETURN
+        return;                                                       // RETURN
     }
 
     if (!takes_allocator(decl, true)) {
-        return false;                                                 // RETURN
+        return;                                                       // RETURN
     }
 
     // The allocator parameter is the last one.
@@ -418,8 +418,6 @@ bool report::check_not_forwarded(const CXXConstructorDecl *decl)
     // which take an allocator parameter that we do not pass.
 
     check_not_forwarded(decl->init_begin(), decl->init_end(), palloc);
-
-    return true;
 }
 
 template <typename Iter>
@@ -435,13 +433,14 @@ void report::check_not_forwarded(Iter begin,
 void report::check_not_forwarded(const CXXCtorInitializer* init,
                                  const ParmVarDecl* palloc)
 {
-
     // Type of object being initialized.
     const Type* type = init->isBaseInitializer()
         ? init->getBaseClass()
         : init->getAnyMember()->getType().getTypePtr();
 
-    if (!takes_allocator(type->getCanonicalTypeInternal(), true)) {
+    if (!takes_allocator(type->getCanonicalTypeInternal(), true) ||
+        data_.records_with_false_allocator_trait_.count(
+            get_record_decl(type->getCanonicalTypeInternal()))) {
         return;                                                       // RETURN
     }
 
@@ -475,7 +474,7 @@ void report::check_not_forwarded(const CXXCtorInitializer* init,
             << init->getBaseClass()->getCanonicalTypeInternal().
             getAsString() << range;
     } else {
-        analyser_.report(loc, check_name, "MA01",
+        analyser_.report(loc, check_name, "MA02",
                 "Allocator not passed to member %0")
             << init->getAnyMember()->getNameAsString() << range;
     }
@@ -586,7 +585,7 @@ void report::check_wrong_parm(const CXXConstructExpr *expr)
 
             if (   is_allocator(arg->getType())
                 && !data_.bad_cexp_.count(std::make_pair(arg, decl))) {
-                analyser_.report(arg->getExprLoc(), check_name, "MA02",
+                analyser_.report(arg->getExprLoc(), check_name, "AM01",
                                 "Allocator argument initializes "
                                 "non-allocator %0 of type '%1' rather than "
                                 "allocator %2")
@@ -611,10 +610,16 @@ void report::check_alloc_returns(Iter begin, Iter end)
 
 void report::check_alloc_return(const ReturnStmt *stmt)
 {
-    if (stmt->getRetValue() &&
-        takes_allocator(stmt->getRetValue()->getType())) {
-        analyser_.report(stmt, check_name, "AR01",
-                "Type using allocator returned by value");
+    if (   stmt->getRetValue()
+        && !stmt->getRetValue()->getType()->isPointerType()
+        //&& takes_allocator(stmt->getRetValue()->getType())
+        && data_.records_with_true_allocator_trait_.count(
+            get_record_decl(stmt->getRetValue()->getType()))) {
+        const FunctionDecl* func = analyser_.get_parent<FunctionDecl>(stmt);
+        if (!func || !func->getResultType()->isReferenceType()) {
+            analyser_.report(stmt, check_name, "AR01",
+                             "Type using allocator is returned by value");
+        }
     }
 }
 
@@ -641,12 +646,19 @@ find_allocator(Analyser& analyser, TagDecl const* decl)
 // -----------------------------------------------------------------------------
 
 static void
-find_true_type(Analyser& analyser, const TypedefNameDecl *decl)
+find_tf_type(Analyser& analyser, const TypedefNameDecl *decl)
     // Callback to set up the typedef "bsl::true_type".
 {
-    static const std::string true_type = "bsl::true_type";
-    if (decl->getQualifiedNameAsString() == true_type) {
+    static const std::string true_type  = "bsl::true_type";
+    static const std::string false_type = "bsl::false_type";
+
+    std::string q = decl->getQualifiedNameAsString();
+    if (q == true_type) {
         analyser.attachment<data>().bsl_true_type_ = decl->getUnderlyingType();
+    }
+    else if (q == false_type) {
+        analyser.attachment<data>().bsl_false_type_ =
+            decl->getUnderlyingType();
     }
 }
 
@@ -714,7 +726,7 @@ gather_nested_traits(Analyser& analyser, CXXConversionDecl const* decl)
                 if (trait_decl &&
                         alloc == trait_decl->getQualifiedNameAsString()) {
                     data& info(analyser.attachment<data>());
-                    info.records_with_allocator_trait_.insert(record);
+                    info.records_with_true_allocator_trait_.insert(record);
                 }
             }
         }
@@ -737,16 +749,23 @@ gather_traits(Analyser& analyser, ClassTemplateSpecializationDecl const* decl)
         info.bsl_true_type_.isNull() ?
             0 :
             info.bsl_true_type_.getCanonicalType()->getAsCXXRecordDecl();
-    if (   ttr
-        && decl->getQualifiedNameAsString() == "BloombergLP::bslma::"
-                                               "UsesBslmaAllocator"
+    const CXXRecordDecl* ftr =
+        info.bsl_false_type_.isNull() ?
+            0 :
+            info.bsl_false_type_.getCanonicalType()->getAsCXXRecordDecl();
+    static const std::string uba = "BloombergLP::bslma::UsesBslmaAllocator";
+    if (   decl->getQualifiedNameAsString() == uba
         && decl->isEmpty()
         && !decl->isLocalClass()
-        && decl->isDerivedFrom(ttr)
         && decl->getTemplateArgs().size() == 1) {
         if (const CXXRecordDecl* arg =
                 decl->getTemplateArgs()[0].getAsType()->getAsCXXRecordDecl()) {
-            info.records_with_allocator_trait_.insert(arg);
+            if (ttr && decl->isDerivedFrom(ttr)) {
+                info.records_with_true_allocator_trait_.insert(arg);
+            }
+            else if (ftr && decl->isDerivedFrom(ftr)) {
+                info.records_with_false_allocator_trait_.insert(arg);
+            }
         }
     }
 }
@@ -761,5 +780,5 @@ static cool::csabase::RegisterCheck c3(check_name, &gather_ctor_exprs);
 static cool::csabase::RegisterCheck c4(check_name, &subscribe);
 static cool::csabase::RegisterCheck c5(check_name, &gather_nested_traits);
 static cool::csabase::RegisterCheck c6(check_name, &gather_traits);
-static cool::csabase::RegisterCheck c7(check_name, &find_true_type);
+static cool::csabase::RegisterCheck c7(check_name, &find_tf_type);
 static cool::csabase::RegisterCheck c8(check_name, &gather_return_stmts);

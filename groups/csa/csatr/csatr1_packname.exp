@@ -2,4 +2,5 @@ groups/csa/csatr/csatr1_packname.t.cpp:1:0: warning: TR03: Header file 'groups/c
 // csatr1_packname.t.cpp                                              -*-C++-*-
 ^
 groups/csa/csatr/csatr1_packname.t.cpp:1:0: warning: TR02: Component 'csatr1_packname' doesn't seem to be in package 'csatr1'
-2 warnings generated.
+groups/csa/csatr/csatr1_packname.t.cpp:1:0: warning: TP14: TEST PLAN section is absent
+3 warnings generated.

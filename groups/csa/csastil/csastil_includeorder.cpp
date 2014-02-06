@@ -142,7 +142,16 @@ check_order(CB::Analyser*                   analyser,
     }
     std::string ident =
         analyser->group() == "bsl" ? "bsls_ident" : "bdes_ident";
-    if (analyser->component() == ident || analyser->is_test_driver()) {
+    if (analyser->component() == ident ||
+        (analyser->is_test_driver() && !header)) {
+        if (it != headers.end()) {
+            if (it->first == "bdes_ident") {
+                bdes_ident_location = &it->second;
+            }
+            if (it->first == ident) {
+                ++it;
+            }
+        }
     }
     else if (it == headers.end() || it->first != ident) {
         analyser->report((it == headers.end() ? it - 1: it)->second,
@@ -159,7 +168,6 @@ check_order(CB::Analyser*                   analyser,
 
     std::string version = analyser->group() + "scm_version";
     if (   analyser->component() != version
-        && !analyser->is_test_driver()
         && header
         && (it == headers.end()
             || it->first != version
@@ -260,16 +268,20 @@ namespace
                 data.add_include(in_header, name, where);
             }
         }
-        void operator()() // translation unit done
+        void operator()()  // translation unit done
         {
-            include_order& data(d_analyser->attachment<include_order>()); 
-            clang::SourceLocation const* header_bdes_ident(check_order(d_analyser, data.d_header, true));
-            clang::SourceLocation const* source_bdes_ident(check_order(d_analyser, data.d_source, false));
+            include_order& data(d_analyser->attachment<include_order>());
+            clang::SourceLocation const* header_bdes_ident(
+                check_order(d_analyser, data.d_header, true));
+            clang::SourceLocation const* source_bdes_ident(
+                check_order(d_analyser, data.d_source, false));
             if ((header_bdes_ident == 0) != (source_bdes_ident == 0)) {
-                d_analyser->report(*(header_bdes_ident? header_bdes_ident: source_bdes_ident),
-                                         check_name, "SHO08",
-                                         "bdes_ident.h is used inconsistently with the %0")
-                    << (header_bdes_ident? "source": "header");
+                d_analyser->report(*(header_bdes_ident ? header_bdes_ident :
+                                                         source_bdes_ident),
+                                   check_name, "SHO08",
+                                   "bdes_ident.h is used inconsistently with "
+                                   "the %0")
+                    << (header_bdes_ident ? "source" : "header");
             }
         }
 

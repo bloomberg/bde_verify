@@ -2,6 +2,7 @@
 // ----------------------------------------------------------------------------
 
 #include <csabase_analyser.h>
+#include <csabase_debug.h>
 #include <csabase_location.h>
 #include <csabase_ppobserver.h>
 #include <csabase_registercheck.h>
@@ -91,25 +92,29 @@ bool comments::isReset(llvm::StringRef comment)
                           "("
                              "CLASS"     "|"
                              "FREE"      "|"
+                             "NOT"       "|"
                              "PRIVATE"   "|"
                              "PROTECTED" "|"
                              "PUBLIC"    "|"
+                             "."         "|"  // Try allowing everything here.
                              "[[:space:]]"
                           ")*"
                           "("
-                             "Aspects?"      "|"
                              "ACCESSORS?"    "|"
-                             "METHODS?"      "|"
+                             "Aspects?"      "|"
                              "CREATORS?"     "|"
                              "DATA"          "|"
                              "FUNCTIONS?"    "|"
-                             "OPERATORS?"    "|"
+                             "IMPLEMENTED"   "|"
                              "MANIPULATORS?" "|"
+                             "METHODS?"      "|"
+                             "OPERATORS?"    "|"
                              "TRAITS?"       "|"
                              "[-=_]+" "(" "[[:space:]]*" "[-=_]+" ")*"
                           ")"
                           "[:;.[:space:]]*" "([*]/)?" "[[:space:]]*" "$",
                           llvm::Regex::IgnoreCase);
+    std::string error;
     return re.match(comment);
 }
 
@@ -212,8 +217,8 @@ void report::check_order(const FunctionDecl *decl)
             if (next_name.isIdentifier() &&
                 !next_name.isEmpty() &&
                 comments::less(next_name.getAsString(), name.getAsString())) {
-                llvm::StringRef q1 = decl->getQualifiedNameAsString();
-                llvm::StringRef q2 = nextf->getQualifiedNameAsString();
+                std::string q1 = decl->getQualifiedNameAsString();
+                std::string q2 = nextf->getQualifiedNameAsString();
                 q1 = q1.substr(0, q1.rfind(':'));
                 q2 = q2.substr(0, q2.rfind(':'));
                 bool reset = q1 != q2;

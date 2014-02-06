@@ -8,4 +8,7 @@ groups/csa/csatr/csatr_packagelegacy.t.h:22:0: warning: TR05: Globally visible i
 groups/csa/csatr/csatr_packagelegacy.t.h:26:0: warning: TR05: Globally visible identifier 'cool::csatr_packagelegac' without component prefix
     struct csatr_packagelegac
 ^
-3 warnings generated.
+groups/csa/csatr/csatr_packagelegacy.t.cpp:1:0: warning: TP14: TEST PLAN section is absent
+// csatr_packagelegacy.t.cpp                                          -*-C++-*-
+^
+4 warnings generated.

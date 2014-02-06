@@ -121,6 +121,12 @@ public:
 
     bool hasContext() const { return context_; }
 
+    template <typename Parent, typename Node>
+    const Parent *get_parent(const Node *node);
+        // Return a pointer to the object of the specified 'Parent' type which
+        // is the nearest ancestor of the specified 'node' of 'Node' type, and
+        // 0 if there is no such object.
+
 private:
     Analyser(cool::csabase::Analyser const&);
     void operator= (cool::csabase::Analyser const&);
@@ -198,6 +204,19 @@ cool::csabase::Analyser::lookup_name_as(const std::string& name)
 {
     clang::NamedDecl* nd = lookup_name(name);
     return nd ? llvm::dyn_cast<T>(nd) : 0;
+}
+
+template <typename Parent, typename Node>
+const Parent *cool::csabase::Analyser::get_parent(const Node *node)
+{
+    for (clang::ASTContext::ParentVector pv = context()->getParents(*node);
+         pv.size() >= 1;
+         pv = context()->getParents(pv[0])) {
+        if (const Parent *p = pv[0].get<Parent>()) {
+            return p;                                                 // RETURN
+        }
+    }
+    return 0;
 }
 
 // -----------------------------------------------------------------------------

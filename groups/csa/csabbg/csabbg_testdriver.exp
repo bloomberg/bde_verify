@@ -1,0 +1,28 @@
+groups/csa/csabbg/csabbg_testdriver.t.cpp:24:0: warning: TP03: Missing test number
+// [  ] void setF();
+^~~~
+groups/csa/csabbg/csabbg_testdriver.t.cpp:29:0: warning: TP03: Missing test number
+// [  ] BREATHING TEST
+^~~~
+groups/csa/csabbg/csabbg_testdriver.t.cpp:30:0: warning: TP03: Missing test number
+// [  ] USAGE EXAMPLE
+^~~~
+groups/csa/csabbg/csabbg_testdriver.t.cpp:167:0: warning: TP05: Test case has no comment
+      case -1: {
+^
+groups/csa/csabbg/csabbg_testdriver.t.cpp:29:0: warning: TP08: Test plan should have case number 1 (not blank) for 'BREATHING TEST'
+// [  ] BREATHING TEST
+^
+groups/csa/csabbg/csabbg_testdriver.t.cpp:27:0: warning: TP08: Test plan should have case number 2 (not 5) for 'int F() const;'
+// [ 5] int F() const;
+^
+groups/csa/csabbg/csabbg_testdriver.t.cpp:139:0: warning: TP09: Test plan should contain this item from 'Testing' section of case 2
+        //   int G() const;
+^
+groups/csa/csabbg/csabbg_testdriver.t.cpp:25:0: warning: TP06: 'Testing' section of case 2 should contain this item from test plan
+// [ 2] void setG();
+^
+groups/csa/csabbg/csabbg_testdriver.t.cpp:30:0: warning: TP08: Test plan should have case number 3 (not blank) for 'USAGE EXAMPLE'
+// [  ] USAGE EXAMPLE
+^
+9 warnings generated.

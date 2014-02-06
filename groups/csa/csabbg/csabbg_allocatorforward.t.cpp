@@ -149,27 +149,43 @@ namespace cool
 {
     namespace csabbg
     {
-        namespace
+        struct not_alloc {
+            not_alloc(BloombergLP::bslma::Allocator*) { }
+        };
+        struct object {
+            not_alloc member;
+            object(not_alloc na, BloombergLP::bslma::Allocator* = 0)
+            : member(na) { }
+        };
+    }
+}
+
+namespace BloombergLP
+{
+    namespace bslma
+    {
+        template <>
+        struct UsesBslmaAllocator<cool::csabbg::object> : bsl::true_type
         {
-            struct not_alloc {
-                not_alloc(BloombergLP::bslma::Allocator*) { }
-            };
-            struct object {
-                not_alloc member;
-                object(not_alloc na, BloombergLP::bslma::Allocator* = 0)
-                : member(na) { }
-            };
-            void test(BloombergLP::bslma::Allocator *a)
-            {
-                object o(a);
-            }
-            object ra(bool b, const object &o)
-            {
-                if (b) {
-                    return o;
-                } else {
-                    return object(o);
-                }
+        };
+
+    }
+}
+
+namespace cool
+{
+    namespace csabbg
+    {
+        void test(BloombergLP::bslma::Allocator *a)
+        {
+            object o(a);
+        }
+        object ra(bool b, const object &o)
+        {
+            if (b) {
+                return o;
+            } else {
+                return object(o);
             }
         }
     }
