@@ -163,6 +163,12 @@ llvm::Regex bad_bubble(
                               "[)])",
     llvm::Regex::Newline);
 
+llvm::Regex good_bubble(
+    "//( *)" " [,](-+)[.]" "\n"
+    "//\\1"  "[(]  .* [)]" "\n"
+    "//\\1"  " [`]\\2[']"  "$",
+    llvm::Regex::Newline);
+
 std::string bubble(llvm::StringRef s, size_t column)
 {
     std::string lead = "\n//" + std::string(column > 4 ? column - 4 : 1, ' ');
@@ -194,6 +200,28 @@ void files::check_bubble(SourceRange range)
 
     size_t offset = 0;
     llvm::StringRef s;
+    size_t left_offset = comment.size();
+    size_t leftmost_position = comment.size();
+
+    while (good_bubble.match(s = comment.drop_front(offset), &matches)) {
+        llvm::StringRef text = matches[0];
+        std::pair<size_t, size_t> m = cool::csabase::mid_match(s, text);
+        size_t matchpos = offset + m.first;
+        offset = matchpos + text.size();
+        if (matches[1].size() < left_offset) {
+            left_offset = matches[1].size();
+            leftmost_position =
+                matchpos + comment.drop_front(matchpos).find('\n') + 1;
+        }
+    }
+    if (left_offset != 2 && left_offset != comment.size()) {
+        d_analyser.report(
+                range.getBegin().getLocWithOffset(leftmost_position + 4),
+                check_name, "AD01",
+                "Display should begin in column 5 (from start of comment)");
+    }
+
+    offset = 0;
     while (bad_bubble.match(s = comment.drop_front(offset), &matches)) {
         llvm::StringRef text = matches[0];
         std::pair<size_t, size_t> m = cool::csabase::mid_match(s, text);
@@ -315,8 +343,8 @@ void files::check_wrapped(SourceRange range)
     }
 
     get_displays(comment, &displays);
-    size_t dnum = 0;
 
+    size_t dnum = 0;
     size_t offset = 0;
     llvm::StringRef s;
     while (block_comment.match(s = comment.drop_front(offset), &matches)) {
