@@ -107,12 +107,12 @@ report::report(Analyser& analyser)
 {
 }
 
-
+// Loosely match the banner of a TEST PLAN.
 llvm::Regex test_plan_banner(
     "//[[:blank:]]*" "[-=_]([[:blank:]]?[-=_])*"  "[[:blank:]]*\n"
     "//[[:blank:]]*" "TEST" "[[:blank:]]*" "PLAN" "[[:blank:]]*\n"
     "//[[:blank:]]*" "[-=_]([[:blank:]]?[-=_])*"  "[[:blank:]]*\n",
-    llvm::Regex::Newline);  // Loosely match the banner of a TEST PLAN.
+    llvm::Regex::Newline | llvm::Regex::IgnoreCase);
 
 SourceRange report::get_test_plan()
 {
@@ -131,7 +131,7 @@ llvm::Regex separator("//[[:blank:]]*-{60,}$\n", llvm::Regex::Newline);
     // Loosely match a long dashed separator.
 
 llvm::Regex test_plan(
-    "//"  "[[:blank:]]*"
+    "//"  "([^][[:alnum:]]*)"
     "\\[" "[[:blank:]]*" "(" "-?" "[[:digit:]]*" ")" "\\]"
           "[[:blank:]]*"
     "(.*)$",
@@ -193,8 +193,9 @@ void report::operator()()
     while (test_plan.match(s = plan.drop_front(offset), &matches)) {
         ++count;
         llvm::StringRef line = matches[0];
-        llvm::StringRef number = matches[1];
-        llvm::StringRef item = matches[2];
+        llvm::StringRef cruft = matches[1];
+        llvm::StringRef number = matches[2];
+        llvm::StringRef item = matches[3];
         size_t matchpos = offset + s.find(line);
         offset = matchpos + line.size();
         long long test_num = 0;
@@ -227,6 +228,12 @@ void report::operator()()
         } else {
             d_data.d_tests_of_cases.insert(std::make_pair(test_num, item));
             d_data.d_cases_of_tests.insert(std::make_pair(item, test_num));
+        }
+
+        if (cruft.find_first_not_of(" ") != cruft.npos) {
+            d_analyser.report(bracket_range.getBegin().getLocWithOffset(-1),
+                              check_name, "TP16",
+                              "Extra characters before test number brackets");
         }
     }
     if (count == 0) {
@@ -285,7 +292,7 @@ void report::operator()()
         } else {
             if (case_value == 0) {
                 d_analyser.report(sc->getLocStart(),
-                        check_name, "TP11",
+                        check_name, "TP10",
                         "Case 0 should not have a test comment");
             }
         }

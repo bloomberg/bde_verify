@@ -314,7 +314,19 @@ void report::check_not_forwarded(Iter begin, Iter end)
 
     for (Iter itr = begin; itr != end; ++itr) {
         const CXXConstructorDecl *decl = *itr;
-        const CXXRecordDecl *record = decl->getParent();
+        const CXXRecordDecl *record = decl->getParent()->getCanonicalDecl();
+        const CXXRecordDecl *tr = record;
+        if (const ClassTemplateSpecializationDecl* ts =
+                llvm::dyn_cast<ClassTemplateSpecializationDecl>(tr)) {
+            tr = ts->getSpecializedTemplate()
+                     ->getTemplatedDecl()
+                     ->getCanonicalDecl();
+        }
+
+        if (data_.records_with_false_allocator_trait_.count(tr)) {
+            return;                                                   // RETURN
+        }
+
         bool uses_allocator = takes_allocator(
                    record->getTypeForDecl()->getCanonicalTypeInternal(), true);
 
@@ -324,16 +336,13 @@ void report::check_not_forwarded(Iter begin, Iter end)
             records.insert(record);
             bool has_true_alloc_trait =
                 data_.records_with_true_allocator_trait_.count(record);
-            bool has_false_alloc_trait =
-                data_.records_with_true_allocator_trait_.count(record);
 
             if (!uses_allocator && has_true_alloc_trait) {
                 analyser_.report(record, check_name, "AT01",
                         "Class %0 does not use allocators but has a "
                         "positive allocator trait")
                     << record;
-            } else if (uses_allocator && !has_true_alloc_trait &&
-                       !has_false_alloc_trait) {
+            } else if (uses_allocator && !has_true_alloc_trait) {
                 analyser_.report(record, check_name, "AT02",
                         "Class %0 uses allocators but does not have an "
                         "allocator trait")
@@ -348,7 +357,7 @@ void report::check_not_forwarded(Iter begin, Iter end)
             // one, but with a final allocator parameter.
 
             bool found =    // Private copy constructor declarations are OK.
-                decl->getAccess() == clang::AS_private &&
+                decl->getAccess() == AS_private &&
                 decl->isCopyOrMoveConstructor() &&
                 decl->isUserProvided() &&
                 !decl->hasBody();
@@ -758,8 +767,17 @@ gather_traits(Analyser& analyser, ClassTemplateSpecializationDecl const* decl)
         && decl->isEmpty()
         && !decl->isLocalClass()
         && decl->getTemplateArgs().size() == 1) {
-        if (const CXXRecordDecl* arg =
-                decl->getTemplateArgs()[0].getAsType()->getAsCXXRecordDecl()) {
+        QualType qt = decl->getTemplateArgs()[0].getAsType();
+        const CXXRecordDecl *arg = qt->getAsCXXRecordDecl();
+        if (const TemplateSpecializationType* tst =
+                qt->getAs<TemplateSpecializationType>()) {
+            if (const TemplateDecl* td =
+                    tst->getTemplateName().getAsTemplateDecl()) {
+                arg = llvm::dyn_cast<CXXRecordDecl>(td->getTemplatedDecl());
+            }
+        }
+        if (arg) {
+            arg = arg->getCanonicalDecl();
             if (ttr && decl->isDerivedFrom(ttr)) {
                 info.records_with_true_allocator_trait_.insert(arg);
             }

@@ -443,7 +443,7 @@ void report::critiqueContract(const FunctionDecl* func, SourceRange comment)
     const int fcolm = d_manager.getPresumedColumnNumber(func->getLocStart());
     const int ccolm = d_manager.getPresumedColumnNumber(cloc);
     if (ccolm != fcolm + 4) {
-        d_analyser.report(cloc, check_name, "FD01",
+        d_analyser.report(cloc, check_name, "FD02",
             "Function contracts should be indented 4, not %0, spaces "
             "from their function declaration")
             << (ccolm - fcolm)
@@ -484,7 +484,7 @@ void report::critiqueContract(const FunctionDecl* func, SourceRange comment)
         if (!pre.match(contract, &matches)) {
             // Did not find parameter name in contract.
             d_analyser.report(parm->getSourceRange().getBegin(),
-                check_name, "FD01",
+                check_name, "FD03",
                 "Parameter '%0' is not documented in the function contract")
                 << name
                 << parm->getSourceRange();
@@ -501,7 +501,7 @@ void report::critiqueContract(const FunctionDecl* func, SourceRange comment)
             if (!qre.match(contract)) {
                 // Found parameter name, but unticked.
                 d_analyser.report(crange.getBegin(),
-                     check_name, "FD01",
+                     check_name, "FD04",
                     "Parameter '%0' is not single-quoted in the function "
                     "contract")
                     << name
@@ -518,7 +518,7 @@ void report::critiqueContract(const FunctionDecl* func, SourceRange comment)
                 // check for "optionally" in the contract.
                 optional_done = true;
                 d_analyser.report(crange.getBegin(),
-                        check_name, "FD01",
+                        check_name, "FD05",
                         "In the function contract, use the phrase 'optionally "
                         "specify' to document parameters that have default "
                         "arguments")
@@ -535,7 +535,7 @@ void report::critiqueContract(const FunctionDecl* func, SourceRange comment)
                 // check for "specified" or "specify" in the contract.
                 specify_done = true;
                 d_analyser.report(crange.getBegin(),
-                        check_name, "FD01",
+                        check_name, "FD06",
                         "In the function contract, use the words 'specified' "
                         "or 'specify' to document parameters")
                     << crange;

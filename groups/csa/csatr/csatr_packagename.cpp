@@ -56,7 +56,7 @@ namespace
                 bool standalone = fn.name().find("m_") == 0;
 
                 if (standalone && fn.name().find('_', 2) == fn.name().npos) {
-                    analyser.report(where, check_name, "TR02",
+                    analyser.report(where, check_name, "PN01",
                                     "Component file name '%0' in standalone "
                                     "component contains only one underscore",
                                     true)
@@ -66,7 +66,7 @@ namespace
 
                 if (fn.component().count('_') != (fn.package() == "bslfwd" ?
                             2 : fn.package().count('_') + 1)) {
-                    analyser.report(where, check_name, "TR02",
+                    analyser.report(where, check_name, "PN02",
                                     "Component name '%0' must consist of "
                                     "package '%1' followed by underscore and "
                                     "name with no underscores", true)
@@ -79,7 +79,7 @@ namespace
                 llvm::StringRef srgroup = fn.group();
                 int pkgsize = srpackage.size() - srgroup.size();
                 if (pkgsize < 1 || pkgsize > 4) {
-                    analyser.report(where, check_name, "TR02",
+                    analyser.report(where, check_name, "PN03",
                             "Package name %0 must consist of 1-4 characters "
                             "preceded by the group name: '%0'", true)
                         << srgroup.str();
@@ -107,7 +107,7 @@ namespace
                     }
                 }
                 if (bad) {
-                    analyser.report(where, check_name, "TR02",
+                    analyser.report(where, check_name, "PN04",
                             "Package and group names must consist of lower "
                             "case alphanumeric characters, start with a lower "
                             "case letter, and be separated by underscores: "
@@ -126,7 +126,7 @@ namespace
                     struct stat indirect;
                     if (stat(expect.c_str(), &indirect) != 0 ||
                         direct.st_ino != indirect.st_ino) {
-                        analyser.report(where, check_name, "TR02",
+                        analyser.report(where, check_name, "PN05",
                                 "Component '%0' doesn't seem to be in package "
                                 "'%1'", true)
                             << fn.component()

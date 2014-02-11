@@ -158,7 +158,7 @@ struct report
                     if (scolm >= 69 && ccolm > 71) {
                         ss << " (place it alone on the next line)";
                     }
-                    d_analyser->report(*it, check_name, "MR01", ss.str());
+                    d_analyser->report(*it, check_name, "MR02", ss.str());
                 }
                 return true;
             }

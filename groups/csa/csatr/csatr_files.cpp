@@ -39,13 +39,13 @@ namespace
                     fn.pkgdir().str()   + fn.component().str();
                 if (stat((    prefix + ".h").c_str(), &buffer) &&
                     stat((pkg_prefix + ".h").c_str(), &buffer)) {
-                    d_analyser.report(where, check_name, "TR03",
+                    d_analyser.report(where, check_name, "FI01",
                             "Header file '%0' not accessible", true)
                         << (pkg_prefix + ".h");
                 }
                 if (stat((    prefix + ".t.cpp").c_str(), &buffer) &&
                     stat((pkg_prefix + ".t.cpp").c_str(), &buffer)) {
-                    d_analyser.report(where, check_name, "TR03",
+                    d_analyser.report(where, check_name, "FI02",
                             "Test file '%0' not accessible", true)
                         << (pkg_prefix + ".t.cpp");
                 }

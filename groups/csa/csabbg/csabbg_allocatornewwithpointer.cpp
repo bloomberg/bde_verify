@@ -29,7 +29,7 @@ check(cool::csabase::Analyser& analyser, clang::CXXNewExpr const* expr)
                 && bslma_allocator->getTypeForDecl()
                 && bslma_allocator->getTypeForDecl()->getCanonicalTypeInternal() == pointee->getCanonicalTypeInternal())
             {
-                analyser.report(placement, check_name, "MA02",
+                analyser.report(placement, check_name, "ANP01",
                         "Allocator new with pointer")
                     << placement->getSourceRange();
             }

@@ -1,7 +1,7 @@
-groups/csa/csatr/csbtx_groupname.v.cpp:1:0: warning: TR03: Header file 'groups/csa/csatr/csbtx_groupname.h' not accessible
+groups/csa/csatr/csbtx_groupname.v.cpp:1:0: warning: FI01: Header file 'groups/csa/csatr/csbtx_groupname.h' not accessible
 // csbtx_groupname.v.cpp                                              -*-C++-*-
 ^
-groups/csa/csatr/csbtx_groupname.v.cpp:1:0: warning: TR03: Test file 'groups/csa/csatr/csbtx_groupname.t.cpp' not accessible
-groups/csa/csatr/csbtx_groupname.v.cpp:1:0: warning: TR01: Component 'csbtx_groupname' doesn't seem to be in package group 'csb'
-groups/csa/csatr/csbtx_groupname.v.cpp:1:0: warning: TR02: Component 'csbtx_groupname' doesn't seem to be in package 'csbtx'
+groups/csa/csatr/csbtx_groupname.v.cpp:1:0: warning: FI02: Test file 'groups/csa/csatr/csbtx_groupname.t.cpp' not accessible
+groups/csa/csatr/csbtx_groupname.v.cpp:1:0: warning: GN02: Component 'csbtx_groupname' doesn't seem to be in package group 'csb'
+groups/csa/csatr/csbtx_groupname.v.cpp:1:0: warning: PN05: Component 'csbtx_groupname' doesn't seem to be in package 'csbtx'
 4 warnings generated.

@@ -1,6 +1,6 @@
 In file included from groups/csa/csabbg/csabbg_allocatorforward.t.cpp:8:
-groups/csa/csabbg/csabbg_allocatorforward.t.hpp:56:0: warning: AT02: Class 'allocatorforward_alloc_used' uses allocators but does not have an allocator trait
-class cool::csabbg::allocatorforward_alloc_used
+groups/csa/csabbg/csabbg_allocatorforward.t.hpp:43:0: warning: AT02: Class 'allocatorforward_alloc_used' uses allocators but does not have an allocator trait
+        class allocatorforward_alloc_used;
 ^
 groups/csa/csabbg/csabbg_allocatorforward.t.cpp:19:0: warning: AT02: Class 'test' uses allocators but does not have an allocator trait
             class test:

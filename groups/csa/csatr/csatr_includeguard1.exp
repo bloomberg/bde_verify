@@ -1,4 +1,4 @@
-groups/csa/csatr/csatr_includeguard1.t.cpp:1:0: warning: TR03: Header file 'groups/csa/csatr/csatr_includeguard1.h' not accessible
+groups/csa/csatr/csatr_includeguard1.t.cpp:1:0: warning: FI01: Header file 'groups/csa/csatr/csatr_includeguard1.h' not accessible
 // csatr_includeguard1.t.cpp                                          -*-C++-*-
 ^
 In file included from groups/csa/csatr/csatr_includeguard1.t.cpp:3:

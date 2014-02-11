@@ -8,6 +8,8 @@
 #include <csabase_util.h>
 #include <llvm/Support/Regex.h>
 #include <string>
+#include <set>
+#include <vector>
 
 #ident "$Id$"
 
@@ -83,55 +85,69 @@ void files::operator()(SourceRange range)
     d_analyser.attachment<comments>().append(d_analyser, range);
 }
 
-#undef NL
-#define NL "\r*[\r\n]"
-#undef SP
-#define SP "[ \t]*"
+#undef  aba
+#define aba(a, b) "("a"("b a")*)"
+#undef  SP
+#define SP "[[:space:]]*"
 
-static llvm::Regex generic_banner(   // things that look like banners
-       "//" SP "(" "[-=_]" "(" SP "[-=_]" ")*" ")"                        SP NL
-    SP "//" "(" SP ")" "(" "[_[:alnum:]]" "(" SP "[_[:alnum:]]" ")*" ")"  SP NL
-    SP "//" "(" SP ")" "(" "[-=_]" "(" SP "[-=_]" ")*" ")"                SP,
-    llvm::Regex::IgnoreCase);
+static llvm::Regex generic_banner(      // things that look like banners
+        "//"     SP     aba("[-=_]",        SP) SP
+        "//" "(" SP ")" aba("[_[:alnum:]]", SP) SP
+        "//" "(" SP ")" aba("[-=_]",        SP) SP "$",
+    llvm::Regex::Newline);
+
+static llvm::Regex generic_separator(   // things that look like separators
+        "(//([[:space:]]*)[-=_](([[:space:]][-=_])*|[-=_]*))[[:space:]]*$",
+    llvm::Regex::Newline);
 
 #undef SP
-#undef NL
+#undef aba
 
 void files::check_comment(SourceRange comment_range)
 {
     SourceManager& manager = d_analyser.manager();
     llvm::SmallVector<llvm::StringRef, 8> matches;
 
-    llvm::StringRef comment = d_analyser.get_source(comment_range, true);
-    unsigned comment_offset = 0;
 
-    for (llvm::StringRef comment_suffix = comment; 
-         generic_banner.match(comment_suffix, &matches);
-         comment_suffix = comment.drop_front(comment_offset)) {
+    llvm::StringRef comment = d_analyser.get_source(comment_range, true);
+
+    size_t offset = 0;
+    for (llvm::StringRef suffix = comment;
+         generic_separator.match(suffix, &matches);
+         suffix = comment.drop_front(offset)) {
+        llvm::StringRef separator = matches[0];
+        size_t separator_pos = offset + suffix.find(separator);
+        offset = separator_pos + separator.size();
+        SourceLocation separator_start =
+            comment_range.getBegin().getLocWithOffset(separator_pos);
+        if (manager.getPresumedColumnNumber(separator_start) == 1 &&
+            matches[1].size() != 79 &&
+            matches[2].size() <= 1) {
+            d_analyser.report(separator_start,
+                              check_name, "BAN02",
+                              "Banner ends at column %0 instead of 79")
+                << static_cast<int>(matches[1].size());
+        }
+    }
+
+    offset = 0;
+    for (llvm::StringRef suffix = comment; 
+         generic_banner.match(suffix, &matches);
+         suffix = comment.drop_front(offset)) {
         llvm::StringRef banner = matches[0];
-        unsigned banner_pos =
-            comment_offset + comment_suffix.find(banner);
-        comment_offset = banner_pos + banner.rfind('\n');
+        size_t banner_pos = offset + suffix.find(banner);
+        offset = banner_pos + banner.rfind('\n');
         SourceLocation banner_start =
             comment_range.getBegin().getLocWithOffset(banner_pos);
         if (manager.getPresumedColumnNumber(banner_start) != 1) {
             continue;
         }
-        unsigned end_of_first_line = banner.find('\n');
-        if (end_of_first_line != 79) {
-            d_analyser.report(
-                    banner_start.getLocWithOffset(end_of_first_line - 1),
-                    check_name, "BAN02",
-                    "Banner ends at column %0 instead of 79")
-                << end_of_first_line;
-        }
-
         llvm::StringRef text = matches[4];
-        unsigned text_pos = banner.find(text);
-        unsigned actual_last_space_pos =
+        size_t text_pos = banner.find(text);
+        size_t actual_last_space_pos =
             manager.getPresumedColumnNumber(
                     banner_start.getLocWithOffset(text_pos)) - 1;
-        unsigned expected_last_space_pos =
+        size_t expected_last_space_pos =
             ((79 - 2 - text.size()) / 2 + 2) & ~3;
         if (actual_last_space_pos != expected_last_space_pos) {
             std::string expected_text =
@@ -152,30 +168,21 @@ void files::check_comment(SourceRange comment_range)
         }
 
         llvm::StringRef bottom_rule = matches[7];
-        unsigned end_of_second_line = banner.rfind('\n');
-        if (banner.size() - end_of_second_line != 80) {
-            if (text.size() != bottom_rule.size()) {
-                // It's the second banner rule line.
-                d_analyser.report(
-                        banner_start.getLocWithOffset(banner.size() - 1),
-                        check_name, "BAN02",
-                        "Banner ends at column %0 instead of 79")
-                    << static_cast<int>(banner.size() -
-                            (end_of_second_line + 1));
-            }
-            else if (matches[3] != matches[6]) {
-                // It's a misaligned underline for the banner text.
-                SourceLocation bottom_loc = banner_start.getLocWithOffset(
-                    banner.size() - bottom_rule.size());
-                d_analyser.report(bottom_loc, check_name, "BAN04",
-                        "Improperly centered underlining");
-                d_analyser.report(bottom_loc, check_name, "BAN04",
-                        "Correct version is\n%0",
-                        false, clang::DiagnosticsEngine::Note)
-                    << "//" +
-                       std::string(expected_last_space_pos - 2, ' ') +
+        if (banner.size() - banner.rfind('\n') != 80 &&
+            text.size() == bottom_rule.size() &&
+            matches[3] != matches[6]) {
+            // It's a misaligned underline for the banner text.
+            SourceLocation bottom_loc = banner_start.getLocWithOffset(
+                banner.size() - bottom_rule.size());
+            d_analyser.report(bottom_loc,
+                              check_name, "BAN04",
+                              "Improperly centered underlining");
+            d_analyser.report(bottom_loc,
+                              check_name, "BAN04",
+                              "Correct version is\n%0",
+                              false, clang::DiagnosticsEngine::Note)
+                << "//" + std::string(expected_last_space_pos - 2, ' ') +
                        bottom_rule.str();
-            }
         }
     }
 }
