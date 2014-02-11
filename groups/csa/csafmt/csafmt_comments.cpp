@@ -71,6 +71,9 @@ struct files
     void check_fvs(SourceRange range);
         // Warn about comment containing "fully value semantic".
 
+    void check_pp(SourceRange range);
+        // Warn about comment containing "pure procedure(s)".
+
     void check_bubble(SourceRange range);
         // Warn about comment containing badly formed inheritance diagram.
 
@@ -116,6 +119,7 @@ void files::operator()()
              comments_itr != comments_end;
              ++comments_itr) {
             check_fvs(*comments_itr);
+            check_pp(*comments_itr);
             check_bubble(*comments_itr);
             check_wrapped(*comments_itr);
             check_purpose(*comments_itr);
@@ -144,6 +148,32 @@ void files::check_fvs(SourceRange range)
                           "The term \"%0\" is deprecated; use a description "
                           "appropriate to the component type")
             << text
+            << SourceRange(range.getBegin().getLocWithOffset(matchpos),
+                           range.getBegin().getLocWithOffset(offset - 1));
+    }
+}
+
+llvm::Regex pp(
+    "pure" "[^_[:alnum:]]*" "procedure(s?)",
+    llvm::Regex::IgnoreCase);
+
+void files::check_pp(SourceRange range)
+{
+    llvm::SmallVector<llvm::StringRef, 7> matches;
+    llvm::StringRef comment = d_analyser.get_source(range, true);
+
+    size_t offset = 0;
+    llvm::StringRef s;
+    while (pp.match(s = comment.drop_front(offset), &matches)) {
+        llvm::StringRef text = matches[0];
+        std::pair<size_t, size_t> m = cool::csabase::mid_match(s, text);
+        size_t matchpos = offset + m.first;
+        offset = matchpos + text.size();
+        d_analyser.report(range.getBegin().getLocWithOffset(matchpos),
+                          check_name, "PP01",
+                          "The term \"%0\" is deprecated; use 'function%1'")
+            << text
+            << (matches[1].size() == 1 ? "s" : "")
             << SourceRange(range.getBegin().getLocWithOffset(matchpos),
                            range.getBegin().getLocWithOffset(offset - 1));
     }

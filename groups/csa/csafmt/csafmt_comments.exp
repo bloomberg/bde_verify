@@ -47,4 +47,10 @@ groups/csa/csafmt/csafmt_comments.t.cpp:74:0: warning: PRP01: Invalid format for
 ^~~~~~
 groups/csa/csafmt/csafmt_comments.t.cpp:74:0: note: PRP01: Correct format is
 //@PURPOSE: Too much space, too many dots.
-11 warnings generated.
+groups/csa/csafmt/csafmt_comments.t.cpp:76:0: warning: PP01: The term "Pure procedure" is deprecated; use 'function'
+// Pure procedure? My god! It's full of pure procedures!
+^~~~~~
+groups/csa/csafmt/csafmt_comments.t.cpp:76:0: warning: PP01: The term "pure procedures" is deprecated; use 'functions'
+// Pure procedure? My god! It's full of pure procedures!
+^~~~~~
+13 warnings generated.

@@ -72,3 +72,5 @@
 //@PURPOSE: None. Why even go on?
 //@PURPOSE: Lots! Tell you later.
 // @ Purpose :Too much space, too many dots...
+
+// Pure procedure? My god! It's full of pure procedures!
