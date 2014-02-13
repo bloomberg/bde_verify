@@ -9,6 +9,7 @@
 #define INCLUDED_CSABASE_UTIL 1
 #ident "$Id$"
 
+#include <clang/ASTMatchers/ASTMatchFinder.h>
 #include <clang/Basic/SourceManager.h>
 
 #include <stddef.h>
@@ -42,6 +43,40 @@ bool areConsecutive(clang::SourceManager& manager,
 
 std::string to_lower(std::string s);
     // Return a copy of the specified 's' with all letters in lower case.
+
+template <class Class,
+          void (Class::*Method)(const clang::ast_matchers::BoundNodes &)>
+class OnMatch : public clang::ast_matchers::MatchFinder::MatchCallback
+    // This class template acts as an intermediary to forward AST match
+    // callbacks to the specified 'Method' of the specified 'Class'.
+{
+  public:
+    OnMatch(Class *object);
+        // Create an 'OnMatch' object, storing the specified 'object' pointer
+        // for use in the callback.
+
+    void run(const clang::ast_matchers::MatchFinder::MatchResult &result);
+        // Invoke the 'Method' of the 'object_', passing the 'BoundNodes' from
+        // the specified 'result' as an argument.
+
+  private:
+    Class *object_;
+};
+
+template <class Class,
+          void (Class::*Method)(const clang::ast_matchers::BoundNodes &)>
+OnMatch<Class, Method>::OnMatch(Class *object)
+    : object_(object)
+{
+}
+
+template <class Class,
+          void (Class::*Method)(const clang::ast_matchers::BoundNodes &)>
+void OnMatch<Class, Method>::run(
+    const clang::ast_matchers::MatchFinder::MatchResult &result)
+{
+    (object_->*Method)(result.Nodes);
+}
 
 }
 }

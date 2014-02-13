@@ -23,20 +23,9 @@ static std::string const check_name("test-driver");
 
 // ----------------------------------------------------------------------------
 
-using clang::CaseStmt;
-using clang::FunctionDecl;
-using clang::SourceLocation;
-using clang::SourceManager;
-using clang::SourceRange;
-using clang::Stmt;
-using clang::SwitchCase;
-using clang::SwitchStmt;
-using clang::Token;
-using cool::csabase::Analyser;
-using cool::csabase::Location;
-using cool::csabase::PPObserver;
-using cool::csabase::Range;
-using cool::csabase::Visitor;
+using namespace clang;
+using namespace clang::ast_matchers;
+using namespace cool::csabase;
 
 namespace
 {
@@ -62,7 +51,7 @@ struct data
     typedef std::set<size_t> CCLines;  // Conditional compilation lines.
     CCLines d_cclines;
 
-    const clang::Stmt *d_main;  // The compond statement of 'main()'.
+    const Stmt *d_main;  // The compond statement of 'main()'.
 };
 
 struct report
@@ -98,6 +87,9 @@ struct report
 
     void operator()(SourceLocation loc, SourceLocation);
         // Callback for '#else' and '#endif' at the specified 'loc'.
+
+    void match_case_stmt(const BoundNodes& nodes);
+    bool found_banner;
 };
 
 report::report(Analyser& analyser)
@@ -145,6 +137,20 @@ llvm::Regex test_item(
     "^[^.;]*[[:alpha:]][^.;]*;?[^.;]*$",
     llvm::Regex::Newline);  // Loosely match a test item; at least one letter,
                             // no more than one ';', and no '.'.
+
+#define m_literal(binding) \
+    ignoringImpCasts(stringLiteral().bind((binding)))
+
+#define m_func(name) \
+        ignoringImpCasts(declRefExpr(to(functionDecl(hasName((name))))))
+
+#define m_var(name) \
+        ignoringImpCasts(declRefExpr(to(varDecl(hasName((name))))))
+
+#define m_stream(stream, arg)                         \
+    operatorCallExpr(hasOverloadedOperatorName("<<"), \
+                     hasArgument(0, (stream)),        \
+                     hasArgument(1, (arg)))
 
 void report::operator()()
 {
@@ -282,6 +288,62 @@ void report::operator()()
 
         llvm::APSInt case_value;
         cs->getLHS()->EvaluateAsInt(case_value, *d_analyser.context());
+
+        MatchFinder mf;
+        OnMatch<report, &report::match_case_stmt> callback(this);
+        mf.addDynamicMatcher(
+            caseStmt(hasDescendant(compoundStmt(hasDescendant(ifStmt(
+                hasCondition(m_var("verbose")),
+                anyOf(
+                    hasDescendant(
+                        callExpr(
+                            argumentCountIs(1),
+                            callee(functionDecl(hasName("printf"))),
+                            hasArgument(0, ignoringImpCasts(
+                                stringLiteral().bind("BANNER")))
+                        )
+                    ),
+                    hasDescendant(
+                        operatorCallExpr(
+                            hasOverloadedOperatorName("<<"),
+                            hasArgument(0, ignoringImpCasts(
+                        operatorCallExpr(
+                            hasOverloadedOperatorName("<<"),
+                            hasArgument(0, ignoringImpCasts(
+                        operatorCallExpr(
+                            hasOverloadedOperatorName("<<"),
+                            hasArgument(0, ignoringImpCasts(
+                        operatorCallExpr(
+                            hasOverloadedOperatorName("<<"),
+                            hasArgument(0, ignoringImpCasts(
+                        operatorCallExpr(
+                            hasOverloadedOperatorName("<<"),
+                            hasArgument(0, ignoringImpCasts(declRefExpr(to(
+                                varDecl(hasName("cout")))))),
+                            hasArgument(1, ignoringImpCasts(declRefExpr(to(
+                                functionDecl(hasName("endl"))))))))),
+                            hasArgument(1, ignoringImpCasts(
+                                stringLiteral().bind("TEST")))))),
+                            hasArgument(1, ignoringImpCasts(declRefExpr(to(
+                                functionDecl(hasName("endl"))))))))),
+                            hasArgument(1, ignoringImpCasts(
+                                stringLiteral().bind("====")))))),
+                            hasArgument(1, ignoringImpCasts(declRefExpr(to(
+                                functionDecl(hasName("endl")))))))
+                    )
+                )
+            ))))),
+            &callback);
+
+        found_banner = false;
+        mf.match(*cs, *d_analyser.context());
+        if (!found_banner && case_value != 0) {
+            d_analyser.report(sc->getLocStart(),
+                              check_name, "TP17",
+                              "Test case does not contain "
+                              "'if (verbose) print test banner'");
+        }
+
         if (!cr.isValid()) {
             if (case_value != 0) {
                 d_analyser.report(sc->getLocStart(),
@@ -306,7 +368,7 @@ void report::operator()()
             testing_pos = comment.find(t);
             line_pos = testing_pos + t.size();
             std::pair<size_t, size_t> m =
-                cool::csabase::mid_mismatch(t, "// Testing:\n");
+                mid_mismatch(t, "// Testing:\n");
             if (m.first != t.size()) {
                 d_analyser.report(
                     cr.getBegin().getLocWithOffset(testing_pos + m.first),
@@ -350,7 +412,7 @@ void report::operator()()
                         plan_range.getBegin().getLocWithOffset(off),
                         check_name, "TP08",
                         "Test plan item is", false,
-                        clang::DiagnosticsEngine::Note);
+                        DiagnosticsEngine::Note);
             }
             else if (test_item.match(line)) {
                 d_analyser.report(cr.getBegin().getLocWithOffset(line_pos),
@@ -385,7 +447,7 @@ void report::operator()(SourceRange range)
     if (location.file() == d_analyser.toplevel()) {
         data::Comments& c = d_data.d_comments;
         if (c.size() == 0 ||
-            !cool::csabase::areConsecutive(d_manager, c.back(), range)) {
+            !areConsecutive(d_manager, c.back(), range)) {
             d_data.d_comments_of_lines[location.line()] = c.size();
             c.push_back(range);
         }
@@ -425,6 +487,51 @@ void report::operator()(SourceLocation loc, SourceLocation)
     mark_ccline(loc);
 }
 
+void report::match_case_stmt(const BoundNodes& nodes)
+{
+    const StringLiteral *l1 = nodes.getNodeAs<StringLiteral>("BANNER");
+    const StringLiteral *l2 = nodes.getNodeAs<StringLiteral>("TEST");
+    const StringLiteral *l3 = nodes.getNodeAs<StringLiteral>("====");
+
+    found_banner = true;
+
+    if (l1) {
+        llvm::StringRef s = l1->getString();
+        size_t n = s.size();
+        // e.g., n == 11
+        // \n TEST \n ==== \n
+        //  0 1234  5 6789 10
+        if (s.count('\n') != 3 ||
+            s[0] != '\n' ||
+            s[n - 1] != '\n' ||
+            s[n / 2] != '\n' ||
+            s.find_first_not_of('=', n / 2 + 1) != n - 1 ||
+            s.find_first_of("abcdefghijklmnopqrstuvwxyz") != s.npos) {
+                d_analyser.report(l1, check_name, "TP18",
+                                  "Incorrect test banner format");
+                d_analyser.report(l1, check_name, "TP18",
+                                  "Correct format is\n%0",
+                                  false, DiagnosticsEngine::Note)
+                    << "\"\\nALL CAPS DESCRIPTION\\n====================\\n\"";
+        }
+    } else if (l2 && l3) {
+        llvm::StringRef text = l2->getString();
+        llvm::StringRef ul = l3->getString();
+        if (text.size() != ul.size() ||
+            ul.find_first_not_of('=') != ul.npos ||
+            text.find_first_of("abcdefghijklmnopqrstuvwxyz") != text.npos) {
+                d_analyser.report(l1, check_name, "TP18",
+                                  "Incorrect test banner format");
+                d_analyser.report(l1, check_name, "TP18",
+                                  "Correct format is\n%0",
+                                  false, DiagnosticsEngine::Note)
+                    << "cout << endl\n"
+                       "     << \"ALL CAPS DESCRIPTION\" << endl\n"
+                       "     << \"====================\" << endl;\n";
+        }
+    }
+}
+
 void subscribe(Analyser& analyser, Visitor& visitor, PPObserver& observer)
     // Hook up the callback functions.
 {
@@ -443,4 +550,4 @@ void subscribe(Analyser& analyser, Visitor& visitor, PPObserver& observer)
 
 // ----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck c1(check_name, &subscribe);
+static RegisterCheck c1(check_name, &subscribe);
