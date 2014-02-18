@@ -7,9 +7,10 @@ groups/csa/csabbg/csabbg_testdriver.t.cpp:29:0: warning: TP03: Missing test numb
 groups/csa/csabbg/csabbg_testdriver.t.cpp:30:0: warning: TP03: Missing test number
 // [  ] USAGE EXAMPLE
 ^~~~
-groups/csa/csabbg/csabbg_testdriver.t.cpp:167:0: warning: TP05: Test case has no comment
+groups/csa/csabbg/csabbg_testdriver.t.cpp:167:0: warning: TP17: Test case does not contain 'if (verbose) print test banner'
       case -1: {
 ^
+groups/csa/csabbg/csabbg_testdriver.t.cpp:167:0: warning: TP05: Test case has no comment
 groups/csa/csabbg/csabbg_testdriver.t.cpp:159:0: warning: TP08: Test plan does not have case number 1 for this item
         //   BREATHING TEST
 ^
@@ -34,4 +35,4 @@ groups/csa/csabbg/csabbg_testdriver.t.cpp:120:0: warning: TP08: Test plan does n
 groups/csa/csabbg/csabbg_testdriver.t.cpp:30:0: note: TP08: Test plan item is
 // [  ] USAGE EXAMPLE
 ^
-9 warnings generated.
+10 warnings generated.

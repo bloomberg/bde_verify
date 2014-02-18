@@ -330,6 +330,29 @@ void report::operator()()
                                 stringLiteral().bind("====")))))),
                             hasArgument(1, ignoringImpCasts(declRefExpr(to(
                                 functionDecl(hasName("endl")))))))
+                    ),
+                    hasDescendant(
+                        operatorCallExpr(
+                            hasOverloadedOperatorName("<<"),
+                            hasArgument(0, ignoringImpCasts(
+                        operatorCallExpr(
+                            hasOverloadedOperatorName("<<"),
+                            hasArgument(0, ignoringImpCasts(
+                        operatorCallExpr(
+                            hasOverloadedOperatorName("<<"),
+                            hasArgument(0, ignoringImpCasts(
+                        operatorCallExpr(
+                            hasOverloadedOperatorName("<<"),
+                            hasArgument(0, ignoringImpCasts(declRefExpr(to(
+                                varDecl(hasName("cout")))))),
+                            hasArgument(1, ignoringImpCasts(
+                                stringLiteral().bind("TEST")))))),
+                            hasArgument(1, ignoringImpCasts(declRefExpr(to(
+                                functionDecl(hasName("endl"))))))))),
+                            hasArgument(1, ignoringImpCasts(
+                                stringLiteral().bind("====")))))),
+                            hasArgument(1, ignoringImpCasts(declRefExpr(to(
+                                functionDecl(hasName("endl")))))))
                     )
                 )
             ))))),
@@ -501,12 +524,21 @@ void report::match_case_stmt(const BoundNodes& nodes)
         // e.g., n == 11
         // \n TEST \n ==== \n
         //  0 1234  5 6789 10
-        if (s.count('\n') != 3 ||
-            s[0] != '\n' ||
-            s[n - 1] != '\n' ||
-            s[n / 2] != '\n' ||
-            s.find_first_not_of('=', n / 2 + 1) != n - 1 ||
-            s.find_first_of("abcdefghijklmnopqrstuvwxyz") != s.npos) {
+        // or n == 10
+        // TEST \n ==== \n
+        // 0123  4 5678  9
+        if ((s.count('\n') != 3 ||
+             s[0] != '\n' ||
+             s[n - 1] != '\n' ||
+             s[n / 2] != '\n' ||
+             s.find_first_not_of('=', n / 2 + 1) != n - 1 ||
+             s.find_first_of("abcdefghijklmnopqrstuvwxyz") != s.npos) &&
+            (s.count('\n') != 2 ||
+             s[n - 1] != '\n' ||
+             s[n / 2 - 1] != '\n' ||
+             s.find_first_not_of('=', n / 2) != n - 1 ||
+             s.find_first_of("abcdefghijklmnopqrstuvwxyz") != s.npos)
+           ) {
                 d_analyser.report(l1, check_name, "TP18",
                                   "Incorrect test banner format");
                 d_analyser.report(l1, check_name, "TP18",

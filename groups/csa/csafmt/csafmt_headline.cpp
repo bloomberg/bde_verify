@@ -85,10 +85,7 @@ open_file(cool::csabase::Analyser& analyser,
             }
             analyser.report(where.getLocWithOffset(m.first),
                             check_name, "HL01",
-                            "File headline incorrect", true)
-                << clang::SourceRange(
-                        where.getLocWithOffset(m.first),
-                        where.getLocWithOffset(buf.size() - m.second));
+                            "File headline incorrect", true);
             analyser.report(where.getLocWithOffset(m.first),
                             check_name, "HL01",
                             "Correct format is\n%0",
