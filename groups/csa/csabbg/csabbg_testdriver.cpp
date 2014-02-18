@@ -51,7 +51,7 @@ struct data
     typedef std::set<size_t> CCLines;  // Conditional compilation lines.
     CCLines d_cclines;
 
-    const Stmt *d_main;  // The compond statement of 'main()'.
+    const Stmt *d_main;  // The compound statement of 'main()'.
 };
 
 struct report

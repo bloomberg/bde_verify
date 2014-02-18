@@ -97,7 +97,8 @@ static llvm::Regex generic_banner(      // things that look like banners
     llvm::Regex::Newline);
 
 static llvm::Regex generic_separator(   // things that look like separators
-        "(//([[:space:]]*)[-=_](([[:space:]][-=_])*|[-=_]*))[[:space:]]*$",
+        "(//.*[[:alnum:]].*)?\n?"
+        "((//([[:space:]]*)[-=_](([[:space:]][-=_])*|[-=_]*))[[:space:]]*)$",
     llvm::Regex::Newline);
 
 #undef SP
@@ -115,18 +116,19 @@ void files::check_comment(SourceRange comment_range)
     for (llvm::StringRef suffix = comment;
          generic_separator.match(suffix, &matches);
          suffix = comment.drop_front(offset)) {
-        llvm::StringRef separator = matches[0];
+        llvm::StringRef separator = matches[2];
         size_t separator_pos = offset + suffix.find(separator);
         offset = separator_pos + separator.size();
         SourceLocation separator_start =
             comment_range.getBegin().getLocWithOffset(separator_pos);
         if (manager.getPresumedColumnNumber(separator_start) == 1 &&
-            matches[1].size() != 79 &&
-            matches[2].size() <= 1) {
+            matches[3].size() != 79 &&
+            matches[4].size() <= 1 &&
+            separator.size() != matches[1].size()) {
             d_analyser.report(separator_start,
                               check_name, "BAN02",
                               "Banner ends at column %0 instead of 79")
-                << static_cast<int>(matches[1].size());
+                << static_cast<int>(matches[3].size());
         }
     }
 
