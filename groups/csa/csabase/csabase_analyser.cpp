@@ -8,6 +8,7 @@
 #include <csabase_analyser.h>
 #include <csabase_config.h>
 #include <csabase_checkregistry.h>
+#include <csabase_debug.h>
 #include <csabase_filenames.h>
 #include <csabase_location.h>
 #include <csabase_ppobserver.h>
@@ -202,33 +203,6 @@ cool::csabase::Analyser::is_component_header(std::string const& name) const
         }
     }
     return is_component_header_[name] = false;
-
-    llvm::StringRef srname(name);
-    llvm::StringRef srsuffix = srname.substr(srname.rfind('.'));
-    llvm::StringRef srbase = srname.drop_back(srsuffix.size());
-    llvm::StringRef srdir = srbase;
-    while (srdir.size() > 0 && !llvm::sys::path::is_separator(srdir.back())) {
-        srdir = srdir.drop_back(1);
-    }
-    srbase = srbase.drop_front(srdir.size());
-
-    for (int i = 0; i < NHS; ++i) {
-        if (srsuffix.equals(header_suffixes[i])) {
-            llvm::StringRef srpre(prefix_);
-            llvm::StringRef srdir(prefix_);
-            while (srdir.size() > 0 && 
-                   !llvm::sys::path::is_separator(srdir.back())) {
-                srdir = srdir.drop_back(1);
-            }
-            srpre = srpre.drop_front(srdir.size());
-            if (srbase.equals(srpre) ||
-                (srpre.endswith(".t") && srbase.equals(srpre.drop_back(2)))) {
-                return is_component_header_[name] = true;             // RETURN
-            }
-            break;
-        }
-    }
-    return is_component_header_[name] = false;
 }
 
 bool
@@ -256,6 +230,22 @@ bool
 cool::csabase::Analyser::is_global_package() const
 {
     return is_global_package(package());
+}
+
+bool
+cool::csabase::Analyser::is_standard_namespace(std::string const& ns) const
+{
+    IsGlobalPackage::iterator in = is_standard_namespace_.find(ns);
+    if (in == is_standard_namespace_.end()) {
+        llvm::Regex re("(" "^[[:space:]]*" "|" "[^[:alnum:]]" ")" +
+                       ns.substr(0, ns.find(':')) +
+                       "(" "[^[:alnum:]]" "|" "[[:space:]]*$" ")");
+        in = is_standard_namespace_
+                 .insert(std::make_pair(
+                      ns, re.match(config()->value("standard_namespaces"))))
+                 .first;
+    }
+    return in->second;
 }
 
 bool

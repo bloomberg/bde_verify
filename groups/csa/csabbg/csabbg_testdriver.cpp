@@ -10,6 +10,7 @@
 #include <csabase_visitor.h>
 #include <llvm/Support/Regex.h>
 #include <map>
+#include <set>
 #include <string>
 #include <sstream>
 #include <vector>
@@ -31,7 +32,7 @@ namespace
 {
 
 struct data
-    // Data attached to analyzer for this check.
+    // Data attached to analyser for this check.
 {
     typedef std::vector<SourceRange> Comments;
     Comments d_comments;  // Comment blocks per file.
@@ -88,7 +89,23 @@ struct report
     void operator()(SourceLocation loc, SourceLocation);
         // Callback for '#else' and '#endif' at the specified 'loc'.
 
-    void match_case_stmt(const BoundNodes& nodes);
+    void operator()(SourceLocation loc,
+                    std::string const&,
+                    std::string const&);
+        // Callback for opening the file of the specified 'loc'.
+
+    void search(SourceLocation *best_loc,
+                llvm::StringRef *best_needle,
+                size_t *best_distance,
+                llvm::StringRef key,
+                const std::vector<llvm::StringRef>& needles,
+                FileID fid);
+        // Search the contents of the file specified by 'fid' for the closest
+        // match to one of the specified 'needles' near the specified 'key' and
+        // set the specified 'best_loc', 'best_needle', and 'best_distance' to
+        // the matched position, string, and closeness respectively.
+
+    void match_case_stmt(const BoundNodes &nodes);
     bool found_banner;
 };
 
@@ -138,19 +155,103 @@ llvm::Regex test_item(
     llvm::Regex::Newline);  // Loosely match a test item; at least one letter,
                             // no more than one ';', and no '.'.
 
-#define m_literal(binding) \
-    ignoringImpCasts(stringLiteral().bind((binding)))
-
-#define m_func(name) \
-        ignoringImpCasts(declRefExpr(to(functionDecl(hasName((name))))))
-
-#define m_var(name) \
-        ignoringImpCasts(declRefExpr(to(varDecl(hasName((name))))))
-
-#define m_stream(stream, arg)                         \
-    operatorCallExpr(hasOverloadedOperatorName("<<"), \
-                     hasArgument(0, (stream)),        \
-                     hasArgument(1, (arg)))
+const internal::DynTypedMatcher &
+print_banner_matcher()
+    // Return an AST matcher which looks for the banner printer in a test case
+    // statement.  It is satisfied with a 'printf' or 'cout' version, with or
+    // without a leading newline/'endl'.  The 'printf' string literal combining
+    // text and underlining is bound to "BANNER", the 'cout' banner text is
+    // bound to "TEST" and the 'cout' underlining is bound to "====".  Valid
+    // cases look like one of
+    //: o 'cout' with initial 'endl'
+    //..
+    //    if (verbose) cout << endl
+    //                      << "TESTING FOO" << endl
+    //                      << "===========" << endl;
+    //..
+    //: o 'cout' without initial 'endl'
+    //..
+    //    if (verbose) cout << "TESTING FOO" << endl
+    //                      << "===========" << endl;
+    //..
+    //: o 'printf' with initial '\n'
+    //..
+    //    if (verbose) printf("\nTESTING FOO\n===========\n");
+    //..
+    //: o 'printf' without initial '\n'
+    //..
+    //    if (verbose) printf("TESTING FOO\n===========\n");
+    //..
+{
+    static const internal::DynTypedMatcher matcher =
+        caseStmt(hasDescendant(compoundStmt(hasDescendant(ifStmt(
+            hasCondition(ignoringImpCasts(declRefExpr(to(
+                varDecl(hasName("verbose")))))
+            ),
+            anyOf(
+                hasDescendant(
+                    callExpr(
+                        argumentCountIs(1),
+                        callee(functionDecl(hasName("printf"))),
+                        hasArgument(0, ignoringImpCasts(
+                            stringLiteral().bind("BANNER")))
+                    )
+                ),
+                hasDescendant(
+                    operatorCallExpr(
+                        hasOverloadedOperatorName("<<"),
+                        hasArgument(0, ignoringImpCasts(
+                    operatorCallExpr(
+                        hasOverloadedOperatorName("<<"),
+                        hasArgument(0, ignoringImpCasts(
+                    operatorCallExpr(
+                        hasOverloadedOperatorName("<<"),
+                        hasArgument(0, ignoringImpCasts(
+                    operatorCallExpr(
+                        hasOverloadedOperatorName("<<"),
+                        hasArgument(0, ignoringImpCasts(
+                    operatorCallExpr(
+                        hasOverloadedOperatorName("<<"),
+                        hasArgument(0, ignoringImpCasts(declRefExpr(to(
+                            varDecl(hasName("cout")))))),
+                        hasArgument(1, ignoringImpCasts(declRefExpr(to(
+                            functionDecl(hasName("endl"))))))))),
+                        hasArgument(1, ignoringImpCasts(
+                            stringLiteral().bind("TEST")))))),
+                        hasArgument(1, ignoringImpCasts(declRefExpr(to(
+                            functionDecl(hasName("endl"))))))))),
+                        hasArgument(1, ignoringImpCasts(
+                            stringLiteral().bind("====")))))),
+                        hasArgument(1, ignoringImpCasts(declRefExpr(to(
+                            functionDecl(hasName("endl")))))))
+                ),
+                hasDescendant(
+                    operatorCallExpr(
+                        hasOverloadedOperatorName("<<"),
+                        hasArgument(0, ignoringImpCasts(
+                    operatorCallExpr(
+                        hasOverloadedOperatorName("<<"),
+                        hasArgument(0, ignoringImpCasts(
+                    operatorCallExpr(
+                        hasOverloadedOperatorName("<<"),
+                        hasArgument(0, ignoringImpCasts(
+                    operatorCallExpr(
+                        hasOverloadedOperatorName("<<"),
+                        hasArgument(0, ignoringImpCasts(declRefExpr(to(
+                            varDecl(hasName("cout")))))),
+                        hasArgument(1, ignoringImpCasts(
+                            stringLiteral().bind("TEST")))))),
+                        hasArgument(1, ignoringImpCasts(declRefExpr(to(
+                            functionDecl(hasName("endl"))))))))),
+                        hasArgument(1, ignoringImpCasts(
+                            stringLiteral().bind("====")))))),
+                        hasArgument(1, ignoringImpCasts(declRefExpr(to(
+                            functionDecl(hasName("endl")))))))
+                )
+            )
+        )))));
+    return matcher;
+}
 
 void report::operator()()
 {
@@ -291,72 +392,7 @@ void report::operator()()
 
         MatchFinder mf;
         OnMatch<report, &report::match_case_stmt> callback(this);
-        mf.addDynamicMatcher(
-            caseStmt(hasDescendant(compoundStmt(hasDescendant(ifStmt(
-                hasCondition(m_var("verbose")),
-                anyOf(
-                    hasDescendant(
-                        callExpr(
-                            argumentCountIs(1),
-                            callee(functionDecl(hasName("printf"))),
-                            hasArgument(0, ignoringImpCasts(
-                                stringLiteral().bind("BANNER")))
-                        )
-                    ),
-                    hasDescendant(
-                        operatorCallExpr(
-                            hasOverloadedOperatorName("<<"),
-                            hasArgument(0, ignoringImpCasts(
-                        operatorCallExpr(
-                            hasOverloadedOperatorName("<<"),
-                            hasArgument(0, ignoringImpCasts(
-                        operatorCallExpr(
-                            hasOverloadedOperatorName("<<"),
-                            hasArgument(0, ignoringImpCasts(
-                        operatorCallExpr(
-                            hasOverloadedOperatorName("<<"),
-                            hasArgument(0, ignoringImpCasts(
-                        operatorCallExpr(
-                            hasOverloadedOperatorName("<<"),
-                            hasArgument(0, ignoringImpCasts(declRefExpr(to(
-                                varDecl(hasName("cout")))))),
-                            hasArgument(1, ignoringImpCasts(declRefExpr(to(
-                                functionDecl(hasName("endl"))))))))),
-                            hasArgument(1, ignoringImpCasts(
-                                stringLiteral().bind("TEST")))))),
-                            hasArgument(1, ignoringImpCasts(declRefExpr(to(
-                                functionDecl(hasName("endl"))))))))),
-                            hasArgument(1, ignoringImpCasts(
-                                stringLiteral().bind("====")))))),
-                            hasArgument(1, ignoringImpCasts(declRefExpr(to(
-                                functionDecl(hasName("endl")))))))
-                    ),
-                    hasDescendant(
-                        operatorCallExpr(
-                            hasOverloadedOperatorName("<<"),
-                            hasArgument(0, ignoringImpCasts(
-                        operatorCallExpr(
-                            hasOverloadedOperatorName("<<"),
-                            hasArgument(0, ignoringImpCasts(
-                        operatorCallExpr(
-                            hasOverloadedOperatorName("<<"),
-                            hasArgument(0, ignoringImpCasts(
-                        operatorCallExpr(
-                            hasOverloadedOperatorName("<<"),
-                            hasArgument(0, ignoringImpCasts(declRefExpr(to(
-                                varDecl(hasName("cout")))))),
-                            hasArgument(1, ignoringImpCasts(
-                                stringLiteral().bind("TEST")))))),
-                            hasArgument(1, ignoringImpCasts(declRefExpr(to(
-                                functionDecl(hasName("endl"))))))))),
-                            hasArgument(1, ignoringImpCasts(
-                                stringLiteral().bind("====")))))),
-                            hasArgument(1, ignoringImpCasts(declRefExpr(to(
-                                functionDecl(hasName("endl")))))))
-                    )
-                )
-            ))))),
-            &callback);
+        mf.addDynamicMatcher(print_banner_matcher(), &callback);
 
         found_banner = false;
         mf.match(*cs, *d_analyser.context());
@@ -564,6 +600,241 @@ void report::match_case_stmt(const BoundNodes& nodes)
     }
 }
 
+#undef  NL
+#define NL "\n"
+
+const char standard_bde_assert_test_macros[] =
+""                                                                           NL
+"// ==================="
+"========================================================="                  NL
+"//                      STANDARD BDE ASSERT TEST MACROS"                    NL
+"// -------------------"
+"---------------------------------------------------------"                  NL
+""                                                                           NL
+"static int testStatus = 0;"                                                 NL
+""                                                                           NL
+"static void aSsErT(int c, const char *s, int i)"                            NL
+"{"                                                                          NL
+"    if (c) {"                                                               NL
+"        cout << \"Error \" << __FILE__ << \"(\" << i << \"): \" << s"       NL
+"             << \"    (failed)\" << endl;"                                  NL
+"        if (testStatus >= 0 && testStatus <= 100) ++testStatus;"            NL
+"    }"                                                                      NL
+"}"                                                                          NL
+"#define ASSERT(X) { aSsErT(!(X), #X, __LINE__); }"                          NL
+;
+
+const char standard_bde_loop_assert_test_macros_old[] =
+"//=================="
+"==========================================================="                NL
+"//                  STANDARD BDE LOOP-ASSERT TEST MACROS"                   NL
+"//------------------"
+"-----------------------------------------------------------"                NL
+"#define LOOP_ASSERT(I,X) { \\"                                              NL
+"   if (!(X)) { cout << #I << \": \" << I << \"\\n\"; "
+"aSsErT(1, #X, __LINE__); }}"                                                NL
+""                                                                           NL
+"#define LOOP2_ASSERT(I,J,X) { \\"                                           NL
+"   if (!(X)) { cout << #I << \": \" << I << \"\\t\" "
+"<< #J << \": \" \\"                                                         NL
+"              << J << \"\\n\"; "
+"aSsErT(1, #X, __LINE__); } }"                                               NL
+""                                                                           NL
+"#define LOOP3_ASSERT(I,J,K,X) { \\"                                         NL
+"   if (!(X)) { cout << #I << \": \" << I << \"\\t\" "
+"<< #J << \": \" << J << \"\\t\" \\"                                         NL
+"              << #K << \": \" << K << \"\\n\"; "
+"aSsErT(1, #X, __LINE__); } }"                                               NL
+""                                                                           NL
+"#define LOOP4_ASSERT(I,J,K,L,X) { \\"                                       NL
+"   if (!(X)) { cout << #I << \": \" << I << \"\\t\" "
+"<< #J << \": \" << J << \"\\t\" << \\"                                      NL
+"       #K << \": \" << K << \"\\t\" << #L << \": \" << L << \"\\n\"; \\"    NL
+"       aSsErT(1, #X, __LINE__); } }"                                        NL
+""                                                                           NL
+"#define LOOP5_ASSERT(I,J,K,L,M,X) { \\"                                     NL
+"   if (!(X)) { cout << #I << \": \" << I << \"\\t\" "
+"<< #J << \": \" << J << \"\\t\" << \\"                                      NL
+"       #K << \": \" << K << \"\\t\" << #L << \": \" << L << \"\\t\" << \\"  NL
+"       #M << \": \" << M << \"\\n\"; \\"                                    NL
+"       aSsErT(1, #X, __LINE__); } }"                                        NL
+""                                                                           NL
+"#define LOOP6_ASSERT(I,J,K,L,M,N,X) { \\"                                   NL
+"   if (!(X)) { cout << #I << \": \" << I << \"\\t\" "
+"<< #J << \": \" << J << \"\\t\" << \\"                                      NL
+"       #K << \": \" << K << \"\\t\" << #L << \": \" << L << \"\\t\" << \\"  NL
+"       #M << \": \" << M << \"\\t\" << #N << \": \" << N << \"\\n\"; \\"    NL
+"       aSsErT(1, #X, __LINE__); } }"                                        NL
+""                                                                           NL
+;
+
+const char standard_bde_loop_assert_test_macros_new[] =
+""                                                                           NL
+"// ================="
+"==========================================================="                NL
+"//                    STANDARD BDE LOOP-ASSERT TEST MACROS"                 NL
+"// -----------------"
+"-----------------------------------------------------------"                NL
+""                                                                           NL
+"#define C_(X)   << #X << \": \" << X << '\\t'"                              NL
+"#define A_(X,S) { if (!(X)) { cout S << endl; aSsErT(1, #X, __LINE__); } }" NL
+"#define LOOP_ASSERT(I,X)            A_(X,C_(I))"                            NL
+"#define LOOP2_ASSERT(I,J,X)         A_(X,C_(I)C_(J))"                       NL
+"#define LOOP3_ASSERT(I,J,K,X)       A_(X,C_(I)C_(J)C_(K))"                  NL
+"#define LOOP4_ASSERT(I,J,K,L,X)     A_(X,C_(I)C_(J)C_(K)C_(L))"             NL
+"#define LOOP5_ASSERT(I,J,K,L,M,X)   A_(X,C_(I)C_(J)C_(K)C_(L)C_(M))"        NL
+"#define LOOP6_ASSERT(I,J,K,L,M,N,X) A_(X,C_(I)C_(J)C_(K)C_(L)C_(M)C_(N))"   NL
+;
+
+const char semi_standard_test_output_macros[] =
+""                                                                           NL
+"// ================="
+"==========================================================="                NL
+"//                  SEMI-STANDARD TEST OUTPUT MACROS"                       NL
+"// -----------------"
+"-----------------------------------------------------------"                NL
+""                                                                           NL
+"#define P(X) cout << #X \" = \" << (X) << endl; "
+"// Print identifier and value."                                             NL
+"#define Q(X) cout << \"<| \" #X \" |>\" << endl;  "
+"// Quote identifier literally."                                             NL
+"#define P_(X) cout << #X \" = \" << (X) << \", \" << flush; "
+"// 'P(X)' without '\\n'"                                                    NL
+"#define T_ cout << \"\\t\" << flush;             // Print tab w/o newline." NL
+"#define L_ __LINE__                           // current Line number"       NL
+;
+
+void report::search(SourceLocation *best_loc,
+                    llvm::StringRef *best_needle,
+                    size_t *best_distance,
+                    llvm::StringRef key,
+                    const std::vector<llvm::StringRef> &needles,
+                    FileID fid)
+{
+    const SourceManager &m = d_analyser.manager();
+    llvm::StringRef haystack = m.getBufferData(fid);
+    SourceLocation top = m.getLocForStartOfFile(fid);
+    *best_loc = top;
+    *best_distance = haystack.size();
+    if (needles.size()) {
+        *best_needle = needles[0];
+    }
+    size_t num_lines = haystack.count('\n');
+
+    std::vector<size_t> needle_lines(needles.size());
+    std::vector<size_t> needle_blank_lines(needles.size());
+    size_t max_needle_lines = 0;
+    for (size_t n = 0; n < needles.size(); ++n) {
+        llvm::StringRef needle = needles[n];
+        needle_lines[n] = needle.count('\n');
+        needle_blank_lines[n] = needle.count("\n\n");
+        if (max_needle_lines < needle_lines[n]) {
+            max_needle_lines = needle_lines[n];
+        }
+    }
+
+    std::set<size_t> lines;
+    lines.insert(1);
+
+    for (size_t key_pos = haystack.find(key); key_pos != haystack.npos;) {
+        size_t key_line = Location(m, top.getLocWithOffset(key_pos)).line();
+        for (size_t i = 0; i <= max_needle_lines; ++i) {
+            if (key_line - i <= num_lines) { lines.insert(key_line - i); }
+            if (key_line + i <= num_lines) { lines.insert(key_line + i); }
+        }
+        size_t pos = haystack.drop_front(key_pos + key.size()).find(key);
+        if (pos == haystack.npos) {
+            break;
+        }
+        key_pos += key.size() + pos;
+    }
+
+    std::set<size_t>::const_iterator bl = lines.begin();
+    std::set<size_t>::const_iterator el = lines.end();
+
+    for (std::set<size_t>::const_iterator il = bl; il != el; ++il) {
+        size_t line = *il;
+        SourceLocation begin = m.translateLineCol(fid, line, 1);
+        for (size_t n = 0; n < needles.size(); ++n) {
+            llvm::StringRef needle = needles[n];
+            size_t nl = needle_lines[n];
+            size_t nbl = needle_blank_lines[n];
+            for (size_t nn = nl; nn >= nn - nbl; --nn) {
+                SourceLocation end = m.translateLineCol(fid, line + nn, 1);
+                SourceRange r(begin, end);
+                llvm::StringRef s = d_analyser.get_source(r, true);
+                size_t distance = s.edit_distance(needle);
+                if (distance < *best_distance) {
+                    *best_distance = distance;
+                    std::pair<size_t, size_t> mm = mid_mismatch(s, needle);
+                    *best_loc = r.getBegin().getLocWithOffset(mm.first);
+                    *best_needle = needle;
+                    if (distance == 0) {
+                        return;                                       // RETURN
+                    }
+                }
+            }
+        }
+    }
+}
+
+void report::operator()(SourceLocation loc,
+                        std::string const&,
+                        std::string const&)
+{
+    const SourceManager &m = d_analyser.manager();
+    FileID fid = m.getFileID(loc);
+    if (!d_analyser.is_test_driver() ||
+        Location(m, loc).file() != d_analyser.toplevel()) {
+        return;                                                       // RETURN
+    }
+
+    size_t distance;
+    llvm::StringRef needle;
+    std::vector<llvm::StringRef> needles;
+
+    needles.clear();
+    needles.push_back(standard_bde_assert_test_macros);
+    search(&loc, &needle, &distance, "testStatus", needles, fid);
+
+    if (distance != 0) {
+        d_analyser.report(loc,
+                          check_name, "TP19",
+                          "Missing or malformed STANDARD BDE ASSERT TEST "
+                          "MACROS");
+        d_analyser.report(loc,
+                          check_name, "TP19",
+                          "Correct form is\n%0",
+                          false, DiagnosticsEngine::Note)
+            << needle;
+    }
+
+    needles.clear();
+    needles.push_back(standard_bde_loop_assert_test_macros_old);
+    needles.push_back(standard_bde_loop_assert_test_macros_new);
+    search(&loc, &needle, &distance, "define LOOP_ASSERT", needles, fid);
+    if (distance != 0) {
+        d_analyser.report(loc, check_name, "TP20",
+                          "Missing or malformed STANDARD BDE LOOP-ASSERT TEST "
+                          "MACROS");
+        d_analyser.report(loc, check_name, "TP20", "Correct form is\n%0",
+                          false, DiagnosticsEngine::Note)
+            << needle;
+    }
+
+    needles.clear();
+    needles.push_back(semi_standard_test_output_macros);
+    search(&loc, &needle, &distance, "define P", needles, fid);
+    if (distance != 0) {
+        d_analyser.report(loc, check_name, "TP21",
+                          "Missing or malformed SEMI-STANDARD TEST OUTPUT "
+                          "MACROS");
+        d_analyser.report(loc, check_name, "TP21", "Correct form is\n%0",
+                          false, DiagnosticsEngine::Note)
+            << needle;
+    }
+}
+
 void subscribe(Analyser& analyser, Visitor& visitor, PPObserver& observer)
     // Hook up the callback functions.
 {
@@ -576,6 +847,7 @@ void subscribe(Analyser& analyser, Visitor& visitor, PPObserver& observer)
     observer.onIfndef += report(analyser);
     observer.onElse += report(analyser);
     observer.onEndif += report(analyser);
+    observer.onOpenFile += report(analyser);
 }
 
 }  // close anonymous namespace

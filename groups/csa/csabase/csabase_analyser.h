@@ -82,6 +82,7 @@ public:
     template <typename T> bool is_component_source(T const*);
     bool               is_test_driver() const;
     bool               is_main() const;
+    bool               is_standard_namespace(std::string const&) const;
     bool               is_global_package() const;
     bool               is_global_package(std::string const&) const;
     bool               is_ADL_candidate(clang::Decl const*);
@@ -148,6 +149,8 @@ private:
     mutable IsComponentHeader             is_component_header_;
     typedef std::map<std::string, bool>   IsGlobalPackage;
     mutable IsGlobalPackage               is_global_package_;
+    typedef std::map<std::string, bool>   IsStandardNamespace;
+    mutable IsStandardNamespace           is_standard_namespace_;
 };
 
 // -----------------------------------------------------------------------------
