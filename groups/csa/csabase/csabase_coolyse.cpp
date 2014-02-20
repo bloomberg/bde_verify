@@ -17,31 +17,36 @@
 #include <clang/Lex/Preprocessor.h>
 #include <llvm/Support/raw_ostream.h>
 #include <string>
+#include <vector>
 #ident "$Id: coolyse.cpp 167 2012-04-14 19:38:03Z kuehl $"
 
 // -----------------------------------------------------------------------------
 
 namespace
 {
-    class PluginAction:
-        public clang::PluginASTAction
-    {
-    public:
-        PluginAction();
 
-        bool        debug() const;
-        std::string config() const;
-        std::string tool_name() const;
+class PluginAction : public clang::PluginASTAction
+{
+  public:
+    PluginAction();
 
-    protected:
-        clang::ASTConsumer* CreateASTConsumer(clang::CompilerInstance& compiler, llvm::StringRef source);
-        bool ParseArgs(clang::CompilerInstance const& compiler, std::vector<std::string> const& args);
+    bool debug() const;
+    const std::vector<std::string>& config() const;
+    std::string tool_name() const;
 
-    private:
-        bool        debug_;
-        std::string config_;
-        std::string tool_name_;
-    };
+  protected:
+    clang::ASTConsumer* CreateASTConsumer(clang::CompilerInstance& compiler,
+                                          llvm::StringRef source);
+
+    bool ParseArgs(clang::CompilerInstance const& compiler,
+                   std::vector<std::string> const& args);
+
+  private:
+    bool debug_;
+    std::vector<std::string> config_;
+    std::string tool_name_;
+};
+
 }
 
 // -----------------------------------------------------------------------------
@@ -109,7 +114,7 @@ AnalyseConsumer::HandleTranslationUnit(clang::ASTContext&)
 
 PluginAction::PluginAction()
     : debug_()
-    , config_(".bdeverify")
+    , config_(1, "load .bdeverify")
     , tool_name_()
 {
 }
@@ -139,8 +144,11 @@ PluginAction::ParseArgs(clang::CompilerInstance const& compiler, std::vector<std
             cool::csabase::Debug::set_debug(false);
             debug_ = false;
         }
-        else if(7 < it->size() && it->substr(0, 7) == "config=") {
-            config_ = it->substr(7);
+        else if (7 < it->size() && it->substr(0, 7) == "config=") {
+            config_.push_back("load " + it->substr(7));
+        }
+        else if (12 < it->size() && it->substr(0, 12) == "config-line=") {
+            config_.push_back(it->substr(12));
         }
         else if(5 < it->size() && it->substr(0, 5) == "tool=") {
             tool_name_ = "[" + it->substr(5) + "] ";
@@ -159,7 +167,7 @@ PluginAction::debug() const
     return debug_;
 }
 
-std::string
+const std::vector<std::string>&
 PluginAction::config() const
 {
     return config_;

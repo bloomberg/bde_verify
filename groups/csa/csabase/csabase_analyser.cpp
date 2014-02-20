@@ -34,10 +34,13 @@
 // -----------------------------------------------------------------------------
 
 cool::csabase::Analyser::Analyser(clang::CompilerInstance& compiler,
-                                  bool                     debug,
-                                  std::string const&       config,
-                                  std::string const&       name)
-    : d_config(new cool::csabase::Config(config.empty()? ".bdeverify": config))
+                                  bool debug,
+                                  std::vector<std::string> const& config,
+                                  std::string const& name)
+    : d_config(new cool::csabase::Config(
+          config.size() == 0 ?
+              std::vector<std::string>(1, "load .bdeverify") :
+              config))
     , tool_name_(name)
     , compiler_(compiler)
     , d_source_manager(compiler_.getSourceManager())

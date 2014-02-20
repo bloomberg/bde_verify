@@ -83,12 +83,14 @@ set_status(std::map<std::string, cool::csabase::Config::Status>&   checks,
 
 // ----------------------------------------------------------------------------
 
-cool::csabase::Config::Config(std::string const& name)
+cool::csabase::Config::Config(std::vector<std::string> const& config)
 : d_toplevel_namespace("BloombergLP")
 , d_all(on)
 {
     //-dk:TODO load global and user configuration?
-    load(name);
+    for (size_t i = 0; i < config.size(); ++i) {
+        process(config[i]);
+    }
 }
 
 void
@@ -198,7 +200,8 @@ cool::csabase::Config::load(std::string const& original)
     }
     if (d_loadpath.end() != std::find(d_loadpath.begin(),
                                       d_loadpath.end(), file)) {
-        llvm::errs() << "WARNING: recursive loading aborted for file '" << file << "'\n";
+        llvm::errs() << "WARNING: recursive loading aborted for file '" << file
+                     << "'\n";
         return;
     }
 

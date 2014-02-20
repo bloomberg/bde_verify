@@ -15,6 +15,7 @@ my $home     = "/home/hrosen4/coolyser";
 my $llvm     = "/bb/mbigc/mbig816/llvm-svn/install";
 my $bb       = "/bb/build/share/packages/refroot/amd64/unstable/bb";
 my $config   = "$home/bdeverify.cfg";
+my @cl;
 my $exe      = "$home/Linux-clang-3.5/bdeverify";
 my $debug    = "";
 my $verbose  = "";
@@ -33,6 +34,7 @@ my $dummy;
 my @dummy;
 my $std;
 my @std;
+my $warnoff;
 
 sub usage()
 {
@@ -40,9 +42,11 @@ sub usage()
     usage: $0 [options] [additional compiler options] file.cpp ...
         -I{directory}
         -D{macro}
+        -w                       # disable normal compiler warnings
         -W{warning}
         -f{flag}
         --config=config_file     [$config]  
+        --cl=config_line
         --bb=dir                 [$bb]
         --exe=bdeverify          [$exe]
         --llvm=dir               [$llvm]
@@ -63,6 +67,7 @@ sub usage()
 GetOptions(
     'bb=s'       => \$bb,
     'config=s'   => \$config,
+    'cl=s'       => \@cl,
     'debug'      => \$debug,
     'help|?'     => \$help,
     'exe=s'      => \$exe,
@@ -70,6 +75,7 @@ GetOptions(
     'verbose|v'  => \$verbose,
     'definc!'    => \$definc,
     'defdef!'    => \$defdef,
+    'w'          => \$warnoff,
     "I=s"        => \@incs,
     "D=s"        => \@defs,
     "W=s"        => \@wflags,
@@ -84,6 +90,7 @@ my @debug  = ("-plugin-arg-bdeverify", "debug-on")       if $debug;
 
 @lflags = map { "-f$_" if $_ ne "no-strict-aliasing" } @lflags;
 @wflags = map { "-W$_" } @wflags;
+unshift @wflags, "-w" if $warnoff;
 
 push(@defs, (
     "BB_THREADED",
@@ -118,6 +125,8 @@ push(@incs, map { chomp; $_; }
 
 push(@std, "-std=$std") if $std;
 
+@cl = map { ("-plugin-arg-bdeverify", "config-line=$_") } @cl;
+
 my @command = (
     "$exe",
     "-plugin",
@@ -125,6 +134,7 @@ my @command = (
     @std,
     @debug,
     @config,
+    @cl,
     @defs,
     @incs,
     @lflags,

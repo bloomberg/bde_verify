@@ -52,7 +52,7 @@ class cool::csabase::Analyser:
 {
 public:
     Analyser(clang::CompilerInstance& compiler,
-             bool debug, std::string const& config, std::string const& name);
+             bool debug, std::vector<std::string> const& config, std::string const& name);
     ~Analyser();
 
     Config const* config() const;

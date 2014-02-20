@@ -36,7 +36,7 @@ public:
         on
     };
 
-    Config(std::string const& name);
+    Config(std::vector<std::string> const& config);
     void load(std::string const& file);
     void process(std::string const& line);
     
