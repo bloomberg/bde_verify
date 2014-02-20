@@ -712,19 +712,17 @@ void report::search(SourceLocation *best_loc,
                     FileID fid)
 {
     const SourceManager &m = d_analyser.manager();
-    llvm::StringRef haystack = m.getBufferData(fid);
     SourceLocation top = m.getLocForStartOfFile(fid);
-    *best_loc = top;
-    *best_distance = haystack.size();
-    if (needles.size()) {
-        *best_needle = needles[0];
-    }
+    llvm::StringRef haystack = m.getBufferData(fid);
     size_t num_lines = haystack.count('\n');
 
-    std::vector<size_t> needle_lines(needles.size());
-    std::vector<size_t> needle_blank_lines(needles.size());
+    // For each needle, get its number of lines and blank lines, and determine
+    // the maximum number of lines over all needles.
+    size_t ns = needles.size();
+    std::vector<size_t> needle_lines(ns);
+    std::vector<size_t> needle_blank_lines(ns);
     size_t max_needle_lines = 0;
-    for (size_t n = 0; n < needles.size(); ++n) {
+    for (size_t n = 0; n < ns; ++n) {
         llvm::StringRef needle = needles[n];
         needle_lines[n] = needle.count('\n');
         needle_blank_lines[n] = needle.count("\n\n");
@@ -733,9 +731,14 @@ void report::search(SourceLocation *best_loc,
         }
     }
 
+    // Compute the set of lines to examine.  Always examine line 1, so that
+    // some match is returned.
     std::set<size_t> lines;
     lines.insert(1);
 
+    // For each line in the haystack where we find the key, add the range of
+    // lines around it, 'max_needle_lines' in each direction, to the set of
+    // lines to be examined.
     for (size_t key_pos = haystack.find(key); key_pos != haystack.npos;) {
         size_t key_line = Location(m, top.getLocWithOffset(key_pos)).line();
         for (size_t i = 0; i <= max_needle_lines; ++i) {
@@ -749,26 +752,34 @@ void report::search(SourceLocation *best_loc,
         key_pos += key.size() + pos;
     }
 
+    *best_distance = ~size_t(0);
+
+    // For each line to be examined...
     std::set<size_t>::const_iterator bl = lines.begin();
     std::set<size_t>::const_iterator el = lines.end();
-
     for (std::set<size_t>::const_iterator il = bl; il != el; ++il) {
         size_t line = *il;
         SourceLocation begin = m.translateLineCol(fid, line, 1);
-        for (size_t n = 0; n < needles.size(); ++n) {
+        // For each needle...
+        for (size_t n = 0; n < ns; ++n) {
             llvm::StringRef needle = needles[n];
             size_t nl = needle_lines[n];
             size_t nbl = needle_blank_lines[n];
+            // Examine successively smaller ranges of lines from the starting
+            // line, beginning with the number of lines in the needle down to
+            // that number less the number of blank lines in the needle.
             for (size_t nn = nl; nn >= nn - nbl; --nn) {
                 SourceLocation end = m.translateLineCol(fid, line + nn, 1);
                 SourceRange r(begin, end);
                 llvm::StringRef s = d_analyser.get_source(r, true);
                 size_t distance = s.edit_distance(needle);
+                // Record a better match whenever one is found.
                 if (distance < *best_distance) {
                     *best_distance = distance;
                     std::pair<size_t, size_t> mm = mid_mismatch(s, needle);
                     *best_loc = r.getBegin().getLocWithOffset(mm.first);
                     *best_needle = needle;
+                    // Return on an exact match.
                     if (distance == 0) {
                         return;                                       // RETURN
                     }
