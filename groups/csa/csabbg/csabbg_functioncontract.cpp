@@ -136,7 +136,7 @@ bool comments::isDirective(llvm::StringRef comment)
     static llvm::Regex re("^(//|/[*])" "[[:space:]]*"
                           "("
                              "=" "[[:space:]]*" "delete"  "|"
-                             "=" "[[:space:]]*" "default" "|"
+                        ".*" "=" "[[:space:]]*" "default" "|"
                              "DEPRECATED"                 "|"
                              "IMPLICIT"
                           ")"

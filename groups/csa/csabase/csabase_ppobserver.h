@@ -10,6 +10,7 @@
 #ident "$Id$"
 
 #include <cool/event.hpp>
+#include <csabase_config.h>
 #include <clang/Basic/SourceManager.h>
 #include <clang/Lex/Preprocessor.h>
 #include <string>
@@ -31,7 +32,7 @@ class cool::csabase::PPObserver
     : public clang::PPCallbacks
 {
 public:
-    PPObserver(clang::SourceManager const*);
+    PPObserver(clang::SourceManager const*, cool::csabase::Config*);
     ~PPObserver();
     void detach();
     clang::CommentHandler* get_comment_handler();
@@ -231,6 +232,7 @@ private:
     clang::SourceManager const* source_manager_;
     std::stack<std::string>     files_;
     bool                        connected_;
+    cool::csabase::Config*      config_;
 };
 
 // -----------------------------------------------------------------------------

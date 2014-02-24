@@ -7,11 +7,13 @@
 
 #include "groups/csa/csabase/csabase_config.h"
 #include "groups/csa/csabase/csabase_filenames.h"
+#include "groups/csa/csabase/csabase_location.h"
 #include <llvm/Support/raw_ostream.h>
 #include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <istream>
+#include <set>
 #include <sstream>
 #include <iterator>
 #include <vector>
@@ -62,30 +64,29 @@ set_status(std::map<std::string, cool::csabase::Config::Status>&   checks,
            cool::csabase::Config::Status                           status,
            std::vector<std::string>&                               path)
 {
-    std::map<std::string, std::vector<std::string> >::const_iterator it(groups.find(check));
-    if (it != groups.end()) {
-        if (path.end() != std::find(path.begin(), path.end(), check)) {
-            llvm::errs() << "WARNING: recursive group processing aborted for group '" << check << "'\n";
-        }
-        else {
-            path.push_back(check);
-            for (std::vector<std::string>::const_iterator cit(it->second.begin()), cend(it->second.end());
-                 cit != cend; ++cit) {
-                set_status(checks, groups, *cit, status, path);
-            }
-            path.pop_back();
-        }
-    }
-    else {
+    std::map<std::string, std::vector<std::string> >::const_iterator it =
+        groups.find(check);
+    if (it == groups.end()) {
         checks[check] = status;
+    } else if (path.end() == std::find(path.begin(), path.end(), check)) {
+        path.push_back(check);
+        for (std::vector<std::string>::const_iterator cit(it->second.begin()),
+             cend(it->second.end());
+             cit != cend;
+             ++cit) {
+            set_status(checks, groups, *cit, status, path);
+        }
+        path.pop_back();
     }
 }
 
 // ----------------------------------------------------------------------------
 
-cool::csabase::Config::Config(std::vector<std::string> const& config)
+cool::csabase::Config::Config(std::vector<std::string> const& config,
+                              clang::SourceManager& manager)
 : d_toplevel_namespace("BloombergLP")
 , d_all(on)
+, d_manager(manager)
 {
     //-dk:TODO load global and user configuration?
     for (size_t i = 0; i < config.size(); ++i) {
@@ -106,7 +107,9 @@ cool::csabase::Config::process(std::string const& line)
             d_toplevel_namespace = name;
         }
         else {
-            llvm::errs() << "WARNING: couldn't read namespace name from '" << line << "'\n";
+            llvm::errs()
+                << "WARNING: couldn't read namespace name from '"
+                << line << "'\n";
         }
     }
     else if (command == "all") {
@@ -115,7 +118,9 @@ cool::csabase::Config::process(std::string const& line)
             d_all = status;
         }
         else {
-            llvm::errs() << "WARNING: couldn't read 'all' configuration from '" << line << "'\n";
+            llvm::errs()
+                << "WARNING: couldn't read 'all' configuration from '"
+                << line << "'\n";
         }
     }
     else if (command == "check") {
@@ -126,7 +131,9 @@ cool::csabase::Config::process(std::string const& line)
             set_status(d_checks, d_groups, check, status, path);
         }
         else {
-            llvm::errs() << "WARNING: couldn't read check configuration from '" << line << "'\n";
+            llvm::errs()
+                << "WARNING: couldn't read check configuration from '"
+                << line << "'\n";
         }
     }
     else if (command == "group") {
@@ -136,7 +143,9 @@ cool::csabase::Config::process(std::string const& line)
                     std::istream_iterator<std::string>());
         }
         else {
-            llvm::errs() << "WARNING: a group needs at least a name on line '" << line << "'\n";
+            llvm::errs()
+                << "WARNING: a group needs at least a name on line '"
+                << line << "'\n";
         }
     }
     else if (command == "load") {
@@ -145,7 +154,9 @@ cool::csabase::Config::process(std::string const& line)
             load(name);
         }
         else {
-            llvm::errs() << "WARNING: no file name given on line '" << line << "'\n";
+            llvm::errs()
+                << "WARNING: no file name given on line '"
+                << line << "'\n";
         }
     }
     else if (command == "set") {
@@ -156,11 +167,15 @@ cool::csabase::Config::process(std::string const& line)
                 d_values[key] = llvm::StringRef(value).trim();
             }
             else {
-                llvm::errs() << "WARNING: set could not read value on line '" << line << "'\n";
+                llvm::errs()
+                    << "WARNING: set could not read value on line '"
+                    << line << "'\n";
             }
         }
         else {
-            llvm::errs() << "WARNING: set needs name and value on line '" << line << "'\n";
+            llvm::errs()
+                << "WARNING: set needs name and value on line '"
+                << line << "'\n";
         }
     }
     else if (command == "suppress") {
@@ -173,11 +188,14 @@ cool::csabase::Config::process(std::string const& line)
             }
         }
         else {
-            llvm::errs() << "WARNING: suppress needs tag and files on line '" << line << "'\n";
+            llvm::errs()
+                << "WARNING: suppress needs tag and files on line '"
+                << line << "'\n";
         }
     }
     else if (command.empty() || command[0] != '#') {
-        std::cout << "unknown configuration command='" << command << "' arguments='" << line << "'\n";
+        std::cout << "unknown configuration command='" << command
+                  << "' arguments='" << line << "'\n";
     }
 }
 
@@ -192,16 +210,18 @@ cool::csabase::Config::load(std::string const& original)
             file = value + file.substr(slash);
         }
         else {
-            llvm::errs() << "WARNING: environment variable "
-                         << "'" << variable << "' not set "
-                         << "(file '" << file << "' is not loaded)\n";
+            llvm::errs()
+                << "WARNING: environment variable '" << variable
+                << "' not set (file '" << file
+                << "' is not loaded)\n";
             return;
         }
     }
     if (d_loadpath.end() != std::find(d_loadpath.begin(),
                                       d_loadpath.end(), file)) {
-        llvm::errs() << "WARNING: recursive loading aborted for file '" << file
-                     << "'\n";
+        llvm::errs()
+            << "WARNING: recursive loading aborted for file '"
+            << file << "'\n";
         return;
     }
 
@@ -244,10 +264,91 @@ bool cool::csabase::Config::all() const
 
 bool
 cool::csabase::Config::suppressed(const std::string& tag,
-                                  const std::string& file) const
+                                  clang::SourceLocation where) const
 {
-    cool::csabase::FileName fn(file);
+    cool::csabase::Location location(d_manager, where);
+    cool::csabase::FileName fn(location.file());
+
+    if (d_local_suppressions.find(fn.name()) != d_local_suppressions.end()) {
+        const std::vector<std::pair<clang::SourceLocation,
+                                    std::pair<char, std::string> > >& ls =
+            d_local_suppressions.find(fn.name())->second;
+        // Find the pragma stack level of the disgnostoc location.
+        size_t where_level = 0;
+        for (size_t i = 0; i < ls.size(); ++i) {
+            if (d_manager.isBeforeInTranslationUnit(where, ls[i].first)) {
+                break;
+            }
+            if (ls[i].second.first == '>') {
+                ++where_level;
+            } else if (where_level > 0 && ls[i].second.first == '<') {
+                --where_level;
+            }
+        }
+
+        size_t pragma_level = 0;
+        char found = 0;
+        // Look for a tag pragma before the diagnostic location, only at pragma
+        // levels at or below the diagnostic location stack level.
+        for (size_t i = 0; i < ls.size(); ++i) {
+            if (d_manager.isBeforeInTranslationUnit(where, ls[i].first)) {
+                break;
+            }
+            if (ls[i].second.first == '>') {
+                ++pragma_level;
+            } else if (pragma_level > 0 && ls[i].second.first == '<') {
+                --pragma_level;
+            } else if (   pragma_level <= where_level
+                       && (   ls[i].second.second == tag
+                           || ls[i].second.second == "*")) {
+                found = ls[i].second.first;
+            }
+        }
+        if (found) {
+            return found == '-';                                      // RETURN
+        }
+    }
+
     return d_suppressions.count(std::make_pair(tag, fn.name())) +
            d_suppressions.count(std::make_pair("*", fn.name())) +
            d_suppressions.count(std::make_pair(tag, "*"));
+}
+
+void
+cool::csabase::Config::push_suppress(clang::SourceLocation where)
+{
+    cool::csabase::Location location(d_manager, where);
+    cool::csabase::FileName fn(location.file());
+    d_local_suppressions[fn.name()].push_back(
+        std::make_pair(where, std::make_pair('>', "")));
+}
+
+void
+cool::csabase::Config::pop_suppress(clang::SourceLocation where)
+{
+    cool::csabase::Location location(d_manager, where);
+    cool::csabase::FileName fn(location.file());
+    d_local_suppressions[fn.name()].push_back(
+        std::make_pair(where, std::make_pair('<', "")));
+}
+
+void cool::csabase::Config::suppress(const std::string& tag,
+                                     clang::SourceLocation where,
+                                     bool on,
+                                     std::set<std::string> in_progress)
+{
+    if (!in_progress.count(tag)) {
+        cool::csabase::Location location(d_manager, where);
+        cool::csabase::FileName fn(location.file());
+        d_local_suppressions[fn.name()].push_back(
+                std::make_pair(where, std::make_pair(on ? '-' : '+', tag)));
+        if (d_groups.find(tag) != d_groups.end()) {
+            in_progress.insert(tag);
+            const std::vector<std::string>& group_items =
+                d_groups.find(tag)->second;
+            for (size_t i = 0; i < group_items.size(); ++i) {
+                suppress(group_items[i], where, on, in_progress);
+            }
+        }
+    }
 }

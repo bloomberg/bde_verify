@@ -9,6 +9,7 @@
 #define INCLUDED_GROUPS_CSA_CSABASE_CSABASE_CONFIG_H 1
 #ident "$Id$"
 
+#include <clang/Basic/SourceManager.h>
 #include <iosfwd>
 #include <map>
 #include <set>
@@ -36,17 +37,46 @@ public:
         on
     };
 
-    Config(std::vector<std::string> const& config);
+    Config(std::vector<std::string> const& config,
+           clang::SourceManager& manager);
+        // Create a 'cool::csabase::Config' object initialized with the set of
+        // specified 'config' lines, and holding the specified 'manager'.
+
     void load(std::string const& file);
+        // Read a set of configuration lines from the specified 'file'.
+
     void process(std::string const& line);
-    
-    std::string const&                   toplevel_namespace() const;
+        // Append the specifed 'line' to the configuration.
+
+    std::string const& toplevel_namespace() const;
+
     std::map<std::string, Status> const& checks() const;
-    std::string const&                   value(const std::string& key) const;
-    bool                                 all() const;
-    bool                                 suppressed(
-                                            const std::string& tag,
-                                            const std::string& file) const;
+
+    std::string const& value(const std::string& key) const;
+
+    bool all() const;
+
+    bool suppressed(const std::string& tag, clang::SourceLocation where) const;
+        // Return 'true' iff a diagnostic with the specified 'tag' should be
+        // suppressed at the specified location 'where'.
+
+    void push_suppress(clang::SourceLocation where);
+        // Push a level onto the local diagnostics suppressions stack for the
+        // specified location 'where'.
+
+    void pop_suppress(clang::SourceLocation where);
+        // Pop a level from the local diagnostics suppressions stack for the
+        // specified location 'where', if the stack is not empty..
+
+    void suppress(const std::string& tag,
+                  clang::SourceLocation where,
+                  bool on,
+                  std::set<std::string> in_progress = std::set<std::string>());
+        // Mark the specified 'tag' as suppressed or not at the current stack
+        // level and the specified location 'where', depending on the state of
+        // the 'on' flag.  If 'tag' is the name of a group, recursively process
+        // the members of the group unles 'tag' is present in the optionally
+        // specified 'in_progress' set.
 
 private:
     std::string                                      d_toplevel_namespace;
@@ -55,7 +85,18 @@ private:
     std::map<std::string, std::vector<std::string> > d_groups;
     std::map<std::string, std::string>               d_values;
     std::set<std::pair<std::string, std::string> >   d_suppressions;
+    std::map<std::string,               // file
+        std::vector<                    // each pragma bdeverify in file
+            std::pair<
+                clang::SourceLocation,  // location of pragma
+                std::pair<char,         // - (off), + (on), > (push), < (pop)
+                          std::string   //  tag, *, or empty
+                >
+            >
+        >
+    >                                                d_local_suppressions;
     Status                                           d_all;
+    clang::SourceManager&                            d_manager;
 };
 
 // -----------------------------------------------------------------------------

@@ -10,14 +10,18 @@
 #include <csabase_location.h>
 #include <clang/Basic/FileManager.h>
 #include <clang/Basic/SourceManager.h>
+#include <llvm/Support/Regex.h>
 #include <llvm/Support/raw_ostream.h>
 #ident "$Id$"
 
 // -----------------------------------------------------------------------------
 
-cool::csabase::PPObserver::PPObserver(clang::SourceManager const* source_manager):
-    source_manager_(source_manager),
-    connected_(true)
+cool::csabase::PPObserver::PPObserver(
+    clang::SourceManager const* source_manager,
+    cool::csabase::Config* config)
+: source_manager_(source_manager)
+, connected_(true)
+, config_(config)
 {
 }
 
@@ -291,9 +295,40 @@ cool::csabase::PPObserver::Ident(clang::SourceLocation location, std::string con
 
 // -----------------------------------------------------------------------------
 
+static llvm::Regex pragma_bdeverify(
+    "^[[:blank:]]*" "#" "[[:blank:]]*" "pragma" "[[:blank:]]+"
+    "bde_?verify" "[[:blank:]]+" "("
+        "(" "push"                                    ")|"
+        "(" "pop"                                     ")|"
+        "(" "[-]" "[[:blank:]]*" "([[:alnum:]]+|[*])" ")|"
+        "(" "[+]" "[[:blank:]]*" "([[:alnum:]]+|[*])" ")|"
+        "$"
+    ")"
+    "[[:blank:]]*$",
+    llvm::Regex::NoFlags);
+
 void
 cool::csabase::PPObserver::PragmaDirective(clang::SourceLocation location, clang::PragmaIntroducerKind introducer)
 {
+    const clang::SourceManager& m = *source_manager_;
+    clang::FileID fid = m.getFileID(location);
+    unsigned line = m.getPresumedLineNumber(location);
+    llvm::StringRef directive = 
+        m.getBufferData(fid).slice(
+            m.getFileOffset(m.translateLineCol(fid, line, 1)),
+            m.getFileOffset(m.translateLineCol(fid, line, 0)));
+    llvm::SmallVector<llvm::StringRef, 8> matches;
+    if (pragma_bdeverify.match(directive, &matches)) {
+        if (!matches[2].empty()) {
+            config_->push_suppress(location);
+        } else if (!matches[3].empty()) {
+            config_->pop_suppress(location);
+        } else if (!matches[5].empty()) {
+            config_->suppress(matches[5], location, true);
+        } else if (!matches[7].empty()) {
+            config_->suppress(matches[7], location, false);
+        }
+    }
 }
 
 void
