@@ -84,7 +84,7 @@ exit 0
 RESULT=$?
 if [ $RESULT -ne 0 ]
 then
-    echo "++++++++++++++++++++++  FAIL FAIL FAIL "
+    echo "++++++++++++++++++++++  FAIL FAIL FAIL " \
          "Building $TARGET_UOR - error $RESULT"
     exit $RESULT
 fi
