@@ -6,6 +6,7 @@
 // -----------------------------------------------------------------------------
 
 #include <csabase_analyser.h>
+#include <csabase_debug.h>
 #include <csabase_location.h>
 #include <csabase_registercheck.h>
 #ident "$Id$"
@@ -14,14 +15,12 @@
 
 static std::string const check_name("anon-namespace");
 
-static void
-anonymous_namespace_in_header(cool::csabase::Analyser& analyser, clang::NamespaceDecl const* decl)
+static void anonymous_namespace_in_header(cool::csabase::Analyser& analyser,
+                                          clang::NamespaceDecl const* decl)
 {
-    if (decl->isAnonymousNamespace()
-        && analyser.get_location(decl).file() != analyser.toplevel())
-    {
+    if (decl->isAnonymousNamespace() && analyser.is_component_header(decl)) {
         analyser.report(decl, check_name, "ANS01",
-                "Anonymous namespace in header");
+                "Anonymous namespace in header", true);
     }
 }
 
