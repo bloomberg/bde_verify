@@ -7,6 +7,7 @@
 
 #include <csabase_diagnosticfilter.h>
 #include <csabase_analyser.h>
+#include <csabase_debug.h>
 #include <csabase_registercheck.h>
 #include <clang/Frontend/TextDiagnosticPrinter.h>
 #include <clang/Basic/SourceManager.h>
@@ -73,15 +74,9 @@ void
 CB::DiagnosticFilter::HandleDiagnostic(clang::DiagnosticsEngine::Level level,
                                        clang::Diagnostic const&        info)
 {
-    if (!info.getLocation().isFileID() ||
+    if (clang::DiagnosticsEngine::Warning < level ||
+        !info.getLocation().isFileID() ||
         d_analyser->is_component(get_filename(info)))
-    /*
-    if (clang::DiagnosticsEngine::Note != level
-        && (clang::DiagnosticsEngine::Warning < level
-            || !info.getLocation().isFileID()
-            || d_analyser->is_component(get_filename(info)))
-        )
-     */
     {
         DiagnosticConsumer::HandleDiagnostic(level, info);
         d_client->HandleDiagnostic(level, info);
