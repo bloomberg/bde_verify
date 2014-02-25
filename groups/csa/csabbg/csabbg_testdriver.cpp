@@ -107,6 +107,8 @@ struct report
 
     void match_case_stmt(const BoundNodes &nodes);
     bool found_banner;
+    llvm::StringRef banner_text;
+    const clang::StringLiteral *banner_literal;
 };
 
 report::report(Analyser& analyser)
@@ -145,6 +147,11 @@ llvm::Regex test_plan(
           "[[:blank:]]*"
     "(.*)$",
     llvm::Regex::Newline);  // Match a test plan item.  [ ] are essential.
+
+llvm::Regex test_title(
+    "[[:blank:]]*//[[:blank:]]*" "[-=_]([[:blank:]]?[-=_])*"  "[[:blank:]]*\n"
+    "[[:blank:]]*//[[:blank:]]*" "(.*[^[:blank:]])" "[[:blank:]]*\n",
+    llvm::Regex::Newline);  // Match the title of a test case.
 
 llvm::Regex testing(
     "//[[:blank:]]*Test(ing|ed|s)?[[:blank:]]*:?[[:blank:]]*\n",
@@ -243,6 +250,24 @@ print_banner_matcher()
                             stringLiteral().bind("TEST")))))),
                         hasArgument(1, ignoringImpCasts(declRefExpr(to(
                             functionDecl(hasName("endl"))))))))),
+                        hasArgument(1, ignoringImpCasts(
+                            stringLiteral().bind("====")))))),
+                        hasArgument(1, ignoringImpCasts(declRefExpr(to(
+                            functionDecl(hasName("endl")))))))
+                ),
+                hasDescendant(
+                    operatorCallExpr(
+                        hasOverloadedOperatorName("<<"),
+                        hasArgument(0, ignoringImpCasts(
+                    operatorCallExpr(
+                        hasOverloadedOperatorName("<<"),
+                        hasArgument(0, ignoringImpCasts(
+                    operatorCallExpr(
+                        hasOverloadedOperatorName("<<"),
+                        hasArgument(0, ignoringImpCasts(declRefExpr(to(
+                            varDecl(hasName("cout")))))),
+                        hasArgument(1, ignoringImpCasts(
+                            stringLiteral().bind("TEST")))))),
                         hasArgument(1, ignoringImpCasts(
                             stringLiteral().bind("====")))))),
                         hasArgument(1, ignoringImpCasts(declRefExpr(to(
@@ -395,6 +420,8 @@ void report::operator()()
         mf.addDynamicMatcher(print_banner_matcher(), &callback);
 
         found_banner = false;
+        banner_text = llvm::StringRef();
+        banner_literal = 0;
         mf.match(*cs, *d_analyser.context());
         if (!found_banner && case_value != 0) {
             d_analyser.report(sc->getLocStart(),
@@ -422,6 +449,32 @@ void report::operator()()
         llvm::SmallVector<llvm::StringRef, 7> matches;
         size_t testing_pos = 0;
         size_t line_pos = 0;
+
+        if (found_banner) {
+            if (test_title.match(comment, &matches)) {
+                llvm::StringRef t = matches[2];
+                testing_pos = comment.find(t);
+                line_pos = testing_pos + t.size();
+                std::pair<size_t, size_t> m = mid_mismatch(t, banner_text);
+                if (m.first != t.size()) {
+                    d_analyser.report(
+                        cr.getBegin().getLocWithOffset(testing_pos + m.first),
+                        check_name, "TP22",
+                        "Mismatch between title in comment and as printed");
+                    d_analyser.report(banner_literal,
+                                      check_name, "TP22",
+                                      "Printed title is",
+                                      false, DiagnosticsEngine::Note);
+                }
+            } else {
+                d_analyser.report(
+                        cr.getBegin().getLocWithOffset(comment.find('\n') + 1),
+                        check_name, "TP22",
+                        "Test case title should be\n%0")
+                    << banner_text;
+            }
+        }
+
         if (testing.match(comment, &matches)) {
             llvm::StringRef t = matches[0];
             testing_pos = comment.find(t);
@@ -582,9 +635,16 @@ void report::match_case_stmt(const BoundNodes& nodes)
                                   false, DiagnosticsEngine::Note)
                     << "\"\\nALL CAPS DESCRIPTION\\n====================\\n\"";
         }
+        banner_text = s.ltrim().split('\n').first;
+        banner_literal = l1;
     } else if (l2 && l3) {
         llvm::StringRef text = l2->getString();
         llvm::StringRef ul = l3->getString();
+        if (text.size() > 0 && text[0] == '\n' &&
+            ul  .size() > 0 && ul  [0] == '\n') {
+            text = text.substr(1);
+            ul   = ul  .substr(1);
+        }
         if (text.size() != ul.size() ||
             ul.find_first_not_of('=') != ul.npos ||
             text.find_first_of("abcdefghijklmnopqrstuvwxyz") != text.npos) {
@@ -597,6 +657,8 @@ void report::match_case_stmt(const BoundNodes& nodes)
                        "     << \"ALL CAPS DESCRIPTION\" << endl\n"
                        "     << \"====================\" << endl;\n";
         }
+        banner_text = text.ltrim().split('\n').first;
+        banner_literal = l2;
     }
 }
 
@@ -622,6 +684,26 @@ const char standard_bde_assert_test_macros[] =
 "    }"                                                                      NL
 "}"                                                                          NL
 "#define ASSERT(X) { aSsErT(!(X), #X, __LINE__); }"                          NL
+;
+
+const char standard_bde_assert_test_macros_bsl[] =
+"//===================="
+"========================================================="                  NL
+"//                      STANDARD BDE ASSERT TEST MACRO"                     NL
+"//--------------------"
+"---------------------------------------------------------"                  NL
+"// NOTE: THIS IS A LOW-LEVEL COMPONENT AND MAY NOT USE ANY C++ LIBRARY"     NL
+"// FUNCTIONS, INCLUDING IOSTREAMS."                                         NL
+"static int testStatus = 0;"                                                 NL
+""                                                                           NL
+"static void aSsErT(bool b, const char *s, int i)"                           NL
+"{"                                                                          NL
+"    if (b) {"                                                               NL
+"        printf(\"Error \" __FILE__ \"(%d): %s    (failed)\\n\", i, s);"     NL
+"        if (testStatus >= 0 && testStatus <= 100) ++testStatus;"            NL
+"    }"                                                                      NL
+"}"                                                                          NL
+""                                                                           NL
 ;
 
 const char standard_bde_loop_assert_test_macros_old[] =
@@ -686,6 +768,26 @@ const char standard_bde_loop_assert_test_macros_new[] =
 "#define LOOP6_ASSERT(I,J,K,L,M,N,X) A_(X,C_(I)C_(J)C_(K)C_(L)C_(M)C_(N))"   NL
 ;
 
+const char standard_bde_loop_assert_test_macros_bsl[] =
+"//=================="
+"==========================================================="                NL
+"//                      STANDARD BDE TEST DRIVER MACROS"                    NL
+"//------------------"
+"-----------------------------------------------------------"                NL
+""                                                                           NL
+"#define ASSERT       BSLS_BSLTESTUTIL_ASSERT"                               NL
+"#define LOOP_ASSERT  BSLS_BSLTESTUTIL_LOOP_ASSERT"                          NL
+"#define LOOP0_ASSERT BSLS_BSLTESTUTIL_LOOP0_ASSERT"                         NL
+"#define LOOP1_ASSERT BSLS_BSLTESTUTIL_LOOP1_ASSERT"                         NL
+"#define LOOP2_ASSERT BSLS_BSLTESTUTIL_LOOP2_ASSERT"                         NL
+"#define LOOP3_ASSERT BSLS_BSLTESTUTIL_LOOP3_ASSERT"                         NL
+"#define LOOP4_ASSERT BSLS_BSLTESTUTIL_LOOP4_ASSERT"                         NL
+"#define LOOP5_ASSERT BSLS_BSLTESTUTIL_LOOP5_ASSERT"                         NL
+"#define LOOP6_ASSERT BSLS_BSLTESTUTIL_LOOP6_ASSERT"                         NL
+"#define ASSERTV      BSLS_BSLTESTUTIL_ASSERTV"                              NL
+""                                                                           NL
+;
+
 const char semi_standard_test_output_macros[] =
 ""                                                                           NL
 "// ================="
@@ -702,6 +804,16 @@ const char semi_standard_test_output_macros[] =
 "// 'P(X)' without '\\n'"                                                    NL
 "#define T_ cout << \"\\t\" << flush;             // Print tab w/o newline." NL
 "#define L_ __LINE__                           // current Line number"       NL
+;
+
+const char semi_standard_test_output_macros_bsl[] =
+""                                                                           NL
+"#define Q   BSLS_BSLTESTUTIL_Q   // Quote identifier literally."            NL
+"#define P   BSLS_BSLTESTUTIL_P   // Print identifier and value."            NL
+"#define P_  BSLS_BSLTESTUTIL_P_  // P(X) without '\\n'."                    NL
+"#define T_  BSLS_BSLTESTUTIL_T_  // Print a tab (w/o newline)."             NL
+"#define L_  BSLS_BSLTESTUTIL_L_  // current Line number"                    NL
+""                                                                           NL
 ;
 
 void report::search(SourceLocation *best_loc,
@@ -768,7 +880,7 @@ void report::search(SourceLocation *best_loc,
             // Examine successively smaller ranges of lines from the starting
             // line, beginning with the number of lines in the needle down to
             // that number less the number of blank lines in the needle.
-            for (size_t nn = nl; nn >= nn - nbl; --nn) {
+            for (size_t nn = nl; nn >= nl - nbl; --nn) {
                 SourceLocation end = m.translateLineCol(fid, line + nn, 1);
                 SourceRange r(begin, end);
                 llvm::StringRef s = d_analyser.get_source(r, true);
@@ -780,7 +892,7 @@ void report::search(SourceLocation *best_loc,
                     *best_loc = r.getBegin().getLocWithOffset(mm.first);
                     *best_needle = needle;
                     // Return on an exact match.
-                    if (distance == 0) {
+                    if (distance == 0 || mm.first == s.size()) {
                         return;                                       // RETURN
                     }
                 }
@@ -806,13 +918,12 @@ void report::operator()(SourceLocation loc,
 
     needles.clear();
     needles.push_back(standard_bde_assert_test_macros);
+    needles.push_back(standard_bde_assert_test_macros_bsl);
     search(&loc, &needle, &distance, "testStatus", needles, fid);
-
     if (distance != 0) {
         d_analyser.report(loc,
                           check_name, "TP19",
-                          "Missing or malformed STANDARD BDE ASSERT TEST "
-                          "MACROS");
+                          "Missing or malformed standard test driver section");
         d_analyser.report(loc,
                           check_name, "TP19",
                           "Correct form is\n%0",
@@ -823,24 +934,24 @@ void report::operator()(SourceLocation loc,
     needles.clear();
     needles.push_back(standard_bde_loop_assert_test_macros_old);
     needles.push_back(standard_bde_loop_assert_test_macros_new);
-    search(&loc, &needle, &distance, "define LOOP_ASSERT", needles, fid);
+    needles.push_back(standard_bde_loop_assert_test_macros_bsl);
+    search(&loc, &needle, &distance, "define LOOP_ASSER", needles, fid);
     if (distance != 0) {
-        d_analyser.report(loc, check_name, "TP20",
-                          "Missing or malformed STANDARD BDE LOOP-ASSERT TEST "
-                          "MACROS");
-        d_analyser.report(loc, check_name, "TP20", "Correct form is\n%0",
+        d_analyser.report(loc, check_name, "TP19",
+                          "Missing or malformed standard test driver section");
+        d_analyser.report(loc, check_name, "TP19", "Correct form is\n%0",
                           false, DiagnosticsEngine::Note)
             << needle;
     }
 
     needles.clear();
     needles.push_back(semi_standard_test_output_macros);
+    needles.push_back(semi_standard_test_output_macros_bsl);
     search(&loc, &needle, &distance, "define P", needles, fid);
     if (distance != 0) {
-        d_analyser.report(loc, check_name, "TP21",
-                          "Missing or malformed SEMI-STANDARD TEST OUTPUT "
-                          "MACROS");
-        d_analyser.report(loc, check_name, "TP21", "Correct form is\n%0",
+        d_analyser.report(loc, check_name, "TP19",
+                          "Missing or malformed standard test driver section");
+        d_analyser.report(loc, check_name, "TP19", "Correct form is\n%0",
                           false, DiagnosticsEngine::Note)
             << needle;
     }
