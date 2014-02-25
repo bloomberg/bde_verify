@@ -79,6 +79,8 @@ $WORKSPACE/bde-tools/bin/bde_build.pl \
     -k -c bdeverify -DCC="$BDEVERIFY" -DCXX="$BDEVERIFY" \
     -O -Re -j${JOBS} -t $UFID $TARGET_UOR
 
+exit 0
+
 RESULT=$?
 if [ $RESULT -ne 0 ]
 then
