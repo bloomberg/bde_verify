@@ -68,14 +68,6 @@ struct comments
     void operator()(SourceRange range);
         // The specified 'range', representing a comment, is added to the
         // comments list.
-
-    static bool less(llvm::StringRef a, llvm::StringRef b);
-        // Return true if the specified 'a' is to be considered less than the
-        // specified 'b'.  A string is less than another if its leading non-
-        // numeric portion is lexicographically less than that of the other
-        // string, or if those portions are equal and its trailing numeric
-        // portion is numerically less than that of the other.  (So that, for
-        // example, 'abc9 < abc10').
 };
 
 comments::comments(Analyser& analyser)
@@ -124,26 +116,6 @@ void comments::operator()(SourceRange range)
     if (   d_analyser.is_component(location.file())
         && isReset(d_analyser.get_source(range))) {
         d_comments[location.file()].insert(location.line());
-    }
-}
-
-llvm::Regex fname("^((.*[^[:digit:]])*)0*([[:digit:]]+)$",
-                  llvm::Regex::NoFlags);
-
-bool comments::less(llvm::StringRef a, llvm::StringRef b)
-{
-    llvm::SmallVector<llvm::StringRef, 7> ma;
-    llvm::SmallVector<llvm::StringRef, 7> mb;
-
-    if (fname.match(a, &ma) && fname.match(b, &mb)) {
-        if (ma[1] < mb[1]) return true;                               // RETURN
-        if (mb[1] < ma[1]) return false;                              // RETURN
-        if (ma[3].size() < mb[3].size()) return true;                 // RETURN
-        if (mb[3].size() < ma[3].size()) return false;                // RETURN
-        return ma[3] < mb[3];                                         // RETURN
-    }
-    else {
-        return a < b;                                                 // RETURN
     }
 }
 
@@ -216,7 +188,8 @@ void report::check_order(const FunctionDecl *decl)
             DeclarationName next_name = nextf->getDeclName();
             if (next_name.isIdentifier() &&
                 !next_name.isEmpty() &&
-                comments::less(next_name.getAsString(), name.getAsString())) {
+                llvm::StringRef(next_name.getAsString())
+                        .compare_numeric(name.getAsString()) < 0) {
                 std::string q1 = decl->getQualifiedNameAsString();
                 std::string q2 = nextf->getQualifiedNameAsString();
                 q1 = q1.substr(0, q1.rfind(':'));

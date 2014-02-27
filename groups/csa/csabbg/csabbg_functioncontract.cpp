@@ -2,6 +2,7 @@
 // ----------------------------------------------------------------------------
 
 #include <csabase_analyser.h>
+#include <csabase_debug.h>
 #include <csabase_location.h>
 #include <csabase_ppobserver.h>
 #include <csabase_registercheck.h>
@@ -162,6 +163,140 @@ void comments::operator()(SourceRange range)
             c.push_back(range);
         } else {
             c.back().setEnd(range.getEnd());
+        }
+    }
+}
+
+struct ParmInfo
+{
+    bool is_matched    : 1;
+    bool is_quoted     : 1;
+    bool is_not_quoted : 1;
+
+    ParmInfo();
+};
+
+ParmInfo::ParmInfo()
+: is_matched(false)
+, is_quoted(false)
+, is_not_quoted(false)
+{
+}
+
+struct Word
+{
+    llvm::StringRef word;
+    size_t offset;
+    size_t parm;
+    bool is_quoted     : 1;
+    bool is_noise      : 1;
+    bool is_specify    : 1;
+    bool is_optionally : 1;
+
+    Word();
+
+    void set(std::vector<ParmInfo>* parm_info,
+             llvm::StringRef s,
+             size_t position,
+             bool single_quoted,
+             const std::vector<llvm::StringRef>& parms,
+             const std::vector<llvm::StringRef>& noise);
+};
+
+Word::Word()
+: word()
+, offset(llvm::StringRef::npos)
+, parm(~size_t(0))
+, is_quoted(false)
+, is_noise(false)
+, is_specify(false)
+, is_optionally(false)
+{
+}
+
+void Word::set(std::vector<ParmInfo>* parm_info,
+               llvm::StringRef s,
+               size_t position,
+               bool single_quoted,
+               const std::vector<llvm::StringRef>& parms,
+               const std::vector<llvm::StringRef>& noise)
+{
+    word = s;
+    offset = position;
+    is_quoted = single_quoted;
+    is_specify = !single_quoted &&
+                 (s.equals_lower("specify") || s.equals_lower("specified"));
+    is_optionally = !single_quoted && s.equals_lower("optionally");
+
+    parm = parms.size();
+    for (size_t i = 0; i < parms.size(); ++i) {
+        if (parms[i].slice(0, 1).equals_lower(s.slice(0, 1)) &&
+            parms[i].substr(1).equals(s.substr(1))) {
+            parm = i;
+            break;
+        }
+    }
+
+    is_noise = false;
+    for (size_t i = 0; !is_noise && i < noise.size(); ++i) {
+        is_noise = noise[i].equals_lower(s);
+    }
+
+    if (parm < parm_info->size()) {
+        ParmInfo& pi = (*parm_info)[parm];
+        pi.is_matched = true;
+        if (is_quoted) {
+            pi.is_quoted = true;
+        } else {
+            pi.is_not_quoted = true;
+        }
+    }
+}
+
+void break_into_words(std::vector<Word>* words,
+                      std::vector<ParmInfo>* parm_info,
+                      llvm::StringRef comment,
+                      const std::vector<llvm::StringRef>& parms,
+                      const std::vector<llvm::StringRef>& noise)
+{
+    words->clear();
+    parm_info->clear();
+    parm_info->resize(parms.size());
+    bool in_single_quotes = false;
+    bool last_char_was_backslash = false;
+    bool in_word = false;
+    size_t start_of_last_word = 0;
+    for (size_t i = 0; i < comment.size(); ++i) {
+        unsigned char c = static_cast<unsigned char>(comment[i]);
+        bool is_id = std::isalnum(c) || c == '_';
+        if (in_word) {
+            if (!is_id) {
+                words->back().set(parm_info,
+                                  comment.slice(start_of_last_word, i),
+                                  start_of_last_word,
+                                  in_single_quotes,
+                                  parms,
+                                  noise);
+            }
+        } else if (is_id) {
+            start_of_last_word = i;
+            words->push_back(Word());
+            words->back().set(parm_info,
+                              comment.substr(start_of_last_word),
+                              start_of_last_word,
+                              in_single_quotes,
+                              parms,
+                              noise);
+        }
+        in_word = is_id;
+        if (!in_word) {
+            if (c == '\\') {
+                last_char_was_backslash = !last_char_was_backslash;
+            } else if (c == '\'') {
+                if (!last_char_was_backslash) {
+                    in_single_quotes = !in_single_quotes;
+                }
+            }
         }
     }
 }
@@ -426,16 +561,38 @@ SourceRange report::getContract(const FunctionDecl     *func,
     return contract;
 }
 
+bool are_numeric_cognates(llvm::StringRef a, llvm::StringRef b)
+{
+    llvm::StringRef digits = "0123456789";
+    size_t ai = 0;
+    size_t bi = 0;
+
+    while (ai < a.size() && bi < b.size()) {
+        size_t adi = a.find_first_of(digits, ai);
+        size_t bdi = b.find_first_of(digits, bi);
+        if (a.slice(ai, adi) != b.slice(bi, bdi)) {
+            break;
+        }
+        ai = a.find_first_not_of(digits, adi);
+        bi = b.find_first_not_of(digits, bdi);
+    }
+    return ai == a.npos && bi == b.npos;
+}
+
+SourceRange word_range(SourceRange context, const Word& word)
+{
+    SourceLocation begin = context.getBegin().getLocWithOffset(word.offset);
+    return SourceRange(begin, begin.getLocWithOffset(word.word.size() - 1));
+}
+
 void report::critiqueContract(const FunctionDecl* func, SourceRange comment)
 {
     llvm::StringRef contract = d_analyser.get_source(comment);
 
-    // Ignore "= default" and "= delete" comments.
+    // Ignore "= default" and "= delete" comments and deprecated functions.
     if (comments::isDirective(contract)) {
         return;                                                       // RETURN
     }
-
-    // Ignore deprecated functions.
 
     const SourceLocation cloc = comment.getBegin();
 
@@ -459,6 +616,124 @@ void report::critiqueContract(const FunctionDecl* func, SourceRange comment)
     const unsigned num_parms = func->getNumParams();
     bool specify_done = false;
     bool optional_done = false;
+    static const char *const noise_words[] = {
+        "a", "an", "and", "are", "is", "not", "or", "the"
+    };
+    static const std::vector<llvm::StringRef> noise(
+        noise_words, noise_words + sizeof noise_words / sizeof *noise_words);
+    std::vector<llvm::StringRef> parms(num_parms);
+
+    for (unsigned i = 0; i < num_parms; ++i) {
+        const ParmVarDecl* parm = func->getParamDecl(i);
+        if (parm->getIdentifier()) {
+            parms[i] = parm->getName();
+        }
+    }
+
+    std::vector<Word> words;
+    std::vector<ParmInfo> parm_info(num_parms);
+    break_into_words(&words, &parm_info, contract, parms, noise);
+
+    for (size_t i = 0; i < num_parms; ++i) {
+        const ParmVarDecl* parm = func->getParamDecl(i);
+        if (!parm->getIdentifier()) {
+            // Ignore unnamed parameters.
+            continue;
+        }
+
+        bool matched = parm_info[i].is_matched;
+        bool really_matched = matched;
+        for (size_t j = 0; !matched && j < num_parms; ++j) {
+            matched = i != j && are_numeric_cognates(parms[i], parms[j]);
+        }
+
+        if (!matched) {
+            llvm::StringRef name = parm->getName();
+            d_analyser.report(
+                parm->getLocation(),
+                check_name, "FD03",
+                "Parameter '%0' is not documented in the function contract")
+                << name
+                << parm->getSourceRange();
+        }
+
+        if (really_matched && parm_info[i].is_not_quoted) {
+            for (size_t j = 0; j < words.size(); ++j) {
+                const Word& word = words[j];
+                if (word.parm == i && !word.is_quoted && !word.is_noise) {
+                    SourceRange r = word_range(comment, word);
+                    d_analyser.report(r.getBegin(),
+                                      check_name, "FD04",
+                                      "Parameter '%0' is not single-quoted in "
+                                      "the function contract")
+                        << word.word
+                        << r;
+                }
+            }
+        }
+
+        for (size_t j = 0; j < words.size(); ++j) {
+            bool first = true;
+            if (words[j].parm == i) {
+                if (first) {
+                    first = false;
+                    bool specify_found = false;
+                    size_t k;
+                    for (k = j; !specify_found && k > 0; --k) {
+                        const Word& word = words[k - 1];
+                        if (word.is_specify) {
+                            specify_found = true;
+                        } else if (!word.is_noise &&
+                                   !word.is_quoted &&
+                                   word.parm >= parms.size()) {
+                            break;
+                        }
+                    }
+                    if (parm->hasDefaultArg() &&
+                        (!specify_found ||
+                         k < 1 ||
+                         !words[k - 1].is_optionally)) {
+                        SourceRange r = word_range(comment, words[j]);
+                        d_analyser.report(
+                                r.getBegin(),
+                                check_name, "FD05",
+                                "Call out the first appearance of an optional "
+                                "parameter in a function contract using the "
+                                "phrase 'optionally specify'")
+                            << r;
+                    } else if (!specify_found) {
+                        SourceRange r = word_range(comment, words[j]);
+                        d_analyser.report(
+                                r.getBegin(),
+                                check_name, "FD06",
+                                "Call out the first appearance of a parameter "
+                                "in a function contract using the word "
+                                "'specified' or 'specify'")
+                            << r;
+                    }
+                } else {
+                    for (size_t k = j; k > 0; --k) {
+                        const Word& word = words[k - 1];
+                        if (word.is_specify) {
+                            SourceRange r = word_range(comment, word);
+                            d_analyser.report(
+                                r.getBegin(),
+                                check_name, "FD07",
+                                "Call out only the first appearance of a "
+                                "parameter in a function contract with the "
+                                "word 'specified' or 'specify'")
+                                << r;
+                            break;
+                        } else if (!word.is_noise) {
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return;
 
     for (unsigned i = 0; i < num_parms; ++i) {
         const ParmVarDecl* parm = func->getParamDecl(i);
@@ -536,7 +811,7 @@ void report::critiqueContract(const FunctionDecl* func, SourceRange comment)
                 specify_done = true;
                 d_analyser.report(crange.getBegin(),
                         check_name, "FD06",
-                        "In the function contract, use the words 'specified' "
+                        "In the function contract, use the word 'specified' "
                         "or 'specify' to document parameters")
                     << crange;
             }
