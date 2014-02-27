@@ -297,11 +297,13 @@ cool::csabase::PPObserver::Ident(clang::SourceLocation location, std::string con
 
 static llvm::Regex pragma_bdeverify(
     "^[[:blank:]]*" "#" "[[:blank:]]*" "pragma" "[[:blank:]]+"
-    "bde_?verify" "[[:blank:]]+" "("
-        "(" "push"                                    ")|"
-        "(" "pop"                                     ")|"
-        "(" "[-]" "[[:blank:]]*" "([[:alnum:]]+|[*])" ")|"
-        "(" "[+]" "[[:blank:]]*" "([[:alnum:]]+|[*])" ")|"
+    "bde_?verify" "[[:blank:]]+" "("                        // 1
+        "(" "push"                                    ")|"  // 2
+        "(" "pop"                                     ")|"  // 3
+        "(" "[-]" "[[:blank:]]*" "([[:alnum:]]+|[*])" ")|"  // 4 5
+        "(" "[+]" "[[:blank:]]*" "([[:alnum:]]+|[*])" ")|"  // 6 7
+        "(" "set" "[[:blank:]]*" "([_[:alnum:]]+)"          // 8 9
+                  "[[:blank:]]*" "([^[:blank:]]+)"    ")|"  // 10
         "$"
     ")",
     llvm::Regex::NoFlags);
@@ -326,6 +328,8 @@ cool::csabase::PPObserver::PragmaDirective(clang::SourceLocation location, clang
             config_->suppress(matches[5], location, true);
         } else if (!matches[7].empty()) {
             config_->suppress(matches[7], location, false);
+        } else if (!matches[8].empty()) {
+            config_->set_value(matches[9], matches[10]);
         }
     }
 }

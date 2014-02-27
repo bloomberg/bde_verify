@@ -1,5 +1,5 @@
 // csafmt_banner.t.cpp                                                -*-C++-*-
-
+#pragma bdeverify set banner_slack 3
 // =====
 // INLINE
 // ---

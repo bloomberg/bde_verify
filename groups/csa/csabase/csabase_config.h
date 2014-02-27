@@ -52,6 +52,8 @@ public:
 
     std::map<std::string, Status> const& checks() const;
 
+    void set_value(const std::string& key, const std::string& value);
+
     std::string const& value(const std::string& key) const;
 
     bool all() const;

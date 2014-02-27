@@ -164,7 +164,7 @@ cool::csabase::Config::process(std::string const& line)
         if (args >> key) {
             std::string value;
             if (std::getline(args, value)) {
-                d_values[key] = llvm::StringRef(value).trim();
+                set_value(key, llvm::StringRef(value).trim());
             }
             else {
                 llvm::errs()
@@ -246,6 +246,12 @@ std::map<std::string, cool::csabase::Config::Status> const&
 cool::csabase::Config::checks() const
 {
     return d_checks;
+}
+
+void cool::csabase::Config::set_value(const std::string& key,
+                                      const std::string& value)
+{
+    d_values[key] = value;
 }
 
 const std::string& cool::csabase::Config::value(const std::string& key) const

@@ -149,9 +149,12 @@ void files::check_comment(SourceRange comment_range)
         size_t actual_last_space_pos =
             manager.getPresumedColumnNumber(
                     banner_start.getLocWithOffset(text_pos)) - 1;
+        size_t banner_slack = std::strtoul(
+            d_analyser.config()->value("banner_slack").c_str(), 0, 10);
         size_t expected_last_space_pos =
             ((79 - 2 - text.size()) / 2 + 2) & ~3;
-        if (actual_last_space_pos != expected_last_space_pos) {
+        if (actual_last_space_pos < expected_last_space_pos - banner_slack ||
+            actual_last_space_pos > expected_last_space_pos + banner_slack) {
             std::string expected_text =
                 "//" + std::string(expected_last_space_pos - 2, ' ') +
                 text.str();
