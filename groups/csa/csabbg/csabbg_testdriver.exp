@@ -1,3 +1,50 @@
+groups/csa/csabbg/csabbg_testdriver.t.cpp:33:0: warning: TP19: Missing or malformed standard test driver section
+//                       STANDARD BDE ASSERT TEST MACRO
+^
+groups/csa/csabbg/csabbg_testdriver.t.cpp:33:0: note: TP19: Correct form is
+// ============================================================================
+//                      STANDARD BDE ASSERT TEST MACROS
+// ----------------------------------------------------------------------------
+static int testStatus = 0;
+static void aSsErT(int c, const char *s, int i)
+{
+    if (c) {
+        cout << "Error " << __FILE__ << "(" << i << "): " << s
+             << "    (failed)" << endl;
+        if (testStatus >= 0 && testStatus <= 100) ++testStatus;
+    }
+}
+#define ASSERT(X) { aSsErT(!(X), #X, __LINE__); }
+
+groups/csa/csabbg/csabbg_testdriver.t.cpp:49:0: warning: TP19: Missing or malformed standard test driver section
+//                       STANDARD BDE TEST DRIVER MACROS
+^
+groups/csa/csabbg/csabbg_testdriver.t.cpp:49:0: note: TP19: Correct form is
+// ============================================================================
+//                    STANDARD BDE LOOP-ASSERT TEST MACROS
+// ----------------------------------------------------------------------------
+#define C_(X)   << #X << ": " << X << '\t'
+#define A_(X,S) { if (!(X)) { cout S << endl; aSsErT(1, #X, __LINE__); } }
+#define LOOP_ASSERT(I,X)            A_(X,C_(I))
+#define LOOP2_ASSERT(I,J,X)         A_(X,C_(I)C_(J))
+#define LOOP3_ASSERT(I,J,K,X)       A_(X,C_(I)C_(J)C_(K))
+#define LOOP4_ASSERT(I,J,K,L,X)     A_(X,C_(I)C_(J)C_(K)C_(L))
+#define LOOP5_ASSERT(I,J,K,L,M,X)   A_(X,C_(I)C_(J)C_(K)C_(L)C_(M))
+#define LOOP6_ASSERT(I,J,K,L,M,N,X) A_(X,C_(I)C_(J)C_(K)C_(L)C_(M)C_(N))
+
+groups/csa/csabbg/csabbg_testdriver.t.cpp:61:0: warning: TP19: Missing or malformed standard test driver section
+//=============================================================================
+^
+groups/csa/csabbg/csabbg_testdriver.t.cpp:61:0: note: TP19: Correct form is
+// ============================================================================
+//                  SEMI-STANDARD TEST OUTPUT MACROS
+// ----------------------------------------------------------------------------
+#define P(X) cout << #X " = " << (X) << endl; // Print identifier and value.
+#define Q(X) cout << "<| " #X " |>" << endl;  // Quote identifier literally.
+#define P_(X) cout << #X " = " << (X) << ", " << flush; // 'P(X)' without '\n'
+#define T_ cout << "\t" << flush;             // Print tab w/o newline.
+#define L_ __LINE__                           // current Line number
+
 groups/csa/csabbg/csabbg_testdriver.t.cpp:24:0: warning: TP03: Missing test number
 // [  ] void setF();
 ^~~~
@@ -35,4 +82,4 @@ groups/csa/csabbg/csabbg_testdriver.t.cpp:120:0: warning: TP08: Test plan does n
 groups/csa/csabbg/csabbg_testdriver.t.cpp:30:0: note: TP08: Test plan item is
 // [  ] USAGE EXAMPLE
 ^
-10 warnings generated.
+13 warnings generated.

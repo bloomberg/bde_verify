@@ -89,10 +89,8 @@ struct report
     void operator()(SourceLocation loc, SourceLocation);
         // Callback for '#else' and '#endif' at the specified 'loc'.
 
-    void operator()(SourceLocation loc,
-                    std::string const&,
-                    std::string const&);
-        // Callback for opening the file of the specified 'loc'.
+    void check_boilerplate();
+        // Check test driver boilerplate in the main file.
 
     void search(SourceLocation *best_loc,
                 llvm::StringRef *best_needle,
@@ -283,6 +281,8 @@ void report::operator()()
     if (!d_analyser.is_test_driver()) {
         return;                                                       // RETURN
     }
+
+    check_boilerplate();
 
     SourceRange plan_range = get_test_plan();
 
@@ -843,10 +843,10 @@ void report::search(SourceLocation *best_loc,
         }
     }
 
-    // Compute the set of lines to examine.  Always examine line 1, so that
+    // Compute the set of lines to examine.  Always examine last line, so that
     // some match is returned.
     std::set<size_t> lines;
-    lines.insert(1);
+    lines.insert(Location(m, m.getLocForEndOfFile(fid)).line());
 
     // For each line in the haystack where we find the key, add the range of
     // lines around it, 'max_needle_lines' in each direction, to the set of
@@ -854,8 +854,12 @@ void report::search(SourceLocation *best_loc,
     for (size_t key_pos = haystack.find(key); key_pos != haystack.npos;) {
         size_t key_line = Location(m, top.getLocWithOffset(key_pos)).line();
         for (size_t i = 0; i <= max_needle_lines; ++i) {
-            if (key_line - i <= num_lines) { lines.insert(key_line - i); }
-            if (key_line + i <= num_lines) { lines.insert(key_line + i); }
+            if (key_line > i && key_line - i <= num_lines) {
+                lines.insert(key_line - i);
+            }
+            if (key_line + i <= num_lines) {
+                lines.insert(key_line + i);
+            }
         }
         size_t pos = haystack.drop_front(key_pos + key.size()).find(key);
         if (pos == haystack.npos) {
@@ -901,25 +905,20 @@ void report::search(SourceLocation *best_loc,
     }
 }
 
-void report::operator()(SourceLocation loc,
-                        std::string const&,
-                        std::string const&)
+void report::check_boilerplate()
 {
     const SourceManager &m = d_analyser.manager();
-    FileID fid = m.getFileID(loc);
-    if (!d_analyser.is_test_driver() ||
-        Location(m, loc).file() != d_analyser.toplevel()) {
-        return;                                                       // RETURN
-    }
+    FileID fid = m.getMainFileID();
 
     size_t distance;
     llvm::StringRef needle;
     std::vector<llvm::StringRef> needles;
+    SourceLocation loc;
 
     needles.clear();
     needles.push_back(standard_bde_assert_test_macros);
     needles.push_back(standard_bde_assert_test_macros_bsl);
-    search(&loc, &needle, &distance, "testStatus", needles, fid);
+    search(&loc, &needle, &distance, "(failed)", needles, fid);
     if (distance != 0) {
         d_analyser.report(loc,
                           check_name, "TP19",
@@ -935,7 +934,7 @@ void report::operator()(SourceLocation loc,
     needles.push_back(standard_bde_loop_assert_test_macros_old);
     needles.push_back(standard_bde_loop_assert_test_macros_new);
     needles.push_back(standard_bde_loop_assert_test_macros_bsl);
-    search(&loc, &needle, &distance, "define LOOP_ASSER", needles, fid);
+    search(&loc, &needle, &distance, "define LOOP_ASSERT", needles, fid);
     if (distance != 0) {
         d_analyser.report(loc, check_name, "TP19",
                           "Missing or malformed standard test driver section");
@@ -947,7 +946,7 @@ void report::operator()(SourceLocation loc,
     needles.clear();
     needles.push_back(semi_standard_test_output_macros);
     needles.push_back(semi_standard_test_output_macros_bsl);
-    search(&loc, &needle, &distance, "define P", needles, fid);
+    search(&loc, &needle, &distance, "define P_", needles, fid);
     if (distance != 0) {
         d_analyser.report(loc, check_name, "TP19",
                           "Missing or malformed standard test driver section");
@@ -969,7 +968,6 @@ void subscribe(Analyser& analyser, Visitor& visitor, PPObserver& observer)
     observer.onIfndef += report(analyser);
     observer.onElse += report(analyser);
     observer.onEndif += report(analyser);
-    observer.onOpenFile += report(analyser);
 }
 
 }  // close anonymous namespace
