@@ -127,7 +127,7 @@ check_order(CB::Analyser*                   analyser,
 {
     clang::SourceLocation const* bdes_ident_location(0);
     if (headers.empty()) {
-        analyser->report(clang::SourceLocation(), check_name, "SH003",
+        analyser->report(clang::SourceLocation(), check_name, "SHO03",
                          header
                          ? "Header without include guard included"
                          : "Source without component include");
