@@ -54,9 +54,15 @@ public:
 
     void set_value(const std::string& key, const std::string& value);
 
-    std::string const& value(const std::string& key) const;
+    std::string const&
+    value(const std::string& key,
+          clang::SourceLocation where = clang::SourceLocation()) const;
 
     bool all() const;
+
+    size_t bv_stack_level(clang::SourceLocation where) const;
+        // Return the 'pragma bdeverify' stack level of the specified location
+        // 'where'.
 
     bool suppressed(const std::string& tag, clang::SourceLocation where) const;
         // Return 'true' iff a diagnostic with the specified 'tag' should be
@@ -80,6 +86,12 @@ public:
         // the members of the group unles 'tag' is present in the optionally
         // specified 'in_progress' set.
 
+    void set_bv_value(clang::SourceLocation where,
+                      const std::string& variable,
+                      const std::string& value);
+        // Record, for the specified location 'where', the appearance of a
+        // specified '#pragma bdeverify set variable value'.
+
 private:
     std::string                                      d_toplevel_namespace;
     std::vector<std::string>                         d_loadpath;
@@ -87,16 +99,24 @@ private:
     std::map<std::string, std::vector<std::string> > d_groups;
     std::map<std::string, std::string>               d_values;
     std::set<std::pair<std::string, std::string> >   d_suppressions;
-    std::map<std::string,               // file
-        std::vector<                    // each pragma bdeverify in file
-            std::pair<
-                clang::SourceLocation,  // location of pragma
-                std::pair<char,         // - (off), + (on), > (push), < (pop)
-                          std::string   //  tag, *, or empty
-                >
-            >
-        >
-    >                                                d_local_suppressions;
+
+    struct BVData
+    {
+        clang::SourceLocation where;
+        char type;
+        std::string s1;
+        std::string s2;
+
+        BVData(clang::SourceLocation where,
+               char type,
+               const std::string& s1 = std::string(),
+               const std::string& s2 = std::string())
+            : where(where), type(type), s1(s1), s2(s2)
+        {
+        }
+    };
+
+    std::map<std::string, std::vector<BVData> >      d_local_bv_pragmas;
     Status                                           d_all;
     clang::SourceManager&                            d_manager;
 };

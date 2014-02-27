@@ -2,7 +2,6 @@
 // ----------------------------------------------------------------------------
 
 #include <csabase_analyser.h>
-#include <csabase_debug.h>
 #include <csabase_location.h>
 #include <csabase_ppobserver.h>
 #include <csabase_registercheck.h>
@@ -505,7 +504,7 @@ void report::operator()()
             std::pair<Ci, Ci> be = d_data.d_cases_of_tests.equal_range(line);
             Ci match_itr;
             for (match_itr = be.first; match_itr != be.second; ++match_itr) {
-                if (match_itr->second == case_value) {
+                if (match_itr->second == case_value.getSExtValue()) {
                     break;
                 }
             }
@@ -648,9 +647,9 @@ void report::match_case_stmt(const BoundNodes& nodes)
         if (text.size() != ul.size() ||
             ul.find_first_not_of('=') != ul.npos ||
             text.find_first_of("abcdefghijklmnopqrstuvwxyz") != text.npos) {
-                d_analyser.report(l1, check_name, "TP18",
+                d_analyser.report(l2, check_name, "TP18",
                                   "Incorrect test banner format");
-                d_analyser.report(l1, check_name, "TP18",
+                d_analyser.report(l2, check_name, "TP18",
                                   "Correct format is\n%0",
                                   false, DiagnosticsEngine::Note)
                     << "cout << endl\n"

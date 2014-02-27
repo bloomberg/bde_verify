@@ -329,7 +329,7 @@ cool::csabase::PPObserver::PragmaDirective(clang::SourceLocation location, clang
         } else if (!matches[7].empty()) {
             config_->suppress(matches[7], location, false);
         } else if (!matches[8].empty()) {
-            config_->set_value(matches[9], matches[10]);
+            config_->set_bv_value(location, matches[9], matches[10]);
         }
     }
 }

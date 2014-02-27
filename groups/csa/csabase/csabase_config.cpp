@@ -254,8 +254,65 @@ void cool::csabase::Config::set_value(const std::string& key,
     d_values[key] = value;
 }
 
-const std::string& cool::csabase::Config::value(const std::string& key) const
+size_t cool::csabase::Config::bv_stack_level(clang::SourceLocation where) const
 {
+    size_t where_level = 0;
+    cool::csabase::Location location(d_manager, where);
+    cool::csabase::FileName fn(location.file());
+    if (d_local_bv_pragmas.find(fn.name()) != d_local_bv_pragmas.end()) {
+        const std::vector<BVData>& ls =
+            d_local_bv_pragmas.find(fn.name())->second;
+        for (size_t i = 0; i < ls.size(); ++i) {
+            if (d_manager.isBeforeInTranslationUnit(where, ls[i].where)) {
+                break;
+            }
+            if (ls[i].type == '>') {
+                ++where_level;
+            } else if (where_level > 0 && ls[i].type == '<') {
+                --where_level;
+            }
+        }
+    }
+    return where_level;
+}
+
+const std::string&
+cool::csabase::Config::value(const std::string& key,
+                             clang::SourceLocation where) const
+{
+    if (where.isValid()) {
+        cool::csabase::Location location(d_manager, where);
+        cool::csabase::FileName fn(location.file());
+        if (d_local_bv_pragmas.find(fn.name()) != d_local_bv_pragmas.end()) {
+            const std::vector<BVData>& ls =
+                d_local_bv_pragmas.find(fn.name())->second;
+            // Find the pragma stack level of the diagnostic location.
+            size_t where_level = bv_stack_level(where);
+            size_t pragma_level = 0;
+            const std::string *found = 0;
+            // Look for a set pragma before the diagnostic location, only at
+            // pragma levels at or below the diagnostic location stack level.
+            for (size_t i = 0; i < ls.size(); ++i) {
+                if (d_manager.isBeforeInTranslationUnit(where, ls[i].where)) {
+                    break;
+                }
+                if (ls[i].type == '>') {
+                    ++pragma_level;
+                } else if (pragma_level > 0 && ls[i].type == '<') {
+                    --pragma_level;
+                } else if (   ls[i].type == '='
+                           && pragma_level <= where_level
+                           && ls[i].s1 == key) {
+                    found = &ls[i].s2;
+                }
+            }
+
+            if (found) {
+                return *found;                                        // RETURN
+            }
+        }
+    }
+
     static std::string empty;
     if (d_values.find(key) != d_values.end()) {
         return d_values.find(key)->second;
@@ -275,39 +332,27 @@ cool::csabase::Config::suppressed(const std::string& tag,
     cool::csabase::Location location(d_manager, where);
     cool::csabase::FileName fn(location.file());
 
-    if (d_local_suppressions.find(fn.name()) != d_local_suppressions.end()) {
-        const std::vector<std::pair<clang::SourceLocation,
-                                    std::pair<char, std::string> > >& ls =
-            d_local_suppressions.find(fn.name())->second;
-        // Find the pragma stack level of the disgnostoc location.
-        size_t where_level = 0;
-        for (size_t i = 0; i < ls.size(); ++i) {
-            if (d_manager.isBeforeInTranslationUnit(where, ls[i].first)) {
-                break;
-            }
-            if (ls[i].second.first == '>') {
-                ++where_level;
-            } else if (where_level > 0 && ls[i].second.first == '<') {
-                --where_level;
-            }
-        }
-
+    if (d_local_bv_pragmas.find(fn.name()) != d_local_bv_pragmas.end()) {
+        const std::vector<BVData>& ls =
+            d_local_bv_pragmas.find(fn.name())->second;
+        size_t where_level = bv_stack_level(where);
         size_t pragma_level = 0;
         char found = 0;
         // Look for a tag pragma before the diagnostic location, only at pragma
         // levels at or below the diagnostic location stack level.
         for (size_t i = 0; i < ls.size(); ++i) {
-            if (d_manager.isBeforeInTranslationUnit(where, ls[i].first)) {
+            if (d_manager.isBeforeInTranslationUnit(where, ls[i].where)) {
                 break;
             }
-            if (ls[i].second.first == '>') {
+            if (ls[i].type == '>') {
                 ++pragma_level;
-            } else if (pragma_level > 0 && ls[i].second.first == '<') {
+            } else if (pragma_level > 0 && ls[i].type == '<') {
                 --pragma_level;
-            } else if (   pragma_level <= where_level
-                       && (   ls[i].second.second == tag
-                           || ls[i].second.second == "*")) {
-                found = ls[i].second.first;
+            } else if (   (ls[i].type == '-' || ls[i].type == '+')
+                       && pragma_level <= where_level
+                       && (   ls[i].s1 == tag
+                           || ls[i].s1 == "*")) {
+                found = ls[i].type;
             }
         }
         if (found) {
@@ -325,8 +370,7 @@ cool::csabase::Config::push_suppress(clang::SourceLocation where)
 {
     cool::csabase::Location location(d_manager, where);
     cool::csabase::FileName fn(location.file());
-    d_local_suppressions[fn.name()].push_back(
-        std::make_pair(where, std::make_pair('>', "")));
+    d_local_bv_pragmas[fn.name()].push_back(BVData(where, '>'));
 }
 
 void
@@ -334,8 +378,7 @@ cool::csabase::Config::pop_suppress(clang::SourceLocation where)
 {
     cool::csabase::Location location(d_manager, where);
     cool::csabase::FileName fn(location.file());
-    d_local_suppressions[fn.name()].push_back(
-        std::make_pair(where, std::make_pair('<', "")));
+    d_local_bv_pragmas[fn.name()].push_back(BVData(where, '<'));
 }
 
 void cool::csabase::Config::suppress(const std::string& tag,
@@ -346,8 +389,8 @@ void cool::csabase::Config::suppress(const std::string& tag,
     if (!in_progress.count(tag)) {
         cool::csabase::Location location(d_manager, where);
         cool::csabase::FileName fn(location.file());
-        d_local_suppressions[fn.name()].push_back(
-                std::make_pair(where, std::make_pair(on ? '-' : '+', tag)));
+        d_local_bv_pragmas[fn.name()]
+            .push_back(BVData(where, on ? '-' : '+', tag));
         if (d_groups.find(tag) != d_groups.end()) {
             in_progress.insert(tag);
             const std::vector<std::string>& group_items =
@@ -357,4 +400,14 @@ void cool::csabase::Config::suppress(const std::string& tag,
             }
         }
     }
+}
+
+void cool::csabase::Config::set_bv_value(clang::SourceLocation where,
+                                         const std::string& variable,
+                                         const std::string& value)
+{
+    cool::csabase::Location location(d_manager, where);
+    cool::csabase::FileName fn(location.file());
+    d_local_bv_pragmas[fn.name()]
+        .push_back(BVData(where, '=', variable, value));
 }
