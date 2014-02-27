@@ -608,14 +608,7 @@ void report::critiqueContract(const FunctionDecl* func, SourceRange comment)
     }
 
     // Now check that the function contract documents the parameters.
-    // If there are any parameters, we only check for a single instance
-    // of the words 'specify' or 'specified', because contracts can say
-    // things like "the specified 'a' and 'b'".  Similarly, if there
-    // are optional parameters, we only check for a single instance of
-    // the word "optionally".
     const unsigned num_parms = func->getNumParams();
-    bool specify_done = false;
-    bool optional_done = false;
     static const char *const noise_words[] = {
         "a", "an", "and", "are", "is", "not", "or", "the"
     };
@@ -729,91 +722,6 @@ void report::critiqueContract(const FunctionDecl* func, SourceRange comment)
                         }
                     }
                 }
-            }
-        }
-    }
-
-    return;
-
-    for (unsigned i = 0; i < num_parms; ++i) {
-        const ParmVarDecl* parm = func->getParamDecl(i);
-        if (!parm->getIdentifier()) {
-            // Ignore unnamed parameters.
-            continue;
-        }
-        // Compare with case insensitivity to avoid sentence capitalization
-        // issues.  This could lead to false positives if there are multiple
-        // parameters with the same spelling but different cases, but we'll
-        // live with that.
-        const std::string name = parm->getNameAsString();
-        std::string namepat = name;
-        std::string::size_type d = namepat.find_last_not_of("0123456789");
-        if (d != namepat.npos && d != name.size() - 1) {
-            namepat = namepat.substr(0, d + 1) + "[[:digit:]]+";
-        }
-        llvm::Regex pre("^([^_[:alnum:]]*|.*[^_[:alnum:]])" +
-                        namepat +
-                        "([^_[:alnum:]]*|[^_[:alnum:]].*)$",
-                        llvm::Regex::IgnoreCase);
-        llvm::SmallVector<llvm::StringRef, 3> matches;
-        if (!pre.match(contract, &matches)) {
-            // Did not find parameter name in contract.
-            d_analyser.report(parm->getSourceRange().getBegin(),
-                check_name, "FD03",
-                "Parameter '%0' is not documented in the function contract")
-                << name
-                << parm->getSourceRange();
-        } else {
-            SourceRange crange(comment.getBegin().getLocWithOffset(
-                                                       matches[1].size()),
-                              comment.getEnd().getLocWithOffset(
-                                                      -matches[2].size() - 1));
-            llvm::Regex qre("^([^']|'[^']*')*"
-                            "'([^_[:alnum:]']*|[^']*[^_[:alnum:]])" +
-                            namepat +
-                            "([^_[:alnum:]']*|[^_[:alnum:]][^']*)'",
-                            llvm::Regex::IgnoreCase);
-            if (!qre.match(contract)) {
-                // Found parameter name, but unticked.
-                d_analyser.report(crange.getBegin(),
-                     check_name, "FD04",
-                    "Parameter '%0' is not single-quoted in the function "
-                    "contract")
-                    << name
-                    << crange;
-            }
-            static llvm::Regex ore("(^|[^_[:alnum:]])"
-                                   "optionally"
-                                   "([^_[:alnum:]]|$)",
-                                   llvm::Regex::IgnoreCase);
-            if (   !optional_done
-                && parm->hasDefaultArg()
-                && !ore.match(contract)) {
-                // The first time we see a named optional parameter,
-                // check for "optionally" in the contract.
-                optional_done = true;
-                d_analyser.report(crange.getBegin(),
-                        check_name, "FD05",
-                        "In the function contract, use the phrase 'optionally "
-                        "specify' to document parameters that have default "
-                        "arguments")
-                    << crange;
-            }
-            static llvm::Regex sre("(^|[^_[:alnum:]])"
-                                   "(specified|specify)"
-                                   "([^_[:alnum:]]|$)",
-                                   llvm::Regex::IgnoreCase);
-            if (   !specify_done
-                && !parm->hasDefaultArg()
-                && !sre.match(contract)) {
-                // The first time we see a named required parameter,
-                // check for "specified" or "specify" in the contract.
-                specify_done = true;
-                d_analyser.report(crange.getBegin(),
-                        check_name, "FD06",
-                        "In the function contract, use the word 'specified' "
-                        "or 'specify' to document parameters")
-                    << crange;
             }
         }
     }
