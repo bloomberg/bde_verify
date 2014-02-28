@@ -268,7 +268,7 @@ void break_into_words(std::vector<Word>* words,
     size_t start_of_last_word = 0;
     for (size_t i = 0; i < comment.size(); ++i) {
         unsigned char c = static_cast<unsigned char>(comment[i]);
-        bool is_id = std::isalnum(c) || c == '_';
+        bool is_id = std::isalnum(c) || c == '_' || c == '-';
         if (in_word) {
             if (!is_id) {
                 words->back().set(parm_info,
@@ -288,16 +288,20 @@ void break_into_words(std::vector<Word>* words,
                               parms,
                               noise);
         }
-        in_word = is_id;
-        if (!in_word) {
+        if (!is_id) {
             if (c == '\\') {
                 last_char_was_backslash = !last_char_was_backslash;
             } else if (c == '\'') {
-                if (!last_char_was_backslash) {
+                if (in_word) {
+                    if (in_single_quotes) {
+                        in_single_quotes = false;
+                    }
+                } else if (!last_char_was_backslash) {
                     in_single_quotes = !in_single_quotes;
                 }
             }
         }
+        in_word = is_id;
     }
 }
 
@@ -650,38 +654,50 @@ void report::critiqueContract(const FunctionDecl* func, SourceRange comment)
                 << parm->getSourceRange();
         }
 
-        if (really_matched && parm_info[i].is_not_quoted) {
-            for (size_t j = 0; j < words.size(); ++j) {
-                const Word& word = words[j];
-                if (word.parm == i && !word.is_quoted && !word.is_noise) {
-                    SourceRange r = word_range(comment, word);
-                    d_analyser.report(r.getBegin(),
-                                      check_name, "FD04",
-                                      "Parameter '%0' is not single-quoted in "
-                                      "the function contract")
-                        << word.word
-                        << r;
-                }
-            }
-        }
-
+        bool first = true;
+        size_t first_index = 0;
         for (size_t j = 0; j < words.size(); ++j) {
-            bool first = true;
             if (words[j].parm == i) {
                 if (first) {
-                    first = false;
+                    // First use of parameter name in contract.
                     bool specify_found = false;
+                    size_t word_slack = std::strtoul(d_analyser.config()
+                            ->value("word_slack", comment.getBegin()).c_str(),
+                        0, 10);
                     size_t k;
+                    // Look for "specify" before parameter.  Intervening words
+                    // may be other parameters, noise words, or up to
+                    // "word_slack" arbitray words.
                     for (k = j; !specify_found && k > 0; --k) {
                         const Word& word = words[k - 1];
                         if (word.is_specify) {
                             specify_found = true;
                         } else if (!word.is_noise &&
                                    !word.is_quoted &&
-                                   word.parm >= parms.size()) {
+                                   word.parm >= parms.size() &&
+                                   word_slack-- == 0) {
                             break;
                         }
                     }
+
+                    // If we know that the parameter name appears both quoted
+                    // and unquoted, and that this instance of the parameter
+                    // name is unquoted and doesn't have "specified", assume
+                    // that this is a Standard English use of the word rather
+                    // than a naming of the parameter, and so ignore it.  E.g.,
+                    //..
+                    //  For the hash key, use the specified 'key' combined with
+                    //  the specified 'salt'.
+                    //..
+                    if (   !specify_found
+                        && parm_info[i].is_quoted
+                        && parm_info[i].is_not_quoted
+                        && !words[j].is_quoted) {
+                        continue;
+                    }
+
+                    first_index = j;
+
                     if (parm->hasDefaultArg() &&
                         (!specify_found ||
                          k < 1 ||
@@ -704,6 +720,7 @@ void report::critiqueContract(const FunctionDecl* func, SourceRange comment)
                                 "'specified' or 'specify'")
                             << r;
                     }
+                    first = false;
                 } else {
                     for (size_t k = j; k > 0; --k) {
                         const Word& word = words[k - 1];
@@ -720,6 +737,31 @@ void report::critiqueContract(const FunctionDecl* func, SourceRange comment)
                         } else if (!word.is_noise) {
                             break;
                         }
+                    }
+                }
+            }
+        }
+
+        // Warn about unquoted parameters unless they're on the whitelist.
+        if (really_matched && parm_info[i].is_not_quoted) {
+            std::string ok =
+                " " + llvm::StringRef(d_analyser.config()->value(
+                                          "ok_unquoted", comment.getBegin()))
+                          .lower() +
+                " ";
+            std::string mw = " " + parms[i].lower() + " ";
+            if (ok.find(mw) == ok.npos) {
+                for (size_t j = first_index; j < words.size(); ++j) {
+                    const Word& word = words[j];
+                    if (word.parm == i && !word.is_quoted && !word.is_noise) {
+                        SourceRange r = word_range(comment, word);
+                        d_analyser.report(
+                                r.getBegin(),
+                                check_name, "FD04",
+                                "Parameter '%0' is not single-quoted in the "
+                                "function contract")
+                            << parms[i]
+                            << r;
                     }
                 }
             }
