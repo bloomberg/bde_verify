@@ -54,10 +54,82 @@ groups/csa/csabbg/csabbg_testdriver.t.cpp:29:0: warning: TP03: Missing test numb
 groups/csa/csabbg/csabbg_testdriver.t.cpp:30:0: warning: TP03: Missing test number
 // [  ] USAGE EXAMPLE
 ^~~~
-groups/csa/csabbg/csabbg_testdriver.t.cpp:167:0: warning: TP17: Test case does not contain 'if (verbose) print test banner'
+groups/csa/csabbg/csabbg_testdriver.t.cpp:244:0: warning: TP17: Test case does not contain 'if (verbose) print test banner'
       case -1: {
 ^
-groups/csa/csabbg/csabbg_testdriver.t.cpp:167:0: warning: TP05: Test case has no comment
+groups/csa/csabbg/csabbg_testdriver.t.cpp:244:0: warning: TP05: Test case has no comment
+groups/csa/csabbg/csabbg_testdriver.t.cpp:177:0: warning: TP20: Within loops, act on very verbose
+        for (; b; ) { if (verbose) { cout << endl; } }
+^
+groups/csa/csabbg/csabbg_testdriver.t.cpp:178:0: warning: TP20: Within loops, act on very verbose
+        while (b)   { if (verbose) { cout << endl; } }
+^
+groups/csa/csabbg/csabbg_testdriver.t.cpp:179:0: warning: TP20: Within loops, act on very verbose
+        do          { if (verbose) { cout << endl; } } while (b);
+^
+groups/csa/csabbg/csabbg_testdriver.t.cpp:194:0: warning: TP20: Within loops, act on very verbose
+            for (; b; ) { if (verbose) { cout << endl; } }
+^
+groups/csa/csabbg/csabbg_testdriver.t.cpp:195:0: warning: TP20: Within loops, act on very verbose
+            while (b)   { if (verbose) { cout << endl; } }
+^
+groups/csa/csabbg/csabbg_testdriver.t.cpp:196:0: warning: TP20: Within loops, act on very verbose
+            do          { if (verbose) { cout << endl; } } while (b);
+^
+groups/csa/csabbg/csabbg_testdriver.t.cpp:213:0: warning: TP20: Within loops, act on very verbose
+            for (; b; ) { if (verbose) { cout << endl; } }
+^
+groups/csa/csabbg/csabbg_testdriver.t.cpp:214:0: warning: TP20: Within loops, act on very verbose
+            while (b)   { if (verbose) { cout << endl; } }
+^
+groups/csa/csabbg/csabbg_testdriver.t.cpp:215:0: warning: TP20: Within loops, act on very verbose
+            do          { if (verbose) { cout << endl; } } while (b);
+^
+groups/csa/csabbg/csabbg_testdriver.t.cpp:234:0: warning: TP20: Within loops, act on very verbose
+            for (; b; ) { if (verbose) { cout << endl; } }
+^
+groups/csa/csabbg/csabbg_testdriver.t.cpp:235:0: warning: TP20: Within loops, act on very verbose
+            while (b)   { if (verbose) { cout << endl; } }
+^
+groups/csa/csabbg/csabbg_testdriver.t.cpp:236:0: warning: TP20: Within loops, act on very verbose
+            do          { if (verbose) { cout << endl; } } while (b);
+^
+groups/csa/csabbg/csabbg_testdriver.t.cpp:182:0: warning: TP21: Loops must contain very verbose action
+        for (; b; ) { }
+^
+groups/csa/csabbg/csabbg_testdriver.t.cpp:183:0: warning: TP21: Loops must contain very verbose action
+        while (b)   { }
+^
+groups/csa/csabbg/csabbg_testdriver.t.cpp:184:0: warning: TP21: Loops must contain very verbose action
+        do          { } while (b);
+^
+groups/csa/csabbg/csabbg_testdriver.t.cpp:199:0: warning: TP21: Loops must contain very verbose action
+            for (; b; ) { }
+^
+groups/csa/csabbg/csabbg_testdriver.t.cpp:200:0: warning: TP21: Loops must contain very verbose action
+            while (b)   { }
+^
+groups/csa/csabbg/csabbg_testdriver.t.cpp:201:0: warning: TP21: Loops must contain very verbose action
+            do          { } while (b);
+^
+groups/csa/csabbg/csabbg_testdriver.t.cpp:218:0: warning: TP21: Loops must contain very verbose action
+            for (; b; ) { }
+^
+groups/csa/csabbg/csabbg_testdriver.t.cpp:219:0: warning: TP21: Loops must contain very verbose action
+            while (b)   { }
+^
+groups/csa/csabbg/csabbg_testdriver.t.cpp:220:0: warning: TP21: Loops must contain very verbose action
+            do          { } while (b);
+^
+groups/csa/csabbg/csabbg_testdriver.t.cpp:239:0: warning: TP21: Loops must contain very verbose action
+            for (; b; ) { }
+^
+groups/csa/csabbg/csabbg_testdriver.t.cpp:240:0: warning: TP21: Loops must contain very verbose action
+            while (b)   { }
+^
+groups/csa/csabbg/csabbg_testdriver.t.cpp:241:0: warning: TP21: Loops must contain very verbose action
+            do          { } while (b);
+^
 groups/csa/csabbg/csabbg_testdriver.t.cpp:159:0: warning: TP08: Test plan does not have case number 1 for this item
         //   BREATHING TEST
 ^
@@ -82,4 +154,4 @@ groups/csa/csabbg/csabbg_testdriver.t.cpp:120:0: warning: TP08: Test plan does n
 groups/csa/csabbg/csabbg_testdriver.t.cpp:30:0: note: TP08: Test plan item is
 // [  ] USAGE EXAMPLE
 ^
-13 warnings generated.
+37 warnings generated.

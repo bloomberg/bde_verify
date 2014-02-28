@@ -2,6 +2,7 @@
 // ----------------------------------------------------------------------------
 
 #include <csabase_analyser.h>
+#include <csabase_debug.h>
 #include <csabase_location.h>
 #include <csabase_ppobserver.h>
 #include <csabase_registercheck.h>
@@ -102,10 +103,13 @@ struct report
         // set the specified 'best_loc', 'best_needle', and 'best_distance' to
         // the matched position, string, and closeness respectively.
 
-    void match_case_stmt(const BoundNodes &nodes);
+    void match_print_banner(const BoundNodes &nodes);
     bool found_banner;
     llvm::StringRef banner_text;
     const clang::StringLiteral *banner_literal;
+
+    void match_noisy_print(const BoundNodes &nodes);
+    void match_no_print(const BoundNodes &nodes);
 };
 
 report::report(Analyser& analyser)
@@ -188,7 +192,7 @@ print_banner_matcher()
     //..
 {
     static const internal::DynTypedMatcher matcher =
-        caseStmt(hasDescendant(compoundStmt(hasDescendant(ifStmt(
+        caseStmt(has(compoundStmt(hasDescendant(ifStmt(
             hasCondition(ignoringImpCasts(declRefExpr(to(
                 varDecl(hasName("verbose")))))
             ),
@@ -272,6 +276,47 @@ print_banner_matcher()
                 )
             )
         )))));
+    return matcher;
+}
+
+const internal::DynTypedMatcher &
+noisy_print_matcher()
+    // Return an AST matcher which looks for (not very) verbose output inside
+    // loops in a test case statement.
+{
+    static const internal::DynTypedMatcher matcher =
+        caseStmt(has(compoundStmt(forEachDescendant(
+            ifStmt(hasCondition(ignoringImpCasts(
+                       declRefExpr(to(varDecl(hasName("verbose")))))),
+                   anyOf(hasAncestor(doStmt()),
+                         hasAncestor(forStmt()),
+                         hasAncestor(whileStmt()))).bind("noisy")))));
+    return matcher;
+}
+
+const internal::DynTypedMatcher &
+no_print_matcher()
+    // Return an AST matcher which looks for missing verbose output inside
+    // loops in a test statement.
+{
+    static const internal::DynTypedMatcher matcher =
+        caseStmt(has(compoundStmt(
+            eachOf(
+                forEachDescendant(doStmt().bind("try")),
+                forEachDescendant(forStmt().bind("try")),
+                forEachDescendant(whileStmt().bind("try"))),
+            forEachDescendant(stmt(
+                equalsBoundNode("try"),
+                unless(hasDescendant(ifStmt(
+                    hasCondition(ignoringImpCasts(declRefExpr(to(varDecl(anyOf(
+                        hasName("verbose"),
+                        hasName("veryVerbose"),
+                        hasName("veryVeryVerbose"),
+                        hasName("veryVeryVeryVerbose")
+                    ))))))
+                )))
+            ).bind("loop"))
+        )));
     return matcher;
 }
 
@@ -415,8 +460,12 @@ void report::operator()()
         cs->getLHS()->EvaluateAsInt(case_value, *d_analyser.context());
 
         MatchFinder mf;
-        OnMatch<report, &report::match_case_stmt> callback(this);
-        mf.addDynamicMatcher(print_banner_matcher(), &callback);
+        OnMatch<report, &report::match_print_banner> m1(this);
+        mf.addDynamicMatcher(print_banner_matcher(), &m1);
+        OnMatch<report, &report::match_noisy_print> m2(this);
+        mf.addDynamicMatcher(noisy_print_matcher(), &m2);
+        OnMatch<report, &report::match_no_print> m3(this);
+        mf.addDynamicMatcher(no_print_matcher(), &m3);
 
         found_banner = false;
         banner_text = llvm::StringRef();
@@ -598,7 +647,7 @@ void report::operator()(SourceLocation loc, SourceLocation)
     mark_ccline(loc);
 }
 
-void report::match_case_stmt(const BoundNodes& nodes)
+void report::match_print_banner(const BoundNodes& nodes)
 {
     const StringLiteral *l1 = nodes.getNodeAs<StringLiteral>("BANNER");
     const StringLiteral *l2 = nodes.getNodeAs<StringLiteral>("TEST");
@@ -659,6 +708,20 @@ void report::match_case_stmt(const BoundNodes& nodes)
         banner_text = text.ltrim().split('\n').first;
         banner_literal = l2;
     }
+}
+
+void report::match_noisy_print(const BoundNodes& nodes)
+{
+    const IfStmt *noisy = nodes.getNodeAs<IfStmt>("noisy");
+    d_analyser.report(noisy->getCond(), check_name, "TP20",
+                      "Within loops, act on very verbose");
+}
+
+void report::match_no_print(const BoundNodes& nodes)
+{
+    const Stmt *quiet = nodes.getNodeAs<Stmt>("loop");
+    d_analyser.report(quiet, check_name, "TP21",
+                      "Loops must contain very verbose action");
 }
 
 #undef  NL

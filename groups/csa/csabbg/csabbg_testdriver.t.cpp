@@ -163,6 +163,83 @@ int main(int argc, char *argv[])
             cout << "BREATHING TEST" << endl
                  << "==============" << endl;
         }
+
+        static volatile const bool b = false;
+
+        // The following three triplets are the basic tests.
+
+        // These should generate no complaint.
+        for (; b; ) { if (veryVerbose) { cout << endl; } }
+        while (b)   { if (veryVerbose) { cout << endl; } }
+        do          { if (veryVerbose) { cout << endl; } } while (b);
+
+        // Complain about using "verbose" inside loops.
+        for (; b; ) { if (verbose) { cout << endl; } }
+        while (b)   { if (verbose) { cout << endl; } }
+        do          { if (verbose) { cout << endl; } } while (b);
+
+        // Complain about no "very verbose" action in loops.
+        for (; b; ) { }
+        while (b)   { }
+        do          { } while (b);
+
+        // Repeat the basic tests within a non-loop substatement.
+        if (b) {
+            // These should generate no complaint.
+            for (; b; ) { if (veryVerbose) { cout << endl; } }
+            while (b)   { if (veryVerbose) { cout << endl; } }
+            do          { if (veryVerbose) { cout << endl; } } while (b);
+
+            // Complain about using "verbose" inside loops.
+            for (; b; ) { if (verbose) { cout << endl; } }
+            while (b)   { if (verbose) { cout << endl; } }
+            do          { if (verbose) { cout << endl; } } while (b);
+
+            // Complain about no "very verbose" action in loops.
+            for (; b; ) { }
+            while (b)   { }
+            do          { } while (b);
+        }
+
+        // Repeat the basic tests within a loop substatement that has no direct
+        // "very verbose" action.  Policy is not to complain about this.
+        while (b) {
+            // These should generate no complaint.
+            for (; b; ) { if (veryVerbose) { cout << endl; } }
+            while (b)   { if (veryVerbose) { cout << endl; } }
+            do          { if (veryVerbose) { cout << endl; } } while (b);
+
+            // Complain about using "verbose" inside loops.
+            for (; b; ) { if (verbose) { cout << endl; } }
+            while (b)   { if (verbose) { cout << endl; } }
+            do          { if (verbose) { cout << endl; } } while (b);
+
+            // Complain about no "very verbose" action in loops.
+            for (; b; ) { }
+            while (b)   { }
+            do          { } while (b);
+        }
+
+        // Repeat the basic tests within a loop substatement that has a direct
+        // very verbose action.
+        while (b) {
+            if (veryVerbose) { cout << endl; }
+
+            // These should generate no complaint.
+            for (; b; ) { if (veryVerbose) { cout << endl; } }
+            while (b)   { if (veryVerbose) { cout << endl; } }
+            do          { if (veryVerbose) { cout << endl; } } while (b);
+
+            // Complain about using "verbose" inside loops.
+            for (; b; ) { if (verbose) { cout << endl; } }
+            while (b)   { if (verbose) { cout << endl; } }
+            do          { if (verbose) { cout << endl; } } while (b);
+
+            // Complain about no "very verbose" action in loops.
+            for (; b; ) { }
+            while (b)   { }
+            do          { } while (b);
+        }
       } break;
       case -1: {
       } break;
