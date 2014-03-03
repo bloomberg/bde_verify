@@ -173,6 +173,11 @@ int main(int argc, char *argv[])
         while (b)   { if (veryVerbose) { cout << endl; } }
         do          { if (veryVerbose) { cout << endl; } } while (b);
 
+        // These should also not generate a complaint.
+        if (veryVerbose) { for (; b; ) { }            }
+        if (veryVerbose) { while (b)   { }            }
+        if (veryVerbose) { do          { } while (b); }
+
         // Complain about using "verbose" inside loops.
         for (; b; ) { if (verbose) { cout << endl; } }
         while (b)   { if (verbose) { cout << endl; } }
@@ -189,6 +194,11 @@ int main(int argc, char *argv[])
             for (; b; ) { if (veryVerbose) { cout << endl; } }
             while (b)   { if (veryVerbose) { cout << endl; } }
             do          { if (veryVerbose) { cout << endl; } } while (b);
+
+            // These should also not generate a complaint.
+            if (veryVerbose) { for (; b; ) { }            }
+            if (veryVerbose) { while (b)   { }            }
+            if (veryVerbose) { do          { } while (b); }
 
             // Complain about using "verbose" inside loops.
             for (; b; ) { if (verbose) { cout << endl; } }
@@ -229,6 +239,11 @@ int main(int argc, char *argv[])
             for (; b; ) { if (veryVerbose) { cout << endl; } }
             while (b)   { if (veryVerbose) { cout << endl; } }
             do          { if (veryVerbose) { cout << endl; } } while (b);
+
+            // These should also not generate a complaint.
+            if (veryVerbose) { for (; b; ) { }            }
+            if (veryVerbose) { while (b)   { }            }
+            if (veryVerbose) { do          { } while (b); }
 
             // Complain about using "verbose" inside loops.
             for (; b; ) { if (verbose) { cout << endl; } }

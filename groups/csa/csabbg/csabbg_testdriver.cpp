@@ -314,6 +314,14 @@ no_print_matcher()
                         hasName("veryVeryVerbose"),
                         hasName("veryVeryVeryVerbose")
                     ))))))
+                ))),
+                unless(hasAncestor(ifStmt(
+                    hasCondition(ignoringImpCasts(declRefExpr(to(varDecl(anyOf(
+                        hasName("verbose"),
+                        hasName("veryVerbose"),
+                        hasName("veryVeryVerbose"),
+                        hasName("veryVeryVeryVerbose")
+                    ))))))
                 )))
             ).bind("loop"))
         )));
