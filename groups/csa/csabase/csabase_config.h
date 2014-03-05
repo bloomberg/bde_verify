@@ -60,9 +60,10 @@ public:
 
     bool all() const;
 
-    size_t bv_stack_level(clang::SourceLocation where) const;
-        // Return the 'pragma bdeverify' stack level of the specified location
-        // 'where'.
+    void bv_stack_level(std::vector<clang::SourceLocation> *stack,
+                        clang::SourceLocation where) const;
+        // Populate the specified 'stack' with the pragma bdeverify stack
+        // locations for the specified location 'where'.
 
     bool suppressed(const std::string& tag, clang::SourceLocation where) const;
         // Return 'true' iff a diagnostic with the specified 'tag' should be

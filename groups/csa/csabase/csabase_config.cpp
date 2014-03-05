@@ -254,11 +254,14 @@ void cool::csabase::Config::set_value(const std::string& key,
     d_values[key] = value;
 }
 
-size_t cool::csabase::Config::bv_stack_level(clang::SourceLocation where) const
+void cool::csabase::Config::bv_stack_level(
+    std::vector<clang::SourceLocation>* stack,
+    clang::SourceLocation where) const
 {
-    size_t where_level = 0;
     cool::csabase::Location location(d_manager, where);
     cool::csabase::FileName fn(location.file());
+    stack->clear();
+    stack->push_back(where);
     if (d_local_bv_pragmas.find(fn.name()) != d_local_bv_pragmas.end()) {
         const std::vector<BVData>& ls =
             d_local_bv_pragmas.find(fn.name())->second;
@@ -267,13 +270,12 @@ size_t cool::csabase::Config::bv_stack_level(clang::SourceLocation where) const
                 break;
             }
             if (ls[i].type == '>') {
-                ++where_level;
-            } else if (where_level > 0 && ls[i].type == '<') {
-                --where_level;
+                stack->push_back(ls[i].where);
+            } else if (stack->size() > 1 && ls[i].type == '<') {
+                stack->pop_back();
             }
         }
     }
-    return where_level;
 }
 
 const std::string&
@@ -286,23 +288,26 @@ cool::csabase::Config::value(const std::string& key,
         if (d_local_bv_pragmas.find(fn.name()) != d_local_bv_pragmas.end()) {
             const std::vector<BVData>& ls =
                 d_local_bv_pragmas.find(fn.name())->second;
-            // Find the pragma stack level of the diagnostic location.
-            size_t where_level = bv_stack_level(where);
-            size_t pragma_level = 0;
+            // Find the pragma stack of the diagnostic location.
+            std::vector<clang::SourceLocation> stack;
+            bv_stack_level(&stack, where);
             const std::string *found = 0;
-            // Look for a set pragma before the diagnostic location, only at
-            // pragma levels at or below the diagnostic location stack level.
+            // Look for a set pragma before the diagnostic location, only
+            // within the pragma stack for that location.
+            std::vector<clang::SourceLocation> pragma_stack(1, where);
             for (size_t i = 0; i < ls.size(); ++i) {
                 if (d_manager.isBeforeInTranslationUnit(where, ls[i].where)) {
                     break;
                 }
                 if (ls[i].type == '>') {
-                    ++pragma_level;
-                } else if (pragma_level > 0 && ls[i].type == '<') {
-                    --pragma_level;
+                    pragma_stack.push_back(ls[i].where);
+                } else if (pragma_stack.size() > 1 && ls[i].type == '<') {
+                    pragma_stack.pop_back();
                 } else if (   ls[i].type == '='
-                           && pragma_level <= where_level
-                           && ls[i].s1 == key) {
+                           && ls[i].s1 == key
+                           && pragma_stack.size() <= stack.size()
+                           && pragma_stack.back() ==
+                              stack[pragma_stack.size() - 1]) {
                     found = &ls[i].s2;
                 }
             }
@@ -335,21 +340,23 @@ cool::csabase::Config::suppressed(const std::string& tag,
     if (d_local_bv_pragmas.find(fn.name()) != d_local_bv_pragmas.end()) {
         const std::vector<BVData>& ls =
             d_local_bv_pragmas.find(fn.name())->second;
-        size_t where_level = bv_stack_level(where);
-        size_t pragma_level = 0;
+        std::vector<clang::SourceLocation> stack;
+        bv_stack_level(&stack, where);
         char found = 0;
-        // Look for a tag pragma before the diagnostic location, only at pragma
-        // levels at or below the diagnostic location stack level.
+        // Look for a tag pragma before the diagnostic location, only within
+        // the pragma stack for that location.
+        std::vector<clang::SourceLocation> pragma_stack(1, where);
         for (size_t i = 0; i < ls.size(); ++i) {
             if (d_manager.isBeforeInTranslationUnit(where, ls[i].where)) {
                 break;
             }
             if (ls[i].type == '>') {
-                ++pragma_level;
-            } else if (pragma_level > 0 && ls[i].type == '<') {
-                --pragma_level;
+                pragma_stack.push_back(ls[i].where);
+            } else if (pragma_stack.size() > 1 && ls[i].type == '<') {
+                pragma_stack.pop_back();
             } else if (   (ls[i].type == '-' || ls[i].type == '+')
-                       && pragma_level <= where_level
+                       && pragma_stack.size() <= stack.size()
+                       && pragma_stack.back() == stack[pragma_stack.size() - 1]
                        && (   ls[i].s1 == tag
                            || ls[i].s1 == "*")) {
                 found = ls[i].type;
