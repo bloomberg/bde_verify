@@ -303,7 +303,7 @@ static llvm::Regex pragma_bdeverify(
         "(" "[-]" "[[:blank:]]*" "([[:alnum:]]+|[*])" ")|"  // 4 5
         "(" "[+]" "[[:blank:]]*" "([[:alnum:]]+|[*])" ")|"  // 6 7
         "(" "set" "[[:blank:]]*" "([_[:alnum:]]+)"          // 8 9
-                  "[[:blank:]]*" "([^[:blank:]]+)"    ")|"  // 10
+                  "[[:blank:]]*" "(.*[^[:blank:]])"   ")|"  // 10
         "$"
     ")",
     llvm::Regex::NoFlags);
