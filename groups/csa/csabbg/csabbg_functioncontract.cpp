@@ -230,8 +230,13 @@ void Word::set(std::vector<ParmInfo>* parm_info,
 
     parm = parms.size();
     for (size_t i = 0; i < parms.size(); ++i) {
-        if (parms[i].slice(0, 1).equals_lower(s.slice(0, 1)) &&
-            parms[i].substr(1).equals(s.substr(1))) {
+        llvm::StringRef p = parms[i];
+        if (   p == s
+            || (   p.size() > 0
+                && s.size() > 0
+                && std::toupper(static_cast<unsigned char>(p[0])) ==
+                                static_cast<unsigned char>(s[0])
+                && p.substr(1) == s.substr(1))) {
             parm = i;
             break;
         }
@@ -266,7 +271,33 @@ void break_into_words(std::vector<Word>* words,
     bool last_char_was_backslash = false;
     bool in_word = false;
     size_t start_of_last_word = 0;
+    static llvm::Regex code("^[[:blank:]]*//[.][.]$", llvm::Regex::Newline);
+    llvm::SmallVector<llvm::StringRef, 7> matches;
+    llvm::StringRef c = comment;
+    size_t code_pos = c.size();
+    // If the contract has a "//.." line, note its end position.
+    if (code.match(c, &matches)) {
+        llvm::StringRef m = matches[0];
+        code_pos = c.find(m) + m.size() - 1;
+    }
     for (size_t i = 0; i < comment.size(); ++i) {
+        if (i == code_pos) {
+            c = comment.drop_front(i);
+            // At a "//.." line, go to the next one unless we're in quotes.
+            if (!in_single_quotes && code.match(c, &matches)) {
+                llvm::StringRef m = matches[0];
+                i += c.find(m) + m.size() - 1;
+                c = comment.drop_front(i);
+            }
+            // If the contract has another "//.." line, note its end position.
+            if (code.match(c, &matches)) {
+                llvm::StringRef m = matches[0];
+                code_pos = i + c.find(m) + m.size() - 1;
+            } else {
+                code_pos = comment.size();
+            }
+        }
+
         unsigned char c = static_cast<unsigned char>(comment[i]);
         bool is_id = std::isalnum(c) || c == '_' || c == '-';
         if (in_word) {
