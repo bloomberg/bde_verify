@@ -5,31 +5,57 @@
 // LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt).
 // -----------------------------------------------------------------------------
 
+#include <csabase_abstractvisitor.h>
 #include <csabase_analyser.h>
+#include <csabase_debug.h>
 #include <csabase_format.h>
 #include <csabase_registercheck.h>
-#include <csabase_abstractvisitor.h>
-#include <csabase_debug.h>
+#include <csabase_util.h>
 #include <llvm/Support/raw_ostream.h>
+#include <clang/ASTMatchers/ASTMatchers.h>
 #include <clang/AST/ExprCXX.h>
 #include <clang/Lex/Lexer.h>
 #include <clang/Sema/Sema.h>
 #include <map>
 #include <set>
 #include <sstream>
-#ident "$Id: allocator_forward.cpp 161 2011-12-28 00:20:28Z kuehl $"
 
-using cool::csabase::Analyser;
-using cool::csabase::Debug;
-using cool::csabase::PPObserver;
-using cool::csabase::Visitor;
+#ident "$Id$"
+
 using namespace clang;
+using namespace clang::ast_matchers;
+using namespace clang::ast_matchers::internal;
+using namespace cool::csabase;
 
 // -----------------------------------------------------------------------------
 
 static std::string const check_name("allocator-forward");
 
 // -----------------------------------------------------------------------------
+
+namespace clang {
+namespace ast_matchers {
+
+AST_MATCHER_P(TemplateArgument, equalsIntegral, unsigned, N) {
+  if (Node.getKind() == TemplateArgument::Integral)
+    return Node.getAsIntegral() == N;
+  return false;
+}
+
+AST_MATCHER_P(ClassTemplateSpecializationDecl, templateArgumentCountIs,
+              unsigned, N) {
+    return Node.getTemplateArgs().size() == N;
+}
+
+AST_MATCHER_P(FunctionDecl, hasLastParameter,
+               internal::Matcher<ParmVarDecl>, InnerMatcher) {
+    return Node.getNumParams() > 0 &&
+           InnerMatcher.matches(
+               *Node.getParamDecl(Node.getNumParams() - 1), Finder, Builder);
+}
+
+}
+}
 
 namespace
 {
@@ -39,18 +65,6 @@ struct data
 {
     QualType bslma_allocator_;
         // The type of 'BloombergLP::bslma::Allocator'.
-
-    QualType bsl_true_type_;
-        // The type of 'BloombergLP::bsl::true_type'.
-
-    QualType bsl_false_type_;
-        // The type of 'BloombergLP::bsl::false_type'.
-
-    typedef std::set<std::pair<const Expr*, const Decl*> > BadCexp;
-    BadCexp bad_cexp_;
-        // The set of constructor expressions with an explicit allocator
-        // argument where that argument does not initialize an allocator
-        // parameter.
 
     typedef std::set<const CXXConstructorDecl*> Ctors;
     Ctors ctors_;
@@ -62,6 +76,9 @@ struct data
 
     RecordsWithAllocatorTrait records_with_false_allocator_trait_;
         // The set of record declarations having a false allocator trait.
+
+    RecordsWithAllocatorTrait records_with_dependent_allocator_trait_;
+        // The set of record declarations having a dependent allocator trait.
 
     typedef std::set<const CXXConstructExpr*> Cexprs;
     Cexprs cexprs_;
@@ -89,11 +106,11 @@ struct report
     // an allocator parameter.  It also contains a variety of utility methods
     // used in implementing those checks.
 {
-    report(cool::csabase::Analyser& analyser);
+    report(Analyser& analyser);
         // Create an object of this type, using the specified 'analyser' for
         // access to compiler data structures.
 
-    CXXRecordDecl *get_record_decl(QualType type);
+    const CXXRecordDecl *get_record_decl(QualType type);
         // Return the record declaration for the specified 'type' and a null
         // pointer if it does not have one.
 
@@ -120,6 +137,24 @@ struct report
         // 'true' if the 'constructor' has a final parameter which is a 'const'
         // reference to a class implicitly constructible from an allocator
         // pointer.  Return 'false' otherwise.
+
+    void match_allocator_type(const BoundNodes& nodes);
+        // Callback for bslma::Allocator.
+
+    void match_nested_allocator_trait(const BoundNodes& nodes);
+        // Callback for classes with nested allocator traits.
+
+    void match_class_using_allocator(const BoundNodes& nodes);
+        // Callback for classes having constructors with allocator parameters.
+
+    void match_negative_allocator_trait(const BoundNodes& nodes);
+        // Callback for negative allocator traits.
+
+    void match_dependent_allocator_trait(const BoundNodes& nodes);
+        // Callback for dependent allocator traits.
+
+    void match_positive_allocator_trait(const BoundNodes& nodes);
+        // Callback for positive allocator traits.
 
     void operator()();
         // Invoke the checking procedures.
@@ -178,17 +213,17 @@ struct report
         // Check that the specified return 'stmt' does not return an item that 
         // takes allocators.
 
-    cool::csabase::Analyser &analyser_;  // afford access to compiler data
-    data &data_;                         // data held for this set of checks
+    Analyser& analyser_;  // afford access to compiler data
+    data& data_;          // data held for this set of checks
 };
 
-report::report(cool::csabase::Analyser& analyser)
+report::report(Analyser& analyser)
 : analyser_(analyser)
 , data_(analyser.attachment<data>())
 {
 }
 
-CXXRecordDecl *report::get_record_decl(QualType type)
+const CXXRecordDecl *report::get_record_decl(QualType type)
 {
     const TemplateSpecializationType *tst =
         llvm::dyn_cast<TemplateSpecializationType>(type.getTypePtr());
@@ -204,7 +239,11 @@ CXXRecordDecl *report::get_record_decl(QualType type)
         type = sttpt->desugar();
     }
 
-    CXXRecordDecl *rdecl = type->getAsCXXRecordDecl();
+    const CXXRecordDecl *rdecl = type->getAsCXXRecordDecl();
+
+    if (!rdecl) {
+        rdecl = type->getPointeeCXXRecordDecl();
+    }
 
     return rdecl;
 }
@@ -239,13 +278,14 @@ bool report::takes_allocator(QualType type, bool conv)
 
     data_.type_takes_allocator_[tp] = false;
 
-    CXXRecordDecl *rdecl = get_record_decl(type);
+    const CXXRecordDecl *rdecl = get_record_decl(type);
 
     if (!rdecl) {
         return false;                                             // RETURN
     }
 
-    DeclContextLookupResult r = analyser_.sema().LookupConstructors(rdecl);
+    DeclContextLookupResult r =
+        analyser_.sema().LookupConstructors(const_cast<CXXRecordDecl*>(rdecl));
 
     for (size_t i = 0; i < r.size(); ++i) {
         if (const CXXConstructorDecl *ctor =
@@ -300,8 +340,222 @@ bool report::takes_allocator(CXXConstructorDecl const* constructor, bool conv)
         takes_allocator(type, false);
 }
 
+static const DynTypedMatcher &
+    // Return an AST matcher for BloombergLP::bslma::Allocator.
+allocator_type_matcher()
+{
+    static const DynTypedMatcher matcher = decl(hasDescendant(recordDecl(
+        hasName("::BloombergLP::bslma::Allocator")).bind("allocator")));
+    return matcher;
+}
+
+void report::match_allocator_type(const BoundNodes& nodes)
+{
+    analyser_.attachment<data>().bslma_allocator_ = QualType(
+        nodes.getNodeAs<CXXRecordDecl>("allocator")->getTypeForDecl(), 0);
+}
+
+static const DynTypedMatcher &
+nested_allocator_trait_matcher()
+    // Return an AST matcher which looks for nested allocator traits.  Expanded
+    // from macros, the declaration looks like
+    //..
+    //  class MyClass { operator bslalg::TypeTraitUsesBslmaAllocator::
+    //                           NestedTraitDeclaration<MyClass>() const ... };
+    //..
+{
+    static const DynTypedMatcher matcher = decl(forEachDescendant(
+        methodDecl(
+            hasName("operator NestedTraitDeclaration"),
+            returns(qualType(hasDeclaration(classTemplateSpecializationDecl(
+                matchesName("^::BloombergLP::bslalg::"
+                            "TypeTraitUsesBslmaAllocator::"),
+                templateArgumentCountIs(1),
+                hasTemplateArgument(
+                    0,
+                    refersToType(qualType(hasDeclaration(
+                        recordDecl().bind("class")))))
+            )))),
+            ofClass(recordDecl(decl(equalsBoundNode("class"))))
+        )
+    ));
+    return matcher;
+}
+
+void report::match_nested_allocator_trait(const BoundNodes& nodes)
+{
+    analyser_.attachment<data>().records_with_true_allocator_trait_.insert(
+        nodes.getNodeAs<CXXRecordDecl>("class")->getCanonicalDecl());
+}
+
+static const DynTypedMatcher &
+class_using_allocator_matcher()
+{
+    static const DynTypedMatcher matcher = decl(forEachDescendant(recordDecl(
+        has(constructorDecl(
+            isPublic(),
+            hasLastParameter(parmVarDecl(anyOf(
+                hasType(referenceType(
+                    pointee(hasDeclaration(decl(has(constructorDecl(
+                        isPublic(),
+                        hasLastParameter(parmVarDecl(
+                            hasType(pointerType(pointee(hasDeclaration(
+                                recordDecl(isSameOrDerivedFrom(
+                                    "::BloombergLP::bslma::Allocator"
+                                ))
+                            ))))
+                        ))
+                    )))))
+                )),
+                hasType(pointerType(pointee(hasDeclaration(
+                    recordDecl(isSameOrDerivedFrom(
+                        "::BloombergLP::bslma::Allocator"
+                    ))
+                ))))
+            )))
+        ))
+    ).bind("class")));
+    return matcher;
+}
+
+void report::match_class_using_allocator(const BoundNodes& nodes)
+{
+    analyser_.attachment<data>().type_takes_allocator_
+        [nodes.getNodeAs<CXXRecordDecl>("class")->getTypeForDecl()] = true;
+}
+
+static const DynTypedMatcher &
+negative_allocator_trait_matcher()
+{
+    static const DynTypedMatcher matcher =
+        decl(forEachDescendant(classTemplateSpecializationDecl(
+            hasName("::BloombergLP::bslma::UsesBslmaAllocator"),
+            templateArgumentCountIs(1),
+            hasTemplateArgument(0, refersToType(hasDeclaration(
+                recordDecl().bind("class")
+            ))),
+            isDerivedFrom(classTemplateSpecializationDecl(
+                hasName("::bsl::integral_constant"),
+                templateArgumentCountIs(2),
+                hasTemplateArgument(0, refersToType(asString("_Bool"))),
+                hasTemplateArgument(1, equalsIntegral(0))
+            ))
+        )));
+    return matcher;
+}
+
+void report::match_negative_allocator_trait(const BoundNodes& nodes)
+{
+    analyser_.attachment<data>().records_with_false_allocator_trait_.insert(
+        nodes.getNodeAs<CXXRecordDecl>("class")->getCanonicalDecl());
+}
+
+static const DynTypedMatcher &
+dependent_allocator_trait_matcher()
+{
+    static const DynTypedMatcher matcher =
+        decl(forEachDescendant(recordDecl(
+            hasName("::BloombergLP::bslma::UsesBslmaAllocator"),
+            unless(isDerivedFrom(classTemplateSpecializationDecl(
+                hasName("::bsl::integral_constant"),
+                templateArgumentCountIs(2),
+                hasTemplateArgument(0, refersToType(asString("_Bool"))),
+                anyOf(
+                    hasTemplateArgument(1, equalsIntegral(0)),
+                    hasTemplateArgument(1, equalsIntegral(1))
+                )
+            )))
+        ).bind("class")));
+    return matcher;
+}
+
+void report::match_dependent_allocator_trait(const BoundNodes& nodes)
+{
+    if (const NamedDecl* decl = nodes.getNodeAs<NamedDecl>("class")) {
+        const TemplateDecl* td = llvm::dyn_cast<TemplateDecl>(decl);
+        const ClassTemplateSpecializationDecl* ctsd =
+            llvm::dyn_cast<ClassTemplateSpecializationDecl>(decl);
+        if (td) {
+            decl = td->getTemplateParameters()->getParam(0);
+        } else if (ctsd) {
+            if (const NamedDecl* d = ctsd->getTemplateArgs()[0]
+                                         .getAsType()
+                                         ->getAsCXXRecordDecl()) {
+                decl = d;
+            } else if (const TemplateSpecializationType* tst =
+                           ctsd->getTemplateArgs()[0]
+                               .getAsType()
+                               ->getAs<TemplateSpecializationType>()) {
+                if (const TemplateDecl* td =
+                        tst->getTemplateName().getAsTemplateDecl()) {
+                    decl = td;
+                } else {
+                    decl = 0;
+                }
+            } else {
+                decl = 0;
+            }
+        }
+        if (decl) {
+            analyser_.attachment<data>()
+                .records_with_dependent_allocator_trait_.insert(
+                     nodes.getNodeAs<CXXRecordDecl>("class")
+                         ->getCanonicalDecl());
+        }
+    }
+}
+
+static const DynTypedMatcher &
+positive_allocator_trait_matcher()
+{
+    static const DynTypedMatcher matcher =
+        decl(forEachDescendant(classTemplateSpecializationDecl(
+            hasName("::BloombergLP::bslma::UsesBslmaAllocator"),
+            templateArgumentCountIs(1),
+            hasTemplateArgument(0, refersToType(hasDeclaration(
+                recordDecl().bind("class")
+            ))),
+            isDerivedFrom(classTemplateSpecializationDecl(
+                hasName("::bsl::integral_constant"),
+                templateArgumentCountIs(2),
+                hasTemplateArgument(0, refersToType(asString("_Bool"))),
+                hasTemplateArgument(1, equalsIntegral(1))
+            ))
+        )));
+    return matcher;
+}
+
+void report::match_positive_allocator_trait(const BoundNodes& nodes)
+{
+    analyser_.attachment<data>().records_with_true_allocator_trait_.insert(
+        nodes.getNodeAs<CXXRecordDecl>("class")->getCanonicalDecl());
+}
+
 void report::operator()()
 {
+    MatchFinder mf;
+
+    OnMatch<report, &report::match_allocator_type> m1(this);
+    mf.addDynamicMatcher(allocator_type_matcher(), &m1);
+
+    OnMatch<report, &report::match_nested_allocator_trait> m2(this);
+    mf.addDynamicMatcher(nested_allocator_trait_matcher(), &m2);
+
+    OnMatch<report, &report::match_negative_allocator_trait> m4(this);
+    mf.addDynamicMatcher(negative_allocator_trait_matcher(), &m4);
+
+    OnMatch<report, &report::match_dependent_allocator_trait> m5(this);
+    mf.addDynamicMatcher(dependent_allocator_trait_matcher(), &m5);
+
+    OnMatch<report, &report::match_positive_allocator_trait> m6(this);
+    mf.addDynamicMatcher(positive_allocator_trait_matcher(), &m6);
+
+    OnMatch<report, &report::match_class_using_allocator> m3(this);
+    mf.addDynamicMatcher(class_using_allocator_matcher(), &m3);
+
+    mf.match(*analyser_.context()->getTranslationUnitDecl(),
+             *analyser_.context());
+
     check_not_forwarded(data_.ctors_.begin(), data_.ctors_.end());
     check_wrong_parm(data_.cexprs_.begin(), data_.cexprs_.end());
     check_alloc_returns(data_.returns_.begin(), data_.returns_.end());
@@ -315,6 +569,10 @@ void report::check_not_forwarded(Iter begin, Iter end)
     for (Iter itr = begin; itr != end; ++itr) {
         const CXXConstructorDecl *decl = *itr;
         const CXXRecordDecl *record = decl->getParent()->getCanonicalDecl();
+        bool uses_allocator = takes_allocator(
+                   record->getTypeForDecl()->getCanonicalTypeInternal(), true);
+        bool has_true_alloc_trait =
+            data_.records_with_true_allocator_trait_.count(record);
         const CXXRecordDecl *tr = record;
         if (const ClassTemplateSpecializationDecl* ts =
                 llvm::dyn_cast<ClassTemplateSpecializationDecl>(tr)) {
@@ -327,15 +585,10 @@ void report::check_not_forwarded(Iter begin, Iter end)
             return;                                                   // RETURN
         }
 
-        bool uses_allocator = takes_allocator(
-                   record->getTypeForDecl()->getCanonicalTypeInternal(), true);
-
         check_not_forwarded(decl);
 
         if (records.count(record) == 0) {
             records.insert(record);
-            bool has_true_alloc_trait =
-                data_.records_with_true_allocator_trait_.count(record);
 
             if (!uses_allocator && has_true_alloc_trait) {
                 analyser_.report(record, check_name, "AT01",
@@ -384,7 +637,7 @@ void report::check_not_forwarded(Iter begin, Iter end)
                 if (decl->isUserProvided()) {
                     analyser_.report(decl, check_name, "AC01",
                                  "This constructor has no version that can be "
-                                 "called with an allocator.")
+                                 "called with an allocator")
                         << decl;
                 }
                 else {
@@ -592,8 +845,7 @@ void report::check_wrong_parm(const CXXConstructExpr *expr)
             // expression with its actual type.  If that type is
             // pointer-to-allocator, report the problem if it is new.
 
-            if (   is_allocator(arg->getType())
-                && !data_.bad_cexp_.count(std::make_pair(arg, decl))) {
+            if (is_allocator(arg->getType())) {
                 analyser_.report(arg->getExprLoc(), check_name, "AM01",
                                 "Allocator argument initializes "
                                 "non-allocator %0 of type '%1' rather than "
@@ -642,38 +894,6 @@ void subscribe(Analyser& analyser, Visitor&, PPObserver&)
 // -----------------------------------------------------------------------------
 
 static void
-find_allocator(Analyser& analyser, TagDecl const* decl)
-    // Callback to set up the type "BloombergLP::bslma::Allocator".
-{
-    static const std::string allocator = "BloombergLP::bslma::Allocator";
-    if (allocator == decl->getQualifiedNameAsString()) {
-        analyser.attachment<data>().bslma_allocator_ =
-                            decl->getTypeForDecl()->getCanonicalTypeInternal();
-    }
-}
-
-// -----------------------------------------------------------------------------
-
-static void
-find_tf_type(Analyser& analyser, const TypedefNameDecl *decl)
-    // Callback to set up the typedef "bsl::true_type".
-{
-    static const std::string true_type  = "bsl::true_type";
-    static const std::string false_type = "bsl::false_type";
-
-    std::string q = decl->getQualifiedNameAsString();
-    if (q == true_type) {
-        analyser.attachment<data>().bsl_true_type_ = decl->getUnderlyingType();
-    }
-    else if (q == false_type) {
-        analyser.attachment<data>().bsl_false_type_ =
-            decl->getUnderlyingType();
-    }
-}
-
-// -----------------------------------------------------------------------------
-
-static void
 gather_ctor_exprs(Analyser& analyser, const CXXConstructExpr* expr)
     // Accumulate the specified 'expr' within the specified 'analyser'.
 {
@@ -703,100 +923,9 @@ gather_return_stmts(Analyser& analyser, ReturnStmt const* stmt)
 
 // -----------------------------------------------------------------------------
 
-static void
-gather_nested_traits(Analyser& analyser, CXXConversionDecl const* decl)
-    // Accumulate the record declaration of the specified 'decl' within the
-    // specified 'analyser' if the conversion represents a declaration of an
-    // allocator trait in the record.  Expanded from macros, the declaration
-    // looks like
-    //..
-    //  class MyClass { operator bslalg::TypeTraitUsesBslmaAllocator::
-    //                           NestedTraitDeclaration<MyClass>() const ... };
-    //..
-{
-    static const std::string alloc("BloombergLP::bslalg::"
-                                   "TypeTraitUsesBslmaAllocator::"
-                                   "NestedTraitDeclaration");
-
-    const CXXRecordDecl *record =
-        llvm::dyn_cast<CXXRecordDecl>(decl->getDeclContext());
-    const ElaboratedType *nested_trait_type =
-        llvm::dyn_cast<ElaboratedType>(decl->getConversionType().getTypePtr());
-    if (record && nested_trait_type) {
-        const TemplateSpecializationType *trait_template =
-            llvm::dyn_cast<TemplateSpecializationType>(
-                    nested_trait_type->getNamedType().getTypePtr());
-        if (trait_template && trait_template->getNumArgs() == 1) {
-            const Type *arg_type =
-                trait_template->getArg(0).getAsType().getTypePtr();
-            if (arg_type && arg_type->getAsCXXRecordDecl() == record) {
-                const TemplateDecl *trait_decl =
-                    trait_template->getTemplateName().getAsTemplateDecl();
-                if (trait_decl &&
-                        alloc == trait_decl->getQualifiedNameAsString()) {
-                    data& info(analyser.attachment<data>());
-                    info.records_with_true_allocator_trait_.insert(record);
-                }
-            }
-        }
-    }
-}
-
-static void
-gather_traits(Analyser& analyser, ClassTemplateSpecializationDecl const* decl)
-    // Accumulate the record declaration of the specified 'decl' within the
-    // specified 'analyser' if it represents a declaration of an allocator
-    // trait.  It looks like
-    //..
-    //  namespace BloombergLP { namsepace bslma {
-    //    template <> struct UsesBslmaAllocator<MyClass> : bsl::true_type { };
-    //  } }
-    //..
-{
-    data& info = analyser.attachment<data>();
-    const CXXRecordDecl* ttr =
-        info.bsl_true_type_.isNull() ?
-            0 :
-            info.bsl_true_type_.getCanonicalType()->getAsCXXRecordDecl();
-    const CXXRecordDecl* ftr =
-        info.bsl_false_type_.isNull() ?
-            0 :
-            info.bsl_false_type_.getCanonicalType()->getAsCXXRecordDecl();
-    static const std::string uba = "BloombergLP::bslma::UsesBslmaAllocator";
-    if (   decl->getQualifiedNameAsString() == uba
-        && decl->isEmpty()
-        && !decl->isLocalClass()
-        && decl->getTemplateArgs().size() == 1) {
-        QualType qt = decl->getTemplateArgs()[0].getAsType();
-        const CXXRecordDecl *arg = qt->getAsCXXRecordDecl();
-        if (const TemplateSpecializationType* tst =
-                qt->getAs<TemplateSpecializationType>()) {
-            if (const TemplateDecl* td =
-                    tst->getTemplateName().getAsTemplateDecl()) {
-                arg = llvm::dyn_cast<CXXRecordDecl>(td->getTemplatedDecl());
-            }
-        }
-        if (arg) {
-            arg = arg->getCanonicalDecl();
-            if (ttr && decl->isDerivedFrom(ttr)) {
-                info.records_with_true_allocator_trait_.insert(arg);
-            }
-            else if (ftr && decl->isDerivedFrom(ftr)) {
-                info.records_with_false_allocator_trait_.insert(arg);
-            }
-        }
-    }
-}
-
-// -----------------------------------------------------------------------------
-
 }  // close anonymous namespace
 
-static cool::csabase::RegisterCheck c1(check_name, &find_allocator);
-static cool::csabase::RegisterCheck c2(check_name, &gather_ctor_decls);
-static cool::csabase::RegisterCheck c3(check_name, &gather_ctor_exprs);
-static cool::csabase::RegisterCheck c4(check_name, &subscribe);
-static cool::csabase::RegisterCheck c5(check_name, &gather_nested_traits);
-static cool::csabase::RegisterCheck c6(check_name, &gather_traits);
-static cool::csabase::RegisterCheck c7(check_name, &find_tf_type);
-static cool::csabase::RegisterCheck c8(check_name, &gather_return_stmts);
+static RegisterCheck c2(check_name, &gather_ctor_decls);
+static RegisterCheck c3(check_name, &gather_ctor_exprs);
+static RegisterCheck c4(check_name, &subscribe);
+static RegisterCheck c8(check_name, &gather_return_stmts);
