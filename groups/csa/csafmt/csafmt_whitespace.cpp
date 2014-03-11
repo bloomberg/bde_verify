@@ -57,26 +57,28 @@ void files::operator()(SourceLocation loc,
 {
     const SourceManager &m = d_analyser.manager();
     llvm::StringRef buf = m.getBufferData(m.getFileID(loc));
-    loc = m.getLocForStartOfFile(m.getFileID(loc));
-    size_t offset = 0;
-    llvm::StringRef s;
-    llvm::SmallVector<llvm::StringRef, 7> matches;
-    while (bad_ws.match(s = buf.drop_front(offset), &matches)) {
-        llvm::StringRef text = matches[0];
-        std::pair<size_t, size_t> m = cool::csabase::mid_match(s, text);
-        size_t matchpos = offset + m.first;
-        offset = matchpos + text.size();
-        if (text[0] == '\t') {
-            d_analyser.report(loc.getLocWithOffset(matchpos),
-                    check_name, "TAB01",
-                    "Tab character%s0 in source")
-                << static_cast<long>(text.size());
-        }
-        else {
-            d_analyser.report(loc.getLocWithOffset(matchpos),
-                    check_name, "ESP01",
-                    "Space%s0 at end of line")
-                << static_cast<long>(text.size() - 1);
+    if (buf.find('\t') != buf.find(" \n")) {
+        loc = m.getLocForStartOfFile(m.getFileID(loc));
+        size_t offset = 0;
+        llvm::StringRef s;
+        llvm::SmallVector<llvm::StringRef, 7> matches;
+        while (bad_ws.match(s = buf.drop_front(offset), &matches)) {
+            llvm::StringRef text = matches[0];
+            std::pair<size_t, size_t> m = cool::csabase::mid_match(s, text);
+            size_t matchpos = offset + m.first;
+            offset = matchpos + text.size();
+            if (text[0] == '\t') {
+                d_analyser.report(loc.getLocWithOffset(matchpos),
+                        check_name, "TAB01",
+                        "Tab character%s0 in source")
+                    << static_cast<long>(text.size());
+            }
+            else {
+                d_analyser.report(loc.getLocWithOffset(matchpos),
+                        check_name, "ESP01",
+                        "Space%s0 at end of line")
+                    << static_cast<long>(text.size() - 1);
+            }
         }
     }
 }
