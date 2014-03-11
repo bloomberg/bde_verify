@@ -8,6 +8,8 @@
 #include <csabase_registercheck.h>
 #include <csabase_util.h>
 #include <llvm/Support/Regex.h>
+#include <clang/AST/Comment.h>
+#include <clang/Frontend/CompilerInstance.h>
 #include <map>
 #include <string>
 #include <sstream>
@@ -543,56 +545,48 @@ SourceRange report::getContract(const FunctionDecl     *func,
                                 data::Ranges::iterator  comments_begin,
                                 data::Ranges::iterator  comments_end)
 {
-    SourceManager& m = d_manager;
     SourceRange declarator = func->getSourceRange();
+    declarator.setEnd(declarator.getEnd().getLocWithOffset(1));
     SourceRange contract;
 
-    unsigned bline;
-    unsigned eline;
-    clang::FileID sfile;
-
-    // Find the line numbers that the function contract may encompass.
     if (func->doesThisDeclarationHaveABody() && func->getBody()) {
-        // For functions with bodies, the end of the 'FunctionDecl' is the
-        // end of the body, so instead get the line before the body begins,
-        // if they're not all on the same line.
+        // Function with body - look for a comment that starts no earlier than
+        // the function declarator and has only whitespace between itself and 
+        // the open brace of the function.
         SourceLocation bodyloc = func->getBody()->getLocStart();
-        declarator.setEnd(bodyloc);
-
-        unsigned bodyBegin = m.getPresumedLineNumber(bodyloc);
-        unsigned funcBegin = m.getPresumedLineNumber(func->getLocStart());
-
-        bline = funcBegin;
-
-        if (bodyBegin <= funcBegin) {
-            eline = bodyBegin + 1;
-        } else {
-            eline = bodyBegin - 1;
+        data::Ranges::iterator it;
+        for (it = comments_begin; it != comments_end; ++it) {
+            if (d_manager.isBeforeInTranslationUnit(bodyloc, it->getBegin())) {
+                break;
+            }
+            if (d_manager.isBeforeInTranslationUnit(
+                    it->getEnd(), declarator.getBegin())) {
+                continue;
+            }
+            llvm::StringRef s = d_analyser.get_source(
+                SourceRange(it->getEnd(), bodyloc), true);
+            if (s.find_first_not_of(" \n") == llvm::StringRef::npos) {
+                contract = *it;
+                break;
+            }
         }
     } else {
-        // For plain declarations, use the line after.
-        SourceLocation declloc = func->getLocEnd();
-        bline = m.getPresumedLineNumber(declloc);
-        eline = bline + 1;
-    }
-
-    for (data::Ranges::iterator it = comments_begin; it != comments_end; ++it) {
-        const SourceRange comment = *it;
-        const SourceLocation cloc = comment.getBegin();
-        const unsigned cline = m.getPresumedLineNumber(cloc);
-
-        // Find a comment that encompasses the contract line, starting after
-        // the 'FunctionDecl'.  (We want to avoid taking a commnted parameter
-        // name as a function contract!)
-        if ((m.getPresumedLineNumber(declarator.getBegin()) == cline &&
-             m.getPresumedColumnNumber(declarator.getEnd()) <=
-                 m.getPresumedColumnNumber(comment.getBegin())) ||
-            (bline < cline && cline <= eline)) {
-            contract = comment;
+        // Function without body - look for a comment following the declaration
+        // separated from it by only whitespace and semicolon.
+        SourceLocation endloc = declarator.getEnd();
+        data::Ranges::iterator it;
+        for (it = comments_begin; it != comments_end; ++it) {
+            if (d_manager.isBeforeInTranslationUnit(it->getEnd(), endloc)) {
+                continue;
+            }
+            llvm::StringRef s = d_analyser.get_source(
+                SourceRange(endloc, it->getBegin()), true);
+            if (s.find_first_not_of("; \n") == llvm::StringRef::npos) {
+                contract = *it;
+            }
             break;
         }
     }
-
     return contract;
 }
 
