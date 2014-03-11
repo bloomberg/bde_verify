@@ -781,6 +781,7 @@ const char standard_bde_loop_assert_test_macros_old[] =
 "//                  STANDARD BDE LOOP-ASSERT TEST MACROS"                   NL
 "//------------------"
 "-----------------------------------------------------------"                NL
+""                                                                           NL
 "#define LOOP_ASSERT(I,X) { \\"                                              NL
 "   if (!(X)) { cout << #I << \": \" << I << \"\\n\"; "
 "aSsErT(1, #X, __LINE__); }}"                                                NL
