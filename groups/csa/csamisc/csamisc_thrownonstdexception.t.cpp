@@ -32,6 +32,7 @@ namespace cool
             {
                 throw 17;
                 throw foo();
+                throw bar();
             }
         }
 

@@ -24,12 +24,16 @@ check(cool::csabase::Analyser& analyser, clang::CXXThrowExpr const* expr)
     clang::Expr* object(const_cast<clang::Expr*>(expr->getSubExpr()));
     if (object) // else it is a rethrow...
     {
-        clang::TypeDecl*  exceptionType(analyser.lookup_type("::std::exception"));
-        if (!exceptionType || !sema.IsDerivedFrom(object->getType(), exceptionType->getTypeForDecl()->getCanonicalTypeInternal()))
-        {
+        const clang::TypeDecl *e = analyser.lookup_type("::std::exception");
+        clang::QualType t;
+        if (e) {
+            t = e->getTypeForDecl()->getCanonicalTypeInternal();
+        }
+        clang::QualType ot = object->getType()->getCanonicalTypeInternal();
+        if (ot != t && !sema.IsDerivedFrom(ot, t)) {
             analyser.report(expr, check_name, "FE01",
                 "Object of type %0 not derived from std::exception is thrown.")
-                << object->getType();
+                << ot;
         }
     }
 }
