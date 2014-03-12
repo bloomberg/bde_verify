@@ -1,11 +1,11 @@
 groups/csa/csabbg/csabbg_functioncontract.t.cpp:11:0: warning: FD01: Function declaration requires contract
-            void ambry();
+            void ambry() const;
 ^~~~~
 groups/csa/csabbg/csabbg_functioncontract.t.cpp:13:0: warning: FD01: Function declaration requires contract
-            void diarrhetic(int faceplate);
+            void diarrhetic(int faceplate) throw();
 ^~~~~~
 groups/csa/csabbg/csabbg_functioncontract.t.cpp:15:0: warning: FD01: Function declaration requires contract
-            void akee(int);
+            void akee(int) const throw();
 ^~~~
 groups/csa/csabbg/csabbg_functioncontract.t.cpp:17:0: warning: FD01: Function declaration requires contract
             void unwitherable(int cocksfoot = 0);
@@ -62,7 +62,7 @@ groups/csa/csabbg/csabbg_functioncontract.t.cpp:51:0: warning: FD01: Function de
             void transisthmian(int = 0, int = 0);
 ^~~~~~
 groups/csa/csabbg/csabbg_functioncontract.t.cpp:58:0: warning: FD03: Parameter 'mujik' is not documented in the function contract
-            void gandharan(int mujik);
+            void gandharan(int mujik) throw();
 ~~~~^~~~~
 groups/csa/csabbg/csabbg_functioncontract.t.cpp:62:0: warning: FD06: Call out the first appearance of a parameter in a function contract using the word 'specified' or 'specify'
                 // This function does nothing with 'peisenor'.
@@ -70,10 +70,10 @@ groups/csa/csabbg/csabbg_functioncontract.t.cpp:62:0: warning: FD06: Call out th
 groups/csa/csabbg/csabbg_functioncontract.t.cpp:65:0: warning: FD04: Parameter 'bovaristic' is not single-quoted in the function contract
                 // This function does nothing with the specified bovaristic.
 ^~~~~~
-groups/csa/csabbg/csabbg_functioncontract.t.cpp:68:0: warning: FD04: Parameter 'preinvited' is not single-quoted in the function contract
+groups/csa/csabbg/csabbg_functioncontract.t.cpp:68:0: warning: FD06: Call out the first appearance of a parameter in a function contract using the word 'specified' or 'specify'
                 // This function does nothing with preinvited.
 ^~~~~~
-groups/csa/csabbg/csabbg_functioncontract.t.cpp:68:0: warning: FD06: Call out the first appearance of a parameter in a function contract using the word 'specified' or 'specify'
+groups/csa/csabbg/csabbg_functioncontract.t.cpp:68:0: warning: FD04: Parameter 'preinvited' is not single-quoted in the function contract
                 // This function does nothing with preinvited.
 ^~~~~~
 groups/csa/csabbg/csabbg_functioncontract.t.cpp:73:0: warning: FD03: Parameter 'atat' is not documented in the function contract
@@ -82,16 +82,16 @@ groups/csa/csabbg/csabbg_functioncontract.t.cpp:73:0: warning: FD03: Parameter '
 groups/csa/csabbg/csabbg_functioncontract.t.cpp:77:0: warning: FD05: Call out the first appearance of an optional parameter in a function contract using the phrase 'optionally specify'
                 // This function does nothing with 'periproctal'.
 ^~~~~~
-groups/csa/csabbg/csabbg_functioncontract.t.cpp:80:0: warning: FD04: Parameter 'snowslide' is not single-quoted in the function contract
-                // This function does nothing with the specified snowslide.
-^~~~~~
 groups/csa/csabbg/csabbg_functioncontract.t.cpp:80:0: warning: FD05: Call out the first appearance of an optional parameter in a function contract using the phrase 'optionally specify'
                 // This function does nothing with the specified snowslide.
 ^~~~~~
-groups/csa/csabbg/csabbg_functioncontract.t.cpp:83:0: warning: FD04: Parameter 'zakuski' is not single-quoted in the function contract
-                // This function does nothing with zakuski.
+groups/csa/csabbg/csabbg_functioncontract.t.cpp:80:0: warning: FD04: Parameter 'snowslide' is not single-quoted in the function contract
+                // This function does nothing with the specified snowslide.
 ^~~~~~
 groups/csa/csabbg/csabbg_functioncontract.t.cpp:83:0: warning: FD05: Call out the first appearance of an optional parameter in a function contract using the phrase 'optionally specify'
+                // This function does nothing with zakuski.
+^~~~~~
+groups/csa/csabbg/csabbg_functioncontract.t.cpp:83:0: warning: FD04: Parameter 'zakuski' is not single-quoted in the function contract
                 // This function does nothing with zakuski.
 ^~~~~~
 groups/csa/csabbg/csabbg_functioncontract.t.cpp:89:0: warning: FD04: Parameter 'compellent' is not single-quoted in the function contract
@@ -100,10 +100,10 @@ groups/csa/csabbg/csabbg_functioncontract.t.cpp:89:0: warning: FD04: Parameter '
 groups/csa/csabbg/csabbg_functioncontract.t.cpp:106:0: warning: FD04: Parameter 'mermerus' is not single-quoted in the function contract
                 // The specified mermerus.
 ^~~~~~
-groups/csa/csabbg/csabbg_functioncontract.t.cpp:113:0: warning: FD04: Parameter 'meticulousness' is not single-quoted in the function contract
+groups/csa/csabbg/csabbg_functioncontract.t.cpp:113:0: warning: FD05: Call out the first appearance of an optional parameter in a function contract using the phrase 'optionally specify'
                 // This function does nothing with meticulousness.
 ^~~~~~
-groups/csa/csabbg/csabbg_functioncontract.t.cpp:113:0: warning: FD05: Call out the first appearance of an optional parameter in a function contract using the phrase 'optionally specify'
+groups/csa/csabbg/csabbg_functioncontract.t.cpp:113:0: warning: FD04: Parameter 'meticulousness' is not single-quoted in the function contract
                 // This function does nothing with meticulousness.
 ^~~~~~
 groups/csa/csabbg/csabbg_functioncontract.t.cpp:120:0: warning: FD05: Call out the first appearance of an optional parameter in a function contract using the phrase 'optionally specify'
@@ -118,10 +118,10 @@ groups/csa/csabbg/csabbg_functioncontract.t.cpp:127:0: warning: FD03: Parameter 
 groups/csa/csabbg/csabbg_functioncontract.t.cpp:132:0: warning: FD04: Parameter 'leucocythemia' is not single-quoted in the function contract
                 // This function does nothing with the specified leucocythemia.
 ^~~~~~
-groups/csa/csabbg/csabbg_functioncontract.t.cpp:133:0: warning: FD04: Parameter 'overmitigated' is not single-quoted in the function contract
+groups/csa/csabbg/csabbg_functioncontract.t.cpp:133:0: warning: FD06: Call out the first appearance of a parameter in a function contract using the word 'specified' or 'specify'
                 // Not with overmitigated, overmitigateda, overmitigateda.
 ^~~~~~
-groups/csa/csabbg/csabbg_functioncontract.t.cpp:133:0: warning: FD06: Call out the first appearance of a parameter in a function contract using the word 'specified' or 'specify'
+groups/csa/csabbg/csabbg_functioncontract.t.cpp:133:0: warning: FD04: Parameter 'overmitigated' is not single-quoted in the function contract
                 // Not with overmitigated, overmitigateda, overmitigateda.
 ^~~~~~
 groups/csa/csabbg/csabbg_functioncontract.t.cpp:134:0: warning: FD03: Parameter 'borasco' is not documented in the function contract
@@ -208,10 +208,10 @@ groups/csa/csabbg/csabbg_functioncontract.t.cpp:198:0: warning: FD04: Parameter 
 groups/csa/csabbg/csabbg_functioncontract.t.cpp:205:0: warning: FD03: Parameter 'campion' is not documented in the function contract
             void tenantry(int, int campion = 0);
 ~~~~^~~~~~
-groups/csa/csabbg/csabbg_functioncontract.t.cpp:209:0: warning: FD04: Parameter 'amphithecium' is not single-quoted in the function contract
+groups/csa/csabbg/csabbg_functioncontract.t.cpp:209:0: warning: FD05: Call out the first appearance of an optional parameter in a function contract using the phrase 'optionally specify'
                 // This function does nothing with the specified amphithecium.
 ^~~~~~
-groups/csa/csabbg/csabbg_functioncontract.t.cpp:209:0: warning: FD05: Call out the first appearance of an optional parameter in a function contract using the phrase 'optionally specify'
+groups/csa/csabbg/csabbg_functioncontract.t.cpp:209:0: warning: FD04: Parameter 'amphithecium' is not single-quoted in the function contract
                 // This function does nothing with the specified amphithecium.
 ^~~~~~
 groups/csa/csabbg/csabbg_functioncontract.t.cpp:212:0: warning: FD05: Call out the first appearance of an optional parameter in a function contract using the phrase 'optionally specify'
