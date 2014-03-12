@@ -767,7 +767,6 @@ void report::match_no_print(const BoundNodes& nodes)
 #define NL "\n"
 
 const char standard_bde_assert_test_macros[] =
-""                                                                           NL
 "// ==================="
 "========================================================="                  NL
 "//                      STANDARD BDE ASSERT TEST MACROS"                    NL
@@ -788,10 +787,10 @@ const char standard_bde_assert_test_macros[] =
 ;
 
 const char standard_bde_assert_test_macros_bsl[] =
-"//===================="
+"// ==================="
 "========================================================="                  NL
 "//                      STANDARD BDE ASSERT TEST MACRO"                     NL
-"//--------------------"
+"// -------------------"
 "---------------------------------------------------------"                  NL
 "// NOTE: THIS IS A LOW-LEVEL COMPONENT AND MAY NOT USE ANY C++ LIBRARY"     NL
 "// FUNCTIONS, INCLUDING IOSTREAMS."                                         NL
@@ -804,7 +803,30 @@ const char standard_bde_assert_test_macros_bsl[] =
 "        if (testStatus >= 0 && testStatus <= 100) ++testStatus;"            NL
 "    }"                                                                      NL
 "}"                                                                          NL
+;
+
+const char standard_bde_assert_test_macros_ns_bsl[] =
+"// ==================="
+"========================================================="                  NL
+"//                      STANDARD BDE ASSERT TEST MACROS"                    NL
+"// -------------------"
+"---------------------------------------------------------"                  NL
+"// NOTE: THIS IS A LOW-LEVEL COMPONENT AND MAY NOT USE ANY C++ LIBRARY"     NL
+"// FUNCTIONS, INCLUDING IOSTREAMS."                                         NL
 ""                                                                           NL
+"namespace {"                                                                NL
+""                                                                           NL
+"int testStatus = 0;"                                                        NL
+""                                                                           NL
+"void aSsErT(bool b, const char *s, int i)"                                  NL
+"{"                                                                          NL
+"    if (b) {"                                                               NL
+"        printf(\"Error \" __FILE__ \"(%d): %s    (failed)\\n\", i, s);"     NL
+"        if (testStatus >= 0 && testStatus <= 100) ++testStatus;"            NL
+"    }"                                                                      NL
+"}"                                                                          NL
+""                                                                           NL
+"}  // close unnamed namespace"                                              NL
 ;
 
 const char standard_bde_loop_assert_test_macros_old[] =
@@ -1030,14 +1052,13 @@ void report::check_boilerplate()
     needles.clear();
     needles.push_back(standard_bde_assert_test_macros);
     needles.push_back(standard_bde_assert_test_macros_bsl);
+    needles.push_back(standard_bde_assert_test_macros_ns_bsl);
     search(&loc, &needle, &distance, "(failed)", needles, fid);
     if (distance != 0) {
-        d_analyser.report(loc,
-                          check_name, "TP19",
+        d_analyser.report(loc, check_name, "TP19",
                           "Missing or malformed standard test driver section");
-        d_analyser.report(loc,
-                          check_name, "TP19",
-                          "Correct form is\n%0",
+        d_analyser.report(loc, check_name, "TP19",
+                          "One correct form (of several possible) is\n%0",
                           false, DiagnosticsEngine::Note)
             << needle;
     }
@@ -1050,7 +1071,8 @@ void report::check_boilerplate()
     if (distance != 0) {
         d_analyser.report(loc, check_name, "TP19",
                           "Missing or malformed standard test driver section");
-        d_analyser.report(loc, check_name, "TP19", "Correct form is\n%0",
+        d_analyser.report(loc, check_name, "TP19",
+                          "One correct form (of several possible) is\n%0",
                           false, DiagnosticsEngine::Note)
             << needle;
     }
@@ -1062,7 +1084,8 @@ void report::check_boilerplate()
     if (distance != 0) {
         d_analyser.report(loc, check_name, "TP19",
                           "Missing or malformed standard test driver section");
-        d_analyser.report(loc, check_name, "TP19", "Correct form is\n%0",
+        d_analyser.report(loc, check_name, "TP19",
+                          "One correct form (of several possible) is\n%0",
                           false, DiagnosticsEngine::Note)
             << needle;
     }
