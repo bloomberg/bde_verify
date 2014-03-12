@@ -10,6 +10,9 @@
 #ifndef INCLUDED_BDES_IDENT
 #  include <bdes_ident.h>
 #endif
+#ifndef INCLUDED_BSLMF_BSLMF_INTEGRALCONSTANT
+#include <bslmf_integralconstant.h>
+#endif
 #ifndef INCLUDED_CSASCM_VERSION
 #  include <csascm_version.h>
 #endif
@@ -25,14 +28,6 @@ namespace BloombergLP
         template <typename TYPE> struct UsesBslmaAllocator;
     }
 
-}
-
-namespace bsl
-{
-    template <class Type, Type Value>
-    struct Base { static const Type value = Value; };
-    typedef Base<bool, true>  true_type;
-    typedef Base<bool, false> false_type;
 }
 
 namespace cool
