@@ -580,8 +580,8 @@ SourceRange report::getContract(const FunctionDecl     *func,
                 continue;
             }
             llvm::StringRef s = d_analyser.get_source(
-                SourceRange(endloc, it->getBegin()), true);
-            if (s.find_first_not_of("; \n") == llvm::StringRef::npos) {
+                SourceRange(endloc, it->getBegin()), true).split(';').second;
+            if (s.find_first_not_of(" \n") == llvm::StringRef::npos) {
                 contract = *it;
             }
             break;
