@@ -654,6 +654,38 @@ void report::operator()(SourceLocation loc, SourceLocation)
     mark_ccline(loc);
 }
 
+static bool is_all_cappish(llvm::StringRef s)
+    // Return 'true' iff all letters in the specified string 's' are upper-case
+    // except for portions in quotes.
+{
+    bool in_single_quotes = false;
+    bool in_double_quotes = false;
+
+    for (size_t i = 0; i < s.size(); ++i) {
+        switch (s[i]) {
+          case '\'': {
+            if (!in_double_quotes) {
+                in_single_quotes = !in_single_quotes;
+            }
+          } break;
+          case '"': {
+            if (!in_single_quotes) {
+                in_double_quotes = !in_double_quotes;
+            }
+          } break;
+          case 'a': case 'b': case 'c': case 'd': case 'e': case 'f': case 'g':
+          case 'h': case 'i': case 'j': case 'k': case 'l': case 'm': case 'n':
+          case 'o': case 'p': case 'q': case 'r': case 's': case 't': case 'u':
+          case 'v': case 'w': case 'x': case 'y': case 'z': {
+            if (!in_single_quotes && !in_double_quotes) {
+                return false;                                         // RETURN
+            }
+          } break;
+        }
+    }
+    return true;
+}
+
 void report::match_print_banner(const BoundNodes& nodes)
 {
     const StringLiteral *l1 = nodes.getNodeAs<StringLiteral>("BANNER");
@@ -676,12 +708,12 @@ void report::match_print_banner(const BoundNodes& nodes)
              s[n - 1] != '\n' ||
              s[n / 2] != '\n' ||
              s.find_first_not_of('=', n / 2 + 1) != n - 1 ||
-             s.find_first_of("abcdefghijklmnopqrstuvwxyz") != s.npos) &&
+             !is_all_cappish(s)) &&
             (s.count('\n') != 2 ||
              s[n - 1] != '\n' ||
              s[n / 2 - 1] != '\n' ||
              s.find_first_not_of('=', n / 2) != n - 1 ||
-             s.find_first_of("abcdefghijklmnopqrstuvwxyz") != s.npos)
+             !is_all_cappish(s))
            ) {
                 d_analyser.report(l1, check_name, "TP18",
                                   "Incorrect test banner format");
@@ -702,7 +734,7 @@ void report::match_print_banner(const BoundNodes& nodes)
         }
         if (text.size() != ul.size() ||
             ul.find_first_not_of('=') != ul.npos ||
-            text.find_first_of("abcdefghijklmnopqrstuvwxyz") != text.npos) {
+            !is_all_cappish(text)) {
                 d_analyser.report(l2, check_name, "TP18",
                                   "Incorrect test banner format");
                 d_analyser.report(l2, check_name, "TP18",
@@ -776,48 +808,40 @@ const char standard_bde_assert_test_macros_bsl[] =
 ;
 
 const char standard_bde_loop_assert_test_macros_old[] =
-"//=================="
+"// ================="
 "==========================================================="                NL
 "//                  STANDARD BDE LOOP-ASSERT TEST MACROS"                   NL
-"//------------------"
+"// -----------------"
 "-----------------------------------------------------------"                NL
 ""                                                                           NL
 "#define LOOP_ASSERT(I,X) { \\"                                              NL
-"   if (!(X)) { cout << #I << \": \" << I << \"\\n\"; "
+"    if (!(X)) { cout << #I << \": \" << I << \"\\n\"; "
 "aSsErT(1, #X, __LINE__); }}"                                                NL
 ""                                                                           NL
 "#define LOOP2_ASSERT(I,J,X) { \\"                                           NL
-"   if (!(X)) { cout << #I << \": \" << I << \"\\t\" "
+"    if (!(X)) { cout << #I << \": \" << I << \"\\t\" "
 "<< #J << \": \" \\"                                                         NL
 "              << J << \"\\n\"; "
 "aSsErT(1, #X, __LINE__); } }"                                               NL
 ""                                                                           NL
 "#define LOOP3_ASSERT(I,J,K,X) { \\"                                         NL
-"   if (!(X)) { cout << #I << \": \" << I << \"\\t\" "
+"    if (!(X)) { cout << #I << \": \" << I << \"\\t\" "
 "<< #J << \": \" << J << \"\\t\" \\"                                         NL
 "              << #K << \": \" << K << \"\\n\"; "
 "aSsErT(1, #X, __LINE__); } }"                                               NL
 ""                                                                           NL
 "#define LOOP4_ASSERT(I,J,K,L,X) { \\"                                       NL
-"   if (!(X)) { cout << #I << \": \" << I << \"\\t\" "
+"    if (!(X)) { cout << #I << \": \" << I << \"\\t\" "
 "<< #J << \": \" << J << \"\\t\" << \\"                                      NL
 "       #K << \": \" << K << \"\\t\" << #L << \": \" << L << \"\\n\"; \\"    NL
 "       aSsErT(1, #X, __LINE__); } }"                                        NL
 ""                                                                           NL
 "#define LOOP5_ASSERT(I,J,K,L,M,X) { \\"                                     NL
-"   if (!(X)) { cout << #I << \": \" << I << \"\\t\" "
+"    if (!(X)) { cout << #I << \": \" << I << \"\\t\" "
 "<< #J << \": \" << J << \"\\t\" << \\"                                      NL
 "       #K << \": \" << K << \"\\t\" << #L << \": \" << L << \"\\t\" << \\"  NL
 "       #M << \": \" << M << \"\\n\"; \\"                                    NL
 "       aSsErT(1, #X, __LINE__); } }"                                        NL
-""                                                                           NL
-"#define LOOP6_ASSERT(I,J,K,L,M,N,X) { \\"                                   NL
-"   if (!(X)) { cout << #I << \": \" << I << \"\\t\" "
-"<< #J << \": \" << J << \"\\t\" << \\"                                      NL
-"       #K << \": \" << K << \"\\t\" << #L << \": \" << L << \"\\t\" << \\"  NL
-"       #M << \": \" << M << \"\\t\" << #N << \": \" << N << \"\\n\"; \\"    NL
-"       aSsErT(1, #X, __LINE__); } }"                                        NL
-""                                                                           NL
 ;
 
 const char standard_bde_loop_assert_test_macros_new[] =
@@ -886,6 +910,20 @@ const char semi_standard_test_output_macros_bsl[] =
 ""                                                                           NL
 ;
 
+static llvm::StringRef squash(std::string &out, llvm::StringRef in)
+    // Copy the specified 'in' string to the specified 'out' string with all
+    // spaces removed.
+{
+    out.clear();
+    out.reserve(in.size());
+    for (size_t i = 0; i < in.size(); ++i) {
+        if (in[i] != ' ') {
+            out += in[i];
+        }
+    }
+    return out;
+}
+
 void report::search(SourceLocation *best_loc,
                     llvm::StringRef *best_needle,
                     size_t *best_distance,
@@ -943,12 +981,15 @@ void report::search(SourceLocation *best_loc,
     // For each line to be examined...
     std::set<size_t>::const_iterator bl = lines.begin();
     std::set<size_t>::const_iterator el = lines.end();
+    std::string squashed_needle;
+    std::string squashed_haystack;
     for (std::set<size_t>::const_iterator il = bl; il != el; ++il) {
         size_t line = *il;
         SourceLocation begin = m.translateLineCol(fid, line, 1);
         // For each needle...
         for (size_t n = 0; n < ns; ++n) {
             llvm::StringRef needle = needles[n];
+            squash(squashed_needle, needle);
             size_t nl = needle_lines[n];
             size_t nbl = needle_blank_lines[n];
             // Examine successively smaller ranges of lines from the starting
@@ -958,7 +999,8 @@ void report::search(SourceLocation *best_loc,
                 SourceLocation end = m.translateLineCol(fid, line + nn, 1);
                 SourceRange r(begin, end);
                 llvm::StringRef s = d_analyser.get_source(r, true);
-                size_t distance = s.edit_distance(needle);
+                size_t distance = squash(squashed_haystack, s)
+                                      .edit_distance(squashed_needle);
                 // Record a better match whenever one is found.
                 if (distance < *best_distance) {
                     *best_distance = distance;
