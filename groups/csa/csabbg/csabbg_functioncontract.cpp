@@ -548,8 +548,13 @@ SourceRange report::getContract(const FunctionDecl     *func,
     SourceRange declarator = func->getSourceRange();
     declarator.setEnd(declarator.getEnd().getLocWithOffset(1));
     SourceRange contract;
+    bool with_body = func->doesThisDeclarationHaveABody() && func->getBody();
+    bool one_liner =
+        with_body &&
+        d_manager.getPresumedLineNumber(declarator.getBegin()) ==
+            d_manager.getPresumedLineNumber(func->getBody()->getLocEnd());
 
-    if (func->doesThisDeclarationHaveABody() && func->getBody()) {
+    if (with_body) {
         // Function with body - look for a comment that starts no earlier than
         // the function declarator and has only whitespace between itself and 
         // the open brace of the function.
@@ -570,9 +575,10 @@ SourceRange report::getContract(const FunctionDecl     *func,
                 break;
             }
         }
-    } else {
-        // Function without body - look for a comment following the declaration
-        // separated from it by only whitespace and semicolon.
+    }
+    if (!with_body || (one_liner && !contract.isValid())) {
+        // Function without body or one-liner - look for a comment following
+        // the declaration separated from it by only whitespace and semicolon.
         SourceLocation endloc = declarator.getEnd();
         data::Ranges::iterator it;
         for (it = comments_begin; it != comments_end; ++it) {
@@ -580,8 +586,12 @@ SourceRange report::getContract(const FunctionDecl     *func,
                 continue;
             }
             llvm::StringRef s = d_analyser.get_source(
-                SourceRange(endloc, it->getBegin()), true).split(';').second;
-            if (s.find_first_not_of(" \n") == llvm::StringRef::npos) {
+                SourceRange(endloc, it->getBegin()), true);
+            if (!with_body) {
+                s = s.split(';').second;
+            }
+            if (s.find_first_not_of(" \n") == llvm::StringRef::npos &&
+                s.count("\n") <= 1) {
                 contract = *it;
             }
             break;
@@ -626,9 +636,11 @@ void report::critiqueContract(const FunctionDecl* func, SourceRange comment)
     const SourceLocation cloc = comment.getBegin();
 
     // Check for bad indentation.
+    const int fline = d_manager.getPresumedLineNumber(func->getLocStart());
     const int fcolm = d_manager.getPresumedColumnNumber(func->getLocStart());
+    const int cline = d_manager.getPresumedLineNumber(cloc);
     const int ccolm = d_manager.getPresumedColumnNumber(cloc);
-    if (ccolm != fcolm + 4) {
+    if (fline != cline && ccolm != fcolm + 4) {
         d_analyser.report(cloc, check_name, "FD02",
             "Function contracts should be indented 4, not %0, spaces "
             "from their function declaration")

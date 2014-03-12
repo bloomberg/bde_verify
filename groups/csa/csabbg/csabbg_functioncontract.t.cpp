@@ -315,5 +315,11 @@ namespace cool
         };
 
         void aSsErT();
+
+        void redstart() /* A contract, really! */ { }
+            // A contract, really!
+
+        void araroba() { }
+            // A contract, really!
     }
 }
