@@ -8,11 +8,11 @@ namespace cool
     namespace csabbg
     {
         struct csabbg_a {
-            void ambry();
+            void ambry() const;
 
-            void diarrhetic(int faceplate);
+            void diarrhetic(int faceplate) throw();
 
-            void akee(int);
+            void akee(int) const throw();
 
             void unwitherable(int cocksfoot = 0);
 
@@ -52,13 +52,13 @@ namespace cool
         };
 
         struct csabbg_b {
-            void sequencer();
+            void sequencer() const;
                 // This function does nothing, with no parameters.
 
-            void gandharan(int mujik);
+            void gandharan(int mujik) throw();
                 // This function does nothing.
 
-            void decillionth(int peisenor);
+            void decillionth(int peisenor) const throw();
                 // This function does nothing with 'peisenor'.
 
             void brie(int bovaristic);
