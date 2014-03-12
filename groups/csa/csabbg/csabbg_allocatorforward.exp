@@ -1,5 +1,5 @@
 In file included from groups/csa/csabbg/csabbg_allocatorforward.t.cpp:8:
-groups/csa/csabbg/csabbg_allocatorforward.t.hpp:43:0: warning: AT02: Class 'allocatorforward_alloc_used' uses allocators but does not have an allocator trait
+groups/csa/csabbg/csabbg_allocatorforward.t.hpp:38:0: warning: AT02: Class 'allocatorforward_alloc_used' uses allocators but does not have an allocator trait
         class allocatorforward_alloc_used;
 ^
 groups/csa/csabbg/csabbg_allocatorforward.t.cpp:19:0: warning: AT02: Class 'test' uses allocators but does not have an allocator trait
@@ -33,7 +33,7 @@ groups/csa/csabbg/csabbg_allocatorforward.t.cpp:137:0: warning: AT02: Class 'M<c
 groups/csa/csabbg/csabbg_allocatorforward.t.cpp:136:0: warning: AT02: Class 'S<char, cool::csabbg::<anonymous>::M<char> >' uses allocators but does not have an allocator trait
                 struct S { S(const T*) {} S(const T*, const A&) {} };
 ^
-groups/csa/csabbg/csabbg_allocatorforward.t.cpp:136:0: warning: AC01: This constructor has no version that can be called with an allocator.
+groups/csa/csabbg/csabbg_allocatorforward.t.cpp:136:0: warning: AC01: This constructor has no version that can be called with an allocator
                 struct S { S(const T*) {} S(const T*, const A&) {} };
 ^
 groups/csa/csabbg/csabbg_allocatorforward.t.cpp:140:0: warning: MA02: Allocator not passed to member s
