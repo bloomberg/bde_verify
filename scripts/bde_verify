@@ -9,12 +9,14 @@
 # $Id$
 
 use strict;
-use Getopt::Long;
+use Getopt::Long qw(:config no_ignore_case);
 
-my $home     = "w:\\bde_verify";
-my $bb       = "c:\\BPCDEVTOOLS\\bde\\2.19.0";
-my $config   = "$home\\bde_verify.cfg";
-my $exe      = "c:\\bde-verify\\Release\\BDE_Verify.exe";
+my $home     = "/home/hrosen4/bde_verify";
+my $llvm     = "/bb/mbigc/mbig816/llvm-svn/install";
+my $bb       = "/bb/build/share/packages/refroot/amd64/unstable/bb";
+my $config   = "$home/bde_verify.cfg";
+my @cl;
+my $exe      = "$home/Linux-clang-3.5/bde_verify";
 my $debug    = "";
 my $verbose  = "";
 my $help     = "";
@@ -27,15 +29,12 @@ my @lflags = (
     "cxx-exceptions",
     "diagnostics-show-name",
     "diagnostics-show-option",
-    "ms-compatibility",
-    "ms-extensions",
-    "msc-version=1800",
-    #"delayed-template-parsing",
 );
 my $dummy;
 my @dummy;
 my $std;
 my @std;
+my $warnoff;
 my $tlonly;
 
 sub usage()
@@ -44,11 +43,14 @@ sub usage()
     usage: $0 [options] [additional compiler options] file.cpp ...
         -I{directory}
         -D{macro}
+        -w                       # disable normal compiler warnings
         -W{warning}
         -f{flag}
         --config=config_file     [$config]  
+        --cl=config_line
         --bb=dir                 [$bb]
-        --exe=BDE_Verify.exe     [$exe]
+        --exe=bde_verify         [$exe]
+        --llvm=dir               [$llvm]
         --[no]definc             [$definc]
         --[no]defdef             [$defdef]
         --toplevel
@@ -67,12 +69,15 @@ sub usage()
 GetOptions(
     'bb=s'       => \$bb,
     'config=s'   => \$config,
+    'cl=s'       => \@cl,
     'debug'      => \$debug,
     'help|?'     => \$help,
     'exe=s'      => \$exe,
-    'verbose'    => \$verbose,
+    'llvm=s'     => \$llvm,
+    'verbose|v'  => \$verbose,
     'definc!'    => \$definc,
     'defdef!'    => \$defdef,
+    'w'          => \$warnoff,
     "I=s"        => \@incs,
     "D=s"        => \@defs,
     "W=s"        => \@wflags,
@@ -80,41 +85,35 @@ GetOptions(
     "std=s"      => \$std,
     "toplevel"   => \$tlonly,
     "m32|m64|pipe|pthread|MMD|g|c" => \$dummy,
-    "O|MF|o=s"   => \@dummy,
+    "O|MF|o|march|mtune=s"         => \@dummy,
 ) and !$help and $#ARGV >= 0 or usage();
 
-my @config = ("-plugin-arg-bde_verify", "config=$config") if $config ne "";
-my @debug  = ("-plugin-arg-bde_verify", "debug-on")       if $debug;
+my @config = ("-plugin-arg-bde_verify", "config=$config")   if $config ne "";
+my @debug  = ("-plugin-arg-bde_verify", "debug-on")         if $debug;
 my @tlo    = ("-plugin-arg-bde_verify", "toplevel-only-on") if $tlonly;
 
 @lflags = map { "-f$_" if $_ ne "no-strict-aliasing" } @lflags;
 @wflags = map { "-W$_" } @wflags;
+unshift @wflags, "-w" if $warnoff;
 
 push(@defs, (
+    "BB_THREADED",
     "BDE_BUILD_TARGET_DBG",
     "BDE_BUILD_TARGET_EXC",
     "BDE_BUILD_TARGET_MT",
-    "_CRT_SECURE_NO_DEPRECATE",
-    "_SCL_SECURE_NO_DEPRECATE",
-    "NOMINMAX",
-    "NOGDI",
-    "_WIN32_WINNT=0x0500",
-    "WINVER=0x0500",
-    "DEBUG",
-    "_MT",
-    "BSLS_IDENT_OFF",
-    "BSL_OVERRIDES_STD",
-    "BDE_OMIT_INTERNAL_DEPRECATED",
-    "_STLP_USE_STATIC_LIB",
-    "_STLP_HAS_NATIVE_FLOAT_ABS",
-    "BDE_DCL=",
-    "BSL_DCL=",
+    "_LINUX_SOURCE",
+    "_REENTRANT",
+    "_SYS_SYSMACROS_H",
+    "_THREAD_SAFE",
 )) if $defdef;
+if ($defdef && !grep(m{\bbsl[^/]*$}, @ARGV)) {
+    push(@defs, "BSL_OVERRIDES_STD");
+}
 @defs = map { "-D$_" } @defs;
 
 for (@ARGV) {
-    if (m{^(.*)[/\\].*$}) {
-        push(@incs, $1) unless grep($1, @incs);
+    if (m{^(.*)/.*$}) {
+        push(@incs, $1) unless grep($_ eq $1, @incs);
     } else {
         push(@incs, ".") unless grep($_ eq ".", @incs);
     }
@@ -123,23 +122,14 @@ push(@incs, (
     "$bb/include",
     "$bb/include/stlport",
 )) if $definc;
-push(@incs, (
-    "$bb\\include",
-    "$bb\\include\\bsl+stdhdrs",
-));
-
-my $inc = $ENV{INCLUDE};
-if ($inc ne '') {
-    push(@incs, split(/;/, $ENV{INCLUDE}));
-} else {
-    push(@incs, "c:\\Program Files (x86)" .
-                  "\\Microsoft Visual Studio 11.0" .
-                  "\\VC" .
-                  "\\include");
-}
+push(@incs, map { chomp; $_; }
+            qx{ $llvm/bin/clang++ -xc++ -E -v /dev/null 2>&1 |
+                /opt/swt/bin/sed -n '/^ [/]/s/ //p'});
 @incs = map { ("-I", $_, "-cxx-isystem", $_ ) } @incs;
 
 push(@std, "-std=$std") if $std;
+
+@cl = map { ("-plugin-arg-bde_verify", "config-line=$_") } @cl;
 
 my @command = (
     "$exe",
@@ -149,12 +139,12 @@ my @command = (
     @debug,
     @config,
     @tlo,
+    @cl,
     @defs,
     @incs,
     @lflags,
     @wflags,
-    @ARGV,
-);
+    @ARGV);
 
 print join(' ', @command), "\n" if $verbose;
 

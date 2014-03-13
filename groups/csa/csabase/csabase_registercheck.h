@@ -9,12 +9,12 @@
 #define INCLUDED_CSABASE_REGISTERCHECK 1
 #ident "$Id$"
 
-#include <cool/function.hpp>
+#include <utils/function.hpp>
 #include <string>
 
 // -----------------------------------------------------------------------------
 
-namespace cool
+namespace bde_verify
 {
     namespace csabase
     {
@@ -27,16 +27,16 @@ namespace cool
 
 // -----------------------------------------------------------------------------
 
-class cool::csabase::RegisterCheck
+class bde_verify::csabase::RegisterCheck
 {
 public:
     template <typename T>
     RegisterCheck(std::string const& name,
-                  void (*check)(cool::csabase::Analyser&, T const*));
+                  void (*check)(bde_verify::csabase::Analyser&, T const*));
     RegisterCheck(std::string const& name,
-                  cool::function<void(cool::csabase::Analyser&,
-                                      cool::csabase::Visitor&,
-                                      cool::csabase::PPObserver&)>);
+                  utils::function<void(bde_verify::csabase::Analyser&,
+                                      bde_verify::csabase::Visitor&,
+                                      bde_verify::csabase::PPObserver&)>);
 };
 
 // -----------------------------------------------------------------------------

@@ -8,20 +8,20 @@
 #include "csamisc_memberdefinitioninclassdefinition.v.hpp"
 #include <bdes_ident.h>
 
-void cool::csamisc::memberdefinitioninclassdefinition_foo::g()
+void bde_verify::csamisc::memberdefinitioninclassdefinition_foo::g()
 {
 }
 
 // -----------------------------------------------------------------------------
 
 template <typename T>
-inline void cool::csamisc::memberdefinitioninclassdefinition_bar<T>::f()
+inline void bde_verify::csamisc::memberdefinitioninclassdefinition_bar<T>::f()
 {
 }
 
-template class cool::csamisc::memberdefinitioninclassdefinition_bar<int>;
+template class bde_verify::csamisc::memberdefinitioninclassdefinition_bar<int>;
 
-namespace cool
+namespace bde_verify
 {
     namespace csamisc
     {
@@ -29,7 +29,7 @@ namespace cool
         {
             void instantiate()
             {
-                cool::csamisc::memberdefinitioninclassdefinition_bar<int> b;
+                bde_verify::csamisc::memberdefinitioninclassdefinition_bar<int> b;
             }
         }
     }
@@ -37,7 +37,7 @@ namespace cool
 
 // ----------------------------------------------------------------------------
 
-namespace cool
+namespace bde_verify
 {
     namespace csamisc
     {
@@ -50,8 +50,8 @@ namespace cool
         };
 
         void operator-(base&) {
-            cool::csamisc::foobar u;
-            cool::csamisc::foobar o(u);
+            bde_verify::csamisc::foobar u;
+            bde_verify::csamisc::foobar o(u);
             o.f();
         }
 

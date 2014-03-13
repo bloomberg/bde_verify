@@ -13,7 +13,7 @@
 
 // -----------------------------------------------------------------------------
 
-namespace cool
+namespace bde_verify
 {
     namespace csabase
     {
@@ -23,7 +23,7 @@ namespace cool
 
 // -----------------------------------------------------------------------------
 
-class cool::csabase::Debug
+class bde_verify::csabase::Debug
 {
 public:
     static void set_debug(bool);
@@ -46,7 +46,7 @@ private:
 
 template <typename T>
 llvm::raw_ostream&
-cool::csabase::Debug::operator<< (T const& value) const
+bde_verify::csabase::Debug::operator<< (T const& value) const
 {
     return indent() << value;
 }

@@ -16,7 +16,7 @@ using clang::FunctionDecl;
 using clang::FunctionTemplateDecl;
 using clang::ParmVarDecl;
 
-using cool::csabase::Analyser;
+using bde_verify::csabase::Analyser;
 
 namespace
 {
@@ -59,5 +59,5 @@ void allTpltFunDecls(Analyser& analyser, const FunctionTemplateDecl* func)
 
 // ----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck c1(check_name, &allFunDecls);
-static cool::csabase::RegisterCheck c2(check_name, &allTpltFunDecls);
+static bde_verify::csabase::RegisterCheck c1(check_name, &allFunDecls);
+static bde_verify::csabase::RegisterCheck c2(check_name, &allTpltFunDecls);

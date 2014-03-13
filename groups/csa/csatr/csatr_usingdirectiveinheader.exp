@@ -1,8 +1,8 @@
 In file included from groups/csa/csatr/csatr_usingdirectiveinheader.t.cpp:8:
-groups/csa/csatr/csatr_usingdirectiveinheader.t.hpp:18:0: warning: TR16: Namespace level using directive for 'cool' in header file
-using namespace cool;
+groups/csa/csatr/csatr_usingdirectiveinheader.t.hpp:18:0: warning: TR16: Namespace level using directive for 'bde_verify' in header file
+using namespace bde_verify;
 ^
-groups/csa/csatr/csatr_usingdirectiveinheader.t.hpp:22:0: warning: TR16: Namespace level using directive for 'cool' in header file
-    using namespace cool;
+groups/csa/csatr/csatr_usingdirectiveinheader.t.hpp:22:0: warning: TR16: Namespace level using directive for 'bde_verify' in header file
+    using namespace bde_verify;
 ^
 2 warnings generated.

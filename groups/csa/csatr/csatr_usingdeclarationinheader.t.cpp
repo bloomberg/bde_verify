@@ -8,15 +8,15 @@
 #include "csatr_usingdeclarationinheader.t.hpp"
 #include <bdes_ident.h>
 
-using cool::csamisc::foo;
-namespace cool
+using bde_verify::csamisc::foo;
+namespace bde_verify
 {
     namespace csatr
     {
-        using cool::csamisc::foo;
+        using bde_verify::csamisc::foo;
         static void f()
         {
-            using cool::csamisc::foo;
+            using bde_verify::csamisc::foo;
         }
     }
 }

@@ -16,7 +16,7 @@
 
 // -----------------------------------------------------------------------------
 
-namespace cool
+namespace bde_verify
 {
     namespace csabase
     {
@@ -26,9 +26,9 @@ namespace cool
 
 // -----------------------------------------------------------------------------
 
-class cool::csabase::AbstractVisitor:
-    public clang::DeclVisitor<cool::csabase::AbstractVisitor>,
-    public clang::StmtVisitor<cool::csabase::AbstractVisitor>
+class bde_verify::csabase::AbstractVisitor:
+    public clang::DeclVisitor<bde_verify::csabase::AbstractVisitor>,
+    public clang::StmtVisitor<bde_verify::csabase::AbstractVisitor>
 {
 public:
     virtual ~AbstractVisitor();

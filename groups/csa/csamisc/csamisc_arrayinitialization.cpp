@@ -16,7 +16,7 @@ static std::string const check_name("array-initialization");
 
 // -----------------------------------------------------------------------------
 
-static bool isDefaultConstructor(cool::csabase::Analyser& analyser,
+static bool isDefaultConstructor(bde_verify::csabase::Analyser& analyser,
                                  clang::Expr const* init)
 {
     clang::CXXConstructExpr const* ctor = llvm::dyn_cast<clang::CXXConstructExpr>(init);
@@ -27,7 +27,7 @@ static bool isDefaultConstructor(cool::csabase::Analyser& analyser,
 
 // -----------------------------------------------------------------------------
 
-static bool isDefaultValue(cool::csabase::Analyser& analyser,
+static bool isDefaultValue(bde_verify::csabase::Analyser& analyser,
                            clang::InitListExpr const* expr,
                            clang::Expr const* init)
 {
@@ -71,7 +71,7 @@ namespace
 }
 
 static void
-check(cool::csabase::Analyser& analyser, clang::InitListExpr const* expr)
+check(bde_verify::csabase::Analyser& analyser, clang::InitListExpr const* expr)
 {
     clang::Type const* type(expr->getType().getTypePtr());
     if (type->isConstantArrayType()
@@ -93,4 +93,4 @@ check(cool::csabase::Analyser& analyser, clang::InitListExpr const* expr)
 
 // -----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck register_check(check_name, &check);
+static bde_verify::csabase::RegisterCheck register_check(check_name, &check);

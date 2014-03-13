@@ -18,11 +18,11 @@ static std::string const check_name("nonascii");
 using clang::SourceLocation;
 using clang::SourceManager;
 using clang::SourceRange;
-using cool::csabase::Analyser;
-using cool::csabase::Location;
-using cool::csabase::PPObserver;
-using cool::csabase::Range;
-using cool::csabase::Visitor;
+using bde_verify::csabase::Analyser;
+using bde_verify::csabase::Location;
+using bde_verify::csabase::PPObserver;
+using bde_verify::csabase::Range;
+using bde_verify::csabase::Visitor;
 
 namespace
 {
@@ -84,4 +84,4 @@ void subscribe(Analyser& analyser, Visitor&, PPObserver& observer)
 
 // ----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck c1(check_name, &subscribe);
+static bde_verify::csabase::RegisterCheck c1(check_name, &subscribe);

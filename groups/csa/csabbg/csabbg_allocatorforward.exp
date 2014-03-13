@@ -5,17 +5,17 @@ groups/csa/csabbg/csabbg_allocatorforward.t.hpp:38:0: warning: AT02: Class 'allo
 groups/csa/csabbg/csabbg_allocatorforward.t.cpp:19:0: warning: AT02: Class 'test' uses allocators but does not have an allocator trait
             class test:
 ^
-groups/csa/csabbg/csabbg_allocatorforward.t.cpp:49:0: warning: MA01: Allocator not passed to base class cool::csabbg::allocatorforward_alloc_used
+groups/csa/csabbg/csabbg_allocatorforward.t.cpp:49:0: warning: MA01: Allocator not passed to base class bde_verify::csabbg::allocatorforward_alloc_used
     allocatorforward_alloc_used(i),
 ^~~~~~
 groups/csa/csabbg/csabbg_allocatorforward.t.cpp:50:0: warning: MA02: Allocator not passed to member used0_
     used0_(i),
 ^~~~~~
 groups/csa/csabbg/csabbg_allocatorforward.t.cpp:48:0: warning: MA02: Allocator not passed to member used2_
-cool::csabbg::test::test(int i, BloombergLP::bslma::Allocator* alloc):
+bde_verify::csabbg::test::test(int i, BloombergLP::bslma::Allocator* alloc):
 ~~~~~^~~~~
 groups/csa/csabbg/csabbg_allocatorforward.t.cpp:74:0: warning: MA02: Allocator not passed to member used0_
-    used0_(cool::csabbg::dummy(alloc)),
+    used0_(bde_verify::csabbg::dummy(alloc)),
 ^~~~~~
 groups/csa/csabbg/csabbg_allocatorforward.t.cpp:89:0: warning: AT02: Class 'tbase' uses allocators but does not have an allocator trait
             struct tbase
@@ -30,7 +30,7 @@ groups/csa/csabbg/csabbg_allocatorforward.t.cpp:134:0: warning: AT02: Class 'M' 
 groups/csa/csabbg/csabbg_allocatorforward.t.cpp:137:0: warning: AT02: Class 'M<char>' uses allocators but does not have an allocator trait
             template class M<char>;  // TBD should not be needed
 ^
-groups/csa/csabbg/csabbg_allocatorforward.t.cpp:136:0: warning: AT02: Class 'S<char, cool::csabbg::<anonymous>::M<char> >' uses allocators but does not have an allocator trait
+groups/csa/csabbg/csabbg_allocatorforward.t.cpp:136:0: warning: AT02: Class 'S<char, bde_verify::csabbg::<anonymous>::M<char> >' uses allocators but does not have an allocator trait
                 struct S { S(const T*) {} S(const T*, const A&) {} };
 ^
 groups/csa/csabbg/csabbg_allocatorforward.t.cpp:136:0: warning: AC01: This constructor has no version that can be called with an allocator
@@ -45,7 +45,7 @@ groups/csa/csabbg/csabbg_allocatorforward.t.cpp:138:0: warning: AT02: Class 'C' 
 groups/csa/csabbg/csabbg_allocatorforward.t.cpp:152:0: warning: AT02: Class 'not_alloc' uses allocators but does not have an allocator trait
         struct not_alloc {
 ^
-groups/csa/csabbg/csabbg_allocatorforward.t.cpp:181:0: warning: AM01: Allocator argument initializes non-allocator parameter 1 ('na') of type 'struct cool::csabbg::not_alloc' rather than allocator parameter 2
+groups/csa/csabbg/csabbg_allocatorforward.t.cpp:181:0: warning: AM01: Allocator argument initializes non-allocator parameter 1 ('na') of type 'struct bde_verify::csabbg::not_alloc' rather than allocator parameter 2
             object o(a);
 ^
 groups/csa/csabbg/csabbg_allocatorforward.t.cpp:186:0: warning: AR01: Type using allocator is returned by value

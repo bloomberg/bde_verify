@@ -14,15 +14,15 @@
 #  include <csascm_version.h>
 #endif
 
-namespace cool {};
-using namespace cool;
+namespace bde_verify {};
+using namespace bde_verify;
 
 namespace foo
 {
-    using namespace cool;
+    using namespace bde_verify;
 }
 
-namespace cool
+namespace bde_verify
 {
     namespace csatr
     {
@@ -35,13 +35,13 @@ namespace cool
     }
 }
 
-cool::csatr::UsingDirectiveInHeader::UsingDirectiveInHeader()
+bde_verify::csatr::UsingDirectiveInHeader::UsingDirectiveInHeader()
 {
     using namespace foo;
 }
 
 void
-cool::csatr::UsingDirectiveInHeader::value() const
+bde_verify::csatr::UsingDirectiveInHeader::value() const
 {
     using namespace foo;
 }

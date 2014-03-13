@@ -24,11 +24,11 @@ using clang::FixItHint;
 using clang::SourceLocation;
 using clang::SourceManager;
 using clang::SourceRange;
-using cool::csabase::Analyser;
-using cool::csabase::Location;
-using cool::csabase::PPObserver;
-using cool::csabase::Range;
-using cool::csabase::Visitor;
+using bde_verify::csabase::Analyser;
+using bde_verify::csabase::Location;
+using bde_verify::csabase::PPObserver;
+using bde_verify::csabase::Range;
+using bde_verify::csabase::Visitor;
 
 namespace
 {
@@ -47,7 +47,7 @@ void comments::append(Analyser& analyser, SourceRange range)
 {
     SourceManager& m = analyser.manager();
     comments::Ranges& c = d_comments[m.getFilename(range.getBegin())];
-    if (c.size() != 0 && cool::csabase::areConsecutive(m, c.back(), range)) {
+    if (c.size() != 0 && bde_verify::csabase::areConsecutive(m, c.back(), range)) {
         c.back().setEnd(range.getEnd());
     } else {
         c.push_back(range);
@@ -227,4 +227,4 @@ void subscribe(Analyser& analyser, Visitor&, PPObserver& observer)
 
 // ----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck c1(check_name, &subscribe);
+static bde_verify::csabase::RegisterCheck c1(check_name, &subscribe);

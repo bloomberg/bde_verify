@@ -4,7 +4,7 @@
 #include "csabbg_midreturn.t.hpp"
 #include <bdes_ident.h>
 
-namespace cool
+namespace bde_verify
 {
     namespace csabbg
     {

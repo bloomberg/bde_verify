@@ -15,8 +15,8 @@ static std::string const check_name("operator-void-star");
 using clang::CXXConversionDecl;
 using clang::QualType;
 
-using cool::csabase::Analyser;
-using cool::csabase::Location;
+using bde_verify::csabase::Analyser;
+using bde_verify::csabase::Location;
 
 namespace
 {
@@ -47,4 +47,4 @@ void conversions(Analyser& analyser, const CXXConversionDecl* conv)
 
 // ----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck c1(check_name, &conversions);
+static bde_verify::csabase::RegisterCheck c1(check_name, &conversions);

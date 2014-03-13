@@ -9,8 +9,8 @@
 #define FRAMEWORK_DIAGNOSTIC_BUILDER_HPP 1
 #ident "$Id: diagnostic_builder.hpp 141 2011-09-29 18:59:08Z kuehl $"
 
-#if defined(COOL_CXX2011)
-#  include "cool/unique_ptr.hpp"
+#if defined(UTILS_CXX2011)
+#  include "utils/unique_ptr.hpp"
 #else
 #  include <memory>
 #endif
@@ -18,7 +18,7 @@
 
 // -----------------------------------------------------------------------------
 
-namespace cool
+namespace bde_verify
 {
     class diagnostic_builder
     {
@@ -31,9 +31,9 @@ namespace cool
             builder_(new clang::DiagnosticBuilder(builder))
         {
         }
-#if defined(COOL_CXX2011)
+#if defined(UTILS_CXX2011)
         diagnostic_builder(diagnostic_builder&& other):
-            builder_(static_cast<cool::unique_ptr<clang::DiagnosticBuilder>&&>(other.builder_))
+            builder_(static_cast<bde_verify::unique_ptr<clang::DiagnosticBuilder>&&>(other.builder_))
 #else
         diagnostic_builder(diagnostic_builder const& other):
             builder_(other.builder_.release())
@@ -56,8 +56,8 @@ namespace cool
             return *this;
         }
     private:
-#if defined(COOL_CXX2011)
-        cool::unique_ptr<clang::DiagnosticBuilder> builder_;
+#if defined(UTILS_CXX2011)
+        bde_verify::unique_ptr<clang::DiagnosticBuilder> builder_;
 #else
         mutable std::auto_ptr<clang::DiagnosticBuilder> builder_;
 #endif

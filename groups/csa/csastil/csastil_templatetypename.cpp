@@ -19,7 +19,7 @@ static std::string const check_name("template-typename");
 static llvm::Regex all_upper("^[[:upper:]](_?[[:upper:][:digit:]]+)*$");
 
 static void
-checkTemplate(cool::csabase::Analyser& analyser,
+checkTemplate(bde_verify::csabase::Analyser& analyser,
               clang::TemplateDecl const* decl)
 {
     clang::TemplateParameterList const* parms = decl->getTemplateParameters();
@@ -46,4 +46,4 @@ checkTemplate(cool::csabase::Analyser& analyser,
 
 // ----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck register_check(check_name, &checkTemplate);
+static bde_verify::csabase::RegisterCheck register_check(check_name, &checkTemplate);

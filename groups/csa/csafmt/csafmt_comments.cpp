@@ -21,11 +21,11 @@ static std::string const check_name("comments");
 using clang::SourceLocation;
 using clang::SourceManager;
 using clang::SourceRange;
-using cool::csabase::Analyser;
-using cool::csabase::Location;
-using cool::csabase::PPObserver;
-using cool::csabase::Range;
-using cool::csabase::Visitor;
+using bde_verify::csabase::Analyser;
+using bde_verify::csabase::Location;
+using bde_verify::csabase::PPObserver;
+using bde_verify::csabase::Range;
+using bde_verify::csabase::Visitor;
 
 namespace
 {
@@ -47,7 +47,7 @@ void comments::append(Analyser& analyser, SourceRange range)
 {
     SourceManager& m = analyser.manager();
     comments::Ranges& c = d_comments[m.getFilename(range.getBegin())];
-    if (c.size() != 0 && cool::csabase::areConsecutive(m, c.back(), range)) {
+    if (c.size() != 0 && bde_verify::csabase::areConsecutive(m, c.back(), range)) {
         c.back().setEnd(range.getEnd());
     } else {
         c.push_back(range);
@@ -140,7 +140,7 @@ void files::check_fvs(SourceRange range)
     llvm::StringRef s;
     while (fvs.match(s = comment.drop_front(offset), &matches)) {
         llvm::StringRef text = matches[0];
-        std::pair<size_t, size_t> m = cool::csabase::mid_match(s, text);
+        std::pair<size_t, size_t> m = bde_verify::csabase::mid_match(s, text);
         size_t matchpos = offset + m.first;
         offset = matchpos + text.size();
         d_analyser.report(range.getBegin().getLocWithOffset(matchpos),
@@ -166,7 +166,7 @@ void files::check_pp(SourceRange range)
     llvm::StringRef s;
     while (pp.match(s = comment.drop_front(offset), &matches)) {
         llvm::StringRef text = matches[0];
-        std::pair<size_t, size_t> m = cool::csabase::mid_match(s, text);
+        std::pair<size_t, size_t> m = bde_verify::csabase::mid_match(s, text);
         size_t matchpos = offset + m.first;
         offset = matchpos + text.size();
         d_analyser.report(range.getBegin().getLocWithOffset(matchpos),
@@ -235,7 +235,7 @@ void files::check_bubble(SourceRange range)
 
     while (good_bubble.match(s = comment.drop_front(offset), &matches)) {
         llvm::StringRef text = matches[0];
-        std::pair<size_t, size_t> m = cool::csabase::mid_match(s, text);
+        std::pair<size_t, size_t> m = bde_verify::csabase::mid_match(s, text);
         size_t matchpos = offset + m.first;
         offset = matchpos + text.size();
         if (matches[1].size() < left_offset) {
@@ -254,7 +254,7 @@ void files::check_bubble(SourceRange range)
     offset = 0;
     while (bad_bubble.match(s = comment.drop_front(offset), &matches)) {
         llvm::StringRef text = matches[0];
-        std::pair<size_t, size_t> m = cool::csabase::mid_match(s, text);
+        std::pair<size_t, size_t> m = bde_verify::csabase::mid_match(s, text);
         size_t matchpos = offset + m.first;
         offset = matchpos + matches[1].size();
 
@@ -345,7 +345,7 @@ void get_displays(llvm::StringRef text,
     displays->clear();
     while (display.match(s = text.drop_front(offset), &matches)) {
         llvm::StringRef d = matches[0];
-        std::pair<size_t, size_t> m = cool::csabase::mid_match(s, d);
+        std::pair<size_t, size_t> m = bde_verify::csabase::mid_match(s, d);
         size_t matchpos = offset + m.first;
         offset = matchpos + d.size();
 
@@ -379,7 +379,7 @@ void files::check_wrapped(SourceRange range)
     llvm::StringRef s;
     while (block_comment.match(s = comment.drop_front(offset), &matches)) {
         llvm::StringRef text = matches[0];
-        std::pair<size_t, size_t> m = cool::csabase::mid_match(s, text);
+        std::pair<size_t, size_t> m = bde_verify::csabase::mid_match(s, text);
         size_t matchpos = offset + m.first;
         offset = matchpos + text.size();
 
@@ -438,14 +438,14 @@ void files::check_purpose(SourceRange range)
     llvm::StringRef s;
     while (loose_purpose.match(s = comment.drop_front(offset), &matches)) {
         llvm::StringRef text = matches[0];
-        std::pair<size_t, size_t> m = cool::csabase::mid_match(s, text);
+        std::pair<size_t, size_t> m = bde_verify::csabase::mid_match(s, text);
         size_t matchpos = offset + m.first;
         offset = matchpos + text.size();
 
         if (!strict_purpose.match(text)) {
             std::string expected = "//@PURPOSE: " + matches[1].str() + ".";
             std::pair<size_t, size_t> m =
-                cool::csabase::mid_mismatch(text, expected);
+                bde_verify::csabase::mid_mismatch(text, expected);
             d_analyser.report(
                     range.getBegin().getLocWithOffset(matchpos + m.first),
                     check_name, "PRP01",
@@ -476,4 +476,4 @@ void subscribe(Analyser& analyser, Visitor&, PPObserver& observer)
 
 // ----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck c1(check_name, &subscribe);
+static bde_verify::csabase::RegisterCheck c1(check_name, &subscribe);

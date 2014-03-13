@@ -38,7 +38,7 @@ namespace
 {
     struct on_open
     {
-        on_open(cool::csabase::Analyser& analyser) : d_analyser(&analyser)
+        on_open(bde_verify::csabase::Analyser& analyser) : d_analyser(&analyser)
         {
         }
 
@@ -47,11 +47,11 @@ namespace
                         std::string const&    name) const
         {
             packagename& attachment(d_analyser->attachment<packagename>());
-            cool::csabase::FileName fn(name);
+            bde_verify::csabase::FileName fn(name);
 
             if (!attachment.d_done && name == d_analyser->toplevel()) {
                 attachment.d_done = true;
-                cool::csabase::Analyser& analyser(*d_analyser);
+                bde_verify::csabase::Analyser& analyser(*d_analyser);
 
                 bool standalone = fn.name().find("m_") == 0;
 
@@ -136,16 +136,16 @@ namespace
             }
         }
 
-        cool::csabase::Analyser* d_analyser;
+        bde_verify::csabase::Analyser* d_analyser;
     };
 }
 
 static void
-subscribe(cool::csabase::Analyser& analyser, cool::csabase::Visitor&, cool::csabase::PPObserver& observer)
+subscribe(bde_verify::csabase::Analyser& analyser, bde_verify::csabase::Visitor&, bde_verify::csabase::PPObserver& observer)
 {
     observer.onOpenFile  += on_open(analyser);
 }
 
 // -----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck register_observer(check_name, &subscribe);
+static bde_verify::csabase::RegisterCheck register_observer(check_name, &subscribe);

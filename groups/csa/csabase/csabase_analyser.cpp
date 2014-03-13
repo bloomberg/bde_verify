@@ -14,7 +14,7 @@
 #include <csabase_ppobserver.h>
 #include <csabase_util.h>
 #include <csabase_visitor.h>
-#include <cool/array.hpp>
+#include <utils/array.hpp>
 #include <clang/AST/AST.h>
 #include <clang/AST/DeclVisitor.h>
 #include <clang/Basic/SourceManager.h>
@@ -33,11 +33,11 @@
 
 // -----------------------------------------------------------------------------
 
-cool::csabase::Analyser::Analyser(clang::CompilerInstance& compiler,
+bde_verify::csabase::Analyser::Analyser(clang::CompilerInstance& compiler,
                                   bool debug,
                                   std::vector<std::string> const& config,
                                   std::string const& name)
-: d_config(new cool::csabase::Config(
+: d_config(new bde_verify::csabase::Config(
                config.size() == 0 ?
                    std::vector<std::string>(1, "load .bdeverify") :
                    config,
@@ -45,20 +45,20 @@ cool::csabase::Analyser::Analyser(clang::CompilerInstance& compiler,
 , tool_name_(name)
 , compiler_(compiler)
 , d_source_manager(compiler.getSourceManager())
-, visitor_(new cool::csabase::Visitor())
+, visitor_(new bde_verify::csabase::Visitor())
 , pp_observer_(0)
 , context_(0)
 {
-    std::auto_ptr<cool::csabase::PPObserver> observer(
-        new cool::csabase::PPObserver(&d_source_manager, d_config.get()));
+    std::auto_ptr<bde_verify::csabase::PPObserver> observer(
+        new bde_verify::csabase::PPObserver(&d_source_manager, d_config.get()));
     pp_observer_ = observer.get();
-    cool::csabase::CheckRegistry::attach(*this, *visitor_, *observer);
+    bde_verify::csabase::CheckRegistry::attach(*this, *visitor_, *observer);
     compiler_.getPreprocessor().addCommentHandler(
         observer->get_comment_handler());
     compiler_.getPreprocessor().addPPCallbacks(observer.release());
 }
 
-cool::csabase::Analyser::~Analyser()
+bde_verify::csabase::Analyser::~Analyser()
 {
     if (pp_observer_)
     {
@@ -68,8 +68,8 @@ cool::csabase::Analyser::~Analyser()
 
 // -----------------------------------------------------------------------------
 
-cool::csabase::Config const*
-cool::csabase::Analyser::config() const
+bde_verify::csabase::Config const*
+bde_verify::csabase::Analyser::config() const
 {
     return d_config.get();
 }
@@ -77,7 +77,7 @@ cool::csabase::Analyser::config() const
 // -----------------------------------------------------------------------------
 
 std::string const&
-cool::csabase::Analyser::tool_name() const
+bde_verify::csabase::Analyser::tool_name() const
 {
     return tool_name_;
 }
@@ -85,26 +85,26 @@ cool::csabase::Analyser::tool_name() const
 // -----------------------------------------------------------------------------
 
 clang::ASTContext const*
-cool::csabase::Analyser::context() const
+bde_verify::csabase::Analyser::context() const
 {
     return context_;
 }
 
 clang::ASTContext*
-cool::csabase::Analyser::context()
+bde_verify::csabase::Analyser::context()
 {
     return context_;
 }
 
 void
-cool::csabase::Analyser::context(clang::ASTContext* context)
+bde_verify::csabase::Analyser::context(clang::ASTContext* context)
 {
     context_ = context;
     pp_observer_->Context();
 }
 
 clang::CompilerInstance&
-cool::csabase::Analyser::compiler()
+bde_verify::csabase::Analyser::compiler()
 {
     return compiler_;
 }
@@ -112,7 +112,7 @@ cool::csabase::Analyser::compiler()
 // -----------------------------------------------------------------------------
 
 clang::Sema&
-cool::csabase::Analyser::sema()
+bde_verify::csabase::Analyser::sema()
 {
     return compiler_.getSema();
 }
@@ -136,44 +136,44 @@ namespace
 }
 
 std::string const&
-cool::csabase::Analyser::toplevel() const
+bde_verify::csabase::Analyser::toplevel() const
 {
     return toplevel_;
 }
 
 std::string const&
-cool::csabase::Analyser::directory() const
+bde_verify::csabase::Analyser::directory() const
 {
     return directory_;
 }
 
 
 std::string const&
-cool::csabase::Analyser::prefix() const
+bde_verify::csabase::Analyser::prefix() const
 {
     return prefix_;
 }
 
 std::string const&
-cool::csabase::Analyser::package() const
+bde_verify::csabase::Analyser::package() const
 {
     return package_;
 }
 
 std::string const&
-cool::csabase::Analyser::group() const
+bde_verify::csabase::Analyser::group() const
 {
     return group_;
 }
 
 std::string const&
-cool::csabase::Analyser::component() const
+bde_verify::csabase::Analyser::component() const
 {
     return component_;
 }
 
 void
-cool::csabase::Analyser::toplevel(std::string const& path)
+bde_verify::csabase::Analyser::toplevel(std::string const& path)
 {
     FileName fn(path);
     toplevel_ = fn.full();
@@ -191,7 +191,7 @@ cool::csabase::Analyser::toplevel(std::string const& path)
 }
 
 bool
-cool::csabase::Analyser::is_component_header(std::string const& name) const
+bde_verify::csabase::Analyser::is_component_header(std::string const& name) const
 {
     IsComponentHeader::iterator in = is_component_header_.find(name);
     if (in != is_component_header_.end()) {
@@ -212,13 +212,13 @@ cool::csabase::Analyser::is_component_header(std::string const& name) const
 }
 
 bool
-cool::csabase::Analyser::is_component_header(clang::SourceLocation loc) const
+bde_verify::csabase::Analyser::is_component_header(clang::SourceLocation loc) const
 {
     return is_component_header(get_location(loc).file());
 }
 
 bool
-cool::csabase::Analyser::is_global_package(std::string const& pkg) const
+bde_verify::csabase::Analyser::is_global_package(std::string const& pkg) const
 {
     IsGlobalPackage::iterator in = is_global_package_.find(pkg);
     if (in == is_global_package_.end()) {
@@ -233,13 +233,13 @@ cool::csabase::Analyser::is_global_package(std::string const& pkg) const
 }
 
 bool
-cool::csabase::Analyser::is_global_package() const
+bde_verify::csabase::Analyser::is_global_package() const
 {
     return is_global_package(package());
 }
 
 bool
-cool::csabase::Analyser::is_standard_namespace(std::string const& ns) const
+bde_verify::csabase::Analyser::is_standard_namespace(std::string const& ns) const
 {
     IsGlobalPackage::iterator in = is_standard_namespace_.find(ns);
     if (in == is_standard_namespace_.end()) {
@@ -255,33 +255,33 @@ cool::csabase::Analyser::is_standard_namespace(std::string const& ns) const
 }
 
 bool
-cool::csabase::Analyser::is_component_source(std::string const& file) const
+bde_verify::csabase::Analyser::is_component_source(std::string const& file) const
 {
     std::string::size_type pos(file.find(toplevel()));
     return pos != file.npos && pos + toplevel().size() == file.size();
 }
 
 bool
-cool::csabase::Analyser::is_component_source(clang::SourceLocation loc) const
+bde_verify::csabase::Analyser::is_component_source(clang::SourceLocation loc) const
 {
     return is_component_source(get_location(loc).file());
 }
 
 bool
-cool::csabase::Analyser::is_component(std::string const& file) const
+bde_verify::csabase::Analyser::is_component(std::string const& file) const
 {
     return is_component_source(file)
         || is_component_header(file);
 }
 
 bool
-cool::csabase::Analyser::is_component(clang::SourceLocation loc) const
+bde_verify::csabase::Analyser::is_component(clang::SourceLocation loc) const
 {
     return is_component(get_location(loc).file());
 }
 
 bool
-cool::csabase::Analyser::is_test_driver() const
+bde_verify::csabase::Analyser::is_test_driver() const
 {
     //-dk:TODO this should be configurable, e.g. using regexp
     return 6 < toplevel().size()
@@ -289,7 +289,7 @@ cool::csabase::Analyser::is_test_driver() const
 }
 
 bool
-cool::csabase::Analyser::is_main() const
+bde_verify::csabase::Analyser::is_main() const
 {
     std::string::size_type size(toplevel().size());
     std::string suffix(toplevel().substr(size - std::min(size, std::string::size_type(6))));
@@ -298,36 +298,36 @@ cool::csabase::Analyser::is_main() const
 
 // -----------------------------------------------------------------------------
 
-cool::diagnostic_builder
-cool::csabase::Analyser::report(clang::SourceLocation where,
+bde_verify::diagnostic_builder
+bde_verify::csabase::Analyser::report(clang::SourceLocation where,
                                 std::string const& check,
                                 std::string const& tag,
                                 std::string const& message,
                                 bool always,
                                 clang::DiagnosticsEngine::Level level)
 {
-    cool::csabase::Location location(get_location(where));
+    bde_verify::csabase::Location location(get_location(where));
     if (   (always || is_component(location.file()))
         && !config()->suppressed(tag, where))
     {
         unsigned int id(compiler_.getDiagnostics().
             getCustomDiagID(level, tool_name() + tag + ": " + message));
-        return cool::diagnostic_builder(
+        return bde_verify::diagnostic_builder(
             compiler_.getDiagnostics().Report(where, id));
     }
-    return cool::diagnostic_builder();
+    return bde_verify::diagnostic_builder();
 }
 
 // -----------------------------------------------------------------------------
 
 clang::SourceManager&
-cool::csabase::Analyser::manager() const
+bde_verify::csabase::Analyser::manager() const
 {
     return compiler_.getSourceManager();
 }
 
 llvm::StringRef
-cool::csabase::Analyser::get_source(clang::SourceRange range, bool exact)
+bde_verify::csabase::Analyser::get_source(clang::SourceRange range, bool exact)
 {
     const char *pb = "";
     const char *pe = pb + 1;
@@ -355,46 +355,46 @@ cool::csabase::Analyser::get_source(clang::SourceRange range, bool exact)
 
 // -----------------------------------------------------------------------------
 
-cool::csabase::Location
-cool::csabase::Analyser::get_location(clang::SourceLocation sl) const
+bde_verify::csabase::Location
+bde_verify::csabase::Analyser::get_location(clang::SourceLocation sl) const
 {
-    return cool::csabase::Location(d_source_manager, sl);
+    return bde_verify::csabase::Location(d_source_manager, sl);
 }
 
-cool::csabase::Location
-cool::csabase::Analyser::get_location(clang::Decl const* decl) const
+bde_verify::csabase::Location
+bde_verify::csabase::Analyser::get_location(clang::Decl const* decl) const
 {
     return decl
         ? get_location(decl->getLocation())
-        : cool::csabase::Location();
+        : bde_verify::csabase::Location();
 }
 
-cool::csabase::Location
-cool::csabase::Analyser::get_location(clang::Expr const* expr) const
+bde_verify::csabase::Location
+bde_verify::csabase::Analyser::get_location(clang::Expr const* expr) const
 {
     return expr
         ? get_location(expr->getLocStart())
-        : cool::csabase::Location();
+        : bde_verify::csabase::Location();
 }
 
-cool::csabase::Location
-cool::csabase::Analyser::get_location(clang::Stmt const* stmt) const
+bde_verify::csabase::Location
+bde_verify::csabase::Analyser::get_location(clang::Stmt const* stmt) const
 {
     return stmt
         ? get_location(stmt->getLocStart())
-        : cool::csabase::Location();
+        : bde_verify::csabase::Location();
 }
 
 // -----------------------------------------------------------------------------
 
 void
-cool::csabase::Analyser::process_decl(clang::Decl const* decl)
+bde_verify::csabase::Analyser::process_decl(clang::Decl const* decl)
 {
     visitor_->visit(decl);
 }
 
 void
-cool::csabase::Analyser::process_translation_unit_done()
+bde_verify::csabase::Analyser::process_translation_unit_done()
 {
     onTranslationUnitDone();
 }
@@ -440,13 +440,13 @@ namespace
 }
 
 clang::NamedDecl*
-cool::csabase::Analyser::lookup_name(std::string const& name)
+bde_verify::csabase::Analyser::lookup_name(std::string const& name)
 {
     return ::lookup_name(sema(), name);
 }
 
 clang::TypeDecl*
-cool::csabase::Analyser::lookup_type(std::string const& name)
+bde_verify::csabase::Analyser::lookup_type(std::string const& name)
 {
     clang::NamedDecl* decl(lookup_name(name));
     return decl? llvm::dyn_cast<clang::TypeDecl>(decl): 0;
@@ -455,7 +455,7 @@ cool::csabase::Analyser::lookup_type(std::string const& name)
 // ----------------------------------------------------------------------------
 
 bool
-cool::csabase::Analyser::is_ADL_candidate(clang::Decl const* decl)
+bde_verify::csabase::Analyser::is_ADL_candidate(clang::Decl const* decl)
     // Return true iff the specified 'decl' is a function or function template
     // with a parameter whose type is declared inside the package namespace.
     // This check is used to determine whether to complain about a "mis-scoped"
@@ -501,7 +501,7 @@ cool::csabase::Analyser::is_ADL_candidate(clang::Decl const* decl)
             clang::Sema::AssociatedClassSet::iterator cse = cs.end();
             while (!adl && csb != cse) {
                 std::string s =
-                    cool::csabase::to_lower((*csb++)->getNameAsString());
+                    bde_verify::csabase::to_lower((*csb++)->getNameAsString());
                 adl = s == component() || 0 == s.find(component() + "_");
             }
         }
@@ -511,7 +511,7 @@ cool::csabase::Analyser::is_ADL_candidate(clang::Decl const* decl)
 
 // ----------------------------------------------------------------------------
 
-bool cool::csabase::Analyser::is_generated(clang::SourceLocation loc) const
+bool bde_verify::csabase::Analyser::is_generated(clang::SourceLocation loc) const
     // Return true if this is an automatically generated file.  The criterion
     // is a first line containing "GENERATED FILE -- DO NOT EDIT".
 {

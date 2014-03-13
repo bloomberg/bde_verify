@@ -32,10 +32,10 @@ using clang::FunctionTypeLoc;
 using clang::SourceManager;
 using clang::SourceRange;
 using clang::TypeLoc;
-using cool::csabase::Analyser;
-using cool::csabase::Location;
-using cool::csabase::PPObserver;
-using cool::csabase::Visitor;
+using bde_verify::csabase::Analyser;
+using bde_verify::csabase::Location;
+using bde_verify::csabase::PPObserver;
+using bde_verify::csabase::Visitor;
 
 namespace
 {
@@ -237,4 +237,4 @@ void subscribe(Analyser& analyser, Visitor& visitor, PPObserver& observer)
 
 // ----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck c3(check_name, &subscribe);
+static bde_verify::csabase::RegisterCheck c3(check_name, &subscribe);

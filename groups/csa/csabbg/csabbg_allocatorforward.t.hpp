@@ -30,7 +30,7 @@ namespace BloombergLP
 
 }
 
-namespace cool
+namespace bde_verify
 {
     namespace csabbg
     {
@@ -42,13 +42,13 @@ namespace cool
 
 // -----------------------------------------------------------------------------
 
-class cool::csabbg::allocatorforward_alloc_unused
+class bde_verify::csabbg::allocatorforward_alloc_unused
 {
 };
 
 // -----------------------------------------------------------------------------
 
-class cool::csabbg::allocatorforward_alloc_used
+class bde_verify::csabbg::allocatorforward_alloc_used
 {
 public:
     //allocatorforward_alloc_used();

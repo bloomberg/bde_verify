@@ -30,7 +30,7 @@ namespace
 
     struct same_argument_names
     {
-        same_argument_names(cool::csabase::Analyser* analyser,
+        same_argument_names(bde_verify::csabase::Analyser* analyser,
                             clang::FunctionDecl const* current):
             analyser_(analyser),
             current_(current)
@@ -66,7 +66,7 @@ namespace
             }
         }
 
-        cool::csabase::Analyser*            analyser_;
+        bde_verify::csabase::Analyser*            analyser_;
         clang::FunctionDecl const* current_;
     };
 }
@@ -74,7 +74,7 @@ namespace
 // -----------------------------------------------------------------------------
 
 static void
-verify_arg_names_match(cool::csabase::Analyser& analyser,
+verify_arg_names_match(bde_verify::csabase::Analyser& analyser,
                        clang::FunctionDecl const* decl)
 {
     if (!decl->isFirstDecl()) {
@@ -86,4 +86,4 @@ verify_arg_names_match(cool::csabase::Analyser& analyser,
 
 // -----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck check(check_name, &verify_arg_names_match);
+static bde_verify::csabase::RegisterCheck check(check_name, &verify_arg_names_match);

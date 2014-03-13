@@ -18,7 +18,7 @@
 
 // -----------------------------------------------------------------------------
 
-namespace cool
+namespace bde_verify
 {
     namespace csabase
     {
@@ -28,7 +28,7 @@ namespace cool
 
 // -----------------------------------------------------------------------------
 
-class cool::csabase::Config
+class bde_verify::csabase::Config
 {
 public:
     enum Status
@@ -39,7 +39,7 @@ public:
 
     Config(std::vector<std::string> const& config,
            clang::SourceManager& manager);
-        // Create a 'cool::csabase::Config' object initialized with the set of
+        // Create a 'bde_verify::csabase::Config' object initialized with the set of
         // specified 'config' lines, and holding the specified 'manager'.
 
     void load(std::string const& file);
@@ -124,12 +124,12 @@ private:
 
 // -----------------------------------------------------------------------------
 
-namespace cool
+namespace bde_verify
 {
     namespace csabase
     {
-        std::istream& operator>> (std::istream&, cool::csabase::Config::Status&);
-        std::ostream& operator<< (std::ostream&, cool::csabase::Config::Status);
+        std::istream& operator>> (std::istream&, bde_verify::csabase::Config::Status&);
+        std::ostream& operator<< (std::ostream&, bde_verify::csabase::Config::Status);
     }
 }
 

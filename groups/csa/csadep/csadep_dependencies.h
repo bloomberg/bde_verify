@@ -20,7 +20,7 @@ namespace clang
     class NamedDecl;
 }
 
-namespace cool
+namespace bde_verify
 {
     namespace csadep
     {
@@ -30,7 +30,7 @@ namespace cool
 
 // ----------------------------------------------------------------------------
 
-class cool::csadep::dependencies
+class bde_verify::csadep::dependencies
 {
 public:
     struct dependency

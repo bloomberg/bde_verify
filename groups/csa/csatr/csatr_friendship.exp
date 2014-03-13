@@ -1,27 +1,27 @@
 In file included from groups/csa/csatr/csatr_friendship.t.cpp:8:
 groups/csa/csatr/csatr_friendship.t.hpp:40:0: warning: TR19: Friendship to a class can only be granted within a component
-            friend class cool::csamisc::BadGroup;
+            friend class bde_verify::csamisc::BadGroup;
 ^~~~~~
 groups/csa/csatr/csatr_friendship.t.hpp:41:0: warning: TR19: Friendship to a class can only be granted within a component
-            friend class cool::csatr::BadPackage;
+            friend class bde_verify::csatr::BadPackage;
 ^~~~~~
 groups/csa/csatr/csatr_friendship.t.hpp:42:0: warning: TR19: Friendship to a class can only be granted within a component
-            friend class cool::csatr::BadExtern;
+            friend class bde_verify::csatr::BadExtern;
 ^~~~~~
 groups/csa/csatr/csatr_friendship.t.hpp:43:0: warning: TR19: Friendship to a method can only be granted within a component
-            friend void cool::csatr::BadExtern::f() const;
+            friend void bde_verify::csatr::BadExtern::f() const;
 ^~~~~~
 groups/csa/csatr/csatr_friendship.t.hpp:44:0: warning: TR19: Friendship to a class can only be granted within a component
-            friend class cool::csatr::BadExtern::Nested;
+            friend class bde_verify::csatr::BadExtern::Nested;
 ^~~~~~
 groups/csa/csatr/csatr_friendship.t.hpp:47:0: warning: TR19: Friendship to a class template can only be granted within a component
             template <class T> friend class BadPackageTemplate;
 ^~~~~~
 groups/csa/csatr/csatr_friendship.t.hpp:49:0: warning: TR19: Friendship to a function can only be granted within a component
-            friend void cool::csatr::operator+ (BadExtern const&);
+            friend void bde_verify::csatr::operator+ (BadExtern const&);
 ^~~~~~
 groups/csa/csatr/csatr_friendship.t.hpp:51:0: warning: TR19: Friendship to a function template can only be granted within a component
-            friend void cool::csatr::operator+ (BadExtern const&, T);
+            friend void bde_verify::csatr::operator+ (BadExtern const&, T);
 ^~~~~~
 groups/csa/csatr/csatr_friendship.t.hpp:58:0: warning: TR19: Friendship to a function template can only be granted within a component
             friend void BadExtern::g(T);

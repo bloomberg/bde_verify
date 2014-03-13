@@ -45,7 +45,7 @@ is_comparison(clang::BinaryOperatorKind opcode)
 // ----------------------------------------------------------------------------
 
 static void
-check(cool::csabase::Analyser& analyser, clang::BinaryOperator const* expr)
+check(bde_verify::csabase::Analyser& analyser, clang::BinaryOperator const* expr)
 {
     if (is_comparison(expr->getOpcode())
         && (is_bool_comparison(expr->getLHS(), expr->getRHS())
@@ -59,4 +59,4 @@ check(cool::csabase::Analyser& analyser, clang::BinaryOperator const* expr)
 
 // ----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck register_check(check_name, &check);
+static bde_verify::csabase::RegisterCheck register_check(check_name, &check);

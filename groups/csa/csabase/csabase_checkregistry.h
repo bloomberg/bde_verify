@@ -9,12 +9,12 @@
 #define INCLUDED_CSABASE_CHECKREGISTRY 1
 #ident "$Id$"
 
-#include <cool/function.hpp>
+#include <utils/function.hpp>
 #include <string>
 
 // -----------------------------------------------------------------------------
 
-namespace cool
+namespace bde_verify
 {
     namespace csabase
     {
@@ -31,16 +31,16 @@ namespace cool
 // operations to subscribe to the suitable events on the visitor object its
 // gets passed.
 
-class cool::csabase::CheckRegistry
+class bde_verify::csabase::CheckRegistry
 {
 public:
-    typedef cool::function<void(cool::csabase::Analyser&,
-                                cool::csabase::Visitor&,
-                                cool::csabase::PPObserver&)> Subscriber;
+    typedef utils::function<void(bde_verify::csabase::Analyser&,
+                                bde_verify::csabase::Visitor&,
+                                bde_verify::csabase::PPObserver&)> Subscriber;
     static void add_check(std::string const&, Subscriber);
-    static void attach(cool::csabase::Analyser&,
-                       cool::csabase::Visitor&,
-                       cool::csabase::PPObserver&);
+    static void attach(bde_verify::csabase::Analyser&,
+                       bde_verify::csabase::Visitor&,
+                       bde_verify::csabase::PPObserver&);
 };
 
 // -----------------------------------------------------------------------------

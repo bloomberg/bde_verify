@@ -9,7 +9,7 @@
 #define INCLUDED_CSABASE_PPOSERVER 1
 #ident "$Id$"
 
-#include <cool/event.hpp>
+#include <utils/event.hpp>
 #include <csabase_config.h>
 #include <clang/Basic/SourceManager.h>
 #include <clang/Lex/Preprocessor.h>
@@ -18,7 +18,7 @@
 
 // -----------------------------------------------------------------------------
 
-namespace cool
+namespace bde_verify
 {
     namespace csabase
     {
@@ -28,34 +28,34 @@ namespace cool
 
 // -----------------------------------------------------------------------------
 
-class cool::csabase::PPObserver
+class bde_verify::csabase::PPObserver
     : public clang::PPCallbacks
 {
 public:
-    PPObserver(clang::SourceManager const*, cool::csabase::Config*);
+    PPObserver(clang::SourceManager const*, bde_verify::csabase::Config*);
     ~PPObserver();
     void detach();
     clang::CommentHandler* get_comment_handler();
 
-    cool::event<void(clang::SourceLocation, bool, std::string const&)>               onInclude;
-    cool::event<void(clang::SourceLocation, std::string const&, std::string const&)> onOpenFile;
-    cool::event<void(clang::SourceLocation, std::string const&, std::string const&)> onCloseFile;
-    cool::event<void(std::string const&, std::string const&)>                        onSkipFile;
-    cool::event<void(std::string const&)>                                            onFileNotFound;
-    cool::event<void(std::string const&, clang::PPCallbacks::FileChangeReason)>      onOtherFile;
-    cool::event<void(clang::SourceLocation, std::string const&)>                     onIdent;
-    cool::event<void(clang::SourceLocation, std::string const&)>                     onPragma;
-    cool::event<void(clang::Token const&, clang::MacroDirective const*)>                  onMacroExpands;
-    cool::event<void(clang::Token const&, clang::MacroDirective const*)>                  onMacroDefined;
-    cool::event<void(clang::Token const&, clang::MacroDirective const*)>                  onMacroUndefined;
-    cool::event<void(clang::SourceLocation, clang::SourceRange)>                     onIf;
-    cool::event<void(clang::SourceLocation, clang::SourceRange)>                     onElif;
-    cool::event<void(clang::SourceLocation, clang::Token const&)>                    onIfdef;
-    cool::event<void(clang::SourceLocation, clang::Token const&)>                    onIfndef;
-    cool::event<void(clang::SourceLocation, clang::SourceLocation)>                  onElse;
-    cool::event<void(clang::SourceLocation, clang::SourceLocation)>                  onEndif;
-    cool::event<void(clang::SourceRange)>                                            onComment;
-    cool::event<void()>                                                              onContext;
+    utils::event<void(clang::SourceLocation, bool, std::string const&)>               onInclude;
+    utils::event<void(clang::SourceLocation, std::string const&, std::string const&)> onOpenFile;
+    utils::event<void(clang::SourceLocation, std::string const&, std::string const&)> onCloseFile;
+    utils::event<void(std::string const&, std::string const&)>                        onSkipFile;
+    utils::event<void(std::string const&)>                                            onFileNotFound;
+    utils::event<void(std::string const&, clang::PPCallbacks::FileChangeReason)>      onOtherFile;
+    utils::event<void(clang::SourceLocation, std::string const&)>                     onIdent;
+    utils::event<void(clang::SourceLocation, std::string const&)>                     onPragma;
+    utils::event<void(clang::Token const&, clang::MacroDirective const*)>                  onMacroExpands;
+    utils::event<void(clang::Token const&, clang::MacroDirective const*)>                  onMacroDefined;
+    utils::event<void(clang::Token const&, clang::MacroDirective const*)>                  onMacroUndefined;
+    utils::event<void(clang::SourceLocation, clang::SourceRange)>                     onIf;
+    utils::event<void(clang::SourceLocation, clang::SourceRange)>                     onElif;
+    utils::event<void(clang::SourceLocation, clang::Token const&)>                    onIfdef;
+    utils::event<void(clang::SourceLocation, clang::Token const&)>                    onIfndef;
+    utils::event<void(clang::SourceLocation, clang::SourceLocation)>                  onElse;
+    utils::event<void(clang::SourceLocation, clang::SourceLocation)>                  onEndif;
+    utils::event<void(clang::SourceRange)>                                            onComment;
+    utils::event<void()>                                                              onContext;
 
     void FileChanged(
                   clang::SourceLocation             Loc,
@@ -232,7 +232,7 @@ private:
     clang::SourceManager const* source_manager_;
     std::stack<std::string>     files_;
     bool                        connected_;
-    cool::csabase::Config*      config_;
+    bde_verify::csabase::Config*      config_;
 };
 
 // -----------------------------------------------------------------------------

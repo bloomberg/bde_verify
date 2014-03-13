@@ -19,7 +19,7 @@
 #include <stack>
 #include <utility>
 
-namespace CB = cool::csabase;
+namespace CB = bde_verify::csabase;
 
 // ----------------------------------------------------------------------------
 
@@ -43,7 +43,7 @@ namespace
 // ----------------------------------------------------------------------------
 
 static void
-onOpenFile(cool::csabase::Analyser* analyser,
+onOpenFile(bde_verify::csabase::Analyser* analyser,
            clang::SourceLocation    location,
            std::string const&       current,
            std::string const&       opened)
@@ -68,12 +68,12 @@ toUpper(std::string value)
 }
 
 static void
-onCloseFile(cool::csabase::Analyser* analyser,
+onCloseFile(bde_verify::csabase::Analyser* analyser,
             clang::SourceLocation    location,
             std::string const&       current,
             std::string const&       closed)
 {
-    cool::csabase::FileName fn(closed);
+    bde_verify::csabase::FileName fn(closed);
     std::string component = fn.component();
     std::transform(component.begin(), component.end(),
                    component.begin(),
@@ -84,7 +84,7 @@ onCloseFile(cool::csabase::Analyser* analyser,
     map_type const& macros(context.d_macros.top());
     for (map_type::const_iterator it(macros.begin()), end(macros.end());
          it != end; ++it) {
-        cool::csabase::Location where(analyser->get_location(it->second));
+        bde_verify::csabase::Location where(analyser->get_location(it->second));
         if (where.file() != "<built-in>"
             && where.file() != "<command line>"
             && it->first.find("INCLUDED_") != 0
@@ -106,7 +106,7 @@ onCloseFile(cool::csabase::Analyser* analyser,
 // ----------------------------------------------------------------------------
 
 static void
-onMacroDefined(cool::csabase::Analyser* analyser,
+onMacroDefined(bde_verify::csabase::Analyser* analyser,
                clang::Token const&      token,
                clang::MacroDirective const*  info)
 {
@@ -116,7 +116,7 @@ onMacroDefined(cool::csabase::Analyser* analyser,
 }
 
 static void
-onMacroUndefined(cool::csabase::Analyser* analyser,
+onMacroUndefined(bde_verify::csabase::Analyser* analyser,
                  clang::Token const&      token,
                  clang::MacroDirective const*  info)
 {
@@ -128,16 +128,16 @@ onMacroUndefined(cool::csabase::Analyser* analyser,
 // ----------------------------------------------------------------------------
 
 static void
-subscribe(cool::csabase::Analyser&   analyser,
-          cool::csabase::Visitor&    ,
-          cool::csabase::PPObserver& observer)
+subscribe(bde_verify::csabase::Analyser&   analyser,
+          bde_verify::csabase::Visitor&    ,
+          bde_verify::csabase::PPObserver& observer)
 {
-    observer.onOpenFile       += cool::csabase::bind(&analyser, &onOpenFile);
-    observer.onCloseFile      += cool::csabase::bind(&analyser, &onCloseFile);
-    observer.onMacroDefined   += cool::csabase::bind(&analyser, &onMacroDefined);
-    observer.onMacroUndefined += cool::csabase::bind(&analyser, &onMacroUndefined);
+    observer.onOpenFile       += bde_verify::csabase::bind(&analyser, &onOpenFile);
+    observer.onCloseFile      += bde_verify::csabase::bind(&analyser, &onCloseFile);
+    observer.onMacroDefined   += bde_verify::csabase::bind(&analyser, &onMacroDefined);
+    observer.onMacroUndefined += bde_verify::csabase::bind(&analyser, &onMacroUndefined);
 }
 
 // ----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck register_observer(check_name, &subscribe);
+static bde_verify::csabase::RegisterCheck register_observer(check_name, &subscribe);

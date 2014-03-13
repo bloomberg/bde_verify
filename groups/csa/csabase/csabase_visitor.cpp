@@ -15,11 +15,11 @@
 
 #define DECL(CLASS, BASE)                                                     \
 void                                                                          \
-cool::csabase::Visitor::do_visit(clang::CLASS##Decl const* decl)              \
+bde_verify::csabase::Visitor::do_visit(clang::CLASS##Decl const* decl)              \
 {                                                                             \
     if (on##CLASS##Decl)                                                      \
     {                                                                         \
-        cool::csabase::Debug d("event on" #CLASS "Decl");                     \
+        bde_verify::csabase::Debug d("event on" #CLASS "Decl");                     \
         on##CLASS##Decl(decl);                                                \
     }                                                                         \
 }
@@ -28,7 +28,7 @@ DECL(,)
 
 #define STMT(CLASS, PARENT)                                                   \
 void                                                                          \
-cool::csabase::Visitor::do_visit(clang::CLASS const* stmt)                    \
+bde_verify::csabase::Visitor::do_visit(clang::CLASS const* stmt)                    \
 {                                                                             \
     on##CLASS(stmt);                                                          \
 }

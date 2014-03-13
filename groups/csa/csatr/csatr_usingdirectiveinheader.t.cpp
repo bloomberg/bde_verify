@@ -8,14 +8,14 @@
 #include "csatr_usingdirectiveinheader.t.hpp"
 #include <bdes_ident.h>
 
-using namespace cool;
-namespace cool
+using namespace bde_verify;
+namespace bde_verify
 {
     namespace csatr
     {
         static void f()
         {
-            using namespace cool;
+            using namespace bde_verify;
         }
     }
 }

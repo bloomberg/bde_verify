@@ -5,15 +5,15 @@
 // LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt).     
 // -----------------------------------------------------------------------------
 
-#if !defined(COOL_FUNCTION_HPP)
-#define COOL_FUNCTION_HPP 1
+#if !defined(UTILS_FUNCTION_HPP)
+#define UTILS_FUNCTION_HPP 1
 #ident "$Id: function.hpp 141 2011-09-29 18:59:08Z kuehl $"
 
 #include <algorithm>
 
 // -----------------------------------------------------------------------------
 
-namespace cool
+namespace utils
 {
     template <typename Signature> class function;
     template <typename RC>                                        class function<RC()>;
@@ -25,14 +25,14 @@ namespace cool
 // -----------------------------------------------------------------------------
 
 template <typename RC>
-class cool::function<RC()>
+class utils::function<RC()>
 {
 public:
     template <typename Functor> function(Functor const&);
-    function(cool::function<RC()> const&);
-    cool::function<RC()>& operator=(cool::function<RC()> const&);
+    function(utils::function<RC()> const&);
+    utils::function<RC()>& operator=(utils::function<RC()> const&);
     ~function();
-    void swap(cool::function<RC()>&);
+    void swap(utils::function<RC()>&);
 
     RC operator()() const;
 
@@ -62,14 +62,14 @@ private:
 // -----------------------------------------------------------------------------
 
 template <typename RC, typename T0>
-class cool::function<RC(T0)>
+class utils::function<RC(T0)>
 {
 public:
     template <typename Functor> function(Functor const&);
-    function(cool::function<RC(T0)> const&);
-    cool::function<RC(T0)>& operator=(cool::function<RC(T0)> const&);
+    function(utils::function<RC(T0)> const&);
+    utils::function<RC(T0)>& operator=(utils::function<RC(T0)> const&);
     ~function();
-    void swap(cool::function<RC(T0)>&);
+    void swap(utils::function<RC(T0)>&);
 
     RC operator()(T0) const;
 
@@ -99,14 +99,14 @@ private:
 // -----------------------------------------------------------------------------
 
 template <typename RC, typename T0, typename T1>
-class cool::function<RC(T0, T1)>
+class utils::function<RC(T0, T1)>
 {
 public:
     template <typename Functor> function(Functor const&);
-    function(cool::function<RC(T0, T1)> const&);
-    cool::function<RC(T0, T1)>& operator=(cool::function<RC(T0, T1)> const&);
+    function(utils::function<RC(T0, T1)> const&);
+    utils::function<RC(T0, T1)>& operator=(utils::function<RC(T0, T1)> const&);
     ~function();
-    void swap(cool::function<RC(T0, T1)>&);
+    void swap(utils::function<RC(T0, T1)>&);
 
     RC operator()(T0, T1) const;
 
@@ -136,14 +136,14 @@ private:
 // -----------------------------------------------------------------------------
 
 template <typename RC, typename T0, typename T1, typename T2>
-class cool::function<RC(T0, T1, T2)>
+class utils::function<RC(T0, T1, T2)>
 {
 public:
     template <typename Functor> function(Functor const&);
-    function(cool::function<RC(T0, T1, T2)> const&);
-    cool::function<RC(T0, T1, T2)>& operator=(cool::function<RC(T0, T1, T2)> const&);
+    function(utils::function<RC(T0, T1, T2)> const&);
+    utils::function<RC(T0, T1, T2)>& operator=(utils::function<RC(T0, T1, T2)> const&);
     ~function();
-    void swap(cool::function<RC(T0, T1, T2)>&);
+    void swap(utils::function<RC(T0, T1, T2)>&);
 
     RC operator()(T0, T1, T2) const;
 
@@ -174,39 +174,39 @@ private:
 
 template <typename RC>
 template <typename Functor>
-cool::function<RC()>::function(Functor const& functor):
+utils::function<RC()>::function(Functor const& functor):
     function_(make_function(functor))
 {
 }
 
 template <typename RC>
-cool::function<RC()>::function(cool::function<RC()> const& other):
+utils::function<RC()>::function(utils::function<RC()> const& other):
     function_(other.function_->clone())
 {
 }
 
 template <typename RC>
-cool::function<RC()>&
-cool::function<RC()>::operator=(cool::function<RC()> const& other)
+utils::function<RC()>&
+utils::function<RC()>::operator=(utils::function<RC()> const& other)
 {
-    cool::function<RC()>(other).swap(*this);
+    utils::function<RC()>(other).swap(*this);
     return *this;
 }
 
 template <typename RC>
-cool::function<RC()>::~function()
+utils::function<RC()>::~function()
 {
     delete function_;
 }
 
 template <typename RC>
-void cool::function<RC()>::swap(cool::function<RC()>& other)
+void utils::function<RC()>::swap(utils::function<RC()>& other)
 {
     std::swap(function_, other.function_);
 }
 
 template <typename RC>
-RC cool::function<RC()>::operator()() const
+RC utils::function<RC()>::operator()() const
 {
     return function_->call();
 }
@@ -215,39 +215,39 @@ RC cool::function<RC()>::operator()() const
 
 template <typename RC, typename T0>
 template <typename Functor>
-cool::function<RC(T0)>::function(Functor const& functor):
+utils::function<RC(T0)>::function(Functor const& functor):
     function_(make_function(functor))
 {
 }
 
 template <typename RC, typename T0>
-cool::function<RC(T0)>::function(cool::function<RC(T0)> const& other):
+utils::function<RC(T0)>::function(utils::function<RC(T0)> const& other):
     function_(other.function_->clone())
 {
 }
 
 template <typename RC, typename T0>
-cool::function<RC(T0)>&
-cool::function<RC(T0)>::operator=(cool::function<RC(T0)> const& other)
+utils::function<RC(T0)>&
+utils::function<RC(T0)>::operator=(utils::function<RC(T0)> const& other)
 {
-    cool::function<RC(T0)>(other).swap(*this);
+    utils::function<RC(T0)>(other).swap(*this);
     return *this;
 }
 
 template <typename RC, typename T0>
-cool::function<RC(T0)>::~function()
+utils::function<RC(T0)>::~function()
 {
     delete function_;
 }
 
 template <typename RC, typename T0>
-void cool::function<RC(T0)>::swap(cool::function<RC(T0)>& other)
+void utils::function<RC(T0)>::swap(utils::function<RC(T0)>& other)
 {
     std::swap(function_, other.function_);
 }
 
 template <typename RC, typename T0>
-RC cool::function<RC(T0)>::operator()(T0 a0) const
+RC utils::function<RC(T0)>::operator()(T0 a0) const
 {
     return function_->call(a0);
 }
@@ -256,39 +256,39 @@ RC cool::function<RC(T0)>::operator()(T0 a0) const
 
 template <typename RC, typename T0, typename T1>
 template <typename Functor>
-cool::function<RC(T0, T1)>::function(Functor const& functor):
+utils::function<RC(T0, T1)>::function(Functor const& functor):
     function_(make_function(functor))
 {
 }
 
 template <typename RC, typename T0, typename T1>
-cool::function<RC(T0, T1)>::function(cool::function<RC(T0, T1)> const& other):
+utils::function<RC(T0, T1)>::function(utils::function<RC(T0, T1)> const& other):
     function_(other.function_->clone())
 {
 }
 
 template <typename RC, typename T0, typename T1>
-cool::function<RC(T0, T1)>&
-cool::function<RC(T0, T1)>::operator=(cool::function<RC(T0, T1)> const& other)
+utils::function<RC(T0, T1)>&
+utils::function<RC(T0, T1)>::operator=(utils::function<RC(T0, T1)> const& other)
 {
-    cool::function<RC(T0, T1)>(other).swap(*this);
+    utils::function<RC(T0, T1)>(other).swap(*this);
     return *this;
 }
 
 template <typename RC, typename T0, typename T1>
-cool::function<RC(T0, T1)>::~function()
+utils::function<RC(T0, T1)>::~function()
 {
     delete function_;
 }
 
 template <typename RC, typename T0, typename T1>
-void cool::function<RC(T0, T1)>::swap(cool::function<RC(T0, T1)>& other)
+void utils::function<RC(T0, T1)>::swap(utils::function<RC(T0, T1)>& other)
 {
     std::swap(function_, other.function_);
 }
 
 template <typename RC, typename T0, typename T1>
-RC cool::function<RC(T0, T1)>::operator()(T0 a0, T1 a1) const
+RC utils::function<RC(T0, T1)>::operator()(T0 a0, T1 a1) const
 {
     return function_->call(a0, a1);
 }
@@ -297,43 +297,43 @@ RC cool::function<RC(T0, T1)>::operator()(T0 a0, T1 a1) const
 
 template <typename RC, typename T0, typename T1, typename T2>
 template <typename Functor>
-cool::function<RC(T0, T1, T2)>::function(Functor const& functor):
+utils::function<RC(T0, T1, T2)>::function(Functor const& functor):
     function_(make_function(functor))
 {
 }
 
 template <typename RC, typename T0, typename T1, typename T2>
-cool::function<RC(T0, T1, T2)>::function(cool::function<RC(T0, T1, T2)> const& other):
+utils::function<RC(T0, T1, T2)>::function(utils::function<RC(T0, T1, T2)> const& other):
     function_(other.function_->clone())
 {
 }
 
 template <typename RC, typename T0, typename T1, typename T2>
-cool::function<RC(T0, T1, T2)>&
-cool::function<RC(T0, T1, T2)>::operator=(cool::function<RC(T0, T1, T2)> const& other)
+utils::function<RC(T0, T1, T2)>&
+utils::function<RC(T0, T1, T2)>::operator=(utils::function<RC(T0, T1, T2)> const& other)
 {
-    cool::function<RC(T0, T1, T2)>(other).swap(*this);
+    utils::function<RC(T0, T1, T2)>(other).swap(*this);
     return *this;
 }
 
 template <typename RC, typename T0, typename T1, typename T2>
-cool::function<RC(T0, T1, T2)>::~function()
+utils::function<RC(T0, T1, T2)>::~function()
 {
     delete function_;
 }
 
 template <typename RC, typename T0, typename T1, typename T2>
-void cool::function<RC(T0, T1, T2)>::swap(cool::function<RC(T0, T1, T2)>& other)
+void utils::function<RC(T0, T1, T2)>::swap(utils::function<RC(T0, T1, T2)>& other)
 {
     std::swap(function_, other.function_);
 }
 
 template <typename RC, typename T0, typename T1, typename T2>
-RC cool::function<RC(T0, T1, T2)>::operator()(T0 a0, T1 a1, T2 a2) const
+RC utils::function<RC(T0, T1, T2)>::operator()(T0 a0, T1 a1, T2 a2) const
 {
     return function_->call(a0, a1, a2);
 }
 
 // -----------------------------------------------------------------------------
 
-#endif /* COOL_FUNCTION_HPP */
+#endif /* UTILS_FUNCTION_HPP */

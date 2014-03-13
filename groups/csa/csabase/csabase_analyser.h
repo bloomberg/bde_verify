@@ -12,8 +12,8 @@
 #include <csabase_location.h>
 #include <csabase_diagnostic_builder.h>
 #include <csabase_attachments.h>
-#include <cool/function.hpp>
-#include <cool/event.hpp>
+#include <utils/function.hpp>
+#include <utils/event.hpp>
 #include <clang/AST/ASTContext.h>
 #include <clang/AST/AST.h>
 #include <clang/AST/Decl.h>
@@ -33,7 +33,7 @@ namespace clang
     class SourceManager;
 }
 
-namespace cool
+namespace bde_verify
 {
     namespace csabase
     {
@@ -47,8 +47,8 @@ namespace cool
 
 // -----------------------------------------------------------------------------
 
-class cool::csabase::Analyser:
-    public cool::csabase::Attachments
+class bde_verify::csabase::Analyser:
+    public bde_verify::csabase::Attachments
 {
 public:
     Analyser(clang::CompilerInstance& compiler,
@@ -88,7 +88,7 @@ public:
     bool               is_ADL_candidate(clang::Decl const*);
     bool               is_generated(clang::SourceLocation) const;
 
-    cool::diagnostic_builder report(clang::SourceLocation where,
+    bde_verify::diagnostic_builder report(clang::SourceLocation where,
                                     std::string const& check,
                                     std::string const& tag,
                                     std::string const& message,
@@ -97,7 +97,7 @@ public:
                                         clang::DiagnosticsEngine::Warning);
 
     template <typename T>
-    cool::diagnostic_builder report(T where,
+    bde_verify::diagnostic_builder report(T where,
                                     std::string const& check,
                                     std::string const& tag,
                                     std::string const& message,
@@ -107,15 +107,15 @@ public:
 
     clang::SourceManager& manager() const;
     llvm::StringRef         get_source(clang::SourceRange, bool exact = false);
-    cool::csabase::Location get_location(clang::SourceLocation) const;
-    cool::csabase::Location get_location(clang::Decl const*) const;
-    cool::csabase::Location get_location(clang::Expr const*) const;
-    cool::csabase::Location get_location(clang::Stmt const*) const;
+    bde_verify::csabase::Location get_location(clang::SourceLocation) const;
+    bde_verify::csabase::Location get_location(clang::Decl const*) const;
+    bde_verify::csabase::Location get_location(clang::Expr const*) const;
+    bde_verify::csabase::Location get_location(clang::Stmt const*) const;
 
     template <typename InIt> void process_decls(InIt, InIt);
     void process_decl(clang::Decl const*);
     void process_translation_unit_done();
-    cool::event<void()> onTranslationUnitDone;
+    utils::event<void()> onTranslationUnitDone;
 
     clang::NamedDecl* lookup_name(std::string const& name);
     clang::TypeDecl*  lookup_type(std::string const& name);
@@ -130,15 +130,15 @@ public:
         // 0 if there is no such object.
 
 private:
-    Analyser(cool::csabase::Analyser const&);
-    void operator= (cool::csabase::Analyser const&);
+    Analyser(bde_verify::csabase::Analyser const&);
+    void operator= (bde_verify::csabase::Analyser const&);
         
-    std::auto_ptr<cool::csabase::Config>  d_config;
+    std::auto_ptr<bde_verify::csabase::Config>  d_config;
     std::string                           tool_name_;
     clang::CompilerInstance&              compiler_;
     clang::SourceManager const&           d_source_manager;
-    std::auto_ptr<cool::csabase::Visitor> visitor_;
-    cool::csabase::PPObserver*            pp_observer_;
+    std::auto_ptr<bde_verify::csabase::Visitor> visitor_;
+    bde_verify::csabase::PPObserver*            pp_observer_;
     clang::ASTContext*                    context_;
     std::string                           toplevel_;
     std::string                           directory_;
@@ -160,7 +160,7 @@ private:
 
 template <typename InIt>
 void
-cool::csabase::Analyser::process_decls(InIt it, InIt end)
+bde_verify::csabase::Analyser::process_decls(InIt it, InIt end)
 {
     for (; it != end; ++it)
     {
@@ -169,8 +169,8 @@ cool::csabase::Analyser::process_decls(InIt it, InIt end)
 }
 
 template <typename T>
-cool::diagnostic_builder
-cool::csabase::Analyser::report(T where,
+bde_verify::diagnostic_builder
+bde_verify::csabase::Analyser::report(T where,
                                 std::string const& check,
                                 std::string const& tag,
                                 std::string const& message,
@@ -185,35 +185,35 @@ cool::csabase::Analyser::report(T where,
 
 template <typename T>
 bool
-cool::csabase::Analyser::is_component(T const* value)
+bde_verify::csabase::Analyser::is_component(T const* value)
 {
     return is_component(get_location(value).file());
 }
 
 template <typename T>
 bool
-cool::csabase::Analyser::is_component_header(T const* value)
+bde_verify::csabase::Analyser::is_component_header(T const* value)
 {
     return is_component_header(get_location(value).file());
 }
 
 template <typename T>
 bool
-cool::csabase::Analyser::is_component_source(T const* value)
+bde_verify::csabase::Analyser::is_component_source(T const* value)
 {
     return is_component_source(get_location(value).file());
 }
 
 template <typename T>
 T*
-cool::csabase::Analyser::lookup_name_as(const std::string& name)
+bde_verify::csabase::Analyser::lookup_name_as(const std::string& name)
 {
     clang::NamedDecl* nd = lookup_name(name);
     return nd ? llvm::dyn_cast<T>(nd) : 0;
 }
 
 template <typename Parent, typename Node>
-const Parent *cool::csabase::Analyser::get_parent(const Node *node)
+const Parent *bde_verify::csabase::Analyser::get_parent(const Node *node)
 {
     for (clang::ASTContext::ParentVector pv = context()->getParents(*node);
          pv.size() >= 1;
@@ -227,4 +227,4 @@ const Parent *cool::csabase::Analyser::get_parent(const Node *node)
 
 // -----------------------------------------------------------------------------
 
-#endif /* COOL_ANALYSER_HPP */
+#endif /* UTILS_ANALYSER_HPP */

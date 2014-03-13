@@ -21,7 +21,7 @@ CURRENT  = csafmt/csafmt_nonascii.t.cpp
 
 #  ----------------------------------------------------------------------------
 
-TARGET = bdeverify
+TARGET = bde_verify
 
 TSTCXXFILES +=                                                                \
         groups/csa/csabbg/csabbg_allocatorforward.cpp                         \
@@ -83,7 +83,7 @@ LIBCXXFILES +=                                                                \
         groups/csa/csabase/csabase_attachments.cpp                            \
         groups/csa/csabase/csabase_checkregistry.cpp                          \
         groups/csa/csabase/csabase_config.cpp                                 \
-        groups/csa/csabase/csabase_coolyse.cpp                                \
+        groups/csa/csabase/csabase_analyse.cpp                                \
         groups/csa/csabase/csabase_debug.cpp                                  \
         groups/csa/csabase/csabase_diagnosticfilter.cpp                       \
         groups/csa/csabase/csabase_filenames.cpp                              \
@@ -138,7 +138,7 @@ REDIRECT = $(VERBOSE:@=>/dev/null 2>&1)
 INCFLAGS = $(LLVMINC) -I.
 DEFFLAGS = -D_DEBUG -D_GNU_SOURCE -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS
 ifeq ($(STD),CXX2011)
-  STDFLAGS = -std=c++0x -DCOOL_CXX2011
+  STDFLAGS = -std=c++0x -DBDE_VERIFY_CXX2011
 else
   STDFLAGS = -Wno-c++11-extensions
 endif
@@ -158,7 +158,7 @@ WARNFLAGS = \
         -Wwrite-strings
 LDFLAGS = -L$(LLVMLIB) -g
 
-PLUGIN   = $(OBJ)/$(TARGET) -plugin bdeverify
+PLUGIN   = $(OBJ)/$(TARGET) -plugin bde_verify
 OFILES = $(LIBCXXFILES:%.cpp=$(OBJ)/%.o)
 POSTPROCESS = sed -e 's/\([^:]*:[0-9][0-9]*\):[^:]*:/\1:0:/' \
             | sed -e '/\^/s/ //g' \
@@ -253,16 +253,16 @@ current: $(OBJ)/$(TARGET)
     f=groups/csa/$(CURRENT); \
     if echo $(TODO) | grep -q $(SOURCE); then echo skipping $$f; else \
       trap "rm -f $$$$" EXIT; \
-      (echo namespace cool; \
+      (echo namespace bde_verify; \
        echo all on) > $$$$; \
       if [ -f "$(SOURCE)" -a ! -z "$(CHECK_NAME)" ]; then \
-        (echo namespace cool; \
+        (echo namespace bde_verify; \
          echo all off; \
          echo check $(CHECK_NAME) on) > $$$$; \
       fi; \
       $(PLUGIN) \
-        -plugin-arg-bdeverify debug-$(DEBUG) \
-        -plugin-arg-bdeverify config=$$$$ \
+        -plugin-arg-bde_verify debug-$(DEBUG) \
+        -plugin-arg-bde_verify config=$$$$ \
         $(CPPFLAGS) $(PFLAGS) $$f; \
     fi
 
@@ -275,14 +275,14 @@ check-current: $(OBJ)/$(TARGET)
     f=groups/csa/$(CURRENT); \
     if echo $(TODO) | grep -q $(SOURCE); then echo skipping $$f; else \
       trap "rm -f $$$$" EXIT; \
-      (echo namespace cool; \
+      (echo namespace bde_verify; \
        echo all on) > $$$$; \
       if [ -f "$(SOURCE)" -a ! -z "$(CHECK_NAME)" ]; then \
-        (echo namespace cool; \
+        (echo namespace bde_verify; \
          echo all off; \
          echo check $(CHECK_NAME) on) > $$$$; \
       fi; \
-      if $(PLUGIN) -plugin-arg-bdeverify config=$$$$ \
+      if $(PLUGIN) -plugin-arg-bde_verify config=$$$$ \
         $(CPPFLAGS) $(PFLAGS) $$f 2>&1 \
           | $(POSTPROCESS) \
           | diff - $(EXPECT) $(REDIRECT); \
@@ -291,7 +291,7 @@ check-current: $(OBJ)/$(TARGET)
       else \
         success=0; \
         cat $$$$; \
-        $(PLUGIN) -plugin-arg-bdeverify config=$$$$ \
+        $(PLUGIN) -plugin-arg-bde_verify config=$$$$ \
           $(CPPFLAGS) $(PFLAGS) $$f 2>&1 \
             | $(POSTPROCESS) \
             | diff - $(EXPECT); \
@@ -309,14 +309,14 @@ check-all: $(OBJ)/$(TARGET)
         then echo skipping $$f; continue; fi; \
       $(ECHON) "testing $$f "; \
       trap "rm -f $$$$" EXIT; \
-      (echo namespace cool; \
+      (echo namespace bde_verify; \
        echo all on) > $$$$; \
       if [ -f "$(SOURCE)" -a ! -z "$(CHECK_NAME)" ]; then \
-        (echo namespace cool; \
+        (echo namespace bde_verify; \
          echo all off; \
          echo check $(CHECK_NAME) on) > $$$$; \
       fi; \
-      if $(PLUGIN) -plugin-arg-bdeverify config=$$$$ \
+      if $(PLUGIN) -plugin-arg-bde_verify config=$$$$ \
         $(CPPFLAGS) $(PFLAGS) $$f 2>&1 \
           | $(POSTPROCESS) \
           | diff - $(EXPECT) $(REDIRECT); \
@@ -325,7 +325,7 @@ check-all: $(OBJ)/$(TARGET)
       else \
         success=0; \
         cat $$$$; \
-        $(PLUGIN) -plugin-arg-bdeverify config=$$$$ \
+        $(PLUGIN) -plugin-arg-bde_verify config=$$$$ \
           $(CPPFLAGS) $(PFLAGS) $$f 2>&1 \
             | $(POSTPROCESS) \
             | diff - $(EXPECT); \

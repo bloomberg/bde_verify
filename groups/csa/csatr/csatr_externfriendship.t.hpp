@@ -9,7 +9,7 @@
 #define INCLUDED_CSATR_EXTERNFRIENDSHIP 1
 #ident "$Id$"
 
-namespace cool
+namespace bde_verify
 {
     namespace csatr
     {

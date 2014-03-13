@@ -15,12 +15,12 @@
 static std::string const check_name("superfluous-temporary");
 
 static void
-check_entry(cool::csabase::Analyser& analyser, clang::CXXConstructExpr const* expr)
+check_entry(bde_verify::csabase::Analyser& analyser, clang::CXXConstructExpr const* expr)
 {
     if (expr && expr->getNumArgs() == 1)
     {
-        cool::cast_ptr<clang::MaterializeTemporaryExpr const> materialize(expr->getArg(0));
-        cool::cast_ptr<clang::ImplicitCastExpr const>         implicit(materialize? materialize->GetTemporaryExpr(): 0);
+        bde_verify::cast_ptr<clang::MaterializeTemporaryExpr const> materialize(expr->getArg(0));
+        bde_verify::cast_ptr<clang::ImplicitCastExpr const>         implicit(materialize? materialize->GetTemporaryExpr(): 0);
         if (implicit)
         {
 #if 0
@@ -36,4 +36,4 @@ check_entry(cool::csabase::Analyser& analyser, clang::CXXConstructExpr const* ex
 
 // -----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck check(check_name, &check_entry);
+static bde_verify::csabase::RegisterCheck check(check_name, &check_entry);

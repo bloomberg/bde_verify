@@ -3,7 +3,7 @@
 #include "csatr_entityrestrictions.t.h"
 #include <bdes_ident.h>
 
-namespace cool
+namespace bde_verify
 {
     namespace csatr
     {

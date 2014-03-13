@@ -10,8 +10,8 @@
 #ident "$Id: local_visitor.hpp 141 2011-09-29 18:59:08Z kuehl $"
 
 #include <csabase_abstractvisitor.h>
-#if defined(COOL_CXX2011)
-#  include <cool/forward.hpp>
+#if defined(UTILS_CXX2011)
+#  include <utils/forward.hpp>
 #endif
 #include <clang/AST/Stmt.h>
 #include <clang/AST/StmtVisitor.h>
@@ -21,11 +21,11 @@
 
 // -----------------------------------------------------------------------------
 
-namespace cool
+namespace bde_verify
 {
     namespace detail
     {
-#if defined(COOL_CXX2011)
+#if defined(UTILS_CXX2011)
         template <typename...>                class visitor;
         template <>                           class visitor<>;
         template <typename F0, typename... F> class visitor<F0, F...>;
@@ -38,26 +38,26 @@ namespace cool
 
 // -----------------------------------------------------------------------------
 
-#if defined(COOL_CXX2011)
+#if defined(UTILS_CXX2011)
 template <>
-class cool::detail::visitor<>:
-    public cool::csabase::AbstractVisitor
+class bde_verify::detail::visitor<>:
+    public bde_verify::csabase::AbstractVisitor
 {
 };
 #endif
 
 // -----------------------------------------------------------------------------
 
-#if defined(COOL_2011)
+#if defined(UTILS_2011)
 template <typename F0, typename... F>
-class cool::detail::visitor<F0, F...>:
-    public cool::detail::visitor<F...>
+class bde_verify::detail::visitor<F0, F...>:
+    public bde_verify::detail::visitor<F...>
 {
 public:
     typedef typename F0::argument_type argument_type;
     visitor(F0&& functor, F&&... functors):
-        cool::detail::visitor<F...>(cool::forward<F>(functors)...),
-        functor_(cool::forward<F0>(functor))
+        bde_verify::detail::visitor<F...>(bde_verify::forward<F>(functors)...),
+        functor_(bde_verify::forward<F0>(functor))
     {
     }
     void do_visit(argument_type arg)
@@ -71,10 +71,10 @@ private:
 
 // -----------------------------------------------------------------------------
 
-#if !defined(COOL_2011)
+#if !defined(UTILS_2011)
 template <typename F0>
-class cool::detail::visitor:
-    public cool::csabase::AbstractVisitor
+class bde_verify::detail::visitor:
+    public bde_verify::csabase::AbstractVisitor
 {
 public:
     typedef typename F0::argument_type argument_type;
@@ -93,17 +93,17 @@ private:
 
 // -----------------------------------------------------------------------------
 
-class cool::local_visitor
+class bde_verify::local_visitor
 {
 public:
-#if defined(COOL_2011)
+#if defined(UTILS_2011)
     template <typename... F>
     local_visitor(F&&... functors):
-        visitor_(new cool::detail::visitor<F...>(cool::forward<F>(functors)...))
+        visitor_(new bde_verify::detail::visitor<F...>(bde_verify::forward<F>(functors)...))
 #else
     template <typename F0>
     local_visitor(F0 const& functor):
-        visitor_(new cool::detail::visitor<F0>(functor))
+        visitor_(new bde_verify::detail::visitor<F0>(functor))
 #endif
     {
     }
@@ -117,7 +117,7 @@ public:
     }
     
 private:
-    std::auto_ptr<cool::csabase::AbstractVisitor> visitor_;
+    std::auto_ptr<bde_verify::csabase::AbstractVisitor> visitor_;
 };
 
 // -----------------------------------------------------------------------------

@@ -17,7 +17,7 @@ static std::string const check_name("using-directive-in-header");
 // ----------------------------------------------------------------------------
 
 static void
-using_directive_in_header(cool::csabase::Analyser&         analyser,
+using_directive_in_header(bde_verify::csabase::Analyser&         analyser,
                           clang::UsingDirectiveDecl const *decl)
 {
     clang::DeclContext const* context(decl->getLexicalDeclContext());
@@ -37,5 +37,5 @@ using_directive_in_header(cool::csabase::Analyser&         analyser,
 
 // ----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck check(check_name,
+static bde_verify::csabase::RegisterCheck check(check_name,
                                           &using_directive_in_header);

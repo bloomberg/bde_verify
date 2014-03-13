@@ -37,7 +37,7 @@ llvm::StringRef subdir(llvm::StringRef path, llvm::StringRef dir)
 
 }
 
-void cool::csabase::FileName::reset(llvm::StringRef sr)
+void bde_verify::csabase::FileName::reset(llvm::StringRef sr)
 {
     full_ = sr;
     extension_ = sr.slice(sr.rfind('.'), sr.npos);

@@ -1,6 +1,6 @@
 // csamisc_swapab.t.cpp                                               -*-C++-*-
 
-namespace cool
+namespace bde_verify
 {
     namespace {
         void swap(int  x, int  y);

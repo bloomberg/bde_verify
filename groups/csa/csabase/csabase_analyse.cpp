@@ -1,11 +1,11 @@
-// csabase_coolyser.cpp                                               -*-C++-*-
+// csabase_analyser.cpp                                               -*-C++-*-
 // -----------------------------------------------------------------------------
 // Copyright 2012 Dietmar Kuehl http://www.dietmar-kuehl.de              
 // Distributed under the Boost Software License, Version 1.0. (See file  
 // LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt).     
 // -----------------------------------------------------------------------------
 
-#include <csabase_coolyse.h>
+#include <csabase_analyse.h>
 #include <csabase_analyser.h>
 #include <csabase_debug.h>
 #include <csabase_diagnosticfilter.h>
@@ -18,7 +18,7 @@
 #include <llvm/Support/raw_ostream.h>
 #include <string>
 #include <vector>
-#ident "$Id: coolyse.cpp 167 2012-04-14 19:38:03Z kuehl $"
+#ident "$Id: bde_verifyyse.cpp 167 2012-04-14 19:38:03Z kuehl $"
 
 // -----------------------------------------------------------------------------
 
@@ -65,7 +65,7 @@ namespace
         void HandleTranslationUnit(clang::ASTContext&);
 
     private:
-        cool::csabase::Analyser  analyser_;
+        bde_verify::csabase::Analyser  analyser_;
         std::string const        source_;
     };
 }
@@ -80,7 +80,7 @@ AnalyseConsumer::AnalyseConsumer(clang::CompilerInstance& compiler,
 {
     analyser_.toplevel(source);
 
-    compiler.getDiagnostics().setClient(new cool::csabase::DiagnosticFilter(
+    compiler.getDiagnostics().setClient(new bde_verify::csabase::DiagnosticFilter(
         analyser_, plugin.toplevel_only(), compiler.getDiagnosticOpts()));
     compiler.getDiagnostics().getClient()->BeginSourceFile(
         compiler.getLangOpts(),
@@ -139,12 +139,12 @@ bool PluginAction::ParseArgs(clang::CompilerInstance const& compiler,
         llvm::StringRef arg = args[i];
         if (arg == "debug-on")
         {
-            cool::csabase::Debug::set_debug(true);
+            bde_verify::csabase::Debug::set_debug(true);
             debug_ = true;
         }
         else if (arg == "debug-off")
         {
-            cool::csabase::Debug::set_debug(false);
+            bde_verify::csabase::Debug::set_debug(false);
             debug_ = false;
         }
         else if (arg == "toplevel-only-on")
@@ -166,7 +166,7 @@ bool PluginAction::ParseArgs(clang::CompilerInstance const& compiler,
         }
         else
         {
-            llvm::errs() << "unknown bdeverify argument = '" << arg << "'\n";
+            llvm::errs() << "unknown bde_verify argument = '" << arg << "'\n";
         }
     }
     return true;
@@ -199,4 +199,4 @@ PluginAction::toplevel_only() const
 // -----------------------------------------------------------------------------
 
 clang::FrontendPluginRegistry::Add<PluginAction> registerPlugin(
-    "bdeverify", "analyse source");
+    "bde_verify", "analyse source");

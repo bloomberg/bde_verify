@@ -6,7 +6,7 @@
 
 #include "csatr_includeindirect.t.h"
 
-namespace cool
+namespace bde_verify
 {
     namespace csatr
     {

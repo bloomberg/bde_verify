@@ -27,7 +27,7 @@ namespace
 // -----------------------------------------------------------------------------
 
 static void
-member_definition_in_class_definition(cool::csabase::Analyser& analyser, clang::CXXMethodDecl const* decl)
+member_definition_in_class_definition(bde_verify::csabase::Analyser& analyser, clang::CXXMethodDecl const* decl)
 {
     clang::CXXConstructorDecl const* ctor(llvm::dyn_cast<clang::CXXConstructorDecl>(decl));
     clang::CXXDestructorDecl const*  dtor(llvm::dyn_cast<clang::CXXDestructorDecl>(decl));
@@ -51,4 +51,4 @@ member_definition_in_class_definition(cool::csabase::Analyser& analyser, clang::
 
 // -----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck check(check_name, &member_definition_in_class_definition);
+static bde_verify::csabase::RegisterCheck check(check_name, &member_definition_in_class_definition);

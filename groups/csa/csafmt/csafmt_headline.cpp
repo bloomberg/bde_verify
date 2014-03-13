@@ -22,11 +22,11 @@ namespace
     template <typename T>
     struct analyser_binder
     {
-        analyser_binder(void (*function)(cool::csabase::Analyser&,
+        analyser_binder(void (*function)(bde_verify::csabase::Analyser&,
                                          clang::SourceLocation,
                                          T,
                                          std::string const&),
-                        cool::csabase::Analyser& analyser):
+                        bde_verify::csabase::Analyser& analyser):
             function_(function),
             analyser_(analyser)
         {
@@ -37,23 +37,23 @@ namespace
         {
             function_(analyser_, where, arg, name);
         }
-        void          (*function_)(cool::csabase::Analyser&,
+        void          (*function_)(bde_verify::csabase::Analyser&,
                                    clang::SourceLocation,
                                    T,
                                    std::string const&);
-        cool::csabase::Analyser& analyser_;
+        bde_verify::csabase::Analyser& analyser_;
     };
 }
 
 // ----------------------------------------------------------------------------
 
 static void
-open_file(cool::csabase::Analyser& analyser,
+open_file(bde_verify::csabase::Analyser& analyser,
           clang::SourceLocation    where, 
           const std::string&       ,
           const std::string&       name)
 {
-    cool::csabase::FileName fn(name);
+    bde_verify::csabase::FileName fn(name);
     std::string filename = fn.name();
     if (analyser.is_component_header(filename) || name == analyser.toplevel()) {
         const clang::SourceManager &m = analyser.manager();
@@ -70,9 +70,9 @@ open_file(cool::csabase::Analyser& analyser,
             && !buf.equals(expectc)
             && buf.find("GENERATED") == buf.npos) {
             std::pair<size_t, size_t> mcpp =
-                cool::csabase::mid_mismatch(buf, expectcpp);
+                bde_verify::csabase::mid_mismatch(buf, expectcpp);
             std::pair<size_t, size_t> mc =
-                cool::csabase::mid_mismatch(buf, expectc);
+                bde_verify::csabase::mid_mismatch(buf, expectc);
             std::pair<size_t, size_t> m;
             std::string expect;
 
@@ -98,9 +98,9 @@ open_file(cool::csabase::Analyser& analyser,
 // ----------------------------------------------------------------------------
 
 static void
-subscribe(cool::csabase::Analyser& analyser,
-          cool::csabase::Visitor&  ,
-          cool::csabase::PPObserver& observer)
+subscribe(bde_verify::csabase::Analyser& analyser,
+          bde_verify::csabase::Visitor&  ,
+          bde_verify::csabase::PPObserver& observer)
 {
     observer.onOpenFile += analyser_binder<std::string const&>(open_file,
                                                                  analyser);
@@ -108,5 +108,5 @@ subscribe(cool::csabase::Analyser& analyser,
 
 // ----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck register_observer(check_name,&subscribe);
+static bde_verify::csabase::RegisterCheck register_observer(check_name,&subscribe);
 

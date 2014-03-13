@@ -15,7 +15,7 @@
 
 static std::string const check_name("anon-namespace");
 
-static void anonymous_namespace_in_header(cool::csabase::Analyser& analyser,
+static void anonymous_namespace_in_header(bde_verify::csabase::Analyser& analyser,
                                           clang::NamespaceDecl const* decl)
 {
     if (decl->isAnonymousNamespace() && analyser.is_component_header(decl)) {
@@ -26,4 +26,4 @@ static void anonymous_namespace_in_header(cool::csabase::Analyser& analyser,
 
 // -----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck check(check_name, &anonymous_namespace_in_header);
+static bde_verify::csabase::RegisterCheck check(check_name, &anonymous_namespace_in_header);

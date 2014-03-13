@@ -8,7 +8,7 @@
 #include "csatr_componentprefix.v.hpp"
 #include <bdes_ident.h>
 
-namespace cool
+namespace bde_verify
 {
     namespace csatr
     {

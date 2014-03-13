@@ -9,7 +9,7 @@
 #include "framework/pp_observer.hpp"
 #include "framework/register_check.hpp"
 #include "framework/location.hpp"
-#include "cool/array.hpp"
+#include "utils/array.hpp"
 #include <csabase_filenames.h>
 #include "clang/Basic/SourceLocation.h"
 #include <algorithm>
@@ -42,7 +42,7 @@ namespace
 namespace
 {
     std::string
-    get_string(cool::csabase::Analyser* analyser, clang::SourceLocation begin, clang::SourceLocation end)
+    get_string(bde_verify::csabase::Analyser* analyser, clang::SourceLocation begin, clang::SourceLocation end)
     {
         return std::string(clang::FullSourceLoc(begin, analyser->manager()).getCharacterData(),
                            clang::FullSourceLoc(end, analyser->manager()).getCharacterData());
@@ -56,10 +56,10 @@ namespace
     static std::string const suffixes[] = { ".h", ".H", ".hh", ".h++", ".hpp", ".hxx" };
 
     void
-    inspect_guard_name(cool::csabase::Analyser* analyser, clang::SourceLocation begin, std::string const& name)
+    inspect_guard_name(bde_verify::csabase::Analyser* analyser, clang::SourceLocation begin, std::string const& name)
     {
-        cool::csabase::FileName fn(analyser->get_location(begin).file());
-        if (cool::end(suffixes) == std::find(cool::begin(suffixes), cool::end(suffixes), fn.extension().str()))
+        bde_verify::csabase::FileName fn(analyser->get_location(begin).file());
+        if (bde_verify::end(suffixes) == std::find(bde_verify::begin(suffixes), bde_verify::end(suffixes), fn.extension().str()))
         {
             analyser->report(begin, check_name, "HS01",
                              "Unknown header file suffix: '" +
@@ -87,7 +87,7 @@ namespace
 namespace
 {
     std::string const not_defined("!defined(");
-    void on_if(cool::csabase::Analyser* analyser, clang::SourceRange range)
+    void on_if(bde_verify::csabase::Analyser* analyser, clang::SourceRange range)
     {
         std::string expr(get_string(analyser, range.getBegin(), range.getEnd()));
         expr.erase(std::remove_if(expr.begin(), expr.end(), is_space), expr.end());
@@ -103,7 +103,7 @@ namespace
 
 namespace
 {
-    void on_ifndef(cool::csabase::Analyser* analyser, clang::Token token)
+    void on_ifndef(bde_verify::csabase::Analyser* analyser, clang::Token token)
     {
         //-dk:TODO remove llvm::errs() << "onIfndef\n";
         inspect_guard_name(analyser, token.getLocation(), get_string(analyser, token.getLocation(), token.getLastLoc()));
@@ -113,7 +113,7 @@ namespace
 // -----------------------------------------------------------------------------
 
 static void
-subscribe(cool::csabase::Analyser& analyser, cool::csabase::Visitor&, cool::csabase::PPObserver& observer)
+subscribe(bde_verify::csabase::Analyser& analyser, bde_verify::csabase::Visitor&, bde_verify::csabase::PPObserver& observer)
 {
     observer.onIf      += std::bind1st(std::ptr_fun(on_if), &analyser);
     observer.onIfndef  += std::bind1st(std::ptr_fun(on_ifndef), &analyser);
@@ -121,4 +121,4 @@ subscribe(cool::csabase::Analyser& analyser, cool::csabase::Visitor&, cool::csab
 
 // -----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck register_observer(check_name, &subscribe);
+static bde_verify::csabase::RegisterCheck register_observer(check_name, &subscribe);

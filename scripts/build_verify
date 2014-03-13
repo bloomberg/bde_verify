@@ -1,14 +1,14 @@
 #!/bin/sh
 
-# Script by which bde_build.pl can invoke bdeverify:
-#   bde_build.pl -k -DCC={this} -DCXX={this} -c bdeverify ...
+# Script by which bde_build.pl can invoke bde_verify:
+#   bde_build.pl -k -DCC={this} -DCXX={this} -c bde_verify ...
 
-: ${VD:=/home/hrosen4/coolyser}
-: ${EXE:=$VD/Linux-clang-3.5/bdeverify}
-"$VD/scripts/bdeverify"                                                       \
+: ${VD:=/home/hrosen4/bde_verify}
+: ${EXE:=$VD/Linux-clang-3.5/bde_verify}
+"$VD/scripts/bde_verify"                                                      \
     --nodefinc                                                                \
     --nodefdef                                                                \
-    --config=$VD/bdeverify.cfg                                                \
+    --config=$VD/bde_verify.cfg                                               \
     --exe=$EXE                                                                \
     $@
 

@@ -14,7 +14,7 @@
 #  include <csascm_version.h>
 #endif
 
-namespace cool
+namespace bde_verify
 {
     namespace csamisc
     {

@@ -35,7 +35,7 @@ is_swap(clang::FunctionDecl const* decl)
 static bool
 isSpecialFunction(clang::NamedDecl const* decl)
 {
-    cool::csabase::cast_ptr<clang::FunctionDecl> function(decl);
+    bde_verify::csabase::cast_ptr<clang::FunctionDecl> function(decl);
     return function
         && (function->isOverloadedOperator() || is_swap(function.get()));
 }
@@ -43,7 +43,7 @@ isSpecialFunction(clang::NamedDecl const* decl)
 // ----------------------------------------------------------------------------
 
 static void
-check(cool::csabase::Analyser& analyser, clang::Decl const* decl)
+check(bde_verify::csabase::Analyser& analyser, clang::Decl const* decl)
 {
     if (analyser.is_main() &&
         analyser.config()->value("main_namespace_check") == "off") {
@@ -54,7 +54,7 @@ check(cool::csabase::Analyser& analyser, clang::Decl const* decl)
         return;                                                       // RETURN
     }
 
-    cool::csabase::Location location(analyser.get_location(decl));
+    bde_verify::csabase::Location location(analyser.get_location(decl));
     clang::NamedDecl const* named(llvm::dyn_cast<clang::NamedDecl>(decl));
     if (analyser.is_component(location.file()) && named) {
         if (llvm::dyn_cast<clang::NamespaceDecl>(decl)
@@ -135,8 +135,8 @@ check(cool::csabase::Analyser& analyser, clang::Decl const* decl)
                 && (   spname != analyser.config()->toplevel_namespace()
                     || name.find(analyser.package() + '_') != 0
                     )
-                && cool::csabase::to_lower(spname) !=
-                   cool::csabase::to_lower(analyser.component())
+                && bde_verify::csabase::to_lower(spname) !=
+                   bde_verify::csabase::to_lower(analyser.component())
                 && !llvm::dyn_cast<clang::ClassTemplateSpecializationDecl>(decl)
                 && !llvm::dyn_cast<clang::ClassTemplatePartialSpecializationDecl>(decl)
                 && name.find("operator new") == std::string::npos
@@ -163,4 +163,4 @@ check(cool::csabase::Analyser& analyser, clang::Decl const* decl)
 
 // -----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck register_check(check_name, &check);
+static bde_verify::csabase::RegisterCheck register_check(check_name, &check);

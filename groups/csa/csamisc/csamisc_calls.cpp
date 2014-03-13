@@ -27,7 +27,7 @@ namespace
 // -----------------------------------------------------------------------------
 
 static void
-process(cool::csabase::Analyser& analyser, clang::Expr const* expr, clang::Decl const* decl)
+process(bde_verify::csabase::Analyser& analyser, clang::Expr const* expr, clang::Decl const* decl)
 {
     if (const clang::FunctionDecl* function = decl? llvm::dyn_cast<clang::FunctionDecl>(decl): 0) {
         function = function->getCanonicalDecl();
@@ -77,7 +77,7 @@ process(cool::csabase::Analyser& analyser, clang::Expr const* expr, clang::Decl 
 // -----------------------------------------------------------------------------
 
 static void
-calls(cool::csabase::Analyser& analyser, clang::CallExpr const* expr)
+calls(bde_verify::csabase::Analyser& analyser, clang::CallExpr const* expr)
 {
     process(analyser, expr, expr->getCalleeDecl());
 }
@@ -85,7 +85,7 @@ calls(cool::csabase::Analyser& analyser, clang::CallExpr const* expr)
 // -----------------------------------------------------------------------------
 
 static void
-ctors(cool::csabase::Analyser& analyser, clang::CXXConstructExpr const* expr)
+ctors(bde_verify::csabase::Analyser& analyser, clang::CXXConstructExpr const* expr)
 {
     process(analyser, expr, expr->getConstructor());
 }
@@ -93,14 +93,14 @@ ctors(cool::csabase::Analyser& analyser, clang::CXXConstructExpr const* expr)
 // -----------------------------------------------------------------------------
 
 static void 
-open_file(cool::csabase::Analyser& analyser, clang::SourceLocation where, std::string const&, std::string const& name)
+open_file(bde_verify::csabase::Analyser& analyser, clang::SourceLocation where, std::string const&, std::string const& name)
 {
     //llvm::errs() << "open_file(" << name << "): " << analyser.get_location(where) << "\n";
     //analyser.report(where, check_name, "open file: '%0'") << name;
 }
 
 static void 
-close_file(cool::csabase::Analyser& analyser, clang::SourceLocation where, std::string const&, std::string const& name)
+close_file(bde_verify::csabase::Analyser& analyser, clang::SourceLocation where, std::string const&, std::string const& name)
 {
     //llvm::errs() << "close_file(" << name << ")\n";
     //analyser.report(where, check_name, "close file: '%0'") << name;
@@ -113,8 +113,8 @@ namespace
     template <typename T>
     struct analyser_binder
     {
-        analyser_binder(void (*function)(cool::csabase::Analyser&, clang::SourceLocation, T, std::string const&),
-                        cool::csabase::Analyser& analyser):
+        analyser_binder(void (*function)(bde_verify::csabase::Analyser&, clang::SourceLocation, T, std::string const&),
+                        bde_verify::csabase::Analyser& analyser):
             function_(function),
             analyser_(analyser)
         {
@@ -123,15 +123,15 @@ namespace
         {
             function_(analyser_, where, arg, name);
         }
-        void          (*function_)(cool::csabase::Analyser&, clang::SourceLocation, T, std::string const&);
-        cool::csabase::Analyser& analyser_;
+        void          (*function_)(bde_verify::csabase::Analyser&, clang::SourceLocation, T, std::string const&);
+        bde_verify::csabase::Analyser& analyser_;
     };
 }
 
 // -----------------------------------------------------------------------------
 
 static void
-subscribe(cool::csabase::Analyser& analyser, cool::csabase::Visitor&, cool::csabase::PPObserver& observer)
+subscribe(bde_verify::csabase::Analyser& analyser, bde_verify::csabase::Visitor&, bde_verify::csabase::PPObserver& observer)
 {
     observer.onOpenFile  += analyser_binder<std::string const&>(open_file, analyser);
     observer.onCloseFile  += analyser_binder<std::string const&>(close_file, analyser);
@@ -139,6 +139,6 @@ subscribe(cool::csabase::Analyser& analyser, cool::csabase::Visitor&, cool::csab
 
 // -----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck register_observer(check_name, &subscribe);
-static cool::csabase::RegisterCheck register_calls(check_name, &calls);
-static cool::csabase::RegisterCheck register_ctors(check_name, &ctors);
+static bde_verify::csabase::RegisterCheck register_observer(check_name, &subscribe);
+static bde_verify::csabase::RegisterCheck register_calls(check_name, &calls);
+static bde_verify::csabase::RegisterCheck register_ctors(check_name, &ctors);

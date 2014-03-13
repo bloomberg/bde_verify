@@ -8,7 +8,7 @@
 #include "csamisc_superfluoustemporary.t.hpp"
 #include <bdes_ident.h>
 
-namespace cool
+namespace bde_verify
 {
     namespace csamisc
     {
@@ -33,7 +33,7 @@ namespace cool
 
 int main(int ac, char* av[])
 {
-    cool::csamisc::foo f0 = cool::csamisc::foo();
-    cool::csamisc::foo b0 = cool::csamisc::bar();
+    bde_verify::csamisc::foo f0 = bde_verify::csamisc::foo();
+    bde_verify::csamisc::foo b0 = bde_verify::csamisc::bar();
     //foo f1;
 }

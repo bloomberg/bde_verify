@@ -18,7 +18,7 @@
 #include "csatr_externfriendship.t.hpp"
 #endif
 
-namespace cool
+namespace bde_verify
 {
     namespace csamisc
     {
@@ -37,22 +37,22 @@ namespace cool
         class friendship_Component
         {
         public:
-            friend class cool::csamisc::BadGroup;
-            friend class cool::csatr::BadPackage;
-            friend class cool::csatr::BadExtern;
-            friend void cool::csatr::BadExtern::f() const;
-            friend class cool::csatr::BadExtern::Nested;
-            friend class cool::csatr::friendship_GoodDeclared;
+            friend class bde_verify::csamisc::BadGroup;
+            friend class bde_verify::csatr::BadPackage;
+            friend class bde_verify::csatr::BadExtern;
+            friend void bde_verify::csatr::BadExtern::f() const;
+            friend class bde_verify::csatr::BadExtern::Nested;
+            friend class bde_verify::csatr::friendship_GoodDeclared;
             friend class GoodLocal;
             template <class T> friend class BadPackageTemplate;
             template <class T> friend class GoodTemplate;
-            friend void cool::csatr::operator+ (BadExtern const&);
+            friend void bde_verify::csatr::operator+ (BadExtern const&);
             template <class T>
-            friend void cool::csatr::operator+ (BadExtern const&, T);
+            friend void bde_verify::csatr::operator+ (BadExtern const&, T);
 
-            friend void cool::csatr::operator+ (friendship_GoodDeclared const&);
+            friend void bde_verify::csatr::operator+ (friendship_GoodDeclared const&);
             template <class T>
-            friend void cool::csatr::operator+ (friendship_GoodDeclared const&, T);
+            friend void bde_verify::csatr::operator+ (friendship_GoodDeclared const&, T);
 
             template <class T>
             friend void BadExtern::g(T);

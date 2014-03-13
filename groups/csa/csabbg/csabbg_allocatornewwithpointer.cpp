@@ -15,7 +15,7 @@
 static std::string const check_name("allocator-new");
 
 static void
-check(cool::csabase::Analyser& analyser, clang::CXXNewExpr const* expr)
+check(bde_verify::csabase::Analyser& analyser, clang::CXXNewExpr const* expr)
 {
     if (expr->getNumPlacementArgs() == 1
         && expr->getPlacementArg(0)->getType()->isPointerType())
@@ -39,4 +39,4 @@ check(cool::csabase::Analyser& analyser, clang::CXXNewExpr const* expr)
 
 // -----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck register_check(check_name, &check);
+static bde_verify::csabase::RegisterCheck register_check(check_name, &check);

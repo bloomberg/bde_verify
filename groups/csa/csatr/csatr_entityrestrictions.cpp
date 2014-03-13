@@ -11,7 +11,7 @@ static std::string const check_name("entity-restrictions");
 // ----------------------------------------------------------------------------
 
 static void
-enum_declaration(cool::csabase::Analyser&  analyser,
+enum_declaration(bde_verify::csabase::Analyser&  analyser,
                  clang::EnumDecl const    *decl)
 {
     if (llvm::dyn_cast<clang::NamespaceDecl>(decl->getDeclContext())
@@ -26,7 +26,7 @@ enum_declaration(cool::csabase::Analyser&  analyser,
 // ----------------------------------------------------------------------------
 
 static void
-var_declaration(cool::csabase::Analyser&  analyser,
+var_declaration(bde_verify::csabase::Analyser&  analyser,
                 clang::VarDecl const     *decl)
 {
     if (llvm::dyn_cast<clang::NamespaceDecl>(decl->getDeclContext())
@@ -53,7 +53,7 @@ is_swap(clang::FunctionDecl const* decl)
 }
 
 static void
-function_declaration(cool::csabase::Analyser&   analyser,
+function_declaration(bde_verify::csabase::Analyser&   analyser,
                      clang::FunctionDecl const *decl)
 {
     if (llvm::dyn_cast<clang::NamespaceDecl>(decl->getDeclContext())
@@ -75,7 +75,7 @@ function_declaration(cool::csabase::Analyser&   analyser,
 // -----------------------------------------------------------------------------
 
 static void
-typedef_declaration(cool::csabase::Analyser&  analyser,
+typedef_declaration(bde_verify::csabase::Analyser&  analyser,
                     clang::TypedefDecl const *decl)
 {
     // Allow global scope typedef to a name that begins with "package_" for
@@ -97,7 +97,7 @@ typedef_declaration(cool::csabase::Analyser&  analyser,
 
 // -----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck c0(check_name, &enum_declaration);
-static cool::csabase::RegisterCheck c1(check_name, &var_declaration);
-static cool::csabase::RegisterCheck c2(check_name, &function_declaration);
-static cool::csabase::RegisterCheck c3(check_name, &typedef_declaration);
+static bde_verify::csabase::RegisterCheck c0(check_name, &enum_declaration);
+static bde_verify::csabase::RegisterCheck c1(check_name, &var_declaration);
+static bde_verify::csabase::RegisterCheck c2(check_name, &function_declaration);
+static bde_verify::csabase::RegisterCheck c3(check_name, &typedef_declaration);

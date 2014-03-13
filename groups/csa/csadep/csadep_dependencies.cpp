@@ -11,7 +11,7 @@
 
 // ----------------------------------------------------------------------------
 
-cool::csadep::dependencies::dependency::dependency(
+bde_verify::csadep::dependencies::dependency::dependency(
     clang::SourceLocation const& location,
     bool                         need_definition,
     clang::NamedDecl const*      decl)
@@ -24,7 +24,7 @@ cool::csadep::dependencies::dependency::dependency(
 // ----------------------------------------------------------------------------
 
 void
-cool::csadep::dependencies::add(std::string const&           source,
+bde_verify::csadep::dependencies::add(std::string const&           source,
                                 clang::SourceLocation const& location,
                                 bool                         need_definition,
                                 clang::NamedDecl const*      decl)
@@ -48,12 +48,12 @@ cool::csadep::dependencies::add(std::string const&           source,
 
 // ----------------------------------------------------------------------------
 
-static std::map<std::string, cool::csadep::dependencies::dependency> const
+static std::map<std::string, bde_verify::csadep::dependencies::dependency> const
 s_empty;
 
-std::pair<cool::csadep::dependencies::const_iterator,
-          cool::csadep::dependencies::const_iterator>
-cool::csadep::dependencies::get_referenced(std::string const& source) const
+std::pair<bde_verify::csadep::dependencies::const_iterator,
+          bde_verify::csadep::dependencies::const_iterator>
+bde_verify::csadep::dependencies::get_referenced(std::string const& source) const
 {
     return std::make_pair(s_empty.begin(), s_empty.end());
 }

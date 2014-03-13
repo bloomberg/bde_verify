@@ -18,7 +18,7 @@ static std::string const check_name("throw-non-std-exception");
 //-dk:TODO cache the type of std::exception
 
 static void
-check(cool::csabase::Analyser& analyser, clang::CXXThrowExpr const* expr)
+check(bde_verify::csabase::Analyser& analyser, clang::CXXThrowExpr const* expr)
 {
     clang::Sema& sema(analyser.sema());
     clang::Expr* object(const_cast<clang::Expr*>(expr->getSubExpr()));
@@ -40,4 +40,4 @@ check(cool::csabase::Analyser& analyser, clang::CXXThrowExpr const* expr)
 
 // -----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck register_check(check_name, &check);
+static bde_verify::csabase::RegisterCheck register_check(check_name, &check);

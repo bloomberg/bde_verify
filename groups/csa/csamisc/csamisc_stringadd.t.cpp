@@ -5,7 +5,7 @@
 // LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt).     
 // -----------------------------------------------------------------------------
 
-namespace cool
+namespace bde_verify
 {
     namespace csamisc
     {
@@ -43,36 +43,36 @@ namespace cool
 
 int main(int ac, char*[])
 {
-    cool::csamisc::string str;
+    bde_verify::csamisc::string str;
     char const* lit("0123");
 
-    cool::csamisc::use("0123" + ac);
-    cool::csamisc::use("0123" + str);
-    cool::csamisc::use(lit + ac);
+    bde_verify::csamisc::use("0123" + ac);
+    bde_verify::csamisc::use("0123" + str);
+    bde_verify::csamisc::use(lit + ac);
 
-    cool::csamisc::use(ac + "0123");
-    cool::csamisc::use(str + "0123");
-    cool::csamisc::use(ac + lit);
+    bde_verify::csamisc::use(ac + "0123");
+    bde_verify::csamisc::use(str + "0123");
+    bde_verify::csamisc::use(ac + lit);
 
-    cool::csamisc::use("0123" - ac);
-    cool::csamisc::use("0123" - str);
-    cool::csamisc::use(lit - ac);
+    bde_verify::csamisc::use("0123" - ac);
+    bde_verify::csamisc::use("0123" - str);
+    bde_verify::csamisc::use(lit - ac);
 
-    cool::csamisc::use(str - "0123");
+    bde_verify::csamisc::use(str - "0123");
 
-    cool::csamisc::use("0123" + -1);
-    cool::csamisc::use("0123" + 0);
-    cool::csamisc::use("0123" + 1);
-    cool::csamisc::use("0123" + 2);
-    cool::csamisc::use("0123" + 3);
-    cool::csamisc::use("0123" + 4);
-    cool::csamisc::use("0123" + 5);
+    bde_verify::csamisc::use("0123" + -1);
+    bde_verify::csamisc::use("0123" + 0);
+    bde_verify::csamisc::use("0123" + 1);
+    bde_verify::csamisc::use("0123" + 2);
+    bde_verify::csamisc::use("0123" + 3);
+    bde_verify::csamisc::use("0123" + 4);
+    bde_verify::csamisc::use("0123" + 5);
 
-    cool::csamisc::use("0123" - 1);
-    cool::csamisc::use("0123" - 0);
-    cool::csamisc::use("0123" - -1);
-    cool::csamisc::use("0123" - -2);
-    cool::csamisc::use("0123" - -3);
-    cool::csamisc::use("0123" - -4);
-    cool::csamisc::use("0123" - -5);
+    bde_verify::csamisc::use("0123" - 1);
+    bde_verify::csamisc::use("0123" - 0);
+    bde_verify::csamisc::use("0123" - -1);
+    bde_verify::csamisc::use("0123" - -2);
+    bde_verify::csamisc::use("0123" - -3);
+    bde_verify::csamisc::use("0123" - -4);
+    bde_verify::csamisc::use("0123" - -5);
 }

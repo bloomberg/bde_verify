@@ -13,7 +13,7 @@
 
 static std::string const check_name("string-add");
 
-static bool is_addition(cool::csabase::Analyser&  analyser,
+static bool is_addition(bde_verify::csabase::Analyser&  analyser,
                         clang::Expr const*        str,
                         clang::Expr const*        value,
                         clang::BinaryOperatorKind op)
@@ -36,7 +36,7 @@ static bool is_addition(cool::csabase::Analyser&  analyser,
 }
 
 static void
-check(cool::csabase::Analyser& analyser, clang::BinaryOperator const* expr)
+check(bde_verify::csabase::Analyser& analyser, clang::BinaryOperator const* expr)
 {
     if ((expr->getOpcode() == clang::BO_Add || expr->getOpcode() == clang::BO_Sub)
         && (is_addition(analyser, expr->getLHS(), expr->getRHS(), expr->getOpcode())
@@ -54,4 +54,4 @@ check(cool::csabase::Analyser& analyser, clang::BinaryOperator const* expr)
 
 // -----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck register_check(check_name, &check);
+static bde_verify::csabase::RegisterCheck register_check(check_name, &check);

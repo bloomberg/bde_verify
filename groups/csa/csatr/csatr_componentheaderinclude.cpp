@@ -10,7 +10,7 @@
 #include <csabase_registercheck.h>
 #include <csabase_location.h>
 #include <csabase_debug.h>
-#include <cool/array.hpp>
+#include <utils/array.hpp>
 #include <llvm/Support/raw_ostream.h>
 #include <limits>
 #ident "$Id$"
@@ -46,7 +46,7 @@ static std::string const id_names[] = { "RCSId" };
 // ----------------------------------------------------------------------------
 
 static void 
-close_file(cool::csabase::Analyser& analyser,
+close_file(bde_verify::csabase::Analyser& analyser,
            clang::SourceLocation    where,
            std::string const&       ,
            std::string const&       name)
@@ -61,7 +61,7 @@ close_file(cool::csabase::Analyser& analyser,
 // ----------------------------------------------------------------------------
 
 static void 
-include_file(cool::csabase::Analyser& analyser,
+include_file(bde_verify::csabase::Analyser& analyser,
              clang::SourceLocation    where,
              bool                     ,
              std::string const&       name)
@@ -92,12 +92,12 @@ include_file(cool::csabase::Analyser& analyser,
 // ----------------------------------------------------------------------------
 
 static void
-declaration(cool::csabase::Analyser& analyser, clang::Decl const* decl)
+declaration(bde_verify::csabase::Analyser& analyser, clang::Decl const* decl)
 {
     status& status(analyser.attachment< ::status>());
     if (status.check_)
     {
-        cool::csabase::Location loc(analyser.get_location(decl));
+        bde_verify::csabase::Location loc(analyser.get_location(decl));
         if ((analyser.toplevel() != loc.file() && status.header_seen_)
             || (analyser.toplevel() == loc.file()
                 && status.line_ < loc.line()))
@@ -108,9 +108,9 @@ declaration(cool::csabase::Analyser& analyser, clang::Decl const* decl)
                   || loc.line() < status.line_)
                  && builtin != loc.file() && command_line != loc.file()
                  && (llvm::dyn_cast<clang::NamedDecl>(decl) == 0
-                     || cool::end(id_names)
-                          == std::find(cool::begin(id_names),
-                                       cool::end(id_names),
+                     || utils::end(id_names)
+                          == std::find(utils::begin(id_names),
+                                       utils::end(id_names),
                                        llvm::dyn_cast<clang::NamedDecl>(decl)
                                                           ->getNameAsString()))
                  && !analyser.is_main())
@@ -130,11 +130,11 @@ namespace
     template <typename T>
     struct analyser_binder
     {
-        analyser_binder(void (*function)(cool::csabase::Analyser&,
+        analyser_binder(void (*function)(bde_verify::csabase::Analyser&,
                                          clang::SourceLocation,
                                          T,
                                          std::string const&),
-                        cool::csabase::Analyser& analyser):
+                        bde_verify::csabase::Analyser& analyser):
             function_(function),
             analyser_(analyser)
         {
@@ -145,20 +145,20 @@ namespace
         {
             function_(analyser_, where, arg, name);
         }
-        void          (*function_)(cool::csabase::Analyser&,
+        void          (*function_)(bde_verify::csabase::Analyser&,
                                    clang::SourceLocation,
                                    T,
                                    std::string const&);
-        cool::csabase::Analyser& analyser_;
+        bde_verify::csabase::Analyser& analyser_;
     };
 }
 
 // -----------------------------------------------------------------------------
 
 static void
-subscribe(cool::csabase::Analyser&   analyser,
-          cool::csabase::Visitor&    ,
-          cool::csabase::PPObserver& observer)
+subscribe(bde_verify::csabase::Analyser&   analyser,
+          bde_verify::csabase::Visitor&    ,
+          bde_verify::csabase::PPObserver& observer)
 {
     observer.onInclude   += analyser_binder<bool>(include_file, analyser);
     observer.onCloseFile += analyser_binder<std::string const&>(close_file,
@@ -167,6 +167,6 @@ subscribe(cool::csabase::Analyser&   analyser,
 
 // -----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck register_observer(check_name,
+static bde_verify::csabase::RegisterCheck register_observer(check_name,
                                                       &subscribe);
-static cool::csabase::RegisterCheck register_check(check_name, &declaration);
+static bde_verify::csabase::RegisterCheck register_check(check_name, &declaration);

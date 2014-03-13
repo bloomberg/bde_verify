@@ -8,7 +8,7 @@
 #include <bdes_ident.h>
 BDES_IDENT_RCSID(csatr_componentheaderinclude_v_cpp, "$Id$ $CSID$")
 
-namespace cool
+namespace bde_verify
 {
     namespace csatr
     {
@@ -18,9 +18,9 @@ namespace cool
 
 #include "csatr_componentheaderinclude.v.hpp"
 
-int cool::csatr::componentheaderinclude::something(17);
+int bde_verify::csatr::componentheaderinclude::something(17);
 
 int main()
 {
-    return cool::csatr::local;
+    return bde_verify::csatr::local;
 }

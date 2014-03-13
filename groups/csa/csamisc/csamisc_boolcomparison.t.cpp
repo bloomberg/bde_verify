@@ -1,6 +1,6 @@
 // csamisc_boolcomparison.t.cpp                                       -*-C++-*-
 
-namespace cool
+namespace bde_verify
 {
     namespace csamisc
     {
@@ -11,9 +11,9 @@ namespace cool
 int main()
 {
     typedef bool Boolean;
-    bool       b0 = cool::csamisc::boolcomparison();
-    Boolean    b1 = cool::csamisc::boolcomparison();
-    bool const b2 = cool::csamisc::boolcomparison();
+    bool       b0 = bde_verify::csamisc::boolcomparison();
+    Boolean    b1 = bde_verify::csamisc::boolcomparison();
+    bool const b2 = bde_verify::csamisc::boolcomparison();
     int  i(0);
 
     if (i     == 0) {}

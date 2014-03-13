@@ -10,7 +10,7 @@
 
 // -----------------------------------------------------------------------------
 
-cool::csabase::AttachmentBase::~AttachmentBase()
+bde_verify::csabase::AttachmentBase::~AttachmentBase()
 {
 }
 
@@ -19,26 +19,26 @@ cool::csabase::AttachmentBase::~AttachmentBase()
 static size_t next_index(0u);
 
 size_t
-cool::csabase::Attachments::alloc()
+bde_verify::csabase::Attachments::alloc()
 {
     return next_index++;
 }
 
 // -----------------------------------------------------------------------------
 
-cool::csabase::Attachments::Attachments()
+bde_verify::csabase::Attachments::Attachments()
 {
     data_.resize(next_index);
 }
 
-cool::csabase::Attachments::~Attachments()
+bde_verify::csabase::Attachments::~Attachments()
 {
 }
 
 // -----------------------------------------------------------------------------
 
-cool::shared_ptr<cool::csabase::AttachmentBase>&
-cool::csabase::Attachments::access(size_t index)
+utils::shared_ptr<bde_verify::csabase::AttachmentBase>&
+bde_verify::csabase::Attachments::access(size_t index)
 {
     if (data_.size() <= index)
     {

@@ -16,7 +16,7 @@ static std::string const check_name("char-vs-string");
 // -----------------------------------------------------------------------------
 
 static void
-check(cool::csabase::Analyser&    analyser,
+check(bde_verify::csabase::Analyser&    analyser,
       const clang::Expr          *expr,
       clang::Expr               **args,
       unsigned                    numArgs,
@@ -47,7 +47,7 @@ check(cool::csabase::Analyser&    analyser,
 // -----------------------------------------------------------------------------
 
 static void
-checkCall(cool::csabase::Analyser& analyser, clang::CallExpr const* expr)
+checkCall(bde_verify::csabase::Analyser& analyser, clang::CallExpr const* expr)
 {
     if (clang::FunctionDecl const* decl = expr->getDirectCallee()) {
         check(analyser, expr, const_cast<clang::CallExpr*>(expr)->getArgs(), expr->getNumArgs(), decl);
@@ -55,12 +55,12 @@ checkCall(cool::csabase::Analyser& analyser, clang::CallExpr const* expr)
 }
 
 static void
-checkCtor(cool::csabase::Analyser& analyser, clang::CXXConstructExpr const* expr)
+checkCtor(bde_verify::csabase::Analyser& analyser, clang::CXXConstructExpr const* expr)
 {
     check(analyser, expr, expr->getArgs(), expr->getNumArgs(), expr->getConstructor());
 }
 
 // -----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck register_check0(check_name, &checkCall);
-static cool::csabase::RegisterCheck register_check1(check_name, &checkCtor);
+static bde_verify::csabase::RegisterCheck register_check0(check_name, &checkCall);
+static bde_verify::csabase::RegisterCheck register_check1(check_name, &checkCtor);

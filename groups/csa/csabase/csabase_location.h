@@ -17,7 +17,7 @@
 
 // -----------------------------------------------------------------------------
 
-namespace cool
+namespace bde_verify
 {
     namespace csabase
     {
@@ -37,7 +37,7 @@ namespace cool
 
 // -----------------------------------------------------------------------------
 
-class cool::csabase::Location
+class bde_verify::csabase::Location
 {
 private:
     std::string           d_file;
@@ -55,10 +55,10 @@ public:
     size_t                column() const;
     clang::SourceLocation location() const;
 
-    bool operator< (cool::csabase::Location const& location) const;
+    bool operator< (bde_verify::csabase::Location const& location) const;
 };
 
-class cool::csabase::Range
+class bde_verify::csabase::Range
 {
 private:
     Location d_from;
@@ -72,7 +72,7 @@ public:
     const Location& from() const;
     const Location& to() const;
 
-    bool operator< (cool::csabase::Range const& range) const;
+    bool operator< (bde_verify::csabase::Range const& range) const;
 };
 
 // -----------------------------------------------------------------------------

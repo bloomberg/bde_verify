@@ -21,7 +21,7 @@ static std::string const check_name("diagnostic-filter");
 
 // ----------------------------------------------------------------------------
 
-namespace CB = cool::csabase;
+namespace CB = bde_verify::csabase;
 
 // ----------------------------------------------------------------------------
 

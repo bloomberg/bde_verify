@@ -1,3 +1,3 @@
 // csatr1_packname.t.cpp                                              -*-C++-*-
 
-#pragma bdeverify -TP19  // suppress test driver boilerplate check
+#pragma bde_verify -TP19  // suppress test driver boilerplate check

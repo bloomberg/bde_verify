@@ -9,7 +9,7 @@
 #  include <csascm_version.h>
 #endif
 
-namespace cool
+namespace bde_verify
 {
     struct csatr_packagelegacy
     {

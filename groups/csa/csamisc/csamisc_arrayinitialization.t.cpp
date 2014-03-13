@@ -8,7 +8,7 @@
 #include "csamisc_arrayinitialization.t.hpp"
 #include <bdes_ident.h>
 
-namespace cool
+namespace bde_verify
 {
     namespace csamisc
     {
@@ -36,8 +36,8 @@ namespace cool
 
 int main(int ac, char* av[])
 {
-    cool::csamisc::p pair = { 0 };
-    cool::csamisc::s   array00[5];
+    bde_verify::csamisc::p pair = { 0 };
+    bde_verify::csamisc::s   array00[5];
     int array01[] = { ' ' };
     int array02[1] = { ' ' };
     int array03[5] = { ' ' };
@@ -50,15 +50,15 @@ int main(int ac, char* av[])
     int array10[5] = { ' ', int('\0') };
     int array11[5] = { ' ', '\0' };
 
-    cool::csamisc::s   array12[5] = { };
-    cool::csamisc::s   array13[5] = { cool::csamisc::s() };
-    cool::csamisc::s   array14[5] = { cool::csamisc::s(1) };
-    cool::csamisc::s   array15[5] = { cool::csamisc::s(1), cool::csamisc::s() };
+    bde_verify::csamisc::s array12[5] = { };
+    bde_verify::csamisc::s array13[5] = { bde_verify::csamisc::s() };
+    bde_verify::csamisc::s array14[5] = { bde_verify::csamisc::s(1) };
+    bde_verify::csamisc::s array15[5] = { bde_verify::csamisc::s(1), bde_verify::csamisc::s() };
 
-    cool::csamisc::t   array16[5] = { };
-    cool::csamisc::t   array17[5] = { cool::csamisc::t() };
-    cool::csamisc::t   array18[5] = { cool::csamisc::t(1) };
-    cool::csamisc::t   array19[5] = { cool::csamisc::t(1), cool::csamisc::t() };
+    bde_verify::csamisc::t array16[5] = {};
+    bde_verify::csamisc::t array17[5] = { bde_verify::csamisc::t() };
+    bde_verify::csamisc::t array18[5] = { bde_verify::csamisc::t(1) };
+    bde_verify::csamisc::t array19[5] = { bde_verify::csamisc::t(1), bde_verify::csamisc::t() };
 
     int const  array20[] = { 0, 1 };
     char const array21[] = "foobar";

@@ -5,7 +5,7 @@
 // LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt).     
 // -----------------------------------------------------------------------------
 
-namespace cool {
+namespace bde_verify {
     namespace csastil {
         namespace
         {
@@ -47,16 +47,16 @@ namespace cool {
 
 // ... and none of these should warn:
 
-cool::csastil::foo::foo(cool::csastil::foo const&) {}
+bde_verify::csastil::foo::foo(bde_verify::csastil::foo const&) {}
 //foo::foo(foo&&) {}
-cool::csastil::foo::foo(int) {}
-cool::csastil::foo::foo(bool) {}
-cool::csastil::foo::foo(double) {}
-cool::csastil::foo::foo(char) {}
-cool::csastil::foo::foo(short, bool, bool) {}
+bde_verify::csastil::foo::foo(int) {}
+bde_verify::csastil::foo::foo(bool) {}
+bde_verify::csastil::foo::foo(double) {}
+bde_verify::csastil::foo::foo(char) {}
+bde_verify::csastil::foo::foo(short, bool, bool) {}
 
 int main()
 {
-    cool::csastil::bar<int> b0(0);
-    cool::csastil::bar<int> b1('c');
+    bde_verify::csastil::bar<int> b0(0);
+    bde_verify::csastil::bar<int> b1('c');
 }

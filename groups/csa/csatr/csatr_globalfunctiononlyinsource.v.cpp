@@ -8,7 +8,7 @@
 #include "csatr_globalfunctiononlyinsource.v.hpp"
 #include <bdes_ident.h>
 
-namespace cool
+namespace bde_verify
 {
     namespace csatr
     {
@@ -35,11 +35,11 @@ namespace cool
         {
             template <class> struct local;
             template <>
-            struct local<cool::csatr::bar>
+            struct local<bde_verify::csatr::bar>
             {
                 static void member();
             };
-            void local<cool::csatr::bar>::member()
+            void local<bde_verify::csatr::bar>::member()
             {
             }
         }

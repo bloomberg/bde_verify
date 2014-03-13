@@ -10,15 +10,15 @@
 
 // -----------------------------------------------------------------------------
 
-namespace cool
+namespace bde_verify
 {
     namespace csabbg
     {
         namespace
         {
             class test:
-                public cool::csabbg::allocatorforward_alloc_unused,
-                public cool::csabbg::allocatorforward_alloc_used
+                public bde_verify::csabbg::allocatorforward_alloc_unused,
+                public bde_verify::csabbg::allocatorforward_alloc_used
             {
             public:
                 test(int);                                          // IMPLICIT
@@ -26,10 +26,10 @@ namespace cool
                 test(bool, BloombergLP::bslma::Allocator*);
             private:
                 BloombergLP::bslma::Allocator* allocator_;
-                cool::csabbg::allocatorforward_alloc_unused    unused_;
-                cool::csabbg::allocatorforward_alloc_used      used0_;
-                cool::csabbg::allocatorforward_alloc_used      used1_;
-                cool::csabbg::allocatorforward_alloc_used      used2_;
+                bde_verify::csabbg::allocatorforward_alloc_unused    unused_;
+                bde_verify::csabbg::allocatorforward_alloc_used      used0_;
+                bde_verify::csabbg::allocatorforward_alloc_used      used1_;
+                bde_verify::csabbg::allocatorforward_alloc_used      used2_;
             };
         }
     }
@@ -37,7 +37,7 @@ namespace cool
 
 // -----------------------------------------------------------------------------
 
-cool::csabbg::test::test(int i):
+bde_verify::csabbg::test::test(int i):
     unused_(),
     used1_(i)
 {
@@ -45,7 +45,7 @@ cool::csabbg::test::test(int i):
 
 // -----------------------------------------------------------------------------
 
-cool::csabbg::test::test(int i, BloombergLP::bslma::Allocator* alloc):
+bde_verify::csabbg::test::test(int i, BloombergLP::bslma::Allocator* alloc):
     allocatorforward_alloc_used(i),
     used0_(i),
     used1_(i, alloc)
@@ -54,7 +54,7 @@ cool::csabbg::test::test(int i, BloombergLP::bslma::Allocator* alloc):
 
 // -----------------------------------------------------------------------------
 
-namespace cool
+namespace bde_verify
 {
     namespace csabbg
     {
@@ -68,10 +68,10 @@ namespace cool
     }
 }
 
-cool::csabbg::test::test(bool, BloombergLP::bslma::Allocator* alloc):
+bde_verify::csabbg::test::test(bool, BloombergLP::bslma::Allocator* alloc):
     allocatorforward_alloc_used(-1, alloc),
     allocator_(alloc),
-    used0_(cool::csabbg::dummy(alloc)),
+    used0_(bde_verify::csabbg::dummy(alloc)),
     used1_(1, allocator_),
     used2_(2, alloc)
 {
@@ -79,7 +79,7 @@ cool::csabbg::test::test(bool, BloombergLP::bslma::Allocator* alloc):
 
 // -----------------------------------------------------------------------------
 
-namespace cool
+namespace bde_verify
 {
     namespace csabbg
     {
@@ -91,8 +91,8 @@ namespace cool
                 tbase();
                 explicit tbase(BloombergLP::bslma::Allocator*);
                 tbase(int, BloombergLP::bslma::Allocator*);
-                cool::csabbg::allocatorforward_alloc_unused unused_;
-                cool::csabbg::allocatorforward_alloc_used   used0_;
+                bde_verify::csabbg::allocatorforward_alloc_unused unused_;
+                bde_verify::csabbg::allocatorforward_alloc_used   used0_;
             };
 
             template <class T>
@@ -115,16 +115,16 @@ namespace cool
 }
 
 void
-cool::csabbg::operator+(allocatorforward_alloc_used)
+bde_verify::csabbg::operator+(allocatorforward_alloc_used)
 {
-    cool::csabbg::tbase<int> tb0;
-    cool::csabbg::tbase<int> tb1(static_cast<BloombergLP::bslma::Allocator*>(0));
-    cool::csabbg::tbase<int> tb2(2, static_cast<BloombergLP::bslma::Allocator*>(0));
+    bde_verify::csabbg::tbase<int> tb0;
+    bde_verify::csabbg::tbase<int> tb1(static_cast<BloombergLP::bslma::Allocator*>(0));
+    bde_verify::csabbg::tbase<int> tb2(2, static_cast<BloombergLP::bslma::Allocator*>(0));
 }
 
 // -----------------------------------------------------------------------------
 
-namespace cool
+namespace bde_verify
 {
     namespace csabbg
     {
@@ -145,7 +145,7 @@ namespace cool
 
 // -----------------------------------------------------------------------------
 
-namespace cool
+namespace bde_verify
 {
     namespace csabbg
     {
@@ -165,14 +165,14 @@ namespace BloombergLP
     namespace bslma
     {
         template <>
-        struct UsesBslmaAllocator<cool::csabbg::object> : bsl::true_type
+        struct UsesBslmaAllocator<bde_verify::csabbg::object> : bsl::true_type
         {
         };
 
     }
 }
 
-namespace cool
+namespace bde_verify
 {
     namespace csabbg
     {

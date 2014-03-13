@@ -21,7 +21,7 @@ static std::string const check_name("constant-return");
 // -----------------------------------------------------------------------------
 
 static void
-check(cool::csabase::Analyser& analyser, clang::FunctionDecl const* decl)
+check(bde_verify::csabase::Analyser& analyser, clang::FunctionDecl const* decl)
 {
     if (analyser.is_component(decl)
         && decl->hasBody()
@@ -66,4 +66,4 @@ check(cool::csabase::Analyser& analyser, clang::FunctionDecl const* decl)
 
 // -----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck register_check(check_name, &check);
+static bde_verify::csabase::RegisterCheck register_check(check_name, &check);

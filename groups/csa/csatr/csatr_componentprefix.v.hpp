@@ -16,7 +16,7 @@
 
 // ----------------------------------------------------------------------------
 
-namespace cool
+namespace bde_verify
 {
     namespace csatr
     {
@@ -140,8 +140,8 @@ namespace cool
 // ----------------------------------------------------------------------------
 
 inline void
-cool::csatr::swap(cool::csatr::ComponentPrefixGoodClass&,
-                  cool::csatr::ComponentPrefixGoodClass&)
+bde_verify::csatr::swap(bde_verify::csatr::ComponentPrefixGoodClass&,
+                  bde_verify::csatr::ComponentPrefixGoodClass&)
 {
     extern int someVariable;
 }

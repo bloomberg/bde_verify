@@ -17,16 +17,16 @@ namespace
     template <typename T>
     struct binder
     {
-        binder(cool::csabase::Analyser& a, void (*check)(cool::csabase::Analyser&, T const*));
+        binder(bde_verify::csabase::Analyser& a, void (*check)(bde_verify::csabase::Analyser&, T const*));
         void operator()(T const* argument);
 
-        cool::csabase::Analyser& analyser_;
-        void            (*check_)(cool::csabase::Analyser&, T const*);
+        bde_verify::csabase::Analyser& analyser_;
+        void            (*check_)(bde_verify::csabase::Analyser&, T const*);
     };
 }
 
 template <typename T>
-::binder<T>::binder(cool::csabase::Analyser& a, void (*check)(cool::csabase::Analyser&, T const*)):
+::binder<T>::binder(bde_verify::csabase::Analyser& a, void (*check)(bde_verify::csabase::Analyser&, T const*)):
     analyser_(a),
     check_(check)
 {
@@ -46,16 +46,16 @@ namespace
     template <typename T>
     struct add_to_event
     {
-        add_to_event(cool::event<void(T const*)> cool::csabase::Visitor::*member, void (*check)(cool::csabase::Analyser&, T const*));
-        void operator()(cool::csabase::Analyser& a, cool::csabase::Visitor& v, cool::csabase::PPObserver&);
+        add_to_event(utils::event<void(T const*)> bde_verify::csabase::Visitor::*member, void (*check)(bde_verify::csabase::Analyser&, T const*));
+        void operator()(bde_verify::csabase::Analyser& a, bde_verify::csabase::Visitor& v, bde_verify::csabase::PPObserver&);
 
-        cool::event<void(T const*)> cool::csabase::Visitor::*member_;
-        void                        (*check_)(cool::csabase::Analyser&, T const*);
+        utils::event<void(T const*)> bde_verify::csabase::Visitor::*member_;
+        void                        (*check_)(bde_verify::csabase::Analyser&, T const*);
     };
 }
 
 template <typename T>
-::add_to_event<T>::add_to_event(cool::event<void(T const*)> cool::csabase::Visitor::*member, void (*check)(cool::csabase::Analyser&, T const*)):
+::add_to_event<T>::add_to_event(utils::event<void(T const*)> bde_verify::csabase::Visitor::*member, void (*check)(bde_verify::csabase::Analyser&, T const*)):
     member_(member),
     check_(check)
 {
@@ -63,7 +63,7 @@ template <typename T>
 
 template <typename T>
 void
-::add_to_event<T>::operator()(cool::csabase::Analyser& a, cool::csabase::Visitor& v, cool::csabase::PPObserver&)
+::add_to_event<T>::operator()(bde_verify::csabase::Analyser& a, bde_verify::csabase::Visitor& v, bde_verify::csabase::PPObserver&)
 {
     v.*(member_) += binder<T>(a, check_);
 }
@@ -78,16 +78,16 @@ namespace
 // -----------------------------------------------------------------------------
 
 template <typename T>
-cool::csabase::RegisterCheck::RegisterCheck(std::string const& name, void (*check)(cool::csabase::Analyser&, T const*))
+bde_verify::csabase::RegisterCheck::RegisterCheck(std::string const& name, void (*check)(bde_verify::csabase::Analyser&, T const*))
 {
-    cool::csabase::CheckRegistry::add_check(name, add_to_event<T>(map_to_member<T>::member(), check));
+    bde_verify::csabase::CheckRegistry::add_check(name, add_to_event<T>(map_to_member<T>::member(), check));
 }
 
 // -----------------------------------------------------------------------------
 
-cool::csabase::RegisterCheck::RegisterCheck(std::string const& name, cool::csabase::CheckRegistry::Subscriber subscriber)
+bde_verify::csabase::RegisterCheck::RegisterCheck(std::string const& name, bde_verify::csabase::CheckRegistry::Subscriber subscriber)
 {
-    cool::csabase::CheckRegistry::add_check(name, subscriber);
+    bde_verify::csabase::CheckRegistry::add_check(name, subscriber);
 }
 
 // -----------------------------------------------------------------------------
@@ -98,15 +98,15 @@ namespace                                                               \
     template <>                                                         \
         struct map_to_member<clang::D>                                  \
     {                                                                   \
-        static cool::event<void(clang::D const*)> (cool::csabase::Visitor::* member()); \
+        static utils::event<void(clang::D const*)> (bde_verify::csabase::Visitor::* member()); \
     };                                                                  \
-    cool::event<void(clang::D const*)>                                  \
-        (cool::csabase::Visitor::* map_to_member<clang::D>::member())          \
+    utils::event<void(clang::D const*)>                                  \
+        (bde_verify::csabase::Visitor::* map_to_member<clang::D>::member())          \
     {                                                                   \
-        return &cool::csabase::Visitor::on##D;                                   \
+        return &bde_verify::csabase::Visitor::on##D;                                   \
     }                                                                   \
 }                                                                       \
- template cool::csabase::RegisterCheck::RegisterCheck(std::string const&, void (*)(cool::csabase::Analyser&, clang::D const*));
+ template bde_verify::csabase::RegisterCheck::RegisterCheck(std::string const&, void (*)(bde_verify::csabase::Analyser&, clang::D const*));
 
 #define ABSTRACT_DECL(ARG) ARG
 #define DECL(CLASS, BASE) REGISTER(CLASS##Decl)

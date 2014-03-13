@@ -3,7 +3,7 @@
 
 #include <bdes_ident.h>
 
-namespace cool
+namespace bde_verify
 {
     namespace csabbg
     {

@@ -36,11 +36,11 @@ using clang::SourceLocation;
 using clang::SourceManager;
 using clang::SourceRange;
 using clang::Stmt;
-using cool::csabase::Analyser;
-using cool::csabase::Location;
-using cool::csabase::PPObserver;
-using cool::csabase::Range;
-using cool::csabase::Visitor;
+using bde_verify::csabase::Analyser;
+using bde_verify::csabase::Location;
+using bde_verify::csabase::PPObserver;
+using bde_verify::csabase::Range;
+using bde_verify::csabase::Visitor;
 
 namespace
 {
@@ -151,7 +151,7 @@ bool comments::isDirective(llvm::StringRef comment)
 bool
 comments::areConsecutive(const SourceRange& r1, const SourceRange& r2) const
 {
-    return cool::csabase::areConsecutive(d_manager, r1, r2) &&
+    return bde_verify::csabase::areConsecutive(d_manager, r1, r2) &&
            !comments::isDirective(d_analyser.get_source(r1)) &&
            !comments::isDirective(d_analyser.get_source(r2));
 }
@@ -817,6 +817,6 @@ void subscribe(Analyser& analyser, Visitor&, PPObserver& observer)
 
 // ----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck c1(check_name, &allFunDecls);
-static cool::csabase::RegisterCheck c2(check_name, &allTpltFunDecls);
-static cool::csabase::RegisterCheck c3(check_name, &subscribe);
+static bde_verify::csabase::RegisterCheck c1(check_name, &allFunDecls);
+static bde_verify::csabase::RegisterCheck c2(check_name, &allTpltFunDecls);
+static bde_verify::csabase::RegisterCheck c3(check_name, &subscribe);

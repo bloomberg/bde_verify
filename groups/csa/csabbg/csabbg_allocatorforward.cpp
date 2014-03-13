@@ -25,7 +25,7 @@
 using namespace clang;
 using namespace clang::ast_matchers;
 using namespace clang::ast_matchers::internal;
-using namespace cool::csabase;
+using namespace bde_verify::csabase;
 
 // -----------------------------------------------------------------------------
 

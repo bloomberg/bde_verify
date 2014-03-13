@@ -9,7 +9,7 @@
 #  include <csascm_version.h>
 #endif
 
-namespace cool
+namespace bde_verify
 {
     namespace csatr
     {
@@ -55,7 +55,7 @@ namespace cool
                     const  csatr_EntityRestrictions&);
 }
 
-inline void cool::csatr::EntityRestrictions::legalFunction()
+inline void bde_verify::csatr::EntityRestrictions::legalFunction()
 {
 }
 

@@ -1,6 +1,6 @@
 // csamisc_funcalpha.t.cpp                                            -*-C++-*-
 
-namespace cool {
+namespace bde_verify {
     namespace {
         class X {
             void f1();

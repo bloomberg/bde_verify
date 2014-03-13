@@ -14,7 +14,7 @@
 #  include <csascm_version.h>
 #endif
 
-namespace cool
+namespace bde_verify
 {
     namespace csamisc
     {
@@ -23,13 +23,13 @@ namespace cool
     
     namespace csatr
     {
-        using cool::csamisc::foo;
+        using bde_verify::csamisc::foo;
     }
 }
 
-using cool::csamisc::foo;
+using bde_verify::csamisc::foo;
 
-namespace cool
+namespace bde_verify
 {
     namespace csatr
     {
@@ -42,15 +42,15 @@ namespace cool
     }
 }
 
-inline cool::csatr::UsingDeclarationInHeader::UsingDeclarationInHeader()
+inline bde_verify::csatr::UsingDeclarationInHeader::UsingDeclarationInHeader()
 {
-    using cool::csamisc::foo;
+    using bde_verify::csamisc::foo;
 }
 
 inline void
-cool::csatr::UsingDeclarationInHeader::value() const
+bde_verify::csatr::UsingDeclarationInHeader::value() const
 {
-    using cool::csamisc::foo;
+    using bde_verify::csamisc::foo;
 }
 
 #endif

@@ -19,7 +19,7 @@ struct Y {
     enum    Value { Nb = -1, Zb = 0 };
 };
 
-namespace cool
+namespace bde_verify
 {
     enum NotValue {          Za = 0 };
     enum    Value { Nb = -1, Zb = 0 };

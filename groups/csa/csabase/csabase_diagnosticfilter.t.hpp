@@ -19,7 +19,7 @@
 
 // ----------------------------------------------------------------------------
 
-namespace cool
+namespace bde_verify
 {
     namespace csabase
     {
@@ -31,8 +31,8 @@ namespace cool
 
 // ----------------------------------------------------------------------------
 
-inline cool::csabase::DiagnosticFilterType*
-cool::csabase::operator+(DiagnosticFilterType value)
+inline bde_verify::csabase::DiagnosticFilterType*
+bde_verify::csabase::operator+(DiagnosticFilterType value)
 {
     return &value;
 }

@@ -9,7 +9,7 @@
 #  include <csascm_version.h>
 #endif
 
-namespace cool
+namespace bde_verify
 {
     namespace csastil
     {
@@ -46,7 +46,7 @@ namespace cool
 
 template <typename TT>
 inline void
-cool::csastil::swap(TemplateTypenameBad<TT>&, TemplateTypenameBad<TT>&)
+bde_verify::csastil::swap(TemplateTypenameBad<TT>&, TemplateTypenameBad<TT>&)
 {
 }
 

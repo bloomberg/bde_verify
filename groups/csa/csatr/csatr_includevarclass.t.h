@@ -10,7 +10,7 @@
 
 // ----------------------------------------------------------------------------
 
-namespace cool
+namespace bde_verify
 {
     namespace csatr
     {

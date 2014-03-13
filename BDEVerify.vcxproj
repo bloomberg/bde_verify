@@ -82,7 +82,7 @@
     <ClCompile Include="groups\csa\csabase\csabase_attachments.cpp" />
     <ClCompile Include="groups\csa\csabase\csabase_checkregistry.cpp" />
     <ClCompile Include="groups\csa\csabase\csabase_config.cpp" />
-    <ClCompile Include="groups\csa\csabase\csabase_coolyse.cpp" />
+    <ClCompile Include="groups\csa\csabase\csabase_analyse.cpp" />
     <ClCompile Include="groups\csa\csabase\csabase_debug.cpp" />
     <ClCompile Include="groups\csa\csabase\csabase_diagnosticfilter.cpp" />
     <ClCompile Include="groups\csa\csabase\csabase_filenames.cpp" />
@@ -145,7 +145,7 @@
     <ClInclude Include="groups\csa\csabase\csabase_cast_ptr.h" />
     <ClInclude Include="groups\csa\csabase\csabase_checkregistry.h" />
     <ClInclude Include="groups\csa\csabase\csabase_config.h" />
-    <ClInclude Include="groups\csa\csabase\csabase_coolyse.h" />
+    <ClInclude Include="groups\csa\csabase\csabase_analyse.h" />
     <ClInclude Include="groups\csa\csabase\csabase_debug.h" />
     <ClInclude Include="groups\csa\csabase\csabase_diagnosticfilter.h" />
     <ClInclude Include="groups\csa\csabase\csabase_diagnostic_builder.h" />

@@ -8,17 +8,17 @@
 #include "csamisc_constantreturn.t.hpp"
 #include <bdes_ident.h>
 
-int cool::csamisc::constantreturn::f()
+int bde_verify::csamisc::constantreturn::f()
 {
     return 0;
 }
 
-int cool::csamisc::constantreturn::g()
+int bde_verify::csamisc::constantreturn::g()
 {
     return 5 + 8;
 }
 
-int cool::csamisc::constantreturn::h()
+int bde_verify::csamisc::constantreturn::h()
 {
     {
         {
@@ -27,7 +27,7 @@ int cool::csamisc::constantreturn::h()
     }
 }
 
-void cool::csamisc::constantreturn::v()
+void bde_verify::csamisc::constantreturn::v()
 {
     return;
 }

@@ -18,7 +18,7 @@
 
 namespace
 {
-    typedef std::multimap<std::string, cool::csabase::CheckRegistry::Subscriber> map_type;
+    typedef std::multimap<std::string, bde_verify::csabase::CheckRegistry::Subscriber> map_type;
 
     map_type&
     checks()
@@ -31,8 +31,8 @@ namespace
 // -----------------------------------------------------------------------------
 
 void
-cool::csabase::CheckRegistry::add_check(std::string const& name,
-                                        cool::csabase::CheckRegistry::Subscriber check)
+bde_verify::csabase::CheckRegistry::add_check(std::string const& name,
+                                        bde_verify::csabase::CheckRegistry::Subscriber check)
 {
     checks().insert(std::make_pair(name, check));
 }
@@ -40,12 +40,12 @@ cool::csabase::CheckRegistry::add_check(std::string const& name,
 // -----------------------------------------------------------------------------
 
 void
-cool::csabase::CheckRegistry::attach(cool::csabase::Analyser& analyser,
-                                     cool::csabase::Visitor& visitor,
-                                     cool::csabase::PPObserver& observer)
+bde_verify::csabase::CheckRegistry::attach(bde_verify::csabase::Analyser& analyser,
+                                     bde_verify::csabase::Visitor& visitor,
+                                     bde_verify::csabase::PPObserver& observer)
 {
     typedef map_type::const_iterator const_iterator;
-    typedef std::map<std::string, cool::csabase::Config::Status> checks_type;
+    typedef std::map<std::string, bde_verify::csabase::Config::Status> checks_type;
     checks_type const& config(analyser.config()->checks());
     for (checks_type::const_iterator it(config.begin()), end(config.end());
          it != end; ++it) {
@@ -66,7 +66,7 @@ cool::csabase::CheckRegistry::attach(cool::csabase::Analyser& analyser,
     {
         checks_type::const_iterator cit(config.find(it->first));
         if ((config.end() == cit && analyser.config()->all()) ||
-            cit->second == cool::csabase::Config::on)
+            cit->second == bde_verify::csabase::Config::on)
         {
             it->second(analyser, visitor, observer);
         }

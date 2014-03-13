@@ -19,7 +19,7 @@
 #include <set>
 #include <sstream>
 
-using cool::csabase::cast_ptr;
+using bde_verify::csabase::cast_ptr;
 
 // ----------------------------------------------------------------------------
 
@@ -28,7 +28,7 @@ static std::string const check_name("include_files");
 // ----------------------------------------------------------------------------
 
 static void
-record_needed_declaration(cool::csabase::Analyser& analyser,
+record_needed_declaration(bde_verify::csabase::Analyser& analyser,
                           clang::Decl const*       decl,
                           clang::NamedDecl const*  named,
                           bool                     need_definition,
@@ -44,8 +44,8 @@ record_needed_declaration(cool::csabase::Analyser& analyser,
             << analyser.get_location(decl).file()
             ;
     }
-    cool::csadep::dependencies&
-        deps(analyser.attachment<cool::csadep::dependencies>());
+    bde_verify::csadep::dependencies&
+        deps(analyser.attachment<bde_verify::csadep::dependencies>());
     deps.add(analyser.get_location(decl).file(),
              decl->getLocStart(),
              need_definition,
@@ -60,7 +60,7 @@ record_needed_declaration(cool::csabase::Analyser& analyser,
 // definition.
 
 static void
-check_type(cool::csabase::Analyser& analyser,
+check_type(bde_verify::csabase::Analyser& analyser,
            clang::Decl const*       decl,
            clang::Type const*       type,
            bool                     inDefinition,
@@ -203,7 +203,7 @@ check_type(cool::csabase::Analyser& analyser,
     default:
         analyser.report(decl, check_name, "UT01",
                 "Unknown type class: %0")
-            << cool::csabase::format(type->getTypeClass());
+            << bde_verify::csabase::format(type->getTypeClass());
         break;
     }
 }
@@ -223,7 +223,7 @@ namespace
 // -----------------------------------------------------------------------------
 
 static void
-on_include(cool::csabase::Analyser& analyser, std::string const& from, std::string const& file)
+on_include(bde_verify::csabase::Analyser& analyser, std::string const& from, std::string const& file)
 {
     include_files& context(analyser.attachment<include_files>());
     context.includes_[from].insert(file);
@@ -237,13 +237,13 @@ on_include(cool::csabase::Analyser& analyser, std::string const& from, std::stri
 // -----------------------------------------------------------------------------
 
 static void
-on_open(cool::csabase::Analyser& analyser, clang::SourceLocation, std::string const& from, std::string const& file)
+on_open(bde_verify::csabase::Analyser& analyser, clang::SourceLocation, std::string const& from, std::string const& file)
 {
     on_include(analyser, from, file);
 }
 
 static void
-on_skip(cool::csabase::Analyser& analyser, std::string const& from, std::string const& file)
+on_skip(bde_verify::csabase::Analyser& analyser, std::string const& from, std::string const& file)
 {
     on_include(analyser, from, file);
 }
@@ -251,7 +251,7 @@ on_skip(cool::csabase::Analyser& analyser, std::string const& from, std::string 
 // -----------------------------------------------------------------------------
 
 static void
-check_declref(cool::csabase::Analyser& analyser, clang::Decl const* decl, clang::Decl const* declref)
+check_declref(bde_verify::csabase::Analyser& analyser, clang::Decl const* decl, clang::Decl const* declref)
 {
     std::string const& file(analyser.get_location(decl).file());
     include_files& context(analyser.attachment<include_files>());
@@ -275,7 +275,7 @@ check_declref(cool::csabase::Analyser& analyser, clang::Decl const* decl, clang:
 // -----------------------------------------------------------------------------
 
 static void
-on_cxxrecorddecl(cool::csabase::Analyser& analyser, clang::CXXRecordDecl const* decl)
+on_cxxrecorddecl(bde_verify::csabase::Analyser& analyser, clang::CXXRecordDecl const* decl)
 {
     if (decl->hasDefinition())
     {
@@ -293,7 +293,7 @@ on_cxxrecorddecl(cool::csabase::Analyser& analyser, clang::CXXRecordDecl const* 
 // -----------------------------------------------------------------------------
 
 static void
-check_expr(cool::csabase::Analyser& analyser, clang::Decl const* decl, clang::Expr const* expr)
+check_expr(bde_verify::csabase::Analyser& analyser, clang::Decl const* decl, clang::Expr const* expr)
 {
     //-dk:TODO
 }
@@ -301,10 +301,10 @@ check_expr(cool::csabase::Analyser& analyser, clang::Decl const* decl, clang::Ex
 // -----------------------------------------------------------------------------
 
 static void
-check_type(cool::csabase::Analyser& analyser, clang::Decl const* decl, clang::Type const* type);
+check_type(bde_verify::csabase::Analyser& analyser, clang::Decl const* decl, clang::Type const* type);
 
 static void
-check_type(cool::csabase::Analyser& analyser, clang::Decl const* decl, clang::QualType qual_type)
+check_type(bde_verify::csabase::Analyser& analyser, clang::Decl const* decl, clang::QualType qual_type)
 {
     if (clang::Type const* type = qual_type.getTypePtrOrNull())
     {
@@ -315,7 +315,7 @@ check_type(cool::csabase::Analyser& analyser, clang::Decl const* decl, clang::Qu
 // -----------------------------------------------------------------------------
 
 static void
-on_functiondecl(cool::csabase::Analyser& analyser, clang::FunctionDecl const* decl)
+on_functiondecl(bde_verify::csabase::Analyser& analyser, clang::FunctionDecl const* decl)
 {
     for (clang::FunctionDecl::param_const_iterator it(decl->param_begin()), end(decl->param_end()); it != end; ++it)
     {
@@ -331,7 +331,7 @@ on_functiondecl(cool::csabase::Analyser& analyser, clang::FunctionDecl const* de
 // -----------------------------------------------------------------------------
 
 static void
-on_decl(cool::csabase::Analyser& analyser, clang::Decl const* decl)
+on_decl(bde_verify::csabase::Analyser& analyser, clang::Decl const* decl)
 {
 #if 0
     clang::NamedDecl const* named(llvm::dyn_cast<clang::NamedDecl>(decl));
@@ -344,7 +344,7 @@ on_decl(cool::csabase::Analyser& analyser, clang::Decl const* decl)
 // -----------------------------------------------------------------------------
 
 static void
-on_expr(cool::csabase::Analyser& analyser, clang::Expr const* expr)
+on_expr(bde_verify::csabase::Analyser& analyser, clang::Expr const* expr)
 {
     //-dk:TODO analyser.report(expr, check_name, "expr");
 }
@@ -355,8 +355,8 @@ namespace
 {
     struct binder
     {
-        binder(void (*function)(cool::csabase::Analyser&, clang::SourceLocation, std::string const&, std::string const&),
-               cool::csabase::Analyser& analyser):
+        binder(void (*function)(bde_verify::csabase::Analyser&, clang::SourceLocation, std::string const&, std::string const&),
+               bde_verify::csabase::Analyser& analyser):
             function_(function),
             analyser_(&analyser)
         {
@@ -366,8 +366,8 @@ namespace
         {
             (*function_)(*analyser_, location, from, file);
         }
-        void          (*function_)(cool::csabase::Analyser&, clang::SourceLocation, std::string const&, std::string const&);
-        cool::csabase::Analyser* analyser_;
+        void          (*function_)(bde_verify::csabase::Analyser&, clang::SourceLocation, std::string const&, std::string const&);
+        bde_verify::csabase::Analyser* analyser_;
     };
 }
 
@@ -375,7 +375,7 @@ namespace
 {
     struct skip_binder
     {
-        skip_binder(void (*function)(cool::csabase::Analyser&, std::string const&, std::string const&), cool::csabase::Analyser& analyser):
+        skip_binder(void (*function)(bde_verify::csabase::Analyser&, std::string const&, std::string const&), bde_verify::csabase::Analyser& analyser):
             function_(function),
             analyser_(&analyser)
         {
@@ -385,13 +385,13 @@ namespace
         {
             (*function_)(*analyser_, from, file);
         }
-        void          (*function_)(cool::csabase::Analyser&, std::string const&, std::string const&);
-        cool::csabase::Analyser* analyser_;
+        void          (*function_)(bde_verify::csabase::Analyser&, std::string const&, std::string const&);
+        bde_verify::csabase::Analyser* analyser_;
     };
 }
 
 static void
-subscribe(cool::csabase::Analyser& analyser, cool::csabase::Visitor&, cool::csabase::PPObserver& observer)
+subscribe(bde_verify::csabase::Analyser& analyser, bde_verify::csabase::Visitor&, bde_verify::csabase::PPObserver& observer)
 {
     observer.onOpenFile += binder(on_open, analyser);
     observer.onSkipFile += skip_binder(on_skip, analyser);
@@ -399,13 +399,13 @@ subscribe(cool::csabase::Analyser& analyser, cool::csabase::Visitor&, cool::csab
 
 // -----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck register_check0(check_name, &on_decl);
-static cool::csabase::RegisterCheck register_check1(check_name, &on_cxxrecorddecl);
-static cool::csabase::RegisterCheck register_check3(check_name, &on_functiondecl);
-static cool::csabase::RegisterCheck register_check4(check_name, &on_expr);
-static cool::csabase::RegisterCheck register_observer(check_name, &subscribe);
+static bde_verify::csabase::RegisterCheck register_check0(check_name, &on_decl);
+static bde_verify::csabase::RegisterCheck register_check1(check_name, &on_cxxrecorddecl);
+static bde_verify::csabase::RegisterCheck register_check3(check_name, &on_functiondecl);
+static bde_verify::csabase::RegisterCheck register_check4(check_name, &on_expr);
+static bde_verify::csabase::RegisterCheck register_observer(check_name, &subscribe);
 static void
-on_declref(cool::csabase::Analyser& analyser, clang::DeclRefExpr const* expr)
+on_declref(bde_verify::csabase::Analyser& analyser, clang::DeclRefExpr const* expr)
 {
     clang::ValueDecl const* decl(expr->getDecl());
     analyser.report(decl, check_name, "declaration")
@@ -415,12 +415,12 @@ on_declref(cool::csabase::Analyser& analyser, clang::DeclRefExpr const* expr)
         << expr->getSourceRange()
         ;
 }
-static cool::csabase::RegisterCheck register_check0(check_name, &on_declref);
+static bde_verify::csabase::RegisterCheck register_check0(check_name, &on_declref);
 #else
 // -----------------------------------------------------------------------------
 
 static void
-on_valuedecl(cool::csabase::Analyser& analyser, clang::VarDecl const* decl)
+on_valuedecl(bde_verify::csabase::Analyser& analyser, clang::VarDecl const* decl)
 {
     check_type(analyser, decl, decl->getType().getTypePtr(),
                  !decl->hasExternalStorage());
@@ -429,13 +429,13 @@ on_valuedecl(cool::csabase::Analyser& analyser, clang::VarDecl const* decl)
 // -----------------------------------------------------------------------------
 
 static void
-on_typedefdecl(cool::csabase::Analyser& analyser, clang::TypedefDecl const* decl)
+on_typedefdecl(bde_verify::csabase::Analyser& analyser, clang::TypedefDecl const* decl)
 {
     check_type(analyser, decl, decl->getUnderlyingType().getTypePtr(), false);
 }
 
 // -----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck register_check_typedefdecl(check_name, &on_typedefdecl);
-static cool::csabase::RegisterCheck register_check_valuedecl(check_name, &on_valuedecl);
+static bde_verify::csabase::RegisterCheck register_check_typedefdecl(check_name, &on_typedefdecl);
+static bde_verify::csabase::RegisterCheck register_check_valuedecl(check_name, &on_valuedecl);
 #endif

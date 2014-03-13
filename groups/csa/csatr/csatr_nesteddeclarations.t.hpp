@@ -30,29 +30,29 @@ struct nesteddeclarations_bad_global_struct
 void nesteddeclarations_bad_global_function();
 int nesteddeclarations_bad_global_variable;
 
-namespace cool
+namespace bde_verify
 {
-    struct good_cool_struct;
-    struct nesteddeclarations_bad_cool_struct
+    struct good_bde_verify_struct;
+    struct nesteddeclarations_bad_bde_verify_struct
     {
         int member;
         void method();
         struct nested {};
     };
-    void nesteddeclarations_bad_cool_function();
-    int nesteddeclarations_bad_cool_variable;
+    void nesteddeclarations_bad_bde_verify_function();
+    int nesteddeclarations_bad_bde_verify_variable;
 
     namespace csamisc
     {
-        struct good_cool_csamisc_struct;
-        struct nesteddeclarations_bad_cool_csamisc_struct
+        struct good_bde_verify_csamisc_struct;
+        struct nesteddeclarations_bad_bde_verify_csamisc_struct
         {
             int member;
             void method();
             struct nested {};
         };
-        void nesteddeclarations_bad_cool_csamisc_function();
-        int nesteddeclarations_bad_cool_csamisc_variable;
+        void nesteddeclarations_bad_bde_verify_csamisc_function();
+        int nesteddeclarations_bad_bde_verify_csamisc_variable;
     }
 
     namespace csatr
@@ -66,7 +66,7 @@ namespace cool
         };
 
         void nesteddeclarations_good_function();
-        int nesteddeclarations_good_cool_csatr_variable;
+        int nesteddeclarations_good_bde_verify_csatr_variable;
     }
 
     struct csatr_NestedDeclarations

@@ -20,11 +20,11 @@ static std::string const check_name("whitespace");
 using clang::SourceLocation;
 using clang::SourceManager;
 using clang::SourceRange;
-using cool::csabase::Analyser;
-using cool::csabase::Location;
-using cool::csabase::PPObserver;
-using cool::csabase::Range;
-using cool::csabase::Visitor;
+using bde_verify::csabase::Analyser;
+using bde_verify::csabase::Location;
+using bde_verify::csabase::PPObserver;
+using bde_verify::csabase::Range;
+using bde_verify::csabase::Visitor;
 
 namespace
 {
@@ -64,7 +64,7 @@ void files::operator()(SourceLocation loc,
         llvm::SmallVector<llvm::StringRef, 7> matches;
         while (bad_ws.match(s = buf.drop_front(offset), &matches)) {
             llvm::StringRef text = matches[0];
-            std::pair<size_t, size_t> m = cool::csabase::mid_match(s, text);
+            std::pair<size_t, size_t> m = bde_verify::csabase::mid_match(s, text);
             size_t matchpos = offset + m.first;
             offset = matchpos + text.size();
             if (text[0] == '\t') {
@@ -93,4 +93,4 @@ void subscribe(Analyser& analyser, Visitor&, PPObserver& observer)
 
 // ----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck c1(check_name, &subscribe);
+static bde_verify::csabase::RegisterCheck c1(check_name, &subscribe);

@@ -10,7 +10,7 @@
 
 // ----------------------------------------------------------------------------
 
-namespace cool
+namespace bde_verify
 {
     namespace csabase
     {
@@ -34,7 +34,7 @@ namespace cool
 // ----------------------------------------------------------------------------
 
 template <>
-class cool::csabase::Binder<void(*)(cool::csabase::Analyser*)>
+class bde_verify::csabase::Binder<void(*)(bde_verify::csabase::Analyser*)>
 {
 private:
     Analyser* d_analyser;
@@ -55,7 +55,7 @@ public:
 // ----------------------------------------------------------------------------
 
 template <typename T0>
-class cool::csabase::Binder<void(*)(cool::csabase::Analyser*, T0)>
+class bde_verify::csabase::Binder<void(*)(bde_verify::csabase::Analyser*, T0)>
 {
 private:
     Analyser* d_analyser;
@@ -76,7 +76,7 @@ public:
 // ----------------------------------------------------------------------------
 
 template <typename T0, typename T1>
-class cool::csabase::Binder<void(*)(cool::csabase::Analyser*, T0, T1)>
+class bde_verify::csabase::Binder<void(*)(bde_verify::csabase::Analyser*, T0, T1)>
 {
 private:
     Analyser* d_analyser;
@@ -97,7 +97,7 @@ public:
 // ----------------------------------------------------------------------------
 
 template <typename T0, typename T1, typename T2>
-class cool::csabase::Binder<void(*)(cool::csabase::Analyser*, T0, T1, T2)>
+class bde_verify::csabase::Binder<void(*)(bde_verify::csabase::Analyser*, T0, T1, T2)>
 {
 private:
     Analyser* d_analyser;
@@ -118,10 +118,10 @@ public:
 // ----------------------------------------------------------------------------
 
 template <typename Function>
-cool::csabase::Binder<Function>
-cool::csabase::bind(cool::csabase::Analyser* analyser, Function function)
+bde_verify::csabase::Binder<Function>
+bde_verify::csabase::bind(bde_verify::csabase::Analyser* analyser, Function function)
 {
-    return cool::csabase::Binder<Function>(analyser, function);
+    return bde_verify::csabase::Binder<Function>(analyser, function);
 }
 
 // ----------------------------------------------------------------------------

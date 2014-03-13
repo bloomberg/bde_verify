@@ -2,7 +2,7 @@ groups/csa/csamisc/csamisc_constantreturn.t.cpp:13:0: warning: CR01: Function 'f
     return 0;
 ^
 groups/csa/csamisc/csamisc_constantreturn.t.cpp:11:0: note: CR01: Declaration of 'f' (which always returns the constant 0)
-int cool::csamisc::constantreturn::f()
+int bde_verify::csamisc::constantreturn::f()
 ^
 groups/csa/csamisc/csamisc_constantreturn.t.hpp:26:0: note: CR01: Declaration of 'f' (which always returns the constant 0)
             static int f();
@@ -11,7 +11,7 @@ groups/csa/csamisc/csamisc_constantreturn.t.cpp:18:0: warning: CR01: Function 'g
     return 5 + 8;
 ^
 groups/csa/csamisc/csamisc_constantreturn.t.cpp:16:0: note: CR01: Declaration of 'g' (which always returns the constant 13)
-int cool::csamisc::constantreturn::g()
+int bde_verify::csamisc::constantreturn::g()
 ^
 groups/csa/csamisc/csamisc_constantreturn.t.hpp:27:0: note: CR01: Declaration of 'g' (which always returns the constant 13)
             static int g();

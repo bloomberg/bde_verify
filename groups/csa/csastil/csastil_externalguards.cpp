@@ -18,7 +18,7 @@
 #include <string>
 #include <utility>
 
-namespace CB = cool::csabase;
+namespace CB = bde_verify::csabase;
 
 // ----------------------------------------------------------------------------
 
@@ -52,7 +52,7 @@ toUpper(std::string value)
 static std::string
 getComponent(std::string const& file)
 {
-    cool::csabase::FileName fn(file);
+    bde_verify::csabase::FileName fn(file);
     return toUpper(fn.component());
 }
 
@@ -226,4 +226,4 @@ subscribe(CB::Analyser& analyser, CB::Visitor&, CB::PPObserver& observer)
 
 // ----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck register_observer(check_name, &subscribe);
+static bde_verify::csabase::RegisterCheck register_observer(check_name, &subscribe);

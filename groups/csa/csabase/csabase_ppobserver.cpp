@@ -16,9 +16,9 @@
 
 // -----------------------------------------------------------------------------
 
-cool::csabase::PPObserver::PPObserver(
+bde_verify::csabase::PPObserver::PPObserver(
     clang::SourceManager const* source_manager,
-    cool::csabase::Config* config)
+    bde_verify::csabase::Config* config)
 : source_manager_(source_manager)
 , connected_(true)
 , config_(config)
@@ -27,14 +27,14 @@ cool::csabase::PPObserver::PPObserver(
 
 // -----------------------------------------------------------------------------
 
-cool::csabase::PPObserver::~PPObserver()
+bde_verify::csabase::PPObserver::~PPObserver()
 {
 }
 
 // -----------------------------------------------------------------------------
 
 void
-cool::csabase::PPObserver::detach()
+bde_verify::csabase::PPObserver::detach()
 {
     connected_ = false;
 }
@@ -46,18 +46,18 @@ namespace
     struct CommentHandler
         : clang::CommentHandler
     {
-        CommentHandler(cool::csabase::PPObserver* observer): observer_(observer) {}
+        CommentHandler(bde_verify::csabase::PPObserver* observer): observer_(observer) {}
         bool HandleComment(clang::Preprocessor&, clang::SourceRange range)
         {
             observer_->HandleComment(range);
             return false;
         }
-        cool::csabase::PPObserver* observer_;
+        bde_verify::csabase::PPObserver* observer_;
     };
 }
 
 clang::CommentHandler*
-cool::csabase::PPObserver::get_comment_handler()
+bde_verify::csabase::PPObserver::get_comment_handler()
 {
     return new CommentHandler(this);
 }
@@ -65,7 +65,7 @@ cool::csabase::PPObserver::get_comment_handler()
 // -----------------------------------------------------------------------------
 
 std::string
-cool::csabase::PPObserver::get_file(clang::SourceLocation location) const
+bde_verify::csabase::PPObserver::get_file(clang::SourceLocation location) const
 {
     return source_manager_->getPresumedLoc(location).getFilename();
 }
@@ -73,158 +73,158 @@ cool::csabase::PPObserver::get_file(clang::SourceLocation location) const
 // -----------------------------------------------------------------------------
 
 void
-cool::csabase::PPObserver::do_include_file(clang::SourceLocation location, bool is_angled, std::string const& file)
+bde_verify::csabase::PPObserver::do_include_file(clang::SourceLocation location, bool is_angled, std::string const& file)
 {
     std::string msg("do_include_file '" + file + "' angled=" + (is_angled? "true": "false"));
-    cool::csabase::Debug d(msg.c_str());
+    bde_verify::csabase::Debug d(msg.c_str());
     onInclude(location, is_angled, file);
 }
 
 void
-cool::csabase::PPObserver::do_open_file(clang::SourceLocation location, std::string const& from, std::string const& file)
+bde_verify::csabase::PPObserver::do_open_file(clang::SourceLocation location, std::string const& from, std::string const& file)
 {
     std::string msg("do_open_file '" + file + "'");
-    cool::csabase::Debug d(msg.c_str());
+    bde_verify::csabase::Debug d(msg.c_str());
     onOpenFile(location, from, file);
 }
 
 void
-cool::csabase::PPObserver::do_close_file(clang::SourceLocation location, std::string const& from, std::string const& file)
+bde_verify::csabase::PPObserver::do_close_file(clang::SourceLocation location, std::string const& from, std::string const& file)
 {
     std::string msg("do_close_file '" + file + "'");
-    cool::csabase::Debug d(msg.c_str());
+    bde_verify::csabase::Debug d(msg.c_str());
     onCloseFile(location, from, file);
 }
 
 void
-cool::csabase::PPObserver::do_skip_file(std::string const& from, std::string const& file)
+bde_verify::csabase::PPObserver::do_skip_file(std::string const& from, std::string const& file)
 {
     std::string msg("do_skip_file(" + from + ", " + file + ")");
-    cool::csabase::Debug d(msg.c_str());
+    bde_verify::csabase::Debug d(msg.c_str());
     onSkipFile(from, file);
 }
 
 void
-cool::csabase::PPObserver::do_file_not_found(std::string const& file)
+bde_verify::csabase::PPObserver::do_file_not_found(std::string const& file)
 {
     std::string msg("do_file_not_found(" + file + ")");
-    cool::csabase::Debug d(msg.c_str());
+    bde_verify::csabase::Debug d(msg.c_str());
     onFileNotFound(file);
 }
 
 void
-cool::csabase::PPObserver::do_other_file(std::string const& file, clang::PPCallbacks::FileChangeReason reason)
+bde_verify::csabase::PPObserver::do_other_file(std::string const& file, clang::PPCallbacks::FileChangeReason reason)
 {
     std::string msg("do_other_file '" + file + "'");
-    cool::csabase::Debug d(msg.c_str());
+    bde_verify::csabase::Debug d(msg.c_str());
     onOtherFile(file, reason);
 }
 
 void
-cool::csabase::PPObserver::do_ident(clang::SourceLocation location, std::string const& ident)
+bde_verify::csabase::PPObserver::do_ident(clang::SourceLocation location, std::string const& ident)
 {
-    cool::csabase::Debug d("do_ident");
+    bde_verify::csabase::Debug d("do_ident");
     onIdent(location, ident);
 }
 
 void
-cool::csabase::PPObserver::do_pragma(clang::SourceLocation location, std::string const& value)
+bde_verify::csabase::PPObserver::do_pragma(clang::SourceLocation location, std::string const& value)
 {
-    cool::csabase::Debug d("do_pragma");
+    bde_verify::csabase::Debug d("do_pragma");
     onPragma(location, value);
 }
 
 void
-cool::csabase::PPObserver::do_macro_expands(clang::Token const&          token,
+bde_verify::csabase::PPObserver::do_macro_expands(clang::Token const&          token,
                                             const clang::MacroDirective *macro)
 {
-    cool::csabase::Debug d("do_macro_expands");
+    bde_verify::csabase::Debug d("do_macro_expands");
     onMacroExpands(token, macro);
 }
 
 void
-cool::csabase::PPObserver::do_macro_defined(clang::Token const&          token,
+bde_verify::csabase::PPObserver::do_macro_defined(clang::Token const&          token,
                                             const clang::MacroDirective *macro)
 {
-    cool::csabase::Debug d("do_macro_defined");
+    bde_verify::csabase::Debug d("do_macro_defined");
     onMacroDefined(token, macro);
 }
 
 void
-cool::csabase::PPObserver::do_macro_undefined(
+bde_verify::csabase::PPObserver::do_macro_undefined(
                                             clang::Token const&          token,
                                             const clang::MacroDirective *macro)
 {
-    cool::csabase::Debug d("do_macro_undefined");
+    bde_verify::csabase::Debug d("do_macro_undefined");
     onMacroUndefined(token, macro);
 }
 
 void
-cool::csabase::PPObserver::do_if(clang::SourceLocation where,
+bde_verify::csabase::PPObserver::do_if(clang::SourceLocation where,
                                  clang::SourceRange range)
 {
-    cool::csabase::Debug d("do_if");
+    bde_verify::csabase::Debug d("do_if");
     onIf(where, range);
 }
 
 void
-cool::csabase::PPObserver::do_elif(clang::SourceLocation where,
+bde_verify::csabase::PPObserver::do_elif(clang::SourceLocation where,
                                    clang::SourceRange range)
 {
-    cool::csabase::Debug d("do_elif");
+    bde_verify::csabase::Debug d("do_elif");
     onElif(where, range);
 }
 
 void
-cool::csabase::PPObserver::do_ifdef(clang::SourceLocation where,
+bde_verify::csabase::PPObserver::do_ifdef(clang::SourceLocation where,
                                     clang::Token const& token)
 {
-    cool::csabase::Debug d("do_ifdef");
+    bde_verify::csabase::Debug d("do_ifdef");
     onIfdef(where, token);
 }
 
 void
-cool::csabase::PPObserver::do_ifndef(clang::SourceLocation where,
+bde_verify::csabase::PPObserver::do_ifndef(clang::SourceLocation where,
                                      clang::Token const& token)
 {
-    cool::csabase::Debug d("do_ifndef");
+    bde_verify::csabase::Debug d("do_ifndef");
     onIfndef(where, token);
 }
 
 void
-cool::csabase::PPObserver::do_else(clang::SourceLocation where,
+bde_verify::csabase::PPObserver::do_else(clang::SourceLocation where,
                                    clang::SourceLocation what)
 {
-    cool::csabase::Debug d("do_else");
+    bde_verify::csabase::Debug d("do_else");
     onElse(where, what);
 }
 
 void
-cool::csabase::PPObserver::do_endif(clang::SourceLocation where,
+bde_verify::csabase::PPObserver::do_endif(clang::SourceLocation where,
                                     clang::SourceLocation what)
 {
-    cool::csabase::Debug d("do_endif");
+    bde_verify::csabase::Debug d("do_endif");
     onEndif(where, what);
 }
 
 void
-cool::csabase::PPObserver::do_comment(clang::SourceRange range)
+bde_verify::csabase::PPObserver::do_comment(clang::SourceRange range)
 {
-    cool::csabase::Debug d("do_comment");
+    bde_verify::csabase::Debug d("do_comment");
     onComment(range);
 }
 
 void
-cool::csabase::PPObserver::do_context()
+bde_verify::csabase::PPObserver::do_context()
 {
-    cool::csabase::Debug d("do_context");
+    bde_verify::csabase::Debug d("do_context");
     onContext();
 }
 
 // -----------------------------------------------------------------------------
 
 void
-cool::csabase::PPObserver::FileChanged(
+bde_verify::csabase::PPObserver::FileChanged(
                                  clang::SourceLocation                location,
                                  clang::PPCallbacks::FileChangeReason reason,
                                  clang::SrcMgr::CharacteristicKind    kind,
@@ -256,7 +256,7 @@ cool::csabase::PPObserver::FileChanged(
 }
 
 void
-cool::csabase::PPObserver::EndOfMainFile()
+bde_verify::csabase::PPObserver::EndOfMainFile()
 {
     if (connected_)
     {
@@ -269,7 +269,7 @@ cool::csabase::PPObserver::EndOfMainFile()
 // -----------------------------------------------------------------------------
 
 void
-cool::csabase::PPObserver::FileSkipped(clang::FileEntry const& file, clang::Token const&,
+bde_verify::csabase::PPObserver::FileSkipped(clang::FileEntry const& file, clang::Token const&,
                              clang::SrcMgr::CharacteristicKind kind)
 {
     do_skip_file(files_.empty()? std::string(): files_.top(), file.getName());
@@ -278,7 +278,7 @@ cool::csabase::PPObserver::FileSkipped(clang::FileEntry const& file, clang::Toke
 // -----------------------------------------------------------------------------
 
 bool
-cool::csabase::PPObserver::FileNotFound(llvm::StringRef name,
+bde_verify::csabase::PPObserver::FileNotFound(llvm::StringRef name,
                                         llvm::SmallVectorImpl<char>& path)
 {
     do_file_not_found(name);
@@ -288,7 +288,7 @@ cool::csabase::PPObserver::FileNotFound(llvm::StringRef name,
 // -----------------------------------------------------------------------------
 
 void
-cool::csabase::PPObserver::Ident(clang::SourceLocation location, std::string const& ident)
+bde_verify::csabase::PPObserver::Ident(clang::SourceLocation location, std::string const& ident)
 {
     do_ident(location, ident);
 }
@@ -309,7 +309,7 @@ static llvm::Regex pragma_bdeverify(
     llvm::Regex::NoFlags);
 
 void
-cool::csabase::PPObserver::PragmaDirective(clang::SourceLocation location, clang::PragmaIntroducerKind introducer)
+bde_verify::csabase::PPObserver::PragmaDirective(clang::SourceLocation location, clang::PragmaIntroducerKind introducer)
 {
     const clang::SourceManager& m = *source_manager_;
     clang::FileID fid = m.getFileID(location);
@@ -335,39 +335,39 @@ cool::csabase::PPObserver::PragmaDirective(clang::SourceLocation location, clang
 }
 
 void
-cool::csabase::PPObserver::PragmaComment(clang::SourceLocation location, clang::IdentifierInfo const*, std::string const& value)
+bde_verify::csabase::PPObserver::PragmaComment(clang::SourceLocation location, clang::IdentifierInfo const*, std::string const& value)
 {
     do_pragma(location, value);
 }
 
 void
-cool::csabase::PPObserver::PragmaDetectMismatch(clang::SourceLocation  loc,
+bde_verify::csabase::PPObserver::PragmaDetectMismatch(clang::SourceLocation  loc,
                                                 const std::string     &name,
                                                 const std::string     &value)
 {
 }
 
 void
-cool::csabase::PPObserver::PragmaDebug(clang::SourceLocation loc,
+bde_verify::csabase::PPObserver::PragmaDebug(clang::SourceLocation loc,
                                        llvm::StringRef       debugtype)
 {
 }
 
 void
-cool::csabase::PPObserver::PragmaDiagnosticPush(
+bde_verify::csabase::PPObserver::PragmaDiagnosticPush(
                                                clang::SourceLocation loc,
                                                llvm::StringRef       nmspc)
 {
 }
 
 void
-cool::csabase::PPObserver::PragmaDiagnosticPop(clang::SourceLocation loc,
+bde_verify::csabase::PPObserver::PragmaDiagnosticPop(clang::SourceLocation loc,
                                                llvm::StringRef       nmspc)
 {
 }
 
 void
-cool::csabase::PPObserver::PragmaDiagnostic(clang::SourceLocation loc,
+bde_verify::csabase::PPObserver::PragmaDiagnostic(clang::SourceLocation loc,
                                             llvm::StringRef       nmspc,
                                             clang::diag::Mapping  mapping,
                                             llvm::StringRef       str)
@@ -375,7 +375,7 @@ cool::csabase::PPObserver::PragmaDiagnostic(clang::SourceLocation loc,
 }
 
 void
-cool::csabase::PPObserver::PragmaOpenCLExtension(
+bde_verify::csabase::PPObserver::PragmaOpenCLExtension(
                                          clang::SourceLocation        nameloc,
                                          const clang::IdentifierInfo *name,
                                          clang::SourceLocation        stateloc,
@@ -384,25 +384,25 @@ cool::csabase::PPObserver::PragmaOpenCLExtension(
 }
 
 void
-cool::csabase::PPObserver::PragmaWarning(clang::SourceLocation loc,
+bde_verify::csabase::PPObserver::PragmaWarning(clang::SourceLocation loc,
                                          llvm::StringRef       warningspec,
                                          llvm::ArrayRef<int>   ids)
 {
 }
 
 void
-cool::csabase::PPObserver::PragmaWarningPush(clang::SourceLocation loc,
+bde_verify::csabase::PPObserver::PragmaWarningPush(clang::SourceLocation loc,
                                              int                   level)
 {
 }
 
 void
-cool::csabase::PPObserver::PragmaWarningPop(clang::SourceLocation loc)
+bde_verify::csabase::PPObserver::PragmaWarningPop(clang::SourceLocation loc)
 {
 }
 
 void
-cool::csabase::PPObserver::PragmaMessage(clang::SourceLocation location,
+bde_verify::csabase::PPObserver::PragmaMessage(clang::SourceLocation location,
                                          llvm::StringRef       nmspc,
                                          PragmaMessageKind     kind,
                                          llvm::StringRef       value)
@@ -413,7 +413,7 @@ cool::csabase::PPObserver::PragmaMessage(clang::SourceLocation location,
 // -----------------------------------------------------------------------------
 
 void
-cool::csabase::PPObserver::MacroExpands(clang::Token const&          token,
+bde_verify::csabase::PPObserver::MacroExpands(clang::Token const&          token,
                                         const clang::MacroDirective *macro,
                                         clang::SourceRange           range,
                                         const clang::MacroArgs      *args)
@@ -422,35 +422,35 @@ cool::csabase::PPObserver::MacroExpands(clang::Token const&          token,
 }
 
 void
-cool::csabase::PPObserver::MacroDefined(clang::Token const&          token,
+bde_verify::csabase::PPObserver::MacroDefined(clang::Token const&          token,
                                         const clang::MacroDirective *macro)
 {
     do_macro_defined(token, macro);
 }
 
 void
-cool::csabase::PPObserver::MacroUndefined(clang::Token const&          token,
+bde_verify::csabase::PPObserver::MacroUndefined(clang::Token const&          token,
                                           const clang::MacroDirective *macro)
 {
     do_macro_undefined(token, macro);
 }
 
 void
-cool::csabase::PPObserver::Defined(const clang::Token&          token,
+bde_verify::csabase::PPObserver::Defined(const clang::Token&          token,
                                    const clang::MacroDirective *macro,
                                    clang::SourceRange           range)
 {
 }
 
 void
-cool::csabase::PPObserver::SourceRangeSkipped(clang::SourceRange range)
+bde_verify::csabase::PPObserver::SourceRangeSkipped(clang::SourceRange range)
 {
 }
 
 // ----------------------------------------------------------------------------
 
 void
-cool::csabase::PPObserver::If(clang::SourceLocation loc,
+bde_verify::csabase::PPObserver::If(clang::SourceLocation loc,
                               clang::SourceRange    range,
                               bool                  conditionvalue)
 {
@@ -458,7 +458,7 @@ cool::csabase::PPObserver::If(clang::SourceLocation loc,
 }
 
 void
-cool::csabase::PPObserver::Elif(clang::SourceLocation loc,
+bde_verify::csabase::PPObserver::Elif(clang::SourceLocation loc,
                                 clang::SourceRange    range,
                                 bool                  conditionvalue,
                                 clang::SourceLocation ifloc)
@@ -467,7 +467,7 @@ cool::csabase::PPObserver::Elif(clang::SourceLocation loc,
 }
 
 void
-cool::csabase::PPObserver::Ifdef(clang::SourceLocation        loc,
+bde_verify::csabase::PPObserver::Ifdef(clang::SourceLocation        loc,
                                  clang::Token const&          token,
                                  const clang::MacroDirective *md)
 {
@@ -475,7 +475,7 @@ cool::csabase::PPObserver::Ifdef(clang::SourceLocation        loc,
 }
 
 void
-cool::csabase::PPObserver::Ifndef(clang::SourceLocation        loc,
+bde_verify::csabase::PPObserver::Ifndef(clang::SourceLocation        loc,
                                   clang::Token const&          token,
                                   const clang::MacroDirective *md)
 {
@@ -483,14 +483,14 @@ cool::csabase::PPObserver::Ifndef(clang::SourceLocation        loc,
 }
 
 void
-cool::csabase::PPObserver::Else(clang::SourceLocation loc,
+bde_verify::csabase::PPObserver::Else(clang::SourceLocation loc,
                                 clang::SourceLocation ifloc)
 {
     do_else(loc, ifloc);
 }
 
 void
-cool::csabase::PPObserver::Endif(clang::SourceLocation loc,
+bde_verify::csabase::PPObserver::Endif(clang::SourceLocation loc,
                                  clang::SourceLocation ifloc)
 {
     do_endif(loc, ifloc);
@@ -499,19 +499,19 @@ cool::csabase::PPObserver::Endif(clang::SourceLocation loc,
 // ----------------------------------------------------------------------------
 
 void
-cool::csabase::PPObserver::HandleComment(clang::SourceRange range)
+bde_verify::csabase::PPObserver::HandleComment(clang::SourceRange range)
 {
     do_comment(range);
 }
 
 void
-cool::csabase::PPObserver::Context()
+bde_verify::csabase::PPObserver::Context()
 {
     do_context();
 }
 
 void
-cool::csabase::PPObserver::InclusionDirective(
+bde_verify::csabase::PPObserver::InclusionDirective(
                                          clang::SourceLocation   HashLoc,
                                          const clang::Token&     IncludeTok,
                                          llvm::StringRef         FileName,
@@ -527,7 +527,7 @@ cool::csabase::PPObserver::InclusionDirective(
 }
 
 void
-cool::csabase::PPObserver::moduleImport(clang::SourceLocation  ImportLoc,
+bde_verify::csabase::PPObserver::moduleImport(clang::SourceLocation  ImportLoc,
                                         clang::ModuleIdPath    Path,
                                         const clang::Module   *Imported)
 {

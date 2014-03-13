@@ -10,8 +10,8 @@
 
 // ----------------------------------------------------------------------------
 
-cool::csabase::DiagnosticFilterType*
-cool::csabase::operator-(cool::csabase::DiagnosticFilterType value)
+bde_verify::csabase::DiagnosticFilterType*
+bde_verify::csabase::operator-(bde_verify::csabase::DiagnosticFilterType value)
 {
     return &value;
 }

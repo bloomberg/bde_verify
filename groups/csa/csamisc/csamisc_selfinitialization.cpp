@@ -24,7 +24,7 @@ namespace
     struct match_var_decl
     {
         typedef clang::DeclRefExpr const* argument_type;
-        match_var_decl(cool::csabase::Analyser& analyser, clang::VarDecl const* decl):
+        match_var_decl(bde_verify::csabase::Analyser& analyser, clang::VarDecl const* decl):
             analyser_(analyser),
             decl_(decl)
         {
@@ -39,7 +39,7 @@ namespace
                     << ref->getSourceRange();
             }
         }
-        cool::csabase::Analyser& analyser_;
+        bde_verify::csabase::Analyser& analyser_;
         clang::VarDecl const* decl_;
     };
 }
@@ -47,12 +47,12 @@ namespace
 // -----------------------------------------------------------------------------
 
 static void
-checker(cool::csabase::Analyser& analyser, clang::VarDecl const* decl)
+checker(bde_verify::csabase::Analyser& analyser, clang::VarDecl const* decl)
 {
-    cool::local_visitor visitor(match_var_decl(analyser, decl));
+    bde_verify::local_visitor visitor(match_var_decl(analyser, decl));
     visitor.visit(decl);
 }
 
 // -----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck check(check_name, &checker);
+static bde_verify::csabase::RegisterCheck check(check_name, &checker);

@@ -9,7 +9,7 @@
 #include <csabase_registercheck.h>
 #ident "$Id$"
 
-using cool::csabase::Analyser;
+using bde_verify::csabase::Analyser;
 using clang::CStyleCastExpr;
 using clang::FunctionDecl;
 using clang::FunctionTemplateDecl;
@@ -60,5 +60,5 @@ static void check_ft(Analyser& analyser, FunctionTemplateDecl const* decl)
 
 // ----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck c1(check_name, &check_f);
-static cool::csabase::RegisterCheck c2(check_name, &check_ft);
+static bde_verify::csabase::RegisterCheck c1(check_name, &check_f);
+static bde_verify::csabase::RegisterCheck c2(check_name, &check_ft);

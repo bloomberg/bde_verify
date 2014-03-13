@@ -4,7 +4,7 @@
 #include <csabase_debug.h>
 #include <llvm/Support/Regex.h>
 
-namespace cool {
+namespace bde_verify {
 namespace csabase {
 
 std::pair<size_t, size_t>

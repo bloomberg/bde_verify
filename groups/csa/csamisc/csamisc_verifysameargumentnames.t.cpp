@@ -8,7 +8,7 @@
 #include "csamisc_verifysameargumentnames.t.hpp"
 #include <bdes_ident.h>
 
-namespace cool
+namespace bde_verify
 {
     namespace csamisc
     {

@@ -48,7 +48,7 @@ namespace
 
 struct on_group_open
 {
-    on_group_open(cool::csabase::Analyser& analyser)
+    on_group_open(bde_verify::csabase::Analyser& analyser)
         : d_analyser(&analyser)
     {
     }
@@ -56,9 +56,9 @@ struct on_group_open
                     std::string const&    ,
                     std::string const&    name) const
     {
-        cool::csabase::Analyser& analyser(*d_analyser);
+        bde_verify::csabase::Analyser& analyser(*d_analyser);
         groupname& attachment(analyser.attachment<groupname>());
-        cool::csabase::FileName fn(name);
+        bde_verify::csabase::FileName fn(name);
         if (   !attachment.d_done
             && name == analyser.toplevel()
             && fn.name().find("m_") != 0) {
@@ -102,15 +102,15 @@ struct on_group_open
         }
     }
 
-    cool::csabase::Analyser* d_analyser;
+    bde_verify::csabase::Analyser* d_analyser;
 };
 
 static void
-subscribe(cool::csabase::Analyser& analyser, cool::csabase::Visitor&, cool::csabase::PPObserver& observer)
+subscribe(bde_verify::csabase::Analyser& analyser, bde_verify::csabase::Visitor&, bde_verify::csabase::PPObserver& observer)
 {
     observer.onOpenFile  += ::on_group_open(analyser);
 }
 
 // ----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck register_observer(check_name, &subscribe);
+static bde_verify::csabase::RegisterCheck register_observer(check_name, &subscribe);

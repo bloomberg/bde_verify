@@ -1,4 +1,4 @@
-Cool Check - A Static Checker for C++
+BDE Verify - A Static Checker for C++
 
 There is no autoconf support to create a Makefile, yet. The
 location of the clang root directory and the version of clang need

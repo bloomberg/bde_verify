@@ -4,7 +4,7 @@
 #include "csatr_includefiles.t.h"
 
 #if 0
-namespace cool
+namespace bde_verify
 {
     namespace csatr
     {
@@ -93,13 +93,13 @@ namespace cool
 }
 #endif
 
-int                             cool::csatr::includeFilesVarBuiltin;
-cool::csatr::IncludeVarEnum    cool::csatr::includeFilesVarEnum;
-cool::csatr::IncludeVarClass   cool::csatr::includeFilesVarClass;
-cool::csatr::IncludeVarTypedef cool::csatr::includeFilesVarTypedef;
+int                             bde_verify::csatr::includeFilesVarBuiltin;
+bde_verify::csatr::IncludeVarEnum    bde_verify::csatr::includeFilesVarEnum;
+bde_verify::csatr::IncludeVarClass   bde_verify::csatr::includeFilesVarClass;
+bde_verify::csatr::IncludeVarTypedef bde_verify::csatr::includeFilesVarTypedef;
 
 int main(int ac, char*[])
 {
-    //cool::csatr::local_class();
+    //bde_verify::csatr::local_class();
     return ac;
 }

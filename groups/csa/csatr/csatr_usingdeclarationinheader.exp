@@ -1,8 +1,8 @@
 In file included from groups/csa/csatr/csatr_usingdeclarationinheader.t.cpp:8:
 groups/csa/csatr/csatr_usingdeclarationinheader.t.hpp:26:0: warning: TR16: Namespace level using declaration in header file
-        using cool::csamisc::foo;
+        using bde_verify::csamisc::foo;
 ~~~~~^~~
 groups/csa/csatr/csatr_usingdeclarationinheader.t.hpp:30:0: warning: TR16: Namespace level using declaration in header file
-using cool::csamisc::foo;
+using bde_verify::csamisc::foo;
 ~~~~~^~~
 2 warnings generated.

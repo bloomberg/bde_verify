@@ -9,7 +9,7 @@ static void bad();
 template <typename TT>
 static void good();
 
-namespace cool
+namespace bde_verify
 {
     namespace csastil
     {

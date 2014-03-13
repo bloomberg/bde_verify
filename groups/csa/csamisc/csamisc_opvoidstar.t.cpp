@@ -1,6 +1,6 @@
 // csamisc_opvoidstar.t.cpp                                           -*-C++-*-
 
-namespace cool
+namespace bde_verify
 {
     namespace csamisc
     {

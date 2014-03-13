@@ -11,7 +11,7 @@
 
 // -----------------------------------------------------------------------------
 
-namespace cool
+namespace bde_verify
 {
     namespace csabase
     {
@@ -22,7 +22,7 @@ namespace cool
 // ----------------------------------------------------------------------------
 
 inline int*
-cool::csabase::diagnosticFilterExtraInlineDummy(int value)
+bde_verify::csabase::diagnosticFilterExtraInlineDummy(int value)
 {
     return &value;
 }

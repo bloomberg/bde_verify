@@ -14,7 +14,7 @@
 
 // -----------------------------------------------------------------------------
 
-namespace cool
+namespace bde_verify
 {
     namespace csabase
     {
@@ -32,7 +32,7 @@ namespace cool
 // -----------------------------------------------------------------------------
 
 template <typename T>
-class cool::csabase::Formatter
+class bde_verify::csabase::Formatter
 {
 public:
     Formatter(T const& value);
@@ -44,7 +44,7 @@ private:
 };
 
 template <typename T>
-cool::csabase::Formatter<T>::Formatter(T const& value):
+bde_verify::csabase::Formatter<T>::Formatter(T const& value):
     value_(value)
 {
 }
@@ -52,18 +52,18 @@ cool::csabase::Formatter<T>::Formatter(T const& value):
 // -----------------------------------------------------------------------------
 
 template <typename T>
-cool::csabase::Formatter<T>
-cool::csabase::format(T const& value)
+bde_verify::csabase::Formatter<T>
+bde_verify::csabase::format(T const& value)
 {
-    return cool::csabase::Formatter<T>(value);
+    return bde_verify::csabase::Formatter<T>(value);
 }
 
 // -----------------------------------------------------------------------------
 
 template <typename T>
 llvm::raw_ostream&
-cool::csabase::operator<< (llvm::raw_ostream&                 out,
-                           cool::csabase::Formatter<T> const& value)
+bde_verify::csabase::operator<< (llvm::raw_ostream&                 out,
+                           bde_verify::csabase::Formatter<T> const& value)
 {
     value.print(out);
     return out;
@@ -71,8 +71,8 @@ cool::csabase::operator<< (llvm::raw_ostream&                 out,
 
 template <typename T>
 clang::DiagnosticBuilder&
-cool::csabase::operator<< (clang::DiagnosticBuilder&          builder,
-                           cool::csabase::Formatter<T> const& value)
+bde_verify::csabase::operator<< (clang::DiagnosticBuilder&          builder,
+                           bde_verify::csabase::Formatter<T> const& value)
 {
     value.print(builder);
     return builder;

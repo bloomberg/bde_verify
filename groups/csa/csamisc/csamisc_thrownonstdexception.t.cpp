@@ -10,7 +10,7 @@
 
 #include <exception>
 
-namespace cool
+namespace bde_verify
 {
     namespace csamisc
     {

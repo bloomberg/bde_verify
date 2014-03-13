@@ -16,7 +16,7 @@
 #include <string>
 #include <utility>
 
-namespace cool {
+namespace bde_verify {
 namespace csabase {
 
 std::pair<size_t, size_t>

@@ -20,7 +20,7 @@ namespace
 {
     struct decl_not_in_toplevel
     {
-        decl_not_in_toplevel(cool::csabase::Analyser* analyser)
+        decl_not_in_toplevel(bde_verify::csabase::Analyser* analyser)
             : analyser_(analyser)
         {
         }
@@ -33,14 +33,14 @@ namespace
             return analyser_->get_location(decl).file()
                 != analyser_->toplevel();
         }
-        cool::csabase::Analyser* analyser_;
+        bde_verify::csabase::Analyser* analyser_;
     };
 }
 
 // ----------------------------------------------------------------------------
 
 static void
-global_type_only_in_source(cool::csabase::Analyser&  analyser,
+global_type_only_in_source(bde_verify::csabase::Analyser&  analyser,
                            clang::TypeDecl const    *decl)
 {
     if (decl->getDeclContext()->isFileContext()
@@ -64,5 +64,5 @@ global_type_only_in_source(cool::csabase::Analyser&  analyser,
 
 // ----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck check(check_name,
+static bde_verify::csabase::RegisterCheck check(check_name,
                                           &global_type_only_in_source);

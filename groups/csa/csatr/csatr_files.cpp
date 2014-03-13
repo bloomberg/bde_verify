@@ -22,16 +22,16 @@ namespace
 {
     struct on_files_open
     {
-        on_files_open(cool::csabase::Analyser& analyser)
+        on_files_open(bde_verify::csabase::Analyser& analyser)
             : d_analyser(analyser) {}
 
         void operator()(clang::SourceLocation where,
                         std::string const&,
                         std::string const& name) const
         {
-            cool::csabase::FileName fn(name);
+            bde_verify::csabase::FileName fn(name);
             if (fn.name().find("m_") != 0 && name == d_analyser.toplevel()) {
-                cool::csabase::FileName fn(name);
+                bde_verify::csabase::FileName fn(name);
                 struct stat buffer;
                 std::string prefix =
                     fn.directory().str() + fn.component().str();
@@ -52,16 +52,16 @@ namespace
             }
         }
 
-        cool::csabase::Analyser& d_analyser;
+        bde_verify::csabase::Analyser& d_analyser;
     };
 }
 
 static void
-subscribe(cool::csabase::Analyser& analyser, cool::csabase::Visitor&, cool::csabase::PPObserver& observer)
+subscribe(bde_verify::csabase::Analyser& analyser, bde_verify::csabase::Visitor&, bde_verify::csabase::PPObserver& observer)
 {
     observer.onOpenFile  += on_files_open(analyser);
 }
 
 // -----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck register_observer(check_name, &subscribe);
+static bde_verify::csabase::RegisterCheck register_observer(check_name, &subscribe);

@@ -34,7 +34,7 @@ namespace
         bool isComplete() const {
             return d_test && d_define;
         }
-        std::string const& get_expect(cool::csabase::Analyser* analyser)
+        std::string const& get_expect(bde_verify::csabase::Analyser* analyser)
         {
             if (d_expect.empty()) {
                 d_expect = "INCLUDED_" + analyser->component();
@@ -51,7 +51,7 @@ namespace
 
     struct binder
     {
-        binder(cool::csabase::Analyser* analyser)
+        binder(bde_verify::csabase::Analyser* analyser)
             : d_analyser(analyser)
         {
         }
@@ -140,16 +140,16 @@ namespace
             }
         }
 
-        cool::csabase::Analyser* d_analyser;
+        bde_verify::csabase::Analyser* d_analyser;
     };
 }
 
 // -----------------------------------------------------------------------------
 
 static void
-subscribe(cool::csabase::Analyser&   analyser,
-          cool::csabase::Visitor&    ,
-          cool::csabase::PPObserver& observer)
+subscribe(bde_verify::csabase::Analyser&   analyser,
+          bde_verify::csabase::Visitor&    ,
+          bde_verify::csabase::PPObserver& observer)
 {
     observer.onIfndef       += binder(&analyser);
     observer.onIf           += binder(&analyser);
@@ -159,4 +159,4 @@ subscribe(cool::csabase::Analyser&   analyser,
 
 // ----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck register_observer(check_name, &subscribe);
+static bde_verify::csabase::RegisterCheck register_observer(check_name, &subscribe);

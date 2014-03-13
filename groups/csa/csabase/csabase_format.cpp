@@ -45,19 +45,19 @@ print(Target& out, clang::Decl::Kind value)
 
 template <typename T>
 void
-cool::csabase::Formatter<T>::print(llvm::raw_ostream& out) const
+bde_verify::csabase::Formatter<T>::print(llvm::raw_ostream& out) const
 {
     ::print(out, value_);
 }
 
 template <typename T>
 void
-cool::csabase::Formatter<T>::print(clang::DiagnosticBuilder& out) const
+bde_verify::csabase::Formatter<T>::print(clang::DiagnosticBuilder& out) const
 {
     ::print(out, value_);
 }
 
 // -----------------------------------------------------------------------------
 
-template class cool::csabase::Formatter<clang::Type::TypeClass>;
-template class cool::csabase::Formatter<clang::Decl::Kind>;
+template class bde_verify::csabase::Formatter<clang::Type::TypeClass>;
+template class bde_verify::csabase::Formatter<clang::Decl::Kind>;

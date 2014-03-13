@@ -19,7 +19,7 @@ static std::string const check_name("contiguous-switch");
 // ----------------------------------------------------------------------------
 
 static bool
-getValue(cool::csabase::Analyser& analyser,
+getValue(bde_verify::csabase::Analyser& analyser,
          clang::Expr const*       expr,
          long&                    value)
 {
@@ -31,7 +31,7 @@ getValue(cool::csabase::Analyser& analyser,
 // ----------------------------------------------------------------------------
 
 static void
-checkBreak(cool::csabase::Analyser& analyser,
+checkBreak(bde_verify::csabase::Analyser& analyser,
            clang::SwitchCase const* label,
            bool                     hasBreak) { // case zero has NO break!
     
@@ -40,7 +40,7 @@ checkBreak(cool::csabase::Analyser& analyser,
 // ----------------------------------------------------------------------------
 
 static void
-checkSwitch(cool::csabase::Analyser& analyser, clang::SwitchStmt const* stmt)
+checkSwitch(bde_verify::csabase::Analyser& analyser, clang::SwitchStmt const* stmt)
 {
     typedef std::vector<clang::SwitchCase const*>::const_iterator const_iterator;
     std::vector<clang::SwitchCase const*> cases;
@@ -55,13 +55,13 @@ checkSwitch(cool::csabase::Analyser& analyser, clang::SwitchStmt const* stmt)
     std::reverse(cases.begin(), cases.end());
     
     const_iterator it(cases.begin()), end(cases.end());
-    if (cool::csabase::cast_ptr<clang::DefaultStmt> label = *it) {
+    if (bde_verify::csabase::cast_ptr<clang::DefaultStmt> label = *it) {
         analyser.report(*it, check_name, "SD01", "Switch starts with default")
             << label.get();
         checkBreak(analyser, *it, true);
         ++it;
     }
-    else if (cool::csabase::cast_ptr<clang::CaseStmt> label = *it) {
+    else if (bde_verify::csabase::cast_ptr<clang::CaseStmt> label = *it) {
         long result(0);
         if (!getValue(analyser, label->getLHS(), result) || result != 0) {
             analyser.report(*it, check_name, "SZ01",
@@ -81,14 +81,14 @@ checkSwitch(cool::csabase::Analyser& analyser, clang::SwitchStmt const* stmt)
 
     if (it != end) {
         long previous(0);
-        if (cool::csabase::cast_ptr<clang::CaseStmt> label = *it) {
+        if (bde_verify::csabase::cast_ptr<clang::CaseStmt> label = *it) {
             if (!getValue(analyser, label->getLHS(), previous)) {
                 analyser.report(*it, check_name, "NC01",
                                 "Can't get value from case label")
                     << *it;
             }
         }
-        else if (cool::csabase::cast_ptr<clang::DefaultStmt> label = *it) {
+        else if (bde_verify::csabase::cast_ptr<clang::DefaultStmt> label = *it) {
             if (it + 1 != end) {
                 analyser.report(label.get(), check_name, "MD01",
                                 "`default:` label in the middle of labels")
@@ -101,7 +101,7 @@ checkSwitch(cool::csabase::Analyser& analyser, clang::SwitchStmt const* stmt)
         bool default_at_end(false);
         for (; it != end; ++it) {
             long value(0);
-            if (cool::csabase::cast_ptr<clang::CaseStmt> label = *it) {
+            if (bde_verify::csabase::cast_ptr<clang::CaseStmt> label = *it) {
                 if (!getValue(analyser, label->getLHS(), value)) {
                     analyser.report(*it, check_name, "NC01",
                                     "Can't get value from case label")
@@ -117,7 +117,7 @@ checkSwitch(cool::csabase::Analyser& analyser, clang::SwitchStmt const* stmt)
                 }
                 previous = value;
             }
-            else if (cool::csabase::cast_ptr<clang::DefaultStmt> label = *it) {
+            else if (bde_verify::csabase::cast_ptr<clang::DefaultStmt> label = *it) {
                 if (it + 1 != end) {
                     analyser.report(label.get(), check_name, "MD01",
                                     "`default:` label in the middle of labels")
@@ -139,16 +139,16 @@ checkSwitch(cool::csabase::Analyser& analyser, clang::SwitchStmt const* stmt)
 // ----------------------------------------------------------------------------
 
 static void
-check(cool::csabase::Analyser& analyser, clang::FunctionDecl const* decl)
+check(bde_verify::csabase::Analyser& analyser, clang::FunctionDecl const* decl)
 {
     if (decl->getNameAsString() != "main" || !decl->hasBody()) {
         return;
     }
-    if (cool::csabase::cast_ptr<clang::CompoundStmt> body = decl->getBody()) {
+    if (bde_verify::csabase::cast_ptr<clang::CompoundStmt> body = decl->getBody()) {
         typedef clang::CompoundStmt::const_body_iterator const_iterator;
         for (const_iterator it(body->body_begin()), end(body->body_end());
              it != end; ++it) {
-            if (cool::csabase::cast_ptr<clang::SwitchStmt> switchStmt = *it) {
+            if (bde_verify::csabase::cast_ptr<clang::SwitchStmt> switchStmt = *it) {
                 checkSwitch(analyser, switchStmt.get());
             }
         }
@@ -158,4 +158,4 @@ check(cool::csabase::Analyser& analyser, clang::FunctionDecl const* decl)
     }
 }
 
-static cool::csabase::RegisterCheck register_check(check_name, &check);
+static bde_verify::csabase::RegisterCheck register_check(check_name, &check);

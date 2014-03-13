@@ -16,7 +16,7 @@
 #include <utility>
 #include <vector>
 
-namespace CB = cool::csabase;
+namespace CB = bde_verify::csabase;
 
 // ----------------------------------------------------------------------------
 
@@ -210,7 +210,7 @@ namespace
 
     struct binder
     {
-        binder(cool::csabase::Analyser* analyser)
+        binder(bde_verify::csabase::Analyser* analyser)
             : d_analyser(analyser)
         {
         }
@@ -227,7 +227,7 @@ namespace
             std::string value(begin, end);
             value.erase(std::remove_if(value.begin(), value.end(),
                                        &is_space), value.end());
-            value = cool::csabase::to_lower(value);
+            value = bde_verify::csabase::to_lower(value);
             if (value.find(prefix1) == 0 && value[value.size() - 1] == ')') {
                 data.add_include(d_analyser->is_component_header(range.getBegin()),
                                  value.substr(prefix1.size(), value.size() - prefix1.size() - 1),
@@ -250,7 +250,7 @@ namespace
             if (clang::IdentifierInfo const* id = token.getIdentifierInfo())
             {
                 std::string value(id->getNameStart());
-                value = cool::csabase::to_lower(value);
+                value = bde_verify::csabase::to_lower(value);
                 if (value.find(prefix0) == 0) {
                     data.add_include(d_analyser->is_component_header(token.getLocation()),
                                      value.substr(prefix0.size()),
@@ -285,14 +285,14 @@ namespace
             }
         }
 
-        cool::csabase::Analyser* d_analyser;
+        bde_verify::csabase::Analyser* d_analyser;
     };
 }
 
 // ----------------------------------------------------------------------------
 
 static void
-subscribe(cool::csabase::Analyser& analyser, cool::csabase::Visitor&, cool::csabase::PPObserver& observer)
+subscribe(bde_verify::csabase::Analyser& analyser, bde_verify::csabase::Visitor&, bde_verify::csabase::PPObserver& observer)
 {
     analyser.onTranslationUnitDone += binder(&analyser);
     observer.onInclude             += binder(&analyser);
@@ -302,4 +302,4 @@ subscribe(cool::csabase::Analyser& analyser, cool::csabase::Visitor&, cool::csab
 
 // ----------------------------------------------------------------------------
 
-static cool::csabase::RegisterCheck register_observer(check_name, &subscribe);
+static bde_verify::csabase::RegisterCheck register_observer(check_name, &subscribe);
