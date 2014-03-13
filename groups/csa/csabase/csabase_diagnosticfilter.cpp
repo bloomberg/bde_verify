@@ -26,10 +26,12 @@ namespace CB = cool::csabase;
 // ----------------------------------------------------------------------------
 
 CB::DiagnosticFilter::DiagnosticFilter(CB::Analyser const& analyser,
+                                       bool toplevel_only,
                                        clang::DiagnosticOptions & options)
     : d_options(&options)
     , d_client(new clang::TextDiagnosticPrinter(llvm::errs(), d_options))
     , d_analyser(&analyser)
+    , d_toplevel_only(toplevel_only)
 {
 }
 
@@ -74,9 +76,16 @@ void
 CB::DiagnosticFilter::HandleDiagnostic(clang::DiagnosticsEngine::Level level,
                                        clang::Diagnostic const&        info)
 {
-    if (clang::DiagnosticsEngine::Warning < level ||
-        !info.getLocation().isFileID() ||
-        d_analyser->is_component(get_filename(info)))
+    if (   clang::DiagnosticsEngine::Warning < level
+        || !info.getLocation().isFileID()
+        || (   d_analyser->is_component(get_filename(info))
+            && !d_analyser->is_generated(info.getLocation())
+            && (   !d_toplevel_only
+                || d_analyser->manager().getMainFileID() ==
+                   d_analyser->manager().getFileID(info.getLocation())
+               )
+           )
+       )
     {
         DiagnosticConsumer::HandleDiagnostic(level, info);
         d_client->HandleDiagnostic(level, info);
@@ -86,7 +95,7 @@ CB::DiagnosticFilter::HandleDiagnostic(clang::DiagnosticsEngine::Level level,
 clang::DiagnosticConsumer*
 CB::DiagnosticFilter::clone(clang::DiagnosticsEngine&) const
 {
-    return new CB::DiagnosticFilter(*d_analyser, *d_options);
+    return new CB::DiagnosticFilter(*d_analyser, d_toplevel_only, *d_options);
 }
 
 // ----------------------------------------------------------------------------

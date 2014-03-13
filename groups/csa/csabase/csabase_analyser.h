@@ -86,6 +86,7 @@ public:
     bool               is_global_package() const;
     bool               is_global_package(std::string const&) const;
     bool               is_ADL_candidate(clang::Decl const*);
+    bool               is_generated(clang::SourceLocation) const;
 
     cool::diagnostic_builder report(clang::SourceLocation where,
                                     std::string const& check,
@@ -104,7 +105,7 @@ public:
                                     clang::DiagnosticsEngine::Level level =
                                         clang::DiagnosticsEngine::Warning);
 
-    clang::SourceManager& manager();
+    clang::SourceManager& manager() const;
     llvm::StringRef         get_source(clang::SourceRange, bool exact = false);
     cool::csabase::Location get_location(clang::SourceLocation) const;
     cool::csabase::Location get_location(clang::Decl const*) const;
@@ -151,6 +152,8 @@ private:
     mutable IsGlobalPackage               is_global_package_;
     typedef std::map<std::string, bool>   IsStandardNamespace;
     mutable IsStandardNamespace           is_standard_namespace_;
+    typedef std::map<clang::FileID, bool> IsGenerated;
+    mutable IsGenerated                   is_generated_;
 };
 
 // -----------------------------------------------------------------------------

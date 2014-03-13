@@ -33,6 +33,7 @@ class PluginAction : public clang::PluginASTAction
     bool debug() const;
     const std::vector<std::string>& config() const;
     std::string tool_name() const;
+    bool toplevel_only() const;
 
   protected:
     clang::ASTConsumer* CreateASTConsumer(clang::CompilerInstance& compiler,
@@ -45,6 +46,7 @@ class PluginAction : public clang::PluginASTAction
     bool debug_;
     std::vector<std::string> config_;
     std::string tool_name_;
+    bool toplevel_only_;
 };
 
 }
@@ -79,7 +81,7 @@ AnalyseConsumer::AnalyseConsumer(clang::CompilerInstance& compiler,
     analyser_.toplevel(source);
 
     compiler.getDiagnostics().setClient(new cool::csabase::DiagnosticFilter(
-        analyser_, compiler.getDiagnosticOpts()));
+        analyser_, plugin.toplevel_only(), compiler.getDiagnosticOpts()));
     compiler.getDiagnostics().getClient()->BeginSourceFile(
         compiler.getLangOpts(),
         compiler.hasPreprocessor() ? &compiler.getPreprocessor() : 0);
@@ -116,6 +118,7 @@ PluginAction::PluginAction()
     : debug_()
     , config_(1, "load .bdeverify")
     , tool_name_()
+    , toplevel_only_(false)
 {
 }
 
@@ -129,33 +132,41 @@ PluginAction::CreateASTConsumer(clang::CompilerInstance& compiler, llvm::StringR
 
 // -----------------------------------------------------------------------------
 
-bool
-PluginAction::ParseArgs(clang::CompilerInstance const& compiler, std::vector<std::string> const& args)
+bool PluginAction::ParseArgs(clang::CompilerInstance const& compiler,
+                             std::vector<std::string> const& args)
 {
-    for (std::vector<std::string>::const_iterator it(args.begin()), end(args.end()); it != end; ++it)
-    {
-        if (*it == "debug-on")
+    for (size_t i = 0; i < args.size(); ++i) {
+        llvm::StringRef arg = args[i];
+        if (arg == "debug-on")
         {
             cool::csabase::Debug::set_debug(true);
             debug_ = true;
         }
-        else if (*it == "debug-off")
+        else if (arg == "debug-off")
         {
             cool::csabase::Debug::set_debug(false);
             debug_ = false;
         }
-        else if (7 < it->size() && it->substr(0, 7) == "config=") {
-            config_.push_back("load " + it->substr(7));
+        else if (arg == "toplevel-only-on")
+        {
+            toplevel_only_ = true;
         }
-        else if (12 < it->size() && it->substr(0, 12) == "config-line=") {
-            config_.push_back(it->substr(12));
+        else if (arg == "toplevel-only-off")
+        {
+            toplevel_only_ = false;
         }
-        else if(5 < it->size() && it->substr(0, 5) == "tool=") {
-            tool_name_ = "[" + it->substr(5) + "] ";
+        else if (arg.startswith("config=")) {
+            config_.push_back("load " + arg.substr(7).str());
+        }
+        else if (arg.startswith("config-line=")) {
+            config_.push_back(arg.substr(12));
+        }
+        else if (arg.startswith("tool=")) {
+            tool_name_ = "[" + arg.substr(5).str() + "] ";
         }
         else
         {
-            llvm::errs() << "unknown bdeverify argument = '" << *it << "'\n";
+            llvm::errs() << "unknown bdeverify argument = '" << arg << "'\n";
         }
     }
     return true;
@@ -177,6 +188,12 @@ std::string
 PluginAction::tool_name() const
 {
     return tool_name_;
+}
+
+bool
+PluginAction::toplevel_only() const
+{
+    return toplevel_only_;
 }
 
 // -----------------------------------------------------------------------------

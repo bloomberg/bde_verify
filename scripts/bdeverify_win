@@ -36,6 +36,7 @@ my $dummy;
 my @dummy;
 my $std;
 my @std;
+my $tlonly;
 
 sub usage()
 {
@@ -50,6 +51,7 @@ sub usage()
         --exe=BDEVerify.exe      [$exe]
         --[no]definc             [$definc]
         --[no]defdef             [$defdef]
+        --toplevel
         --std=type
         --debug
         --verbose
@@ -76,12 +78,14 @@ GetOptions(
     "W=s"        => \@wflags,
     "f=s"        => \@lflags,
     "std=s"      => \$std,
+    "toplevel"   => \$tlonly,
     "m32|m64|pipe|pthread|MMD|g|c" => \$dummy,
     "O|MF|o=s"   => \@dummy,
 ) and !$help and $#ARGV >= 0 or usage();
 
 my @config = ("-plugin-arg-bdeverify", "config=$config") if $config ne "";
 my @debug  = ("-plugin-arg-bdeverify", "debug-on")       if $debug;
+my @tlo    = ("-plugin-arg-bdeverify", "toplevel-only-on") if $tlonly;
 
 @lflags = map { "-f$_" if $_ ne "no-strict-aliasing" } @lflags;
 @wflags = map { "-W$_" } @wflags;
@@ -144,6 +148,7 @@ my @command = (
     @std,
     @debug,
     @config,
+    @tlo,
     @defs,
     @incs,
     @lflags,

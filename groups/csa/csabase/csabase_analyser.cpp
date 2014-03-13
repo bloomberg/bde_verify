@@ -49,10 +49,12 @@ cool::csabase::Analyser::Analyser(clang::CompilerInstance& compiler,
 , pp_observer_(0)
 , context_(0)
 {
-    std::auto_ptr<cool::csabase::PPObserver> observer(new cool::csabase::PPObserver(&d_source_manager, d_config.get()));
+    std::auto_ptr<cool::csabase::PPObserver> observer(
+        new cool::csabase::PPObserver(&d_source_manager, d_config.get()));
     pp_observer_ = observer.get();
     cool::csabase::CheckRegistry::attach(*this, *visitor_, *observer);
-    compiler_.getPreprocessor().addCommentHandler(observer->get_comment_handler());
+    compiler_.getPreprocessor().addCommentHandler(
+        observer->get_comment_handler());
     compiler_.getPreprocessor().addPPCallbacks(observer.release());
 }
 
@@ -319,7 +321,7 @@ cool::csabase::Analyser::report(clang::SourceLocation where,
 // -----------------------------------------------------------------------------
 
 clang::SourceManager&
-cool::csabase::Analyser::manager()
+cool::csabase::Analyser::manager() const
 {
     return compiler_.getSourceManager();
 }
@@ -505,4 +507,23 @@ cool::csabase::Analyser::is_ADL_candidate(clang::Decl const* decl)
         }
     }
     return adl;
+}
+
+// ----------------------------------------------------------------------------
+
+bool cool::csabase::Analyser::is_generated(clang::SourceLocation loc) const
+    // Return true if this is an automatically generated file.  The criterion
+    // is a first line containing "GENERATED FILE -- DO NOT EDIT".
+{
+    clang::FileID fid = d_source_manager.getFileID(loc);
+    IsGenerated::const_iterator i = is_generated_.find(fid);
+    if (i == is_generated_.end()) {
+        i = is_generated_.insert(std::make_pair(
+                fid,
+                d_source_manager.getBufferData(fid)
+                    .split('\n').first.find("GENERATED FILE -- DO NOT EDIT") !=
+                                       llvm::StringRef::npos
+        )).first;
+    }
+    return i->second;
 }

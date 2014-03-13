@@ -35,6 +35,7 @@ class cool::csabase::DiagnosticFilter
 {
 public:
     DiagnosticFilter(cool::csabase::Analyser const& analyser,
+                     bool toplevel_only,
                      clang::DiagnosticOptions & options);
     ~DiagnosticFilter();
 
@@ -53,6 +54,7 @@ private:
     clang::DiagnosticOptions *               d_options;
     std::auto_ptr<clang::DiagnosticConsumer> d_client;
     cool::csabase::Analyser const*           d_analyser;
+    bool                                     d_toplevel_only;
 };
 
 // ----------------------------------------------------------------------------
