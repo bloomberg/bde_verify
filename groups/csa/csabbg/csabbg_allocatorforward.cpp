@@ -120,20 +120,13 @@ struct report
         // arguments and the last argument is the default rather than
         // explicitly passed.
 
-    bool takes_allocator(QualType type, bool conv = true);
-        // Return 'true' if the 'specified' type has a constructor which has a
-        // final allocator pointer paramater.  Optionally specify 'conv' as
-        // 'true' to return 'true' if the type has a constructor with a final
-        // parameter which is a 'const' reference to a class implicitly
-        // constructible from an allocator pointer.  Return 'false' otherwise.
+    bool takes_allocator(QualType type);
+        // Return 'true' iff the 'specified' type has a constructor which has a
+        // final allocator paramater.
 
-    bool takes_allocator(CXXConstructorDecl const* constructor,
-                         bool conv = true);
-        // Return 'true' if the specified 'constructor' has a final allocator
-        // pointer paramater.  Optionally specify 'conv' as 'true' to return
-        // 'true' if the 'constructor' has a final parameter which is a 'const'
-        // reference to a class implicitly constructible from an allocator
-        // pointer.  Return 'false' otherwise.
+    bool takes_allocator(CXXConstructorDecl const* constructor);
+        // Return 'true' iff the specified 'constructor' has a final allocator
+        // pointer paramater.
 
     void match_allocator_type(const BoundNodes& nodes);
         // Callback for bslma::Allocator.
@@ -268,39 +261,12 @@ bool report::last_arg_is_explicit(const CXXConstructExpr* call)
     return n == 0 || !call->getArg(n - 1)->isDefaultArgument();   // RETURN
 }
 
-bool report::takes_allocator(QualType type, bool conv)
+bool report::takes_allocator(QualType type)
 {
-    const Type *tp = type.getTypePtr();
-    data::TypeTakesAllocator::iterator itr =
-        data_.type_takes_allocator_.find(tp);
-    if (itr != data_.type_takes_allocator_.end()) {
-        return itr->second;                                       // RETURN
-    }
-
-    data_.type_takes_allocator_[tp] = false;
-
-    const CXXRecordDecl *rdecl = get_record_decl(type);
-
-    if (!rdecl) {
-        return false;                                             // RETURN
-    }
-
-    DeclContextLookupResult r =
-        analyser_.sema().LookupConstructors(const_cast<CXXRecordDecl*>(rdecl));
-
-    for (size_t i = 0; i < r.size(); ++i) {
-        if (const CXXConstructorDecl *ctor =
-                llvm::dyn_cast<CXXConstructorDecl>(r[i])) {
-            if (takes_allocator(ctor, conv)) {
-                return data_.type_takes_allocator_[tp] = true;    // RETURN
-            }
-        }
-    }
-
-    return false;
+    return data_.type_takes_allocator_[type.getTypePtr()];
 }
 
-bool report::takes_allocator(CXXConstructorDecl const* constructor, bool conv)
+bool report::takes_allocator(CXXConstructorDecl const* constructor)
 {
     data::CtorTakesAllocator::iterator itr =
         data_.ctor_takes_allocator_.find(constructor);
@@ -320,10 +286,6 @@ bool report::takes_allocator(CXXConstructorDecl const* constructor, bool conv)
         return data_.ctor_takes_allocator_[constructor] = true;   // RETURN
     }
 
-    if (!conv) {
-        //return false;
-    }
-
     const ReferenceType *ref =
         llvm::dyn_cast<ReferenceType>(type.getTypePtr());
 
@@ -337,8 +299,7 @@ bool report::takes_allocator(CXXConstructorDecl const* constructor, bool conv)
         return false;                                             // RETURN
     }
 
-    return data_.ctor_takes_allocator_[constructor] =
-        takes_allocator(type, false);
+    return data_.ctor_takes_allocator_[constructor] = takes_allocator(type);
 }
 
 static const DynTypedMatcher &
@@ -517,7 +478,7 @@ void report::check_not_forwarded(Iter begin, Iter end)
         const CXXConstructorDecl *decl = *itr;
         const CXXRecordDecl *record = decl->getParent()->getCanonicalDecl();
         bool uses_allocator = takes_allocator(
-                   record->getTypeForDecl()->getCanonicalTypeInternal(), true);
+                   record->getTypeForDecl()->getCanonicalTypeInternal());
         bool has_true_alloc_trait =
             data_.decls_with_true_allocator_trait_.count(record);
         const CXXRecordDecl *tr = record;
@@ -552,7 +513,7 @@ void report::check_not_forwarded(Iter begin, Iter end)
 
         if (decl == decl->getCanonicalDecl() &&
             uses_allocator &&
-            !takes_allocator(decl, true)) {
+            !takes_allocator(decl)) {
             // Warn if the class does not have a constructor that matches this
             // one, but with a final allocator parameter.
 
@@ -569,7 +530,7 @@ void report::check_not_forwarded(Iter begin, Iter end)
                     ctor != decl &&
                     ctor->getParent() == record &&
                     ctor->getNumParams() == num_parms + 1 &&
-                    takes_allocator(ctor, true)) {
+                    takes_allocator(ctor)) {
                     found = true;
                     for (unsigned pi = 0; found && pi < num_parms; ++pi) {
                         if (decl->getParamDecl(pi)->getOriginalType() !=
@@ -615,7 +576,7 @@ void report::check_not_forwarded(const CXXConstructorDecl *decl)
         return;                                                       // RETURN
     }
 
-    if (!takes_allocator(decl, true)) {
+    if (!takes_allocator(decl)) {
         return;                                                       // RETURN
     }
 
@@ -647,7 +608,7 @@ void report::check_not_forwarded(const CXXCtorInitializer* init,
         ? init->getBaseClass()
         : init->getAnyMember()->getType().getTypePtr();
 
-    if (!takes_allocator(type->getCanonicalTypeInternal(), true) ||
+    if (!takes_allocator(type->getCanonicalTypeInternal()) ||
         data_.decls_with_false_allocator_trait_.count(
             get_record_decl(type->getCanonicalTypeInternal()))) {
         return;                                                       // RETURN
