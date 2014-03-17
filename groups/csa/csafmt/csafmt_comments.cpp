@@ -377,6 +377,10 @@ void files::check_wrapped(SourceRange range)
     size_t dnum = 0;
     size_t offset = 0;
     llvm::StringRef s;
+    size_t wrap_slack =
+        std::strtoul(d_analyser.config()->value("wrap_slack",
+                                                range.getBegin()).c_str(),
+                     0, 10);
     while (block_comment.match(s = comment.drop_front(offset), &matches)) {
         llvm::StringRef text = matches[0];
         std::pair<size_t, size_t> m = bde_verify::csabase::mid_match(s, text);
@@ -398,7 +402,7 @@ void files::check_wrapped(SourceRange range)
         size_t ll = banner.match(text, &banners) ? banners[1].size() - 3 :
                                                    77 - (c - n);
 
-        std::pair<size_t, size_t> bad_pos = bad_wrap_pos(text, ll);
+        std::pair<size_t, size_t> bad_pos = bad_wrap_pos(text, ll - wrap_slack);
         if (bad_pos.first != text.npos) {
             d_analyser.report(
                 range.getBegin().getLocWithOffset(matchpos + bad_pos.first),

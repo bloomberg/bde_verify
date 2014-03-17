@@ -74,3 +74,11 @@
 // @ Purpose :Too much space, too many dots...
 
 // Pure procedure? My god! It's full of pure procedures!
+
+#pragma bde_verify push
+#pragma bde_verify set wrap_slack 1
+// ============================================================================
+// y                                                                        x
+// a b c d
+// ============================================================================
+#pragma bde_verify pop
