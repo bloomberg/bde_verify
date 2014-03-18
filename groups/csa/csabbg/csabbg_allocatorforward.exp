@@ -45,6 +45,7 @@ groups/csa/csabbg/csabbg_allocatorforward.t.cpp:138:0: warning: AT02: Class 'C' 
 groups/csa/csabbg/csabbg_allocatorforward.t.cpp:152:0: warning: AT02: Class 'not_alloc' uses allocators but does not have an allocator trait
         struct not_alloc {
 ^
+groups/csa/csabbg/csabbg_allocatorforward.t.cpp:152:0: warning: AC02: Implicit copy constructor cannot be called with an allocator
 groups/csa/csabbg/csabbg_allocatorforward.t.cpp:181:0: warning: AM01: Allocator argument initializes non-allocator parameter 1 ('na') of type 'struct bde_verify::csabbg::not_alloc' rather than allocator parameter 2
             object o(a);
 ^
@@ -54,4 +55,4 @@ groups/csa/csabbg/csabbg_allocatorforward.t.cpp:186:0: warning: AR01: Type using
 groups/csa/csabbg/csabbg_allocatorforward.t.cpp:188:0: warning: AR01: Type using allocator is returned by value
                 return object(o);
 ^
-19 warnings generated.
+20 warnings generated.

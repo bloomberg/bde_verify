@@ -62,6 +62,7 @@ TSTCXXFILES +=                                                                \
         groups/csa/csamisc/csamisc_constantreturn.cpp                         \
         groups/csa/csamisc/csamisc_contiguousswitch.cpp                       \
         groups/csa/csamisc/csamisc_funcalpha.cpp                              \
+        groups/csa/csamisc/csamisc_hashptr.cpp                                \
         groups/csa/csamisc/csamisc_longinline.cpp                             \
         groups/csa/csamisc/csamisc_memberdefinitioninclassdefinition.cpp      \
         groups/csa/csamisc/csamisc_opvoidstar.cpp                             \
@@ -100,6 +101,7 @@ LIBCXXFILES +=                                                                \
 # -----------------------------------------------------------------------------
 
 BB = /bb/build/share/packages/refroot/amd64/unstable/bb
+PFLAGS += -std=c++0x
 PFLAGS += -Igroups/csa/csabase
 PFLAGS += -Igroups/csa/csadep
 PFLAGS += -isystem $(BB)/include
@@ -114,7 +116,7 @@ PFLAGS += -DBB_THREADED
 PFLAGS += -DBDE_BUILD_TARGET_DBG
 PFLAGS += -DBDE_BUILD_TARGET_EXC
 PFLAGS += -DBDE_BUILD_TARGET_MT
-PFLAGS += -DBSL_OVERRIDES_STD
+# PFLAGS += -DBSL_OVERRIDES_STD
 PFLAGS += -D_LINUX_SOURCE
 PFLAGS += -D_REENTRANT
 PFLAGS += -D_SYS_SYSMACROS_H

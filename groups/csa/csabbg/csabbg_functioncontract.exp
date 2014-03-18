@@ -259,6 +259,9 @@ groups/csa/csabbg/csabbg_functioncontract.t.cpp:236:0: warning: FD03: Parameter 
 groups/csa/csabbg/csabbg_functioncontract.t.cpp:239:0: warning: FD04: Parameter 'luxuriantly' is not single-quoted in the function contract
                 // Optionally specify luxuriantly.
 ^~~~~~
+groups/csa/csabbg/csabbg_functioncontract.t.cpp:276:0: warning: FD02: Function contracts should be indented 4, not -12, spaces from their function declaration
+// Way too left.
+^~~~~~
 groups/csa/csabbg/csabbg_functioncontract.t.cpp:279:0: warning: FD02: Function contracts should be indented 4, not -4, spaces from their function declaration
         // A lot too left.
 ^~~~~~
@@ -294,8 +297,5 @@ groups/csa/csabbg/csabbg_functioncontract.t.cpp:263:0: warning: FD03: Parameter 
 ~~~~^~~~~~
 groups/csa/csabbg/csabbg_functioncontract.t.cpp:266:0: warning: FD04: Parameter 'monecious' is not single-quoted in the function contract
                 // Optionally specify monecious.
-^~~~~~
-groups/csa/csabbg/csabbg_functioncontract.t.cpp:276:0: warning: FD02: Function contracts should be indented 4, not -12, spaces from their function declaration
-// Way too left.
 ^~~~~~
 100 warnings generated.

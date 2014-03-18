@@ -140,7 +140,7 @@ bool comments::isDirective(llvm::StringRef comment)
                           "("
                              "=" "[[:space:]]*" "delete"  "|"
                         ".*" "=" "[[:space:]]*" "default" "|"
-                             "DEPRECATED"                 "|"
+                             "[@!]?DEPRECATED!?"          "|"
                              "IMPLICIT"
                           ")"
                           "[;.[:space:]]*" "([*]/)?" "[[:space:]]*" "$",
