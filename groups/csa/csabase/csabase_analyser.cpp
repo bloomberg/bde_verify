@@ -396,6 +396,7 @@ bde_verify::csabase::Analyser::process_decl(clang::Decl const* decl)
 void
 bde_verify::csabase::Analyser::process_translation_unit_done()
 {
+    config()->check_bv_stack(*this);
     onTranslationUnitDone();
 }
 

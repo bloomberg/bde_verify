@@ -1,7 +1,8 @@
 groups/csa/csatr/csatr_includeguard3.t.cpp:1:0: warning: FI01: Header file 'groups/csa/csatr/csatr_includeguard3.h' not accessible
 // csatr_includeguard3.t.cpp                                          -*-C++-*-
 ^
-groups/csa/csatr/csatr_includeguard3.t.cpp:4:0: warning: TR14: Missing test for include guard INCLUDED_CSATR_INCLUDEGUARD3
+In file included from groups/csa/csatr/csatr_includeguard3.t.cpp:3:
+groups/csa/csatr/csatr_includeguard3.t.h:4:0: warning: TR14: Missing test for include guard INCLUDED_CSATR_INCLUDEGUARD3
 ^
 groups/csa/csatr/csatr_includeguard3.t.cpp:1:0: warning: TP14: TEST PLAN section is absent
 // csatr_includeguard3.t.cpp                                          -*-C++-*-

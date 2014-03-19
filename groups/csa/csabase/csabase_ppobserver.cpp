@@ -237,7 +237,9 @@ bde_verify::csabase::PPObserver::FileChanged(
         case clang::PPCallbacks::EnterFile:
             {
                 std::string file(get_file(location));
-                do_open_file(location, files_.empty()? std::string(): files_.top(), file);
+                do_open_file(location,
+                             files_.empty() ? std::string() : files_.top(),
+                             file);
                 files_.push(file);
             }
             break;
@@ -245,7 +247,9 @@ bde_verify::csabase::PPObserver::FileChanged(
             {
                 std::string file(files_.top());
                 files_.pop();
-                do_close_file(location, files_.empty()? std::string(): files_.top(), file);
+                do_close_file(source_manager_->getLocForEndOfFile(prev),
+                              files_.empty() ? std::string() : files_.top(),
+                              file);
             }
             break;
         default:
@@ -262,7 +266,10 @@ bde_verify::csabase::PPObserver::EndOfMainFile()
     {
         std::string file(files_.top());
         files_.pop();
-        do_close_file(clang::SourceLocation(), files_.empty()? std::string(): files_.top(), file);
+        do_close_file(source_manager_->getLocForEndOfFile(
+                          source_manager_->getMainFileID()),
+                      files_.empty() ? std::string() : files_.top(),
+                      file);
     }
 }
 

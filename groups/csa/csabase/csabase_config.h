@@ -22,6 +22,7 @@ namespace bde_verify
 {
     namespace csabase
     {
+        class Analyser;
         class Config;
     }
 }
@@ -39,8 +40,9 @@ public:
 
     Config(std::vector<std::string> const& config,
            clang::SourceManager& manager);
-        // Create a 'bde_verify::csabase::Config' object initialized with the set of
-        // specified 'config' lines, and holding the specified 'manager'.
+        // Create a 'bde_verify::csabase::Config' object initialized with the
+        // set of specified 'config' lines, and holding the specified
+        // 'manager'.
 
     void load(std::string const& file);
         // Read a set of configuration lines from the specified 'file'.
@@ -92,6 +94,9 @@ public:
                       const std::string& value);
         // Record, for the specified location 'where', the appearance of a
         // specified '#pragma bdeverify set variable value'.
+
+    void check_bv_stack(Analyser& analyser) const;
+        // Verify that the bde_verify pragmas form a proper stack.
 
 private:
     std::string                                      d_toplevel_namespace;

@@ -5,9 +5,12 @@
 // LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt).     
 // ----------------------------------------------------------------------------
 
-#include "groups/csa/csabase/csabase_config.h"
-#include "groups/csa/csabase/csabase_filenames.h"
-#include "groups/csa/csabase/csabase_location.h"
+#include "csabase_analyser.h"
+#include "csabase_config.h"
+#include "csabase_debug.h"
+#include "csabase_diagnostic_builder.h"
+#include "csabase_filenames.h"
+#include "csabase_location.h"
 #include <llvm/Support/raw_ostream.h>
 #include <algorithm>
 #include <fstream>
@@ -18,6 +21,8 @@
 #include <iterator>
 #include <vector>
 #ident "$Id$"
+
+static std::string const check_name("base");
 
 // ----------------------------------------------------------------------------
 
@@ -417,4 +422,34 @@ void bde_verify::csabase::Config::set_bv_value(clang::SourceLocation where,
     bde_verify::csabase::FileName fn(location.file());
     d_local_bv_pragmas[fn.name()]
         .push_back(BVData(where, '=', variable, value));
+}
+
+void bde_verify::csabase::Config::check_bv_stack(
+    bde_verify::csabase::Analyser& analyser) const
+{
+    for (std::map<std::string, std::vector<BVData> >::const_iterator
+             b = d_local_bv_pragmas.begin(),
+             e = d_local_bv_pragmas.end();
+         b != e;
+         ++b) {
+        const std::vector<BVData>& ls = b->second;
+        std::vector<int> local_stack;
+        for (size_t i = 0; i < ls.size(); ++i) {
+            if (ls[i].type == '>') {
+                local_stack.push_back(i);
+            } else if (ls[i].type == '<') {
+                if (local_stack.size() > 0) {
+                    local_stack.pop_back();
+                } else {
+                    analyser.report(ls[i].where, check_name, "PR01",
+                            "Pop of empty stack");
+                }
+            }
+        }
+        while (local_stack.size() > 0) {
+            analyser.report(ls[local_stack.back()].where, check_name, "PR02",
+                "Push is not popped in this file");
+            local_stack.pop_back();
+        }
+    }
 }

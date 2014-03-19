@@ -1,8 +1,8 @@
 groups/csa/csatr/csatr_includeguard2.t.cpp:1:0: warning: FI01: Header file 'groups/csa/csatr/csatr_includeguard2.h' not accessible
 // csatr_includeguard2.t.cpp                                          -*-C++-*-
 ^
-groups/csa/csatr/csatr_includeguard2.t.cpp:4:0: warning: TR14: Missing define for include guard INCLUDED_CSATR_INCLUDEGUARD2
-#include <bdes_ident.h>
+In file included from groups/csa/csatr/csatr_includeguard2.t.cpp:3:
+groups/csa/csatr/csatr_includeguard2.t.h:13:0: warning: TR14: Missing define for include guard INCLUDED_CSATR_INCLUDEGUARD2
 ^
 groups/csa/csatr/csatr_includeguard2.t.cpp:1:0: warning: TP14: TEST PLAN section is absent
 // csatr_includeguard2.t.cpp                                          -*-C++-*-

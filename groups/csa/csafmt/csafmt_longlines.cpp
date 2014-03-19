@@ -35,10 +35,13 @@ struct files
     files(Analyser& analyser);
         // Create a 'files' object, accessing the specified 'analyser'.
 
-    void operator()(SourceLocation     loc,
-                    std::string const &from,
-                    std::string const &file);
-        // The file specified by 'loc' is examined for non-ascii characters.
+    void operator()(SourceLocation      loc,
+                    std::string const &,
+                    std::string const &);
+        // The file specified by 'loc' is examined for long lines.
+
+    void operator()();
+        // End of TU callback - examine main file.
 };
 
 files::files(Analyser& analyser)
@@ -51,7 +54,9 @@ void files::operator()(SourceLocation     loc,
                        std::string const &)
 {
     const SourceManager &m = d_analyser.manager();
-    llvm::StringRef b = m.getBufferData(m.getFileID(loc));
+    clang::FileID fid = m.getFileID(loc);
+    loc = m.getLocForStartOfFile(fid);
+    llvm::StringRef b = m.getBufferData(fid);
 
     size_t prev = ~size_t(0);
     size_t next;
@@ -67,10 +72,19 @@ void files::operator()(SourceLocation     loc,
     } while ((prev = next) < b.size());
 }
 
+void files::operator()()
+{
+    (*this)(d_analyser.manager().getLocForEndOfFile(
+                d_analyser.manager().getMainFileID()),
+            std::string(),
+            std::string());
+}
+
 void subscribe(Analyser& analyser, Visitor&, PPObserver& observer)
     // Hook up the callback functions.
 {
-    observer.onOpenFile += files(analyser);
+    observer.onCloseFile += files(analyser);
+    analyser.onTranslationUnitDone += files(analyser);
 }
 
 }  // close anonymous namespace
