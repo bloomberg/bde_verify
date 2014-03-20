@@ -19,6 +19,8 @@ COMPILER = clang
 
 CURRENT  = csafmt/csafmt_nonascii.t.cpp
 
+ASPELL   = /opt/swt/install/aspell-0.60.6.1-64
+
 #  ----------------------------------------------------------------------------
 
 TARGET = bde_verify
@@ -70,6 +72,7 @@ TSTCXXFILES +=                                                                \
         groups/csa/csamisc/csamisc_verifysameargumentnames.cpp                \
         groups/csa/csamisc/csamisc_stringadd.cpp                              \
         groups/csa/csamisc/csamisc_swapab.cpp                                 \
+        groups/csa/csamisc/csamisc_spellcheck.cpp                             \
 
 TODO =                                                                        \
         groups/csa/csamisc/csamisc_calls.cpp                                  \
@@ -127,6 +130,7 @@ ECHON    = echo
 CPPFLAGS += -DCLANG_SVN
 PFLAGS   += -Wno-string-plus-int
 CXXFLAGS += -fvisibility-inlines-hidden 
+CXXFLAGS += -DSPELL_CHECK=1
 
 CXX      = $(CLANG)
 LINK     = $(CXX)
@@ -148,6 +152,7 @@ endif
 CPPFLAGS += $(INCFLAGS) $(DEFFLAGS) $(STDFLAGS)
 CPPFLAGS += -Igroups/csa/csabase -Igroups/csa/csadep
 CPPFLAGS += -Iinclude
+CPPFLAGS += -I/opt/swt/include
 PFLAGS   += -fcxx-exceptions
 PFLAGS   += -fcolor-diagnostics
 CXXFLAGS += -g -fno-common -fno-strict-aliasing -fno-exceptions -fno-rtti
@@ -159,7 +164,7 @@ WARNFLAGS = \
         -Wno-unused-parameter \
         -Wno-overloaded-virtual \
         -Wwrite-strings
-LDFLAGS = -L$(LLVMLIB) -g
+LDFLAGS = -L$(LLVMLIB) -L$(ASPELL)/lib64 -laspell -g
 
 PLUGIN   = $(OBJ)/$(TARGET) -plugin bde_verify
 OFILES = $(LIBCXXFILES:%.cpp=$(OBJ)/%.o)
