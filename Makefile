@@ -9,7 +9,7 @@
 
 default:  check-current
 
-LLVM     = /home/hrosen4/mbig/llvm-svn/install
+LLVM     = /home/hrosen4/mbig/llvm-3.4/install-linux
 LLVMINC  = -I$(LLVM)/include
 LLVMLIB  = $(LLVM)/lib
 CLANG    = $(LLVM)/bin/clang
