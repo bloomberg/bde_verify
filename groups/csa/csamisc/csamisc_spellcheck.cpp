@@ -92,6 +92,7 @@ void files::operator()()
     aspell_config_replace(spell_config, "ignore-case", "true");
     aspell_config_replace(spell_config, "add-extra-dicts", "en_CA");
     aspell_config_replace(spell_config, "add-extra-dicts", "en_GB");
+    aspell_config_replace(spell_config, "guess", "true");
     AspellCanHaveError *possible_err = new_aspell_speller(spell_config);
     AspellSpeller *spell_checker = 0;
     if (aspell_error_number(possible_err) != 0) {

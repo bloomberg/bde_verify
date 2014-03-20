@@ -234,6 +234,13 @@ bde_verify::csabase::Config::load(std::string const& original)
     std::ifstream in(file.c_str());
     std::string line;
     while (std::getline(in, line)) {
+        while (!line.empty() && line[line.size() - 1] == '\\') {
+            std::string next;
+            if (std::getline(in, next)) {
+                line.resize(line.size() - 1);
+                line += next;
+            }
+        }
         process(line);
     }
     d_loadpath.pop_back();
