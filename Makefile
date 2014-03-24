@@ -7,23 +7,73 @@
 #  ----------------------------------------------------------------------------
 # $Id$
 
-default:  check-current
+TARGET   = bde_verify
 
-LLVM     = /home/hrosen4/mbig/llvm-3.4/install-linux
-LLVMINC  = -I$(LLVM)/include
-LLVMLIB  = $(LLVM)/lib
-CLANG    = $(LLVM)/bin/clang
-CLANGVER = 3.5
+default: $(TARGET)
 
-COMPILER = clang
+SYSTEM   = $(shell uname -s)
 
-CURRENT  = csafmt/csafmt_nonascii.t.cpp
+COMPILER = gcc
+#COMPILER = clang
 
+STD      = CXX2011
+
+ifeq ($(SYSTEM),Linux)
+    ifeq    ($(COMPILER),gcc)
+VERSION  = 4.8.1
+CCDIR    = /opt/swt/install/gcc-4.8.1
+CXX      = $(CCDIR)/bin/g++
+         ifeq        ($(STD),CXX2011)
+CXXFLAGS += -std=c++0x
+         endif
+LINK     = $(CXX)
+LDFLAGS  += -Wl,-rpath,$(CCDIR)/lib64
+CXXFLAGS += -Wno-unused-local-typedefs
+    endif
+    ifeq ($(COMPILER),clang)
+VERSION  = 3.4
+CCDIR    = /home/hrosen4/mbig/llvm-$(VERSION)/install-$(SYSTEM)
+CXX      = $(CCDIR)/bin/clang++
+        ifeq    ($(STD),CXX2011)
+CXXFLAGS += -std=c++0x
+        else
+CXXFLAGS += -Wno-c++11-extensions
+        endif
+LINK     = $(CXX)
+    endif
 ASPELL   = /opt/swt/install/aspell-0.60.6.1-64
+CXXFLAGS += -DSPELL_CHECK=1
+INCFLAGS += -I$(ASPELL)/include
+LDFLAGS  += -L$(ASPELL)/lib64 -laspell
+endif
+ifeq ($(SYSTEM),SunOS)
+    ifeq    ($(COMPILER),gcc)
+VERSION  = 4.8.1
+CCDIR    = /opt/swt/install/gcc-4.8.1
+CXX      = $(CCDIR)/bin/g++
+         ifeq        ($(STD),CXX2011)
+CXXFLAGS += -std=c++0x
+         endif
+LINK     = $(CXX)
+LDFLAGS  += -Wl,-R,$(CCDIR)/lib
+CXXFLAGS += -Wno-unused-local-typedefs
+    endif
+ASPELL   = /opt/swt/install/aspell-0.60.6.1-64
+CXXFLAGS += -DSPELL_CHECK=1
+INCFLAGS += -I$(ASPELL)/include
+LDFLAGS  += -L$(ASPELL)/lib64 -laspell
+endif
+
+OBJ      = $(SYSTEM)-$(COMPILER)-$(VERSION)
+
+LLVM     = /home/hrosen4/mbig/llvm-3.4/install-$(SYSTEM)
+INCFLAGS += -I$(LLVM)/include
+LDFLAGS  += -L$(LLVM)/lib
+
+#VERBOSE  =
+VERBOSE  = @
 
 #  ----------------------------------------------------------------------------
-
-TARGET = bde_verify
 
 TSTCXXFILES +=                                                                \
         groups/csa/csabbg/csabbg_allocatorforward.cpp                         \
@@ -74,14 +124,6 @@ TSTCXXFILES +=                                                                \
         groups/csa/csamisc/csamisc_swapab.cpp                                 \
         groups/csa/csamisc/csamisc_spellcheck.cpp                             \
 
-TODO =                                                                        \
-        groups/csa/csamisc/csamisc_calls.cpp                                  \
-        groups/csa/csamisc/csamisc_includeguard.cpp                           \
-        groups/csa/csamisc/csamisc_selfinitialization.cpp                     \
-        groups/csa/csamisc/csamisc_superfluoustemporary.cpp                   \
-        groups/csa/csadep/csadep_dependencies.cpp                             \
-        groups/csa/csadep/csadep_types.cpp                                    \
-
 LIBCXXFILES +=                                                                \
         groups/csa/csabase/csabase_abstractvisitor.cpp                        \
         groups/csa/csabase/csabase_analyser.cpp                               \
@@ -101,92 +143,34 @@ LIBCXXFILES +=                                                                \
         groups/csa/csabase/csabase_visitor.cpp                                \
         $(TSTCXXFILES)
 
+TODO =                                                                        \
+        groups/csa/csamisc/csamisc_calls.cpp                                  \
+        groups/csa/csamisc/csamisc_includeguard.cpp                           \
+        groups/csa/csamisc/csamisc_selfinitialization.cpp                     \
+        groups/csa/csamisc/csamisc_superfluoustemporary.cpp                   \
+        groups/csa/csadep/csadep_dependencies.cpp                             \
+        groups/csa/csadep/csadep_types.cpp                                    \
+
 # -----------------------------------------------------------------------------
 
-BB = /bb/build/share/packages/refroot/amd64/unstable/bb
-PFLAGS += -std=c++0x
-PFLAGS += -Igroups/csa/csabase
-PFLAGS += -Igroups/csa/csadep
-PFLAGS += -isystem $(BB)/include
-PFLAGS += -isystem $(BB)/include/stlport
-PFLAGS += -isystem /usr/include
-PFLAGS += -isystem /usr/include/c++/4.4.4
-PFLAGS += -isystem /usr/include/c++/4.4.4/backward
-PFLAGS += -isystem /usr/include/c++/4.4.4/x86_64-redhat-linux6E/32
-PFLAGS += -isystem /usr/lib/gcc/x86_64-redhat-linux6E/4.4.4/include
-PFLAGS += -isystem /usr/lib/gcc/x86_64-redhat-linux/4.1.2/include
-PFLAGS += -DBB_THREADED
-PFLAGS += -DBDE_BUILD_TARGET_DBG
-PFLAGS += -DBDE_BUILD_TARGET_EXC
-PFLAGS += -DBDE_BUILD_TARGET_MT
-# PFLAGS += -DBSL_OVERRIDES_STD
-PFLAGS += -D_LINUX_SOURCE
-PFLAGS += -D_REENTRANT
-PFLAGS += -D_SYS_SYSMACROS_H
-PFLAGS += -D_THREAD_SAFE
-
-SYSTEM   = $(shell uname -s)
-ECHON    = echo
-CPPFLAGS += -DCLANG_SVN
-PFLAGS   += -Wno-string-plus-int
-CXXFLAGS += -fvisibility-inlines-hidden 
-CXXFLAGS += -DSPELL_CHECK=1
-
-CXX      = $(CLANG)
-LINK     = $(CXX)
-OBJ      = $(SYSTEM)-$(COMPILER)-$(CLANGVER)
 #DEBUG    = on
 DEBUG    = off
-#VERBOSE  =
-VERBOSE  = @
-# STD      = CXX2011
+
 REDIRECT = $(VERBOSE:@=>/dev/null 2>&1)
 
-INCFLAGS = $(LLVMINC) -I.
-DEFFLAGS = -D_DEBUG -D_GNU_SOURCE -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS
-ifeq ($(STD),CXX2011)
-  STDFLAGS = -std=c++0x -DBDE_VERIFY_CXX2011
-else
-  STDFLAGS = -Wno-c++11-extensions
-endif
+INCFLAGS += -I.
+#DEFFLAGS += -D_DEBUG
+#DEFFLAGS += -D_GNU_SOURCE
+DEFFLAGS += -D__STDC_LIMIT_MACROS
+DEFFLAGS += -D__STDC_CONSTANT_MACROS
+INCFLAGS += -Igroups/csa/csabase
+INCFLAGS += -Igroups/csa/csadep
+INCFLAGS += -Iinclude
 CPPFLAGS += $(INCFLAGS) $(DEFFLAGS) $(STDFLAGS)
-CPPFLAGS += -Igroups/csa/csabase -Igroups/csa/csadep
-CPPFLAGS += -Iinclude
-CPPFLAGS += -I/opt/swt/include
-PFLAGS   += -fcxx-exceptions
-PFLAGS   += -fcolor-diagnostics
 CXXFLAGS += -g -fno-common -fno-strict-aliasing -fno-exceptions -fno-rtti
-WARNFLAGS = \
-        -Wcast-qual \
-        -Wno-long-long \
-        -Wall \
-        -W \
-        -Wno-unused-parameter \
-        -Wno-overloaded-virtual \
-        -Wwrite-strings
-LDFLAGS = -L$(LLVMLIB) -L$(ASPELL)/lib64 -laspell -g
+LDFLAGS += -g
 
-PLUGIN   = $(OBJ)/$(TARGET) -plugin bde_verify
 OFILES = $(LIBCXXFILES:%.cpp=$(OBJ)/%.o)
-POSTPROCESS = sed -e 's/\([^:]*:[0-9][0-9]*\):[^:]*:/\1:0:/' \
-            | sed -e '/\^/s/ //g' \
-            | sed -e 's/~~~~~\(~*\)/~~~~~/g' \
-            | sed -e '/^$$/d' \
-            | sed -e 's/\x1B[^m]*m//g'
-
-EXPECT      = $$(echo $$f | \
-               sed -e 's/test\.cpp$$/.exp/' | \
-               sed -e 's/\.t.cpp$$/.exp/' | \
-               sed -e 's/\.v.cpp$$/.exp/')
-
-SOURCE      = $$(echo $$f | \
-               sed -e 's/test\.cpp$$/.cpp/' | \
-               sed -e 's/\.t.cpp$$/.cpp/' | \
-               sed -e 's/\.v.cpp$$/.cpp/')
-
-CHECK_NAME  = $$(echo | \
-                 sed -n 's/.*check_name("\([^"]*\)".*/\1/p' \
-                    $(SOURCE) 2>/dev/null)
 
 LIBS     =                                                                    \
               -lLLVMX86AsmParser                                              \
@@ -249,12 +233,67 @@ LIBS     =                                                                    \
               -lLLVMSupport                                                   \
               -lpthread                                                       \
               -lcurses                                                        \
-              -lstdc++                                                        \
-              -lm                                                             \
               -ldl                                                            \
-              -lc                                                             \
+
+$(TARGET): $(OBJ)/$(TARGET)
+
+$(OBJ)/$(TARGET): $(OFILES)
+	@echo linking executable
+	$(VERBOSE) $(LINK) $(LDFLAGS) -o $@ $(OFILES) $(LIBS)
+
+$(OBJ)/%.o: %.cpp
+	@if [ ! -d $(@D) ]; then scripts/mkdirhier $(@D); fi
+	@echo compiling $(@:$(OBJ)/%.o=%.cpp)
+	$(VERBOSE) $(CXX) $(CPPFLAGS) $(CXXFLAGS) $(WARNFLAGS) \
+                          -o $@ -c $(@:$(OBJ)/%.o=%.cpp)
+
+clean:
+	$(RM) $(OFILES)
+	$(RM) $(OBJ)/$(TARGET)
+	$(RM) $(OBJ)/make.depend
+	$(RM) -r $(OBJ)
+	$(RM) mkerr olderr *~
 
 # -----------------------------------------------------------------------------
+
+CURRENT  = csafmt/csafmt_nonascii.t.cpp
+
+VERIFY   = $(OBJ)/$(TARGET) -plugin bde_verify
+POSTPROCESS = sed -e 's/\([^:]*:[0-9][0-9]*\):[^:]*:/\1:0:/' \
+            | sed -e '/\^/s/ //g' \
+            | sed -e 's/~~~~~\(~*\)/~~~~~/g' \
+            | sed -e '/^$$/d' \
+            | sed -e 's/\x1B[^m]*m//g'
+
+EXPECT      = $$(echo $$f | \
+               sed -e 's/test\.cpp$$/.exp/' | \
+               sed -e 's/\.t.cpp$$/.exp/' | \
+               sed -e 's/\.v.cpp$$/.exp/')
+
+SOURCE      = $$(echo $$f | \
+               sed -e 's/test\.cpp$$/.cpp/' | \
+               sed -e 's/\.t.cpp$$/.cpp/' | \
+               sed -e 's/\.v.cpp$$/.cpp/')
+
+CHECK_NAME  = $$(echo | \
+                 sed -n 's/.*check_name("\([^"]*\)".*/\1/p' \
+                    $(SOURCE) 2>/dev/null)
+
+PFLAGS      += $$($(CXX) -xc++ -E -v /dev/null 2>&1 | \
+                  sed -n '/^ [/][^ ]*$$/s/ //p' | \
+                  sed 's/^/-I/')
+
+BB = /bb/build/share/packages/refroot/amd64/unstable/bb
+PFLAGS += -I $(BB)/include
+PFLAGS += -I $(BB)/include/stlport
+
+PFLAGS += -std=c++0x
+PFLAGS += -Wno-string-plus-int
+PFLAGS += -fcxx-exceptions
+PFLAGS += -fcolor-diagnostics
+
+check: check-all
+	@echo '*** SUCCESS ***'
 
 current: $(OBJ)/$(TARGET)
 	$(VERBOSE) \
@@ -268,14 +307,11 @@ current: $(OBJ)/$(TARGET)
          echo all off; \
          echo check $(CHECK_NAME) on) > $$$$; \
       fi; \
-      $(PLUGIN) \
+      $(VERIFY) \
         -plugin-arg-bde_verify debug-$(DEBUG) \
         -plugin-arg-bde_verify config=$$$$ \
         $(CPPFLAGS) $(PFLAGS) $$f; \
     fi
-
-check: check-all
-	@echo '*** SUCCESS ***'
 
 check-current: $(OBJ)/$(TARGET)
 	$(VERBOSE) \
@@ -290,7 +326,7 @@ check-current: $(OBJ)/$(TARGET)
          echo all off; \
          echo check $(CHECK_NAME) on) > $$$$; \
       fi; \
-      if $(PLUGIN) -plugin-arg-bde_verify config=$$$$ \
+      if $(VERIFY) -plugin-arg-bde_verify config=$$$$ \
         $(CPPFLAGS) $(PFLAGS) $$f 2>&1 \
           | $(POSTPROCESS) \
           | diff - $(EXPECT) $(REDIRECT); \
@@ -299,7 +335,7 @@ check-current: $(OBJ)/$(TARGET)
       else \
         success=0; \
         cat $$$$; \
-        $(PLUGIN) -plugin-arg-bde_verify config=$$$$ \
+        $(VERIFY) -plugin-arg-bde_verify config=$$$$ \
           $(CPPFLAGS) $(PFLAGS) $$f 2>&1 \
             | $(POSTPROCESS) \
             | diff - $(EXPECT); \
@@ -315,7 +351,7 @@ check-all: $(OBJ)/$(TARGET)
     do \
       if echo $(TODO) | grep -q $(SOURCE); \
         then echo skipping $$f; continue; fi; \
-      $(ECHON) "testing $$f "; \
+      echo "testing $$f "; \
       trap "rm -f $$$$" EXIT; \
       (echo namespace bde_verify; \
        echo all on) > $$$$; \
@@ -324,7 +360,7 @@ check-all: $(OBJ)/$(TARGET)
          echo all off; \
          echo check $(CHECK_NAME) on) > $$$$; \
       fi; \
-      if $(PLUGIN) -plugin-arg-bde_verify config=$$$$ \
+      if $(VERIFY) -plugin-arg-bde_verify config=$$$$ \
         $(CPPFLAGS) $(PFLAGS) $$f 2>&1 \
           | $(POSTPROCESS) \
           | diff - $(EXPECT) $(REDIRECT); \
@@ -333,7 +369,7 @@ check-all: $(OBJ)/$(TARGET)
       else \
         success=0; \
         cat $$$$; \
-        $(PLUGIN) -plugin-arg-bde_verify config=$$$$ \
+        $(VERIFY) -plugin-arg-bde_verify config=$$$$ \
           $(CPPFLAGS) $(PFLAGS) $$f 2>&1 \
             | $(POSTPROCESS) \
             | diff - $(EXPECT); \
@@ -341,25 +377,6 @@ check-all: $(OBJ)/$(TARGET)
       fi; \
     done; \
     [ $$success = 1 ]
-
-plugin: $(OBJ)/$(TARGET)
-
-$(OBJ)/$(TARGET): $(OFILES)
-	@echo linking executable
-	$(VERBOSE) $(CXX) $(LDFLAGS) -o $@ $(OFILES) $(LIBS)
-
-$(OBJ)/%.o: %.cpp
-	@if [ ! -d $(@D) ]; then scripts/mkdirhier $(@D); fi
-	@echo compiling $(@:$(OBJ)/%.o=%.cpp)
-	$(VERBOSE) $(CXX) $(CPPFLAGS) $(CXXFLAGS) $(WARNFLAGS) \
-                          -o $@ -c $(@:$(OBJ)/%.o=%.cpp)
-
-clean:
-	$(RM) $(OFILES)
-	$(RM) $(OBJ)/$(TARGET)
-	$(RM) $(OBJ)/make.depend
-	$(RM) -r $(OBJ)
-	$(RM) mkerr olderr *~
 
 # -----------------------------------------------------------------------------
 

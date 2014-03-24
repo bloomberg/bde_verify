@@ -86,7 +86,7 @@ void files::operator()(SourceRange range)
 }
 
 #undef  aba
-#define aba(a, b) "("a"("b a")*)"
+#define aba(a, b) "(" a "(" b a ")*)"
 #undef  SP
 #define SP "[[:space:]]*"
 

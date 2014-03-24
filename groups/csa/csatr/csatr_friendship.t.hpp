@@ -85,6 +85,20 @@ namespace bde_verify
             struct PImpl;
             friend struct PImpl;
         };
+
+        template <class T>
+        struct friendship_GoodTemplateDeclared;
+
+        template <class T>
+        struct FriendlyToDeclared
+        {
+            friend struct friendship_GoodTemplateDeclared<T>;
+        };
+
+        template <class T>
+        struct friendship_GoodTemplateDeclared
+        {
+        };
     }
 }
 

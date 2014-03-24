@@ -11,12 +11,16 @@
 use strict;
 use Getopt::Long qw(:config no_ignore_case);
 
+chomp(my $system   = `uname -s`);
+my $clangver = "3.4";
+my $gccver   = "4.8.1";
 my $home     = "/home/hrosen4/bde_verify";
-my $llvm     = "/bb/mbigc/mbig816/llvm-svn/install";
+my $llvm     = "/bb/mbigc/mbig816/llvm-$clangver/install-$system";
 my $bb       = "/bb/build/share/packages/refroot/amd64/unstable/bb";
 my $config   = "$home/bde_verify.cfg";
 my @cl;
-my $exe      = "$home/Linux-clang-3.5/bde_verify";
+#my $exe      = "$home/$system-clang-$clangver/bde_verify";
+my $exe      = "$home/$system-gcc-$gccver/bde_verify";
 my $debug    = "";
 my $verbose  = "";
 my $help     = "";

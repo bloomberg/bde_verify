@@ -47,7 +47,8 @@ void comments::append(Analyser& analyser, SourceRange range)
 {
     SourceManager& m = analyser.manager();
     comments::Ranges& c = d_comments[m.getFilename(range.getBegin())];
-    if (c.size() != 0 && bde_verify::csabase::areConsecutive(m, c.back(), range)) {
+    if (c.size() != 0 &&
+        bde_verify::csabase::areConsecutive(m, c.back(), range)) {
         c.back().setEnd(range.getEnd());
     } else {
         c.push_back(range);
@@ -86,6 +87,9 @@ struct files
 
     void check_purpose(SourceRange range);
         // Warn about incorrectly formatted @PURPOSE line.
+
+    void check_description(SourceRange range);
+        // Warn if the @DESCRIPTION doesn't contain the component name.
 };
 
 files::files(Analyser& analyser)
@@ -123,6 +127,7 @@ void files::operator()()
             check_bubble(*comments_itr);
             check_wrapped(*comments_itr);
             check_purpose(*comments_itr);
+            check_description(*comments_itr);
         }
     }
 }
@@ -465,6 +470,28 @@ void files::check_purpose(SourceRange range)
                     "Correct format is\n%0",
                     false, clang::DiagnosticsEngine::Note)
                 << expected;
+        }
+    }
+}
+
+void files::check_description(SourceRange range)
+{
+    llvm::StringRef comment = d_analyser.get_source(range, true);
+    size_t cpos = comment.find("//@CLASSES:");
+    size_t dpos = comment.find("//@DESCRIPTION:", cpos);
+    if (cpos != comment.npos && dpos != comment.npos) {
+        size_t cb = comment.find_first_not_of(' ', cpos + 11);
+        size_t ce = comment.rfind(':', comment.find('\n', cb));
+        if (cb != comment.npos && ce != comment.npos) {
+            std::string qc = ("'" + comment.slice(cb, ce) + "'").str();
+            if (comment.slice(dpos, comment.find("\n//\n", dpos)).find(qc) ==
+                comment.npos) {
+                d_analyser.report(range.getBegin().getLocWithOffset(dpos),
+                                  check_name, "DC01",
+                                  "Description should contain single-quoted "
+                                  "class name %0")
+                    << qc;
+            }
         }
     }
 }

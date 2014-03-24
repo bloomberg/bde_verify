@@ -12,6 +12,8 @@
 #include <clang/AST/DeclFriend.h>
 #ident "$Id$"
 
+using namespace clang;
+
 // ----------------------------------------------------------------------------
 
 static std::string const check_name("local-friendship-only");
@@ -20,9 +22,9 @@ static std::string const check_name("local-friendship-only");
 
 static bool
 is_extern_type(bde_verify::csabase::Analyser&  analyser,
-              clang::Type const         *type)
+              Type const         *type)
 {
-    clang::CXXRecordDecl const* record(type->getAsCXXRecordDecl());
+    CXXRecordDecl const* record(type->getAsCXXRecordDecl());
     bde_verify::csabase::Location cloc(analyser.get_location(record));
     return (type->isIncompleteType()
             && record->getLexicalDeclContext()->isFileContext())
@@ -33,11 +35,22 @@ is_extern_type(bde_verify::csabase::Analyser&  analyser,
 
 static void
 local_friendship_only(bde_verify::csabase::Analyser&  analyser,
-                      clang::FriendDecl const  *decl)
+                      FriendDecl const  *decl)
 {
-    if (clang::NamedDecl const* named = decl->getFriendDecl()) {
-        if (clang::CXXMethodDecl const* method
-            = llvm::dyn_cast<clang::CXXMethodDecl>(named)) {
+    const NamedDecl *named = decl->getFriendDecl();
+    const TypeSourceInfo *tsi = decl->getFriendType();
+    const Type *type = tsi ? tsi->getTypeLoc().getTypePtr() : 0;
+    if (type && type->isElaboratedTypeSpecifier()) {
+        type = type->getAs<ElaboratedType>()->getNamedType().getTypePtr();
+        if (const TemplateSpecializationType* spec =
+                type->getAs<TemplateSpecializationType>()) {
+            named = spec->getTemplateName().getAsTemplateDecl();
+        }
+    }
+
+    if (named) {
+        if (CXXMethodDecl const* method
+            = llvm::dyn_cast<CXXMethodDecl>(named)) {
             if (!analyser.is_component(method->getParent())) {
                 analyser.report(decl->getFriendLoc(), check_name, "TR19",
                                 "Friendship to a method "
@@ -45,8 +58,8 @@ local_friendship_only(bde_verify::csabase::Analyser&  analyser,
                     << decl->getSourceRange();
             }
         }
-        else if (clang::FunctionDecl const* function
-                 = llvm::dyn_cast<clang::FunctionDecl>(named)) {
+        else if (FunctionDecl const* function
+                 = llvm::dyn_cast<FunctionDecl>(named)) {
             if (!analyser.is_component(function->getCanonicalDecl())) {
                 analyser.report(decl->getFriendLoc(), check_name, "TR19",
                                 "Friendship to a function "
@@ -54,8 +67,8 @@ local_friendship_only(bde_verify::csabase::Analyser&  analyser,
                     << decl->getSourceRange();
             }
         }
-        else if (clang::FunctionTemplateDecl const* function
-                 = llvm::dyn_cast<clang::FunctionTemplateDecl>(named)) {
+        else if (FunctionTemplateDecl const* function
+                 = llvm::dyn_cast<FunctionTemplateDecl>(named)) {
             if (!analyser.is_component(function->getCanonicalDecl())) {
                 analyser.report(decl->getFriendLoc(), check_name,  "TR19",
                                 "Friendship to a function template "
@@ -63,8 +76,8 @@ local_friendship_only(bde_verify::csabase::Analyser&  analyser,
                     << decl->getSourceRange();
             }
         }
-        else if (clang::ClassTemplateDecl const* cls
-                 = llvm::dyn_cast<clang::ClassTemplateDecl>(named)) {
+        else if (ClassTemplateDecl const* cls
+                 = llvm::dyn_cast<ClassTemplateDecl>(named)) {
             if (!analyser.is_component(cls->getCanonicalDecl())) {
                 analyser.report(decl->getFriendLoc(), check_name, "TR19",
                                 "Friendship to a class template "
@@ -80,16 +93,15 @@ local_friendship_only(bde_verify::csabase::Analyser&  analyser,
         }
     }
     else {
-        clang::TypeSourceInfo const* typeInfo(decl->getFriendType());
-        clang::TypeLoc loc(typeInfo->getTypeLoc());
-        clang::Type const* type(loc.getTypePtr());
+        TypeSourceInfo const* typeInfo(decl->getFriendType());
+        TypeLoc loc(typeInfo->getTypeLoc());
+        Type const* type(loc.getTypePtr());
         if (is_extern_type(analyser, type)) {
             analyser.report(decl, check_name, "TR19",
                             "Friendship to a class "
                             "can only be granted within a component"
                             )
-                << decl->getSourceRange()
-                ;
+                << decl->getSourceRange();
         }
     }
 }

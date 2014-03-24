@@ -10,6 +10,7 @@
 #include <csabase_debug.h>
 #include <csabase_registercheck.h>
 #include <clang/Frontend/TextDiagnosticPrinter.h>
+#include <clang/Lex/LexDiagnostic.h>
 #include <clang/Basic/SourceManager.h>
 #include <clang/Basic/FileManager.h>
 #include <llvm/Support/raw_ostream.h>
@@ -77,7 +78,9 @@ CB::DiagnosticFilter::HandleDiagnostic(clang::DiagnosticsEngine::Level level,
                                        clang::Diagnostic const&        info)
 {
     if (   clang::DiagnosticsEngine::Warning < level
-        || !info.getLocation().isFileID()
+        || (   !info.getLocation().isFileID()
+            && info.getID() != clang::diag::pp_pragma_once_in_main_file
+           )
         || (   d_analyser->is_component(get_filename(info))
             && !d_analyser->is_generated(info.getLocation())
             && (   !d_toplevel_only

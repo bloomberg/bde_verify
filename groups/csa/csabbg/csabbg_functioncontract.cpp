@@ -516,11 +516,11 @@ bool report::isGenerated(const FunctionDecl *func)
     const char *const bg = "\n// {{{ BEGIN GENERATED CODE";
     const char *const eg = "\n// }}} END GENERATED CODE";
 
-    unsigned bpos = buf.npos;
-    for (unsigned p = 0; (p = buf.find(bg, p)) < pos; ++p) {
+    size_t bpos = buf.npos;
+    for (size_t p = 0; (p = buf.find(bg, p)) < pos; ++p) {
         bpos = p;
     }
-    unsigned epos = buf.find(eg, bpos);
+    size_t epos = buf.find(eg, bpos);
     return bpos != buf.npos && (epos == buf.npos || bpos < epos);
 }
 
