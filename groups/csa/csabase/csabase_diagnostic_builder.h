@@ -41,6 +41,11 @@ namespace bde_verify
         {
         }
 
+        diagnostic_builder& operator<< (long long argument)
+        {
+            return *this << static_cast<int>(argument);
+        }
+
         diagnostic_builder& operator<< (long argument)
         {
             return *this << static_cast<int>(argument);

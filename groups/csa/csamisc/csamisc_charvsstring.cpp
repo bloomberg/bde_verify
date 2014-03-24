@@ -34,7 +34,7 @@ check(bde_verify::csabase::Analyser&    analyser,
             clang::Expr const* sub(unary->getSubExpr()->IgnoreParenCasts());
             clang::DeclRefExpr const* ref(llvm::dyn_cast<clang::DeclRefExpr>(sub));
             if (ref && ref->getType().getCanonicalType() == analyser.context()->CharTy) {
-                analyser.report(args[index], check_name, "AC01",
+                analyser.report(args[index], check_name, "ADC01",
                                 "Passing address of char '%0' where a "
                                 "null-terminated string may be expected")
                     << ref->getDecl()->getName();

@@ -554,7 +554,32 @@ SourceRange report::getContract(const FunctionDecl     *func,
         d_manager.getPresumedLineNumber(declarator.getBegin()) ==
             d_manager.getPresumedLineNumber(func->getBody()->getLocEnd());
 
-    if (with_body) {
+    const CXXConstructorDecl *ctor = llvm::dyn_cast<CXXConstructorDecl>(func);
+
+    if (ctor && with_body && ctor->getNumCtorInitializers() > 0) {
+        // Constructor with body and initializers - look for a contract that
+        // starts no earlier than the first initializer and has only whitespace
+        // and a colon between itself and that initializer.
+        SourceLocation initloc = (*ctor->init_begin())->getSourceLocation();
+        data::Ranges::iterator it;
+        for (it = comments_begin; it != comments_end; ++it) {
+            if (d_manager.isBeforeInTranslationUnit(initloc, it->getBegin())) {
+                break;
+            }
+            if (d_manager.isBeforeInTranslationUnit(
+                    it->getEnd(), declarator.getBegin())) {
+                continue;
+            }
+            llvm::StringRef s = d_analyser.get_source(
+                SourceRange(it->getEnd(), initloc), true);
+            if (s.find_first_not_of(": \n") == llvm::StringRef::npos) {
+                contract = *it;
+                break;
+            }
+        }
+    }
+
+    if (with_body && !contract.isValid()) {
         // Function with body - look for a comment that starts no earlier than
         // the function declarator and has only whitespace between itself and 
         // the open brace of the function.
@@ -576,6 +601,7 @@ SourceRange report::getContract(const FunctionDecl     *func,
             }
         }
     }
+
     if (!with_body || (one_liner && !contract.isValid())) {
         // Function without body or one-liner - look for a comment following
         // the declaration separated from it by only whitespace and semicolon.
