@@ -484,8 +484,8 @@ void files::check_description(SourceRange range)
         size_t ce = comment.rfind(':', comment.find('\n', cb));
         if (cb != comment.npos && ce != comment.npos) {
             std::string qc = ("'" + comment.slice(cb, ce) + "'").str();
-            if (comment.slice(dpos, comment.find("\n//\n", dpos)).find(qc) ==
-                comment.npos) {
+            comment = comment.slice(dpos, comment.find("\n//\n", dpos));
+            if (qc != "''" && comment.find(qc) == comment.npos) {
                 d_analyser.report(range.getBegin().getLocWithOffset(dpos),
                                   check_name, "DC01",
                                   "Description should contain single-quoted "
