@@ -24,23 +24,8 @@ static std::string const check_name("function-contract");
 
 // ----------------------------------------------------------------------------
 
-using clang::CXXConstructorDecl;
-using clang::CXXMethodDecl;
-using clang::CompoundStmt;
-using clang::ConstStmtRange;
-using clang::FunctionDecl;
-using clang::FunctionTemplateDecl;
-using clang::ParmVarDecl;
-using clang::ReturnStmt;
-using clang::SourceLocation;
-using clang::SourceManager;
-using clang::SourceRange;
-using clang::Stmt;
-using bde_verify::csabase::Analyser;
-using bde_verify::csabase::Location;
-using bde_verify::csabase::PPObserver;
-using bde_verify::csabase::Range;
-using bde_verify::csabase::Visitor;
+using namespace clang;
+using namespace bde_verify::csabase;
 
 namespace
 {
@@ -52,7 +37,7 @@ struct data
     typedef std::map<std::string, Ranges> Comments;
     Comments d_comments;  // Comment blocks per file.
 
-    typedef std::map<const FunctionDecl*, SourceRange> FunDecls;
+    typedef std::vector<std::pair<const FunctionDecl*, SourceRange> > FunDecls;
     FunDecls d_fundecls;  // FunDecl, comment
 };
 
@@ -349,7 +334,8 @@ void allFunDecls(Analyser& analyser, const FunctionDecl* func)
         && (   func->getTemplatedKind() == func->TK_NonTemplate
             || func->getTemplatedKind() == func->TK_FunctionTemplate)
             ) {
-        analyser.attachment<data>().d_fundecls[func];
+        analyser.attachment<data>().d_fundecls.push_back(
+            std::make_pair(func, SourceRange()));
     }
 }
  
@@ -436,7 +422,10 @@ bool report::hasCommentedCognate(const clang::FunctionDecl *func,
         if (ctplt) {
             cfunc = ctplt->getTemplatedDecl();
         }
-        data::FunDecls::iterator itr = decls.find(cfunc);
+        data::FunDecls::iterator itr = decls.begin();
+        while (itr != decls.end() && itr->first != cfunc) {
+            ++itr;
+        }
         if (itr != decls.end()) {
             if (itr->second.isValid() && cfunc->getNameAsString() == name) {
                 // Functions in the same scope with the same name are cognates.

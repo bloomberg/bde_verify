@@ -259,6 +259,24 @@ groups/csa/csabbg/csabbg_functioncontract.t.cpp:236:0: warning: FD03: Parameter 
 groups/csa/csabbg/csabbg_functioncontract.t.cpp:239:0: warning: FD04: Parameter 'luxuriantly' is not single-quoted in the function contract
                 // Optionally specify luxuriantly.
 ^~~~~~
+groups/csa/csabbg/csabbg_functioncontract.t.cpp:243:0: warning: FD03: Parameter 'consortion' is not documented in the function contract
+            void hatfield(int, int consortion);
+~~~~^~~~~~
+groups/csa/csabbg/csabbg_functioncontract.t.cpp:246:0: warning: FD04: Parameter 'uncoarse' is not single-quoted in the function contract
+                // This function does nothing with the specified uncoarse.
+^~~~~~
+groups/csa/csabbg/csabbg_functioncontract.t.cpp:250:0: warning: FD03: Parameter 'monodactylism' is not documented in the function contract
+            void sonderclass(int, int monodactylism = 0);
+~~~~^~~~~~
+groups/csa/csabbg/csabbg_functioncontract.t.cpp:253:0: warning: FD04: Parameter 'unhooted' is not single-quoted in the function contract
+                // Optionally specify unhooted.
+^~~~~~
+groups/csa/csabbg/csabbg_functioncontract.t.cpp:263:0: warning: FD03: Parameter 'connotation' is not documented in the function contract
+            void pseudoreligious(int = 0, int connotation = 0);
+~~~~^~~~~~
+groups/csa/csabbg/csabbg_functioncontract.t.cpp:266:0: warning: FD04: Parameter 'monecious' is not single-quoted in the function contract
+                // Optionally specify monecious.
+^~~~~~
 groups/csa/csabbg/csabbg_functioncontract.t.cpp:276:0: warning: FD02: Function contracts should be indented 4, not -12, spaces from their function declaration
 // Way too left.
 ^~~~~~
@@ -280,22 +298,4 @@ groups/csa/csabbg/csabbg_functioncontract.t.cpp:294:0: warning: FD02: Function c
 groups/csa/csabbg/csabbg_functioncontract.t.cpp:302:0: warning: FD01: Function declaration requires contract
         inline void spall()
 ^~~~~
-groups/csa/csabbg/csabbg_functioncontract.t.cpp:243:0: warning: FD03: Parameter 'consortion' is not documented in the function contract
-            void hatfield(int, int consortion);
-~~~~^~~~~~
-groups/csa/csabbg/csabbg_functioncontract.t.cpp:246:0: warning: FD04: Parameter 'uncoarse' is not single-quoted in the function contract
-                // This function does nothing with the specified uncoarse.
-^~~~~~
-groups/csa/csabbg/csabbg_functioncontract.t.cpp:250:0: warning: FD03: Parameter 'monodactylism' is not documented in the function contract
-            void sonderclass(int, int monodactylism = 0);
-~~~~^~~~~~
-groups/csa/csabbg/csabbg_functioncontract.t.cpp:253:0: warning: FD04: Parameter 'unhooted' is not single-quoted in the function contract
-                // Optionally specify unhooted.
-^~~~~~
-groups/csa/csabbg/csabbg_functioncontract.t.cpp:263:0: warning: FD03: Parameter 'connotation' is not documented in the function contract
-            void pseudoreligious(int = 0, int connotation = 0);
-~~~~^~~~~~
-groups/csa/csabbg/csabbg_functioncontract.t.cpp:266:0: warning: FD04: Parameter 'monecious' is not single-quoted in the function contract
-                // Optionally specify monecious.
-^~~~~~
 100 warnings generated.
