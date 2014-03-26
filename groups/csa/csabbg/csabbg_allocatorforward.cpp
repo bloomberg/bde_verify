@@ -368,7 +368,7 @@ class_using_allocator_matcher()
 {
     static const DynTypedMatcher matcher = decl(forEachDescendant(recordDecl(
         has(constructorDecl(
-            isPublic(),
+            unless(isPrivate()),
             hasLastParameter(parmVarDecl(anyOf(
                 hasType(referenceType(
                     pointee(hasDeclaration(decl(has(constructorDecl(
