@@ -36,10 +36,17 @@ static std::string const check_name("allocator-forward");
 namespace clang {
 namespace ast_matchers {
 
+AST_MATCHER_P(TemplateArgument, refersToTemplate,
+                internal::Matcher<TemplateDecl>, InnerMatcher) {
+    return Node.getKind() == TemplateArgument::Template &&
+           Node.getAsTemplate().getAsTemplateDecl() &&
+           InnerMatcher.matches(
+               *Node.getAsTemplate().getAsTemplateDecl(), Finder, Builder);
+}
+           
 AST_MATCHER_P(TemplateArgument, equalsIntegral, unsigned, N) {
-  if (Node.getKind() == TemplateArgument::Integral)
-    return Node.getAsIntegral() == N;
-  return false;
+  return Node.getKind() == TemplateArgument::Integral &&
+         Node.getAsIntegral() == N;
 }
 
 AST_MATCHER_P(ClassTemplateSpecializationDecl, templateArgumentCountIs,
@@ -334,14 +341,39 @@ nested_allocator_trait_matcher()
     //  class MyClass { operator bslalg::TypeTraitUsesBslmaAllocator::
     //                           NestedTraitDeclaration<MyClass>() const ... };
     //..
+    // or
+    //..
+    //  class MyClass { operator bslmf::NestedTraitDeclaration<
+    //                                      MyClass,
+    //                                      bslma::UsesBslmaAllocator,
+    //                                      true>() const ... };
+    //..
 {
     static const DynTypedMatcher matcher = decl(forEachDescendant(
         methodDecl(
             hasName("operator NestedTraitDeclaration"),
             returns(qualType(hasDeclaration(classTemplateSpecializationDecl(
-                matchesName("^::BloombergLP::bslalg::"
-                            "TypeTraitUsesBslmaAllocator::"),
-                templateArgumentCountIs(1),
+                anyOf(
+                    allOf(
+                        matchesName("^::BloombergLP::bslalg::"
+                                    "TypeTraitUsesBslmaAllocator::"),
+                        templateArgumentCountIs(1)
+                    ),
+                    allOf(
+                        matchesName("^::BloombergLP::bslmf::"),
+                        hasTemplateArgument(1, refersToTemplate(
+                            namedDecl(hasName(
+                                "::BloombergLP::bslma::UsesBslmaAllocator"
+                        )))),
+                        anyOf(
+                            templateArgumentCountIs(2),
+                            allOf(
+                                templateArgumentCountIs(3),
+                                hasTemplateArgument(2, equalsIntegral(1))
+                            )
+                        )
+                    )
+                ),
                 hasTemplateArgument(
                     0,
                     refersToType(qualType(hasDeclaration(

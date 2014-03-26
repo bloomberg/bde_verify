@@ -190,3 +190,54 @@ namespace bde_verify
         }
     }
 }
+
+#include <bslmf_nestedtraitdeclaration.h>
+#include <bslma_usesbslmaallocator.h>
+#include <bslalg_typetraits.h>
+#include <bslalg_typetraitusesbslmaallocator.h>
+
+namespace bde_verify
+{
+namespace csabbg
+{
+using namespace BloombergLP;
+
+struct alloc_a {
+    BSLMF_NESTED_TRAIT_DECLARATION(alloc_a, bslma::UsesBslmaAllocator);
+    explicit alloc_a(bslma::Allocator*) { }
+};
+
+struct alloc_b {
+    BSLALG_DECLARE_NESTED_TRAITS(alloc_b, bslalg::TypeTraitUsesBslmaAllocator);
+    explicit alloc_b(bslma::Allocator*) { }
+};
+
+struct alloc_c {
+    explicit alloc_c(bslma::Allocator*) { }
+};
+
+struct alloc_d {
+    explicit alloc_d(bslma::Allocator*) { }
+};
+
+struct alloc_e {
+    BSLMF_NESTED_TRAIT_DECLARATION_IF(alloc_e, bslma::UsesBslmaAllocator, true);
+    explicit alloc_e(bslma::Allocator*) { }
+};
+
+struct alloc_f {
+    BSLMF_NESTED_TRAIT_DECLARATION_IF(alloc_f, bslma::UsesBslmaAllocator, false);
+    explicit alloc_f(bslma::Allocator*) { }
+};
+}
+}
+
+namespace BloombergLP
+{
+namespace bslma
+{
+template <>
+struct UsesBslmaAllocator<bde_verify::csabbg::alloc_c> : bsl::true_type { };
+}
+}
+
