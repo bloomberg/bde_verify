@@ -70,12 +70,15 @@ struct data
     Ctors ctors_;
         // The set of constructor declarations seen.
 
-    typedef std::set<const Decl*> DeclsWithAllocatorTrait;
+    typedef std::set<const NamedDecl*> DeclsWithAllocatorTrait;
     DeclsWithAllocatorTrait decls_with_true_allocator_trait_;
         // The set of declarations having a true allocator trait.
 
     DeclsWithAllocatorTrait decls_with_false_allocator_trait_;
         // The set of declarations having a false allocator trait.
+
+    DeclsWithAllocatorTrait decls_with_dependent_allocator_trait_;
+        // The set of declarations having a dependent allocator trait.
 
     typedef std::set<const CXXConstructExpr*> Cexprs;
     Cexprs cexprs_;
@@ -150,11 +153,15 @@ struct report
         // Callback for discovered classes with positive allocator traits
         // contained within the specifed 'nodes'.
 
+    void match_dependent_allocator_trait(const BoundNodes& nodes);
+        // Callback for discovered classes with dependent allocator traits
+        // contained within the specifed 'nodes'.
+
     void operator()();
         // Invoke the checking procedures.
 
-    template <typename Iter>
-    void check_not_forwarded(Iter begin, Iter end);
+    void check_not_forwarded(data::Ctors::const_iterator begin,
+                             data::Ctors::const_iterator end);
         // Invoke the forwarding check on the items in the range from the
         // specified 'begin' up to but not including the specified 'end'.
 
@@ -162,8 +169,9 @@ struct report
         // If the specified constructor 'decl' takes an allocator parameter,
         // check whether it passes the parameter to its subobjects.
 
-    template <typename Iter>
-    void check_not_forwarded(Iter begin, Iter end, const ParmVarDecl* palloc);
+    void check_not_forwarded(CXXConstructorDecl::init_const_iterator begin,
+                             CXXConstructorDecl::init_const_iterator end,
+                             const ParmVarDecl* palloc);
         // Check if the items in the sequence from the specified 'begin' up to
         // but not including the specified 'end' are passed the specified
         // 'palloc' allocator parameter.
@@ -263,7 +271,8 @@ bool report::last_arg_is_explicit(const CXXConstructExpr* call)
 
 bool report::takes_allocator(QualType type)
 {
-    return data_.type_takes_allocator_[type.getTypePtr()];
+    return data_.type_takes_allocator_
+        [type.getTypePtr()->getCanonicalTypeInternal().getTypePtr()];
 }
 
 bool report::takes_allocator(CXXConstructorDecl const* constructor)
@@ -347,7 +356,8 @@ nested_allocator_trait_matcher()
 void report::match_nested_allocator_trait(const BoundNodes& nodes)
 {
     analyser_.attachment<data>().decls_with_true_allocator_trait_.insert(
-        nodes.getNodeAs<Decl>("class")->getCanonicalDecl());
+        llvm::dyn_cast<NamedDecl>(
+            nodes.getNodeAs<NamedDecl>("class")->getCanonicalDecl()));
 }
 
 static const DynTypedMatcher &
@@ -385,8 +395,11 @@ class_using_allocator_matcher()
 
 void report::match_class_using_allocator(const BoundNodes& nodes)
 {
-    analyser_.attachment<data>().type_takes_allocator_
-        [nodes.getNodeAs<CXXRecordDecl>("class")->getTypeForDecl()] = true;
+    analyser_.attachment<data>()
+        .type_takes_allocator_[nodes.getNodeAs<CXXRecordDecl>("class")
+                                   ->getTypeForDecl()
+                                   ->getCanonicalTypeInternal()
+                                   .getTypePtr()] = true;
 }
 
 static const DynTypedMatcher
@@ -442,6 +455,32 @@ void report::match_positive_allocator_trait(const BoundNodes& nodes)
         &analyser_.attachment<data>().decls_with_true_allocator_trait_, nodes);
 }
 
+static const DynTypedMatcher
+dependent_allocator_trait_matcher()
+{
+    const DynTypedMatcher matcher =
+        decl(forEachDescendant(classTemplateSpecializationDecl(
+            hasName("::BloombergLP::bslma::UsesBslmaAllocator"),
+            templateArgumentCountIs(1),
+            unless(isDerivedFrom(classTemplateSpecializationDecl(
+                hasName("::bsl::integral_constant"),
+                templateArgumentCountIs(2),
+                hasTemplateArgument(0, refersToType(asString("_Bool"))),
+                anyOf(hasTemplateArgument(1, equalsIntegral(0)),
+                      hasTemplateArgument(1, equalsIntegral(1)))
+            )))
+        ).bind("class")));
+    return matcher;
+}
+
+void report::match_dependent_allocator_trait(const BoundNodes& nodes)
+{
+    match_allocator_trait(
+        &analyser_.attachment<data>().decls_with_dependent_allocator_trait_,
+        nodes);
+}
+
+
 void report::operator()()
 {
     MatchFinder mf;
@@ -458,6 +497,9 @@ void report::operator()()
     OnMatch<report, &report::match_positive_allocator_trait> m6(this);
     mf.addDynamicMatcher(allocator_trait_matcher(1), &m6);
 
+    OnMatch<report, &report::match_dependent_allocator_trait> m5(this);
+    mf.addDynamicMatcher(dependent_allocator_trait_matcher(), &m5);
+
     OnMatch<report, &report::match_class_using_allocator> m3(this);
     mf.addDynamicMatcher(class_using_allocator_matcher(), &m3);
 
@@ -469,41 +511,64 @@ void report::operator()()
     check_alloc_returns(data_.returns_.begin(), data_.returns_.end());
 }
 
-template <typename Iter>
-void report::check_not_forwarded(Iter begin, Iter end)
+void report::check_not_forwarded(data::Ctors::const_iterator begin,
+                                 data::Ctors::const_iterator end)
 {
-    std::set<const CXXRecordDecl *> records;
+    std::set<std::pair<bool, const CXXRecordDecl *> > records;
 
-    for (Iter itr = begin; itr != end; ++itr) {
+    int count = 0;
+    for (data::Ctors::const_iterator itr = begin; itr != end; ++itr) {
         const CXXConstructorDecl *decl = *itr;
         const CXXRecordDecl *record = decl->getParent()->getCanonicalDecl();
         bool uses_allocator = takes_allocator(
                    record->getTypeForDecl()->getCanonicalTypeInternal());
         bool has_true_alloc_trait =
             data_.decls_with_true_allocator_trait_.count(record);
+        bool has_false_alloc_trait =
+            data_.decls_with_false_allocator_trait_.count(record);
+        bool has_dependent_alloc_trait =
+            !has_true_alloc_trait &&
+            !has_false_alloc_trait &&
+            data_.decls_with_dependent_allocator_trait_.count(record);
         const CXXRecordDecl *tr = record;
         if (const ClassTemplateSpecializationDecl* ts =
                 llvm::dyn_cast<ClassTemplateSpecializationDecl>(tr)) {
-            tr = ts->getSpecializedTemplate()
-                     ->getTemplatedDecl()
-                     ->getCanonicalDecl();
+            const CXXRecordDecl* tr = ts->getSpecializedTemplate()
+                                          ->getTemplatedDecl()
+                                          ->getCanonicalDecl();
+            if (uses_allocator &&
+                !has_true_alloc_trait &&
+                !has_false_alloc_trait &&
+                !has_dependent_alloc_trait) {
+                record = tr;
+            }
+            if (data_.decls_with_true_allocator_trait_.count(tr)) {
+                has_true_alloc_trait = true;
+            }
+            if (data_.decls_with_false_allocator_trait_.count(tr)) {
+                has_false_alloc_trait = true;
+            }
+            if (data_.decls_with_dependent_allocator_trait_.count(tr)) {
+                has_dependent_alloc_trait = true;
+            }
         }
 
-        if (data_.decls_with_false_allocator_trait_.count(tr)) {
-            return;                                                   // RETURN
-        }
+        std::pair<bool, const CXXRecordDecl *> rp =
+            std::make_pair(uses_allocator, record);
 
         check_not_forwarded(decl);
 
-        if (records.count(record) == 0) {
-            records.insert(record);
+        if (records.count(rp) == 0) {
+            records.insert(rp);
 
             if (!uses_allocator && has_true_alloc_trait) {
                 analyser_.report(record, check_name, "AT01",
                         "Class %0 does not use allocators but has a "
                         "positive allocator trait")
                     << record;
-            } else if (uses_allocator && !has_true_alloc_trait) {
+            } else if (uses_allocator &&
+                       !has_true_alloc_trait &&
+                       !has_dependent_alloc_trait) {
                 analyser_.report(record, check_name, "AT02",
                         "Class %0 uses allocators but does not have an "
                         "allocator trait")
@@ -524,7 +589,8 @@ void report::check_not_forwarded(Iter begin, Iter end)
                 !decl->hasBody();
 
             unsigned num_parms = decl->getNumParams();
-            for (Iter ci = begin; !found && ci != end; ++ci) {
+            for (data::Ctors::const_iterator ci = begin; !found && ci != end;
+                 ++ci) {
                 const CXXConstructorDecl *ctor = *ci;
                 if (ctor == ctor->getCanonicalDecl() &&
                     ctor != decl &&
@@ -590,9 +656,8 @@ void report::check_not_forwarded(const CXXConstructorDecl *decl)
     check_not_forwarded(decl->init_begin(), decl->init_end(), palloc);
 }
 
-template <typename Iter>
-void report::check_not_forwarded(Iter begin,
-                                 Iter end,
+void report::check_not_forwarded(CXXConstructorDecl::init_const_iterator begin,
+                                 CXXConstructorDecl::init_const_iterator end,
                                  const ParmVarDecl* palloc)
 {
     while (begin != end) {
@@ -815,8 +880,7 @@ static void
 gather_ctor_decls(Analyser& analyser, CXXConstructorDecl const* decl)
     // Accumulate the specified 'decl' within the specified 'analyser'.
 {
-    data& info(analyser.attachment<data>());
-    info.ctors_.insert(decl);
+    analyser.attachment<data>().ctors_.insert(decl);
 }
 
 // -----------------------------------------------------------------------------
@@ -825,8 +889,7 @@ static void
 gather_return_stmts(Analyser& analyser, ReturnStmt const* stmt)
     // Accumulate the specified 'stmt' within the specified 'analyser'.
 {
-    data& info(analyser.attachment<data>());
-    info.returns_.insert(stmt);
+    analyser.attachment<data>().returns_.insert(stmt);
 }
 
 // -----------------------------------------------------------------------------

@@ -58,10 +58,12 @@ LINK     = $(CXX)
 LDFLAGS  += -Wl,-R,$(CCDIR)/lib
 CXXFLAGS += -Wno-unused-local-typedefs
     endif
-ASPELL   = /opt/swt/install/aspell-0.60.6.1-64
-CXXFLAGS += -DSPELL_CHECK=1
-INCFLAGS += -I$(ASPELL)/include
-LDFLAGS  += -L$(ASPELL)/lib64 -laspell
+#ASPELL   = /opt/swt/install/aspell-0.60.6.1-64
+#CXXFLAGS += -DSPELL_CHECK=1
+#INCFLAGS += -I$(ASPELL)/include
+#LDFLAGS  += -L$(ASPELL)/lib64 -laspell
+EXTRALIBS += -lrt
+EXTRALIBS += -lmalloc
 endif
 
 OBJ      = $(SYSTEM)-$(COMPILER)-$(VERSION)
@@ -180,6 +182,7 @@ LIBS     =                                                                    \
               -lLLVMLinker                                                    \
               -lLLVMipo                                                       \
               -lLLVMX86CodeGen                                                \
+              -lLLVMSparcCodeGen                                                \
               -lLLVMSelectionDAG                                              \
               -lLLVMAsmPrinter                                                \
               -lLLVMJIT                                                       \
@@ -212,7 +215,9 @@ LIBS     =                                                                    \
               -lclangParse                                                    \
               -lLLVMMCParser                                                  \
               -lLLVMX86Desc                                                   \
+              -lLLVMSparcDesc                                                   \
               -lLLVMX86Info                                                   \
+              -lLLVMSparcInfo                                                   \
               -lLLVMX86AsmPrinter                                             \
               -lLLVMX86Utils                                                  \
               -lclangSema                                                     \
@@ -234,6 +239,7 @@ LIBS     =                                                                    \
               -lpthread                                                       \
               -lcurses                                                        \
               -ldl                                                            \
+              $(EXTRALIBS)
 
 $(TARGET): $(OBJ)/$(TARGET)
 

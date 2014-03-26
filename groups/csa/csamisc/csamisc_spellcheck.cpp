@@ -1,7 +1,5 @@
 // csafmt_comments.cpp                                                -*-C++-*-
 
-#if SPELL_CHECK
-
 #include <csabase_analyser.h>
 #include <csabase_debug.h>
 #include <csabase_location.h>
@@ -10,7 +8,6 @@
 #include <csabase_util.h>
 #include <llvm/Support/Regex.h>
 #include <string>
-#include <aspell.h>
 
 #ident "$Id$"
 
@@ -22,6 +19,10 @@ static std::string const check_name("spell-check");
 
 using namespace clang;
 using namespace bde_verify::csabase;
+
+#if SPELL_CHECK
+
+#include <aspell.h>
 
 namespace
 {
@@ -281,6 +282,13 @@ void subscribe(Analyser& analyser, Visitor&, PPObserver& observer)
 
 }  // close anonymous namespace
 
-static bde_verify::csabase::RegisterCheck c1(check_name, &subscribe);
+#else   // SPELL_CHECK
+
+void subscribe(Analyser&, Visitor&, PPObserver&)
+    // Do nothing
+{
+}
 
 #endif  // SPELL_CHECK
+
+static bde_verify::csabase::RegisterCheck c1(check_name, &subscribe);

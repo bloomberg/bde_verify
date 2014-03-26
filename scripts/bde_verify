@@ -15,12 +15,13 @@ chomp(my $system   = `uname -s`);
 my $clangver = "3.4";
 my $gccver   = "4.8.1";
 my $home     = "/home/hrosen4/bde_verify";
-my $llvm     = "/bb/mbigc/mbig816/llvm-$clangver/install-$system";
 my $bb       = "/bb/build/share/packages/refroot/amd64/unstable/bb";
 my $config   = "$home/bde_verify.cfg";
 my @cl;
 #my $exe      = "$home/$system-clang-$clangver/bde_verify";
+#my $cc       = "/bb/mbigc/mbig816/llvm-$clangver/install-$system/bin/clang++";
 my $exe      = "$home/$system-gcc-$gccver/bde_verify";
+my $cc       = "/opt/swt/install/gcc-$gccver/bin/g++";
 my $debug    = "";
 my $verbose  = "";
 my $help     = "";
@@ -54,7 +55,6 @@ sub usage()
         --cl=config_line
         --bb=dir                 [$bb]
         --exe=bde_verify         [$exe]
-        --llvm=dir               [$llvm]
         --[no]definc             [$definc]
         --[no]defdef             [$defdef]
         --toplevel
@@ -77,7 +77,6 @@ GetOptions(
     'debug'      => \$debug,
     'help|?'     => \$help,
     'exe=s'      => \$exe,
-    'llvm=s'     => \$llvm,
     'verbose|v'  => \$verbose,
     'definc!'    => \$definc,
     'defdef!'    => \$defdef,
@@ -88,6 +87,7 @@ GetOptions(
     "f=s"        => \@lflags,
     "std=s"      => \$std,
     "toplevel"   => \$tlonly,
+    'llvm=s'     => \$dummy,
     "m32|m64|pipe|pthread|MMD|g|c" => \$dummy,
     "O|MF|o|march|mtune=s"         => \@dummy,
 ) and !$help and $#ARGV >= 0 or usage();
@@ -127,8 +127,9 @@ push(@incs, (
     "$bb/include/stlport",
 )) if $definc;
 push(@incs, map { chomp; $_; }
-            qx{ $llvm/bin/clang++ -xc++ -E -v /dev/null 2>&1 |
-                /opt/swt/bin/sed -n '/^ [/]/s/ //p'});
+            qx{ $cc -xc++ -E -v /dev/null 2>&1 |
+                sed -n '/^#include/,/^End of search list/p' |
+                sed -n '/^ [/]/s/ //p'});
 @incs = map { ("-I", $_, "-cxx-isystem", $_ ) } @incs;
 
 push(@std, "-std=$std") if $std;

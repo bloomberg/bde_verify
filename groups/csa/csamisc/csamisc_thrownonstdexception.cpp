@@ -20,19 +20,17 @@ static std::string const check_name("throw-non-std-exception");
 static void
 check(bde_verify::csabase::Analyser& analyser, clang::CXXThrowExpr const* expr)
 {
-    clang::Sema& sema(analyser.sema());
-    clang::Expr* object(const_cast<clang::Expr*>(expr->getSubExpr()));
-    if (object) // else it is a rethrow...
+    static const clang::TypeDecl *e = analyser.lookup_type("::std::exception");
+    clang::Expr *object(const_cast<clang::Expr*>(expr->getSubExpr()));
+    if (e && object) // else it is a rethrow...
     {
-        const clang::TypeDecl *e = analyser.lookup_type("::std::exception");
-        clang::QualType t;
-        if (e) {
-            t = e->getTypeForDecl()->getCanonicalTypeInternal();
-        }
+        clang::QualType t =
+            e->getTypeForDecl()->getCanonicalTypeInternal();
         clang::QualType ot = object->getType()->getCanonicalTypeInternal();
-        if (ot != t && !sema.IsDerivedFrom(ot, t)) {
+        if (ot != t && !analyser.sema().IsDerivedFrom(ot, t)) {
             analyser.report(expr, check_name, "FE01",
-                "Object of type %0 not derived from std::exception is thrown.")
+                            "Object of type %0 not derived from "
+                            "std::exception is thrown.")
                 << ot;
         }
     }
