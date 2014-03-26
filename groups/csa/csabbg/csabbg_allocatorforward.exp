@@ -20,17 +20,13 @@ groups/csa/csabbg/csabbg_allocatorforward.t.cpp:74:0: warning: MA02: Allocator n
 groups/csa/csabbg/csabbg_allocatorforward.t.cpp:89:0: warning: AT02: Class 'tbase' uses allocators but does not have an allocator trait
             struct tbase
 ^
-groups/csa/csabbg/csabbg_allocatorforward.t.cpp:89:0: warning: AT02: Class 'tbase<int>' uses allocators but does not have an allocator trait
 groups/csa/csabbg/csabbg_allocatorforward.t.cpp:92:0: warning: MA02: Allocator not passed to member used0_
                 explicit tbase(BloombergLP::bslma::Allocator*);
 ~~~~~^
 groups/csa/csabbg/csabbg_allocatorforward.t.cpp:134:0: warning: AT02: Class 'M' uses allocators but does not have an allocator trait
                 struct M { M(BloombergLP::bslma::Allocator*) {} };
 ^
-groups/csa/csabbg/csabbg_allocatorforward.t.cpp:137:0: warning: AT02: Class 'M<char>' uses allocators but does not have an allocator trait
-            template class M<char>;  // TBD should not be needed
-^
-groups/csa/csabbg/csabbg_allocatorforward.t.cpp:136:0: warning: AT02: Class 'S<char, bde_verify::csabbg::<anonymous>::M<char> >' uses allocators but does not have an allocator trait
+groups/csa/csabbg/csabbg_allocatorforward.t.cpp:136:0: warning: AT02: Class 'S' uses allocators but does not have an allocator trait
                 struct S { S(const T*) {} S(const T*, const A&) {} };
 ^
 groups/csa/csabbg/csabbg_allocatorforward.t.cpp:136:0: warning: AC01: This constructor has no version that can be called with an allocator
@@ -55,4 +51,4 @@ groups/csa/csabbg/csabbg_allocatorforward.t.cpp:186:0: warning: AR01: Type using
 groups/csa/csabbg/csabbg_allocatorforward.t.cpp:188:0: warning: AR01: Type using allocator is returned by value
                 return object(o);
 ^
-20 warnings generated.
+18 warnings generated.
