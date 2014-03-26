@@ -182,7 +182,7 @@ LIBS     =                                                                    \
               -lLLVMLinker                                                    \
               -lLLVMipo                                                       \
               -lLLVMX86CodeGen                                                \
-              -lLLVMSparcCodeGen                                                \
+              -lLLVMSparcCodeGen                                              \
               -lLLVMSelectionDAG                                              \
               -lLLVMAsmPrinter                                                \
               -lLLVMJIT                                                       \
@@ -215,9 +215,9 @@ LIBS     =                                                                    \
               -lclangParse                                                    \
               -lLLVMMCParser                                                  \
               -lLLVMX86Desc                                                   \
-              -lLLVMSparcDesc                                                   \
+              -lLLVMSparcDesc                                                 \
               -lLLVMX86Info                                                   \
-              -lLLVMSparcInfo                                                   \
+              -lLLVMSparcInfo                                                 \
               -lLLVMX86AsmPrinter                                             \
               -lLLVMX86Utils                                                  \
               -lclangSema                                                     \
