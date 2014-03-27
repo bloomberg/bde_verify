@@ -333,6 +333,7 @@ void allFunDecls(Analyser& analyser, const FunctionDecl* func)
         && !func->getLocation().isMacroID()
         && (   func->getTemplatedKind() == func->TK_NonTemplate
             || func->getTemplatedKind() == func->TK_FunctionTemplate)
+        && analyser.is_component(func)
             ) {
         analyser.attachment<data>().d_fundecls.push_back(
             std::make_pair(func, SourceRange()));
