@@ -124,6 +124,14 @@ int main(int argc, char *argv[])
             cout << "USAGE EXAMPLE" << endl
                  << "=============" << endl;
         }
+
+        static volatile const bool b = false;
+
+        // These should not complain, because usage example.
+        for (; b; ) { }
+        while (b)   { }
+        do          { } while (b);
+
       } break;
       case 2: {
         // --------------------------------------------------------------------

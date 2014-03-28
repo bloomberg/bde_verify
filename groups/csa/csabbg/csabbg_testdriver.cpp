@@ -759,6 +759,18 @@ void report::match_noisy_print(const BoundNodes& nodes)
 void report::match_no_print(const BoundNodes& nodes)
 {
     const Stmt *quiet = nodes.getNodeAs<Stmt>("loop");
+
+    // Don't warn about this in case 0, the usage example.
+    for (const Stmt *s = quiet;
+         const CaseStmt *cs = d_analyser.get_parent<CaseStmt>(s);
+         s = cs) {
+        llvm::APSInt val;
+        if (cs->getLHS()->isIntegerConstantExpr(val, *d_analyser.context()) &&
+            !val.getBoolValue()) {
+            return;                                                   // RETURN
+        }
+    }
+
     d_analyser.report(quiet, check_name, "TP21",
                       "Loops must contain very verbose action");
 }
