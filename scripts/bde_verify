@@ -41,6 +41,7 @@ my $std;
 my @std;
 my $warnoff;
 my $tlonly;
+my $rwd;
 
 sub usage()
 {
@@ -57,6 +58,7 @@ sub usage()
         --exe=bde_verify         [$exe]
         --[no]definc             [$definc]
         --[no]defdef             [$defdef]
+        --rewrite=dir
         --toplevel
         --std=type
         --debug
@@ -80,6 +82,7 @@ GetOptions(
     'verbose|v'  => \$verbose,
     'definc!'    => \$definc,
     'defdef!'    => \$defdef,
+    'rewrite=s'  => \$rwd,
     'w'          => \$warnoff,
     "I=s"        => \@incs,
     "D=s"        => \@defs,
@@ -95,6 +98,7 @@ GetOptions(
 my @config = ("-plugin-arg-bde_verify", "config=$config")   if $config ne "";
 my @debug  = ("-plugin-arg-bde_verify", "debug-on")         if $debug;
 my @tlo    = ("-plugin-arg-bde_verify", "toplevel-only-on") if $tlonly;
+my @rwd    = ("-plugin-arg-bde_verify", "rewrite-dir=$rwd") if $rwd;
 
 @lflags = map { "-f$_" if $_ ne "no-strict-aliasing" } @lflags;
 @wflags = map { "-W$_" } @wflags;
@@ -144,6 +148,7 @@ my @command = (
     @debug,
     @config,
     @tlo,
+    @rwd,
     @cl,
     @defs,
     @incs,

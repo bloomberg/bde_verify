@@ -11,10 +11,13 @@
 #include <csabase_diagnosticfilter.h>
 #include <clang/Frontend/FrontendPluginRegistry.h>
 #include <clang/AST/ASTConsumer.h>
+#include <clang/Rewrite/Core/Rewriter.h>
 #include <clang/Sema/SemaConsumer.h>
 #include <clang/AST/AST.h>
 #include <clang/Frontend/CompilerInstance.h>
 #include <clang/Lex/Preprocessor.h>
+#include <llvm/Support/FileSystem.h>
+#include <llvm/Support/Path.h>
 #include <llvm/Support/raw_ostream.h>
 #include <string>
 #include <vector>
@@ -34,6 +37,7 @@ class PluginAction : public clang::PluginASTAction
     const std::vector<std::string>& config() const;
     std::string tool_name() const;
     bool toplevel_only() const;
+    std::string rewrite_dir() const;
 
   protected:
     clang::ASTConsumer* CreateASTConsumer(clang::CompilerInstance& compiler,
@@ -47,6 +51,7 @@ class PluginAction : public clang::PluginASTAction
     std::vector<std::string> config_;
     std::string tool_name_;
     bool toplevel_only_;
+    std::string rewrite_dir_;
 };
 
 }
@@ -73,10 +78,14 @@ namespace
 // -----------------------------------------------------------------------------
 
 AnalyseConsumer::AnalyseConsumer(clang::CompilerInstance& compiler,
-                                 std::string const&       source,
-                                 PluginAction const&      plugin)
-    : analyser_(compiler, plugin.debug(), plugin.config(), plugin.tool_name())
-    , source_(source)
+                                 std::string const& source,
+                                 PluginAction const& plugin)
+: analyser_(compiler,
+            plugin.debug(),
+            plugin.config(),
+            plugin.tool_name(),
+            plugin.rewrite_dir())
+, source_(source)
 {
     analyser_.toplevel(source);
 
@@ -110,6 +119,32 @@ void
 AnalyseConsumer::HandleTranslationUnit(clang::ASTContext&)
 {
     analyser_.process_translation_unit_done();
+
+    std::string rd = analyser_.rewrite_dir();
+    if (!rd.empty()) {
+        for (clang::Rewriter::buffer_iterator
+                 b = analyser_.rewriter().buffer_begin(),
+                 e = analyser_.rewriter().buffer_end();
+             b != e;
+             b++) {
+            const clang::FileEntry *fe =
+                analyser_.manager().getFileEntryForID(b->first);
+            llvm::SmallVector<char, 512> path(rd.begin(), rd.end());
+            llvm::sys::path::append(
+                path, llvm::sys::path::filename(fe->getName()));
+            std::string rewritten_file =
+                std::string(path.begin(), path.end()) + "-rewritten";
+            std::string file_error;
+            llvm::raw_fd_ostream rfdo(
+                    rewritten_file.c_str(), file_error, llvm::sys::fs::F_None);
+            if (file_error.empty()) {
+                b->second.write(rfdo);
+            } else {
+                ERRS() << file_error << ": cannot open " << rewritten_file
+                       << " for rewriting\n";
+            }
+        }
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -164,6 +199,9 @@ bool PluginAction::ParseArgs(clang::CompilerInstance const& compiler,
         else if (arg.startswith("tool=")) {
             tool_name_ = "[" + arg.substr(5).str() + "] ";
         }
+        else if (arg.startswith("rewrite-dir=")) {
+            rewrite_dir_ = arg.substr(12).str();
+        }
         else
         {
             llvm::errs() << "unknown bde_verify argument = '" << arg << "'\n";
@@ -194,6 +232,12 @@ bool
 PluginAction::toplevel_only() const
 {
     return toplevel_only_;
+}
+
+std::string
+PluginAction::rewrite_dir() const
+{
+    return rewrite_dir_;
 }
 
 // -----------------------------------------------------------------------------

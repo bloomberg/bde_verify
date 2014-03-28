@@ -29,6 +29,7 @@
 namespace clang
 {
     class CompilerInstance;
+    class Rewriter;
     class Sema;
     class SourceManager;
 }
@@ -50,9 +51,12 @@ namespace bde_verify
 class bde_verify::csabase::Analyser:
     public bde_verify::csabase::Attachments
 {
-public:
+  public:
     Analyser(clang::CompilerInstance& compiler,
-             bool debug, std::vector<std::string> const& config, std::string const& name);
+             bool debug,
+             std::vector<std::string> const& config,
+             std::string const& name,
+             std::string const& rewrite_dir);
     ~Analyser();
 
     Config const* config() const;
@@ -63,6 +67,7 @@ public:
     void                     context(clang::ASTContext*);
     clang::CompilerInstance& compiler();
     clang::Sema&             sema();
+    clang::Rewriter&         rewriter();
 
     std::string const& toplevel() const;
     std::string const& directory() const;
@@ -70,6 +75,7 @@ public:
     std::string const& group() const;
     std::string const& package() const;
     std::string const& component() const;
+    std::string const& rewrite_dir() const;
     void               toplevel(std::string const&);
     bool               is_component_header(std::string const&) const;
     bool               is_component_header(clang::SourceLocation) const;
@@ -138,14 +144,16 @@ private:
     clang::CompilerInstance&              compiler_;
     clang::SourceManager const&           d_source_manager;
     std::auto_ptr<bde_verify::csabase::Visitor> visitor_;
-    bde_verify::csabase::PPObserver*            pp_observer_;
+    bde_verify::csabase::PPObserver*      pp_observer_;
     clang::ASTContext*                    context_;
+    clang::Rewriter*                      rewriter_;
     std::string                           toplevel_;
     std::string                           directory_;
     std::string                           prefix_;
     std::string                           group_;
     std::string                           package_;
     std::string                           component_;
+    std::string                           rewrite_dir_;
     typedef std::map<std::string, bool>   IsComponentHeader;
     mutable IsComponentHeader             is_component_header_;
     typedef std::map<std::string, bool>   IsGlobalPackage;

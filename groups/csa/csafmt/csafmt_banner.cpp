@@ -7,6 +7,7 @@
 #include <csabase_registercheck.h>
 #include <csabase_util.h>
 #include <llvm/Support/Regex.h>
+#include <clang/Rewrite/Core/Rewriter.h>
 #include <string>
 #include <set>
 #include <vector>
@@ -91,9 +92,9 @@ void files::operator()(SourceRange range)
 #define SP "[[:space:]]*"
 
 static llvm::Regex generic_banner(      // things that look like banners
-        "//"     SP     aba("[-=_]",        SP) SP
-        "//" "(" SP ")" aba("[_[:alnum:]]", SP) SP
-        "//" "(" SP ")" aba("[-=_]",        SP) SP "$",
+        "//"     SP     aba("[-=_]",        SP) SP          // 1, 2
+        "//" "(" SP ")" aba("[_[:alnum:]]", SP) SP          // 3, 4, 5
+        "//" "(" SP ")" aba("[-=_]",        SP) SP "$",     // 6, 7, 8
     llvm::Regex::Newline);
 
 static llvm::Regex generic_separator(   // things that look like separators
@@ -125,10 +126,23 @@ void files::check_comment(SourceRange comment_range)
             matches[3].size() != 79 &&
             matches[4].size() <= 1 &&
             separator.size() != matches[1].size()) {
+            std::string expected_banner = matches[3].trim();
+            std::string extra =
+                expected_banner.substr(expected_banner.size() - 2);
+            while (expected_banner.size() < 79) {
+                expected_banner += extra;
+            }
+            expected_banner = expected_banner.substr(0, 79);
+            clang::FileID fid = manager.getFileID(separator_start);
+            size_t line_num = manager.getPresumedLineNumber(separator_start);
+            SourceRange line_range(
+                manager.translateLineCol(fid, line_num, 1),
+                manager.translateLineCol(fid, line_num, comment.size()));
             d_analyser.report(separator_start,
                               check_name, "BAN02",
                               "Banner ends at column %0 instead of 79")
                 << static_cast<int>(matches[3].size());
+            d_analyser.rewriter().ReplaceText(line_range, expected_banner);
         }
     }
 
@@ -163,14 +177,18 @@ void files::check_comment(SourceRange comment_range)
                 "Improperly centered banner text"
                 " (not reachable using tab key)" :
                 "Improperly centered banner text";
-            d_analyser.report(
-                    banner_start.getLocWithOffset(text_pos),
-                    check_name, "BAN03", error);
-            d_analyser.report(
-                    banner_start.getLocWithOffset(text_pos),
-                    check_name, "BAN03", "Correct text is\n%0", false,
-                    clang::DiagnosticsEngine::Note)
+            SourceLocation sl = banner_start.getLocWithOffset(text_pos);
+            clang::FileID fid = manager.getFileID(sl);
+            size_t line_num = manager.getPresumedLineNumber(sl);
+            SourceRange line_range(
+                manager.translateLineCol(fid, line_num, 1),
+                manager.translateLineCol(fid, line_num, banner.size()));
+            d_analyser.report(sl, check_name, "BAN03", error);
+            d_analyser.report(sl, check_name, "BAN03",
+                              "Correct text is\n%0",
+                              false, clang::DiagnosticsEngine::Note)
                 << expected_text;
+            d_analyser.rewriter().ReplaceText(line_range, expected_text);
         }
 
         llvm::StringRef bottom_rule = matches[7];
@@ -180,6 +198,14 @@ void files::check_comment(SourceRange comment_range)
             // It's a misaligned underline for the banner text.
             SourceLocation bottom_loc = banner_start.getLocWithOffset(
                 banner.size() - bottom_rule.size());
+            clang::FileID fid = manager.getFileID(bottom_loc);
+            size_t line_num = manager.getPresumedLineNumber(bottom_loc);
+            SourceRange line_range(
+                manager.translateLineCol(fid, line_num, 1),
+                manager.translateLineCol(fid, line_num, banner.size()));
+            std::string expected_text =
+                "//" + std::string(expected_last_space_pos - 2, ' ') +
+                bottom_rule.str();
             d_analyser.report(bottom_loc,
                               check_name, "BAN04",
                               "Improperly centered underlining");
@@ -189,6 +215,7 @@ void files::check_comment(SourceRange comment_range)
                               false, clang::DiagnosticsEngine::Note)
                 << "//" + std::string(expected_last_space_pos - 2, ' ') +
                        bottom_rule.str();
+            d_analyser.rewriter().ReplaceText(line_range, expected_text);
         }
     }
 }

@@ -6,10 +6,12 @@
 // ----------------------------------------------------------------------------
 
 #include <csabase_analyser.h>
+#include <csabase_debug.h>
 #include <csabase_filenames.h>
 #include <csabase_registercheck.h>
 #include <csabase_ppobserver.h>
 #include <csabase_util.h>
+#include <clang/Rewrite/Core/Rewriter.h>
 #include <fstream>
 #include <string>
 
@@ -91,6 +93,11 @@ open_file(bde_verify::csabase::Analyser& analyser,
                             "Correct format is\n%0",
                             true, clang::DiagnosticsEngine::Note)
                 << expect;
+            analyser.rewriter().ReplaceText(where.getLocWithOffset(m.first),
+                                            buf.size() - m.first - m.second,
+                                            llvm::StringRef(expect)
+                                                .drop_front(m.first)
+                                                .drop_back(m.second));
         }
     }
 }

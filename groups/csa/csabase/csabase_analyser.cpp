@@ -21,6 +21,7 @@
 #include <clang/Frontend/CompilerInstance.h>
 #include <clang/Lex/Lexer.h>
 #include <clang/Lex/Preprocessor.h>
+#include <clang/Rewrite/Core/Rewriter.h>
 #include <clang/Sema/Sema.h>
 #include <clang/Sema/Lookup.h>
 #include <llvm/Support/Path.h>
@@ -36,7 +37,8 @@
 bde_verify::csabase::Analyser::Analyser(clang::CompilerInstance& compiler,
                                   bool debug,
                                   std::vector<std::string> const& config,
-                                  std::string const& name)
+                                  std::string const& name,
+                                  std::string const& rewrite_dir)
 : d_config(new bde_verify::csabase::Config(
                config.size() == 0 ?
                    std::vector<std::string>(1, "load .bdeverify") :
@@ -46,16 +48,17 @@ bde_verify::csabase::Analyser::Analyser(clang::CompilerInstance& compiler,
 , compiler_(compiler)
 , d_source_manager(compiler.getSourceManager())
 , visitor_(new bde_verify::csabase::Visitor())
-, pp_observer_(0)
+, pp_observer_(new bde_verify::csabase::PPObserver(&d_source_manager,
+                                                   d_config.get()))
 , context_(0)
+, rewriter_(new clang::Rewriter(compiler.getSourceManager(),
+                                compiler.getLangOpts()))
+, rewrite_dir_(rewrite_dir)
 {
-    std::auto_ptr<bde_verify::csabase::PPObserver> observer(
-        new bde_verify::csabase::PPObserver(&d_source_manager, d_config.get()));
-    pp_observer_ = observer.get();
-    bde_verify::csabase::CheckRegistry::attach(*this, *visitor_, *observer);
+    bde_verify::csabase::CheckRegistry::attach(*this, *visitor_, *pp_observer_);
     compiler_.getPreprocessor().addCommentHandler(
-        observer->get_comment_handler());
-    compiler_.getPreprocessor().addPPCallbacks(observer.release());
+        pp_observer_->get_comment_handler());
+    compiler_.getPreprocessor().addPPCallbacks(pp_observer_);
 }
 
 bde_verify::csabase::Analyser::~Analyser()
@@ -107,6 +110,18 @@ clang::CompilerInstance&
 bde_verify::csabase::Analyser::compiler()
 {
     return compiler_;
+}
+
+clang::Rewriter&
+bde_verify::csabase::Analyser::rewriter()
+{
+    return *rewriter_;
+}
+
+std::string const&
+bde_verify::csabase::Analyser::rewrite_dir() const
+{
+    return rewrite_dir_;
 }
 
 // -----------------------------------------------------------------------------
