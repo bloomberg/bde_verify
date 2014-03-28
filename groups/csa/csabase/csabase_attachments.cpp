@@ -8,41 +8,23 @@
 #include <csabase_attachments.h>
 #ident "$Id$"
 
-// -----------------------------------------------------------------------------
+namespace bde_verify {
+namespace csabase {
 
-bde_verify::csabase::AttachmentBase::~AttachmentBase()
+AttachmentBase::~AttachmentBase()
 {
 }
 
-// -----------------------------------------------------------------------------
-
-static size_t next_index(0u);
-
-size_t
-bde_verify::csabase::Attachments::alloc()
-{
-    return next_index++;
-}
-
-// -----------------------------------------------------------------------------
-
-bde_verify::csabase::Attachments::Attachments()
-{
-    data_.resize(next_index);
-}
-
-bde_verify::csabase::Attachments::~Attachments()
+Attachments::Attachments()
 {
 }
 
-// -----------------------------------------------------------------------------
-
-utils::shared_ptr<bde_verify::csabase::AttachmentBase>&
-bde_verify::csabase::Attachments::access(size_t index)
+Attachments::~Attachments()
 {
-    if (data_.size() <= index)
-    {
-        data_.resize(index + 1u);
+    for (size_t i = 0; i < d_attachments.size(); ++i) {
+        delete d_attachments[i];
     }
-    return data_[index];
 }
+
+}  // close package namespace
+}  // close enterprise namespace

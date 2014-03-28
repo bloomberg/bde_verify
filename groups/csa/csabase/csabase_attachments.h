@@ -15,102 +15,101 @@
 
 // -----------------------------------------------------------------------------
 
-namespace bde_verify
-{
-    namespace csabase
-    {
-        class AttachmentBase;
-        template <typename> class Attachment;
-        class Attachments;
-    }
-}
+namespace bde_verify {
+namespace csabase {
 
-// -----------------------------------------------------------------------------
-
-class bde_verify::csabase::AttachmentBase
+struct AttachmentBase
+    // The base class for attachment data.  The intent is that each bde_verify
+    // module creates a private class to hold the data it needs, and creates an
+    // attchment to hold it.
 {
-public:
     virtual ~AttachmentBase();
+        // Destroy this object.
 };
 
-// -----------------------------------------------------------------------------
-
-template <typename T>
-class bde_verify::csabase::Attachment:
-    public bde_verify::csabase::AttachmentBase
+template <typename TYPE>
+class Attachment : public AttachmentBase
+    // The per-type class for attachment data.  It is intended that attachments
+    // be held within a global data structure of the bde_verify analyser, and
+    // that callback objects access this structure as needed.
 {
-public:
-    static size_t index();
-    Attachment();
-    T& data();
-
-private:
+  private:
     Attachment(Attachment const&);
+        // Elided copy constructor.
+
     void operator=(Attachment const&);
+        // Elided assignment operator.
 
-    T data_;
+  public:
+    Attachment();
+        // Create an object of this type.
+
+    TYPE& data();
+        // Return a modifiable reference to the data of this attachment.
+
+  private:
+    TYPE d_data;  // The data stored by this attachment.
 };
 
-// -----------------------------------------------------------------------------
-
-class bde_verify::csabase::Attachments
+template <typename TYPE>
+inline
+Attachment<TYPE>::Attachment()
+: d_data()
 {
-public:
-    static size_t alloc();
+}
 
-    Attachments();
-    ~Attachments();
+template <typename TYPE>
+inline
+TYPE& Attachment<TYPE>::data()
+{
+    return d_data;
+}
 
-    template <typename T> T& attachment();
-    
-private:
+class Attachments
+    // The class holding all attachments.  From the outside, the attachments
+    // appear indexed by their data type.
+{
+  private:
     Attachments(Attachments const&);
-    void operator=(Attachments const&);
-    utils::shared_ptr<bde_verify::csabase::AttachmentBase>& access(size_t);
+        // Elided copy constructor.
 
-    std::vector<utils::shared_ptr<bde_verify::csabase::AttachmentBase> > data_;
+    void operator=(Attachments const&);
+        // Elided assignment operator.
+
+  public:
+    Attachments();
+        // Create an object of this type;
+
+    ~Attachments();
+        // Destroy this object and its attachments.
+
+    template <class TYPE>
+    TYPE& attachment();
+        // Return reference offering modifiable access to the attachment for 
+        // the specified 'TYPE'.
+
+  private:
+    std::vector<AttachmentBase *> d_attachments;
 };
 
-// -----------------------------------------------------------------------------
-
-template <typename T>
-size_t
-bde_verify::csabase::Attachment<T>::index()
+template <class TYPE>
+TYPE& Attachments::attachment()
 {
-    static size_t rc(bde_verify::csabase::Attachments::alloc());
-    return rc;
-}
-
-template <typename T>
-bde_verify::csabase::Attachment<T>::Attachment():
-    data_()
-{
-}
-
-template <typename T>
-T&
-bde_verify::csabase::Attachment<T>::data()
-{
-    return data_;
-}
-
-// -----------------------------------------------------------------------------
-
-template <typename T>
-T&
-bde_verify::csabase::Attachments::attachment()
-{
-    utils::shared_ptr<bde_verify::csabase::AttachmentBase>& ref(access(bde_verify::csabase::Attachment<T>::index()));
-    if (!ref)
-    {
-        ref = utils::shared_ptr<bde_verify::csabase::AttachmentBase>(new bde_verify::csabase::Attachment<T>());
+    // The first time this is called (for the specified 'TYPE') a new
+    // attachment will be created in the attachments vector.
+    static size_t index = d_attachments.size();
+    if (index == d_attachments.size()) {
+        d_attachments.resize(index + 1);
+        d_attachments[index] = new Attachment<TYPE>;
     }
-    // In theory, this should be a dynamic_cast<...>() but
-    // 1. it isn't really necessary because it known what type is at this location
-    // 2. the code gets compiled with RTTI being turned off to link to clang
-    return static_cast<bde_verify::csabase::Attachment<T>&>(*ref).data();
+
+    // We know that the 'AttachmentBase' at 'index' is really an
+    // 'Attachment<TYPE>' given the code above, so the 'static_cast' is
+    // correct.
+    return static_cast<Attachment<TYPE>*>(d_attachments[index])->data();
 }
 
-// -----------------------------------------------------------------------------
+}
+}
 
 #endif
