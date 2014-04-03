@@ -229,6 +229,17 @@ struct alloc_f {
     BSLMF_NESTED_TRAIT_DECLARATION_IF(alloc_f, bslma::UsesBslmaAllocator, false);
     explicit alloc_f(bslma::Allocator*) { }
 };
+
+template <class TYPE>
+struct alloc_g {
+    explicit alloc_g(bslma::Allocator*) { }
+};
+
+template <class TYPE>
+struct alloc_h {
+    explicit alloc_h(bslma::Allocator*) { }
+};
+
 }
 }
 
@@ -238,6 +249,14 @@ namespace bslma
 {
 template <>
 struct UsesBslmaAllocator<bde_verify::csabbg::alloc_c> : bsl::true_type { };
+
+template <class TYPE>
+struct UsesBslmaAllocator<bde_verify::csabbg::alloc_g<TYPE> >
+: bsl::true_type { };
+
+template <class TYPE>
+struct UsesBslmaAllocator<bde_verify::csabbg::alloc_h<TYPE> >
+: bsl::false_type { };
 }
 }
 

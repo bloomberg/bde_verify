@@ -585,6 +585,10 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
             }
         }
 
+        if (has_false_alloc_trait) {
+            continue;
+        }
+
         std::pair<bool, const CXXRecordDecl *> rp =
             std::make_pair(uses_allocator, record);
 
