@@ -54,6 +54,12 @@ groups/csa/csabbg/csabbg_testdriver.t.cpp:29:0: warning: TP03: Missing test numb
 groups/csa/csabbg/csabbg_testdriver.t.cpp:30:0: warning: TP03: Missing test number
 // [  ] USAGE EXAMPLE
 ^~~~
+groups/csa/csabbg/csabbg_testdriver.t.cpp:273:0: warning: TP23: Final statement of `main()` must be `return testStatus;`
+    }
+^
+groups/csa/csabbg/csabbg_testdriver.t.cpp:272:0: warning: TP24: `default:` case should set `testStatus = -1;`
+      }
+^
 groups/csa/csabbg/csabbg_testdriver.t.cpp:267:0: warning: TP17: Test case does not contain 'if (verbose) print test banner'
       case -1: {
 ^
@@ -154,4 +160,4 @@ groups/csa/csabbg/csabbg_testdriver.t.cpp:120:0: warning: TP08: Test plan does n
 groups/csa/csabbg/csabbg_testdriver.t.cpp:30:0: note: TP08: Test plan item is
 // [  ] USAGE EXAMPLE
 ^
-37 warnings generated.
+39 warnings generated.

@@ -2,6 +2,7 @@
 // ----------------------------------------------------------------------------
 
 #include <csabase_analyser.h>
+#include <csabase_debug.h>
 #include <csabase_location.h>
 #include <csabase_ppobserver.h>
 #include <csabase_registercheck.h>
@@ -109,6 +110,8 @@ struct report
 
     void match_noisy_print(const BoundNodes &nodes);
     void match_no_print(const BoundNodes &nodes);
+    void match_return_status(const BoundNodes &nodes);
+    void match_set_status(const BoundNodes &nodes);
 };
 
 report::report(Analyser& analyser)
@@ -327,6 +330,55 @@ no_print_matcher()
     return matcher;
 }
 
+const internal::DynTypedMatcher &
+return_status_matcher()
+    // Return an AST matcher which looks for a 'return testStatus;' statement.
+{
+    static const internal::DynTypedMatcher matcher =
+        stmt(anyOf(returnStmt(declRefExpr(hasDeclaration(namedDecl(
+                                  hasName("testStatus"))))).bind("good"),
+                   stmt().bind("bad"))).bind("all");
+    return matcher;
+}
+
+void report::match_return_status(const BoundNodes& nodes)
+{
+    if (const Stmt *bad = nodes.getNodeAs<Stmt>("bad")) {
+        d_analyser.report(bad->getLocEnd(), check_name, "TP23",
+                          "Final statement of `main()` must be "
+                          "`return testStatus;`");
+    }
+}
+
+const internal::DynTypedMatcher &
+set_status_matcher()
+    // Return an AST matcher which looks for 'testStatus = -1;'.
+{
+    static const internal::DynTypedMatcher matcher =
+        defaultStmt(anyOf(
+            defaultStmt(hasDescendant(binaryOperator(
+                hasOperatorName("="),
+                hasLHS(declRefExpr(hasDeclaration(namedDecl(
+                    hasName("testStatus"))))
+                ),
+                hasRHS(unaryOperator(
+                    hasOperatorName("-"),
+                    hasUnaryOperand(integerLiteral(equals(1)))
+                ))
+            ))).bind("good"),
+            defaultStmt().bind("bad")
+        ));
+    return matcher;
+}
+
+void report::match_set_status(const BoundNodes& nodes)
+{
+    if (const Stmt *bad = nodes.getNodeAs<Stmt>("bad")) {
+        d_analyser.report(bad->getLocEnd(), check_name, "TP24",
+                          "`default:` case should set `testStatus = -1;`");
+    }
+}
+
 void report::operator()()
 {
     if (!d_analyser.is_test_driver()) {
@@ -427,10 +479,11 @@ void report::operator()()
 
     // Find the main switch statement.
     const SwitchStmt *ss = 0;
-    if (const Stmt *stmt = d_data.d_main) {
-        Stmt::const_child_iterator b = stmt->child_begin();
-        Stmt::const_child_iterator e = stmt->child_end();
-        for (Stmt::const_child_iterator i = b; !ss && i != e; ++i) {
+    if (const CompoundStmt *stmt =
+            llvm::dyn_cast<CompoundStmt>(d_data.d_main)) {
+        CompoundStmt::const_body_iterator b = stmt->body_begin();
+        CompoundStmt::const_body_iterator e = stmt->body_end();
+        for (CompoundStmt::const_body_iterator i = b; !ss && i != e; ++i) {
             ss = llvm::dyn_cast<SwitchStmt>(*i);
         }
         if (!ss) {
@@ -438,6 +491,14 @@ void report::operator()()
                               "No switch statement found in test driver main");
             return;                                                   // RETURN
         }
+        MatchFinder mf;
+        OnMatch<report, &report::match_return_status> m1(this);
+        mf.addDynamicMatcher(return_status_matcher(), &m1);
+        const Stmt *last = stmt->body_back();
+        if (!last) {
+            last = stmt;
+        }
+        mf.match(*last, *d_analyser.context());
     } else {
         return;                                                       // RETURN
     }
@@ -460,6 +521,10 @@ void report::operator()()
         const CaseStmt* cs = llvm::dyn_cast<CaseStmt>(sc);
         if (!cs) {
             // Default case.
+            MatchFinder mf;
+            OnMatch<report, &report::match_set_status> m1(this);
+            mf.addDynamicMatcher(set_status_matcher(), &m1);
+            mf.match(*sc, *d_analyser.context());
             continue;
         }
 
