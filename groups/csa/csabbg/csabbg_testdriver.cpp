@@ -752,6 +752,38 @@ static bool is_all_cappish(llvm::StringRef s)
     return true;
 }
 
+static std::string cappish(llvm::StringRef ref)
+    // Return cappish version of the specified string 's'.
+{
+    std::string s = ref.str();
+    bool in_single_quotes = false;
+    bool in_double_quotes = false;
+
+    for (size_t i = 0; i < s.size(); ++i) {
+        switch (s[i]) {
+          case '\'': {
+            if (!in_double_quotes) {
+                in_single_quotes = !in_single_quotes;
+            }
+          } break;
+          case '"': {
+            if (!in_single_quotes) {
+                in_double_quotes = !in_double_quotes;
+            }
+          } break;
+          case 'a': case 'b': case 'c': case 'd': case 'e': case 'f': case 'g':
+          case 'h': case 'i': case 'j': case 'k': case 'l': case 'm': case 'n':
+          case 'o': case 'p': case 'q': case 'r': case 's': case 't': case 'u':
+          case 'v': case 'w': case 'x': case 'y': case 'z': {
+            if (!in_single_quotes && !in_double_quotes) {
+                s[i] = std::toupper(s[i]);
+            }
+          } break;
+        }
+    }
+    return s;
+}
+
 void report::match_print_banner(const BoundNodes& nodes)
 {
     const StringLiteral *l1 = nodes.getNodeAs<StringLiteral>("BANNER");
@@ -769,6 +801,8 @@ void report::match_print_banner(const BoundNodes& nodes)
         // or n == 10
         // TEST \n ==== \n
         // 0123  4 5678  9
+        banner_text = s.ltrim().split('\n').first;
+        banner_literal = l1;
         if ((s.count('\n') != 3 ||
              s[0] != '\n' ||
              s[n - 1] != '\n' ||
@@ -781,15 +815,20 @@ void report::match_print_banner(const BoundNodes& nodes)
              s.find_first_not_of('=', n / 2) != n - 1 ||
              !is_all_cappish(s))
            ) {
-                d_analyser.report(l1, check_name, "TP18",
-                                  "Incorrect test banner format");
-                d_analyser.report(l1, check_name, "TP18",
-                                  "Correct format is\n%0",
-                                  false, DiagnosticsEngine::Note)
-                    << "\"\\nALL CAPS DESCRIPTION\\n====================\\n\"";
+            size_t col = d_manager.getPresumedColumnNumber(l1->getLocStart());
+            std::string indent(col - 1, ' ');
+            d_analyser.report(l1, check_name, "TP18",
+                              "Incorrect test banner format");
+            d_analyser.report(l1, check_name, "TP18",
+                              "Correct format is\n%0",
+                              false, DiagnosticsEngine::Note)
+                << indent
+                 + "\"\\n"
+                 + cappish(banner_text)
+                 + "\\n"
+                 + std::string(banner_text.size(), '=')
+                 + "\\n\"";
         }
-        banner_text = s.ltrim().split('\n').first;
-        banner_literal = l1;
     } else if (l2 && l3) {
         llvm::StringRef text = l2->getString();
         llvm::StringRef ul = l3->getString();
@@ -798,20 +837,29 @@ void report::match_print_banner(const BoundNodes& nodes)
             text = text.substr(1);
             ul   = ul  .substr(1);
         }
+        banner_text = text.ltrim().split('\n').first;
+        banner_literal = l2;
         if (text.size() != ul.size() ||
             ul.find_first_not_of('=') != ul.npos ||
             !is_all_cappish(text)) {
-                d_analyser.report(l2, check_name, "TP18",
-                                  "Incorrect test banner format");
-                d_analyser.report(l2, check_name, "TP18",
-                                  "Correct format is\n%0",
-                                  false, DiagnosticsEngine::Note)
-                    << "cout << endl\n"
-                       "     << \"ALL CAPS DESCRIPTION\" << endl\n"
-                       "     << \"====================\" << endl;\n";
+            size_t col = d_manager.getPresumedColumnNumber(l2->getLocStart());
+            std::string indent(col - 9, ' ');
+            d_analyser.report(l2, check_name, "TP18",
+                              "Incorrect test banner format");
+            d_analyser.report(l2, check_name, "TP18",
+                              "Correct format is\n%0",
+                              false, DiagnosticsEngine::Note)
+                << indent
+                 + "cout << endl\n"
+                 + indent
+                 + "     << \""
+                 + cappish(banner_text)
+                 + "\" << endl\n"
+                 + indent
+                 + "     << \""
+                 + std::string(banner_text.size(), '=')
+                 + "\" << endl;\n";
         }
-        banner_text = text.ltrim().split('\n').first;
-        banner_literal = l2;
     }
 }
 

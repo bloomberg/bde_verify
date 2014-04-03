@@ -121,7 +121,7 @@ int main(int argc, char *argv[])
         // --------------------------------------------------------------------
 
         if (verbose) {
-            cout << "USAGE EXAMPLE" << endl
+            cout << "Usage Example" << endl
                  << "=============" << endl;
         }
 
@@ -135,7 +135,7 @@ int main(int argc, char *argv[])
       } break;
       case 2: {
         // --------------------------------------------------------------------
-        // F AND SETF
+        // 'f' AND "setf"
         //  Test the 'f' and 'setF' methods.
         //
         // Concerns:
@@ -148,7 +148,7 @@ int main(int argc, char *argv[])
         // --------------------------------------------------------------------
 
         if (verbose) {
-            cout << "F AND SETF" << endl
+            cout << "'f' AND 'setf'" << endl
                  << "==========" << endl;
         }
       } break;
