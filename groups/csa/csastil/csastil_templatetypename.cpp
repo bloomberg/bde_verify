@@ -9,6 +9,7 @@
 #include <csabase_registercheck.h>
 #include <csabase_cast_ptr.h>
 #include <llvm/Support/Regex.h>
+#include <clang/Rewrite/Core/Rewriter.h>
 
 // ----------------------------------------------------------------------------
 
@@ -31,6 +32,13 @@ checkTemplate(bde_verify::csabase::Analyser& analyser,
             if (parm->wasDeclaredWithTypename()) {
                  analyser.report(parm, check_name, "TY01",
                      "Template parameter uses 'typename' instead of 'class'");
+                 clang::SourceRange r = parm->getSourceRange();
+                 llvm::StringRef s = analyser.get_source(r);
+                 size_t to = s.find("typename");
+                 if (to != s.npos) {
+                     analyser.rewriter().ReplaceText(
+                        r.getBegin().getLocWithOffset(to), 8, "class");
+                 }
             }
             if (parm->getName().size() == 1) {
                  analyser.report(parm, check_name, "TY02",

@@ -50,4 +50,12 @@ bde_verify::csastil::swap(TemplateTypenameBad<TT>&, TemplateTypenameBad<TT>&)
 {
 }
 
+namespace bde_verify
+{
+    namespace csastil
+    {
+        template <typename AA, class BB, typename CC> void foo();
+    }
+}
+
 #endif

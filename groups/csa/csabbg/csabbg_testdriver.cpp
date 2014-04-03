@@ -52,7 +52,7 @@ struct data
     typedef std::set<size_t> CCLines;  // Conditional compilation lines.
     CCLines d_cclines;
 
-    const Stmt *d_main;  // The compound statement of 'main()'.
+    const CompoundStmt *d_main;  // The compound statement of 'main()'.
 };
 
 struct report
@@ -477,20 +477,19 @@ void report::operator()()
                           "No test items found in test plan");
     }
 
+    CompoundStmt const* stmt = d_data.d_main;
+    if (!stmt) {
+        return;                                                       // RETURN
+    }
+
     // Find the main switch statement.
     const SwitchStmt *ss = 0;
-    if (const CompoundStmt *stmt =
-            llvm::dyn_cast<CompoundStmt>(d_data.d_main)) {
-        CompoundStmt::const_body_iterator b = stmt->body_begin();
-        CompoundStmt::const_body_iterator e = stmt->body_end();
-        for (CompoundStmt::const_body_iterator i = b; !ss && i != e; ++i) {
-            ss = llvm::dyn_cast<SwitchStmt>(*i);
-        }
-        if (!ss) {
-            d_analyser.report(stmt, check_name, "TP11",
-                              "No switch statement found in test driver main");
-            return;                                                   // RETURN
-        }
+    CompoundStmt::const_body_iterator b = stmt->body_begin();
+    CompoundStmt::const_body_iterator e = stmt->body_end();
+    for (CompoundStmt::const_body_iterator i = b; !ss && i != e; ++i) {
+        ss = llvm::dyn_cast<SwitchStmt>(*i);
+    }
+    if (ss) {
         MatchFinder mf;
         OnMatch<report, &report::match_return_status> m1(this);
         mf.addDynamicMatcher(return_status_matcher(), &m1);
@@ -500,6 +499,8 @@ void report::operator()()
         }
         mf.match(*last, *d_analyser.context());
     } else {
+        d_analyser.report(stmt, check_name, "TP11",
+                          "No switch statement found in test driver main");
         return;                                                       // RETURN
     }
 
@@ -692,7 +693,7 @@ void report::operator()(SourceRange range)
 void report::operator()(const FunctionDecl *function)
 {
     if (function->isMain() && function->hasBody()) {
-        d_data.d_main = function->getBody();
+        d_data.d_main = llvm::dyn_cast<CompoundStmt>(function->getBody());
     }
 }
 
