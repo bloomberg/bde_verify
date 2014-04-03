@@ -47,7 +47,7 @@ struct data
     typedef std::map<std::string, Lines> Comments;
     Comments d_comments;  // Comment lines per file.
 
-    typedef std::set<const FunctionDecl *> Functions;
+    typedef std::set<std::pair<const FunctionDecl *, const Decl *> > Functions;
     Functions d_functions;
 };
 
@@ -138,7 +138,7 @@ struct report
     void operator()(const FunctionTemplateDecl *decl);
         // Invoked to process function template declarations.
 
-    void check_order(const FunctionDecl *decl);
+    void check_order(std::pair<const FunctionDecl *, const Decl *> p);
         // Check if function is in alphanumeric order.
 };
 
@@ -160,18 +160,19 @@ void report::operator()()
 
 void report::operator()(const FunctionTemplateDecl *decl)
 {
-    (*this)(decl->getTemplatedDecl());
+    d.d_functions.insert(std::make_pair(decl->getTemplatedDecl(), decl));
 }
 
 void report::operator()(const FunctionDecl *decl)
 {
-    d.d_functions.insert(decl);
+    d.d_functions.insert(std::make_pair(decl, decl));
 }
 
-void report::check_order(const FunctionDecl *decl)
+void report::check_order(std::pair<const FunctionDecl *, const Decl *> p)
 {
+    const FunctionDecl *decl = p.first;
     DeclarationName name = decl->getDeclName();
-    const Decl *next = decl->getNextDeclInContext();
+    const Decl *next = p.second->getNextDeclInContext();
 
     if (   d_analyser.is_component(decl)
         && !decl->isTemplateInstantiation()
