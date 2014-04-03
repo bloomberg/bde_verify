@@ -551,20 +551,23 @@ SourceRange report::getContract(const FunctionDecl     *func,
         // starts no earlier than the first initializer and has only whitespace
         // and a colon between itself and that initializer.
         SourceLocation initloc = (*ctor->init_begin())->getSourceLocation();
-        data::Ranges::iterator it;
-        for (it = comments_begin; it != comments_end; ++it) {
-            if (d_manager.isBeforeInTranslationUnit(initloc, it->getBegin())) {
-                break;
-            }
-            if (d_manager.isBeforeInTranslationUnit(
-                    it->getEnd(), declarator.getBegin())) {
-                continue;
-            }
-            llvm::StringRef s = d_analyser.get_source(
-                SourceRange(it->getEnd(), initloc), true);
-            if (s.find_first_not_of(": \n") == llvm::StringRef::npos) {
-                contract = *it;
-                break;
+        if (initloc.isValid()) {
+            data::Ranges::iterator it;
+            for (it = comments_begin; it != comments_end; ++it) {
+                if (d_manager.isBeforeInTranslationUnit(
+                        initloc, it->getBegin())) {
+                    break;
+                }
+                if (d_manager.isBeforeInTranslationUnit(
+                            it->getEnd(), declarator.getBegin())) {
+                    continue;
+                }
+                llvm::StringRef s = d_analyser.get_source(
+                        SourceRange(it->getEnd(), initloc), true);
+                if (s.find_first_not_of(": \n") == llvm::StringRef::npos) {
+                    contract = *it;
+                    break;
+                }
             }
         }
     }
