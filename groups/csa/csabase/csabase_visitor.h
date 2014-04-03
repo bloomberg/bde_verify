@@ -29,13 +29,13 @@ class bde_verify::csabase::Visitor:
 {
 public:
 #define DECL(CLASS, BASE)                                                     \
-    utils::event<void(clang::CLASS##Decl const*)> on##CLASS##Decl;             \
+    utils::event<void(clang::CLASS##Decl const*)> on##CLASS##Decl;            \
     void do_visit(clang::CLASS##Decl const*);
 DECL(,)
 #include "clang/AST/DeclNodes.inc"
 
 #define STMT(CLASS, PARENT)                                                   \
-    utils::event<void(clang::CLASS const*)> on##CLASS;                         \
+    utils::event<void(clang::CLASS const*)> on##CLASS;                        \
     void do_visit(clang::CLASS const*);
 STMT(Stmt,)
 #include "clang/AST/StmtNodes.inc"
