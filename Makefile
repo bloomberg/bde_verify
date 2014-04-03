@@ -52,9 +52,9 @@ VERSION  = 4.8.1
 CCDIR    = /opt/swt/install/gcc-4.8.1
 CXX      = $(CCDIR)/bin/g++
          ifeq        ($(STD),CXX2011)
-CXXFLAGS += -m32 -pthreads
-CFLAGS   += -m32 -pthreads
-LDFLAGS  += -m32 -pthreads
+CXXFLAGS += -m32 -pthreads -mno-faster-structs
+CFLAGS   += -m32 -pthreads -mno-faster-structs
+LDFLAGS  += -m32 -pthreads -mno-faster-structs
 CXXFLAGS += -std=c++0x
          endif
 LINK     = $(CXX)
