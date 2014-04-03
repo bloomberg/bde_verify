@@ -99,5 +99,24 @@ int main(int ac, char* av[])
     default: break;
     }
 
+    switch (ac)
+    {
+    case 0:
+    case 12:
+        ++ac;
+        ++ac;
+        ++ac;
+        { break; }
+    case 11:
+        { ++ac; }
+        ++ac;
+        ++ac;
+    case 10: {
+        ++ac;
+        ++ac;
+    } break;
+    default:
+        { break; }
+    }
     return 0;
 }

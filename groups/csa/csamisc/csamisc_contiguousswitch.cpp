@@ -6,11 +6,16 @@
 // ----------------------------------------------------------------------------
 
 #include <csabase_analyser.h>
+#include <csabase_debug.h>
+#include <csabase_visitor.h>
 #include <csabase_registercheck.h>
 #include <csabase_cast_ptr.h>
 #include <algorithm>
 #include <sstream>
 #ident "$Id: contiguous_switch.cpp 165 2012-03-06 00:42:25Z kuehl $"
+
+using namespace clang;
+using namespace bde_verify::csabase;
 
 // ----------------------------------------------------------------------------
 
@@ -18,144 +23,233 @@ static std::string const check_name("contiguous-switch");
 
 // ----------------------------------------------------------------------------
 
-static bool
-getValue(bde_verify::csabase::Analyser& analyser,
-         clang::Expr const*       expr,
-         long&                    value)
+namespace
+{
+
+struct data
+    // This class contains data needed for checking test-driver switch
+    // statements.
+{
+    data();
+        // Create an object of this type.
+};
+
+data::data()
+{
+}
+
+struct report
+    // This class contains methods and callbacks for checking test-driver
+    // switch statements.
+{
+    report(Analyser& analyser);
+        // Create an object of this type using the specified 'analyser'.
+
+    bool getValue(Expr const *expr, long& value);
+        // Return 'true' if the specified 'expr' can be evaluated as an integer
+        // constant and set the specified 'value' to that constant.  Otherwise
+        // return 'false' and leave 'value' unchanged.
+
+    void operator()(FunctionDecl const *decl);
+        // Callback for encountering the specified 'decl'.
+
+    void check_switch(SwitchStmt const *stmt);
+        // Check the specified 'stmt' for test-driver correctness.
+
+    BreakStmt const* last_break(ConstStmtRange s);
+        // If the last statement in the specified range 's' is a 'break'
+        // statement (including within nested compund statements), return it,
+        // otherwise return null.
+
+    Analyser& d_analyser;   // analyser object
+    data& d_data;           // persistant data
+};
+
+report::report(Analyser& analyser)
+: d_analyser(analyser)
+, d_data(analyser.attachment<data>())
+{
+}
+
+bool report::getValue(Expr const *expr, long& value)
 {
     llvm::APSInt result;
-    return expr->isIntegerConstantExpr(result, *analyser.context())
-        && std::istringstream(result.toString(10)) >> std::skipws >> value;
+    if (expr->EvaluateAsInt(result, *d_analyser.context())) {
+        value = result.getSExtValue();
+        return true;
+    }
+    return false;
 }
 
-// ----------------------------------------------------------------------------
-
-static void
-checkBreak(bde_verify::csabase::Analyser& analyser,
-           clang::SwitchCase const* label,
-           bool                     hasBreak) { // case zero has NO break!
-    
-}
-
-// ----------------------------------------------------------------------------
-
-static void
-checkSwitch(bde_verify::csabase::Analyser& analyser, clang::SwitchStmt const* stmt)
+void report::operator()(FunctionDecl const *decl)
 {
-    typedef std::vector<clang::SwitchCase const*>::const_iterator const_iterator;
-    std::vector<clang::SwitchCase const*> cases;
-    for (clang::SwitchCase const* label(stmt->getSwitchCaseList());
-         label; label = label->getNextSwitchCase()) {
-        cases.push_back(label);
+    if (!decl->isMain() || !decl->hasBody() || !d_analyser.is_test_driver()) {
+        return;                                                       // RETURN
+    }
+    if (cast_ptr<CompoundStmt> body = decl->getBody()) {
+        for (CompoundStmt::const_body_iterator it  = body->body_begin(),
+                                               end = body->body_end();
+             it != end; ++it) {
+            if (cast_ptr<SwitchStmt> switchStmt = *it) {
+                check_switch(switchStmt.get());
+            }
+        }
+    }
+}
+
+void report::check_switch(SwitchStmt const* stmt)
+{
+    CompoundStmt const* body = llvm::dyn_cast<CompoundStmt>(stmt->getBody());
+    if (!body) {
+        return;                                                       // RETURN
+    }
+
+    bool saw_break = true;
+    bool multi = false;
+    for (Stmt::const_child_iterator b = body->child_begin(),
+                                    e = body->child_end(); b != e; ++b) {
+        SwitchCase const* sc = llvm::dyn_cast<SwitchCase>(*b);
+        BreakStmt  const* bs = llvm::dyn_cast<BreakStmt>(*b);
+        NullStmt   const* ns = llvm::dyn_cast<NullStmt>(*b);
+
+        if (sc) {
+            if (!saw_break) {
+                d_analyser.report(sc, check_name, "MB01",
+                                  "Missing `break;` before this case");
+            }
+            Stmt         const* sub = sc->stripLabelLikeStatements();
+            CompoundStmt const* cs = llvm::dyn_cast<CompoundStmt>(sub);
+            BreakStmt    const* bs = llvm::dyn_cast<BreakStmt>(sub);
+            NullStmt     const* ns = llvm::dyn_cast<NullStmt>(sub);
+            if (cs) {
+                saw_break = 0 != last_break(cs->children());
+                multi = false;
+            } else if (!ns) {
+                saw_break = 0 != bs;
+                if (!saw_break) {
+                    d_analyser.report(sub, check_name, "CS01",
+                                      "Test code should be within compound "
+                                      "(brace-enclosed) statement");
+                }
+                multi = true;
+            }
+        }
+        else if (bs) {
+            saw_break = true;
+            multi = false;
+        }
+        else if (!ns) {
+            if (!multi) {
+                d_analyser.report(*b, check_name, "CS02",
+                                  "Test code should be within single compound "
+                                  "(brace-enclosed) statement");
+                multi = true;
+            }
+            CompoundStmt const* cs = llvm::dyn_cast<CompoundStmt>(*b);
+            if (cs) {
+                saw_break = 0 != last_break(cs->children());
+            } else {
+                saw_break = false;
+            }
+        }
+    }
+
+    const DefaultStmt *ds = 0;
+    typedef std::vector<SwitchCase const*>::const_iterator const_iterator;
+    std::vector<SwitchCase const*> cases;
+    for (SwitchCase const* sc(stmt->getSwitchCaseList());
+         sc; sc = sc->getNextSwitchCase()) {
+        cases.push_back(sc);
+        if (!ds) {
+            ds = llvm::dyn_cast<DefaultStmt>(sc);
+        }
     }
     if (cases.empty()) {
-        analyser.report(stmt, check_name, "ES01", "Empty switch statement");
+        d_analyser.report(stmt, check_name, "ES01", "Empty switch statement");
         return;
     }
     std::reverse(cases.begin(), cases.end());
+    const_iterator b = cases.begin();
+    const_iterator e = cases.end();
+
+    if (!ds) {
+        d_analyser.report(stmt, check_name, "ED01",
+                          "Switch doesn't end with `default:` label");
+    } else if (!llvm::dyn_cast<DefaultStmt>(cases.back())) {
+        if (llvm::dyn_cast<DefaultStmt>(cases.front())) {
+            d_analyser.report(ds, check_name, "SD01", 
+                              "Switch starts with `default:` label");
+            ++b;
+        } else {
+            d_analyser.report(ds, check_name, "MD01",
+                            "`default:` label in the middle of labels");
+        }
+    } else {
+        --e;
+    }
     
-    const_iterator it(cases.begin()), end(cases.end());
-    if (bde_verify::csabase::cast_ptr<clang::DefaultStmt> label = *it) {
-        analyser.report(*it, check_name, "SD01", "Switch starts with default")
-            << label.get();
-        checkBreak(analyser, *it, true);
-        ++it;
-    }
-    else if (bde_verify::csabase::cast_ptr<clang::CaseStmt> label = *it) {
-        long result(0);
-        if (!getValue(analyser, label->getLHS(), result) || result != 0) {
-            analyser.report(*it, check_name, "SZ01",
-                            "Switch doesn't start with `case 0:`")
-                << label.get();
-            checkBreak(analyser, *it, true);
-        }
-        else {
-            checkBreak(analyser, *it, false);
-            ++it;
-        }
-    }
-    else {
-        analyser.report(*it, check_name, "US01", "Unknown switch case")
-            << cases.front();
-    }
+    long previous_label = 0;
 
-    if (it != end) {
-        long previous(0);
-        if (bde_verify::csabase::cast_ptr<clang::CaseStmt> label = *it) {
-            if (!getValue(analyser, label->getLHS(), previous)) {
-                analyser.report(*it, check_name, "NC01",
-                                "Can't get value from case label")
-                    << *it;
+    for (const_iterator it = b; it != e; ++it) {
+        if (CaseStmt const* cs = llvm::dyn_cast<CaseStmt>(*it)) {
+            long value;
+            if (!getValue(cs->getLHS(), value)) {
+                d_analyser.report(cs, check_name, "NC01",
+                                "Can't get value from case label");
+                continue;
             }
-        }
-        else if (bde_verify::csabase::cast_ptr<clang::DefaultStmt> label = *it) {
-            if (it + 1 != end) {
-                analyser.report(label.get(), check_name, "MD01",
-                                "`default:` label in the middle of labels")
-                    << *it;
+            if (previous_label > 0 &&
+                value > 0 &&
+                previous_label - 1 != value) {
+                d_analyser.report(cs, check_name, "LO01",
+                                  "Case label out of order: "
+                                  "previous=%0 value=%1")
+                    << previous_label
+                    << value;
             }
-        }
-        checkBreak(analyser, *it, true);
-        ++it;
-
-        bool default_at_end(false);
-        for (; it != end; ++it) {
-            long value(0);
-            if (bde_verify::csabase::cast_ptr<clang::CaseStmt> label = *it) {
-                if (!getValue(analyser, label->getLHS(), value)) {
-                    analyser.report(*it, check_name, "NC01",
-                                    "Can't get value from case label")
-                        << *it;
-                }
-                else if ((1 < previous && previous - 1 != value)
-                         || value == 0
-                         || (previous <= value)) {
-                    analyser.report(*it, check_name, "LO01",
-                                    "Case label out of order: "
-                                    "previous=%0 value=%1")
-                        << previous << value;
-                }
-                previous = value;
+            previous_label = value;
+            if ((value == 0) != (it == b)) {
+                d_analyser.report(cs, check_name, "SZ01",
+                                  "Switch should start with `case 0:`");
             }
-            else if (bde_verify::csabase::cast_ptr<clang::DefaultStmt> label = *it) {
-                if (it + 1 != end) {
-                    analyser.report(label.get(), check_name, "MD01",
-                                    "`default:` label in the middle of labels")
-                        << *it;
-                }
-                else {
-                    default_at_end = true;
+            if (value == 0) {
+                if (!llvm::dyn_cast<SwitchCase>(cs->getSubStmt())) {
+                    d_analyser.report(cs, check_name, "ZF02",
+                                      "`case 0:` should simply fall through "
+                                      "to next case");
+                } else {
+                    continue;
                 }
             }
-            checkBreak(analyser, *it, true);
-        }
-        if (!default_at_end) {
-            analyser.report(stmt, check_name, "ED01",
-                            "Switch doesn't end with `default:` label");
         }
     }
+}
+
+BreakStmt const* report::last_break(ConstStmtRange s)
+{
+    BreakStmt const* brk = 0;
+    for (; s; ++s) {
+        if (llvm::dyn_cast<CompoundStmt>(*s)) {
+            // Recurse into simple compound statements.
+            brk = last_break((*s)->children());
+        } else {
+            // Try to cast each statement to a BreakStmt. Therefore 'brk'
+            // will only be non-zero if the final statement is a 'break'.
+            brk = llvm::dyn_cast<BreakStmt>(*s);
+        }
+    }
+    return brk;
 }
 
 // ----------------------------------------------------------------------------
 
-static void
-check(bde_verify::csabase::Analyser& analyser, clang::FunctionDecl const* decl)
+void subscribe(Analyser& analyser, Visitor& visitor, PPObserver&)
+    // Create callbacks within the specified 'visitor' using the specified
+    // 'analyser' which will be invoked at various translation steps.
 {
-    if (decl->getNameAsString() != "main" || !decl->hasBody()) {
-        return;
-    }
-    if (bde_verify::csabase::cast_ptr<clang::CompoundStmt> body = decl->getBody()) {
-        typedef clang::CompoundStmt::const_body_iterator const_iterator;
-        for (const_iterator it(body->body_begin()), end(body->body_end());
-             it != end; ++it) {
-            if (bde_verify::csabase::cast_ptr<clang::SwitchStmt> switchStmt = *it) {
-                checkSwitch(analyser, switchStmt.get());
-            }
-        }
-    }
-    else {
-        llvm::errs() << "body is not a component statement?\n";
-    }
+    visitor.onFunctionDecl += report(analyser);
 }
 
-static bde_verify::csabase::RegisterCheck register_check(check_name, &check);
+}  // close anonymous namespace
+
+static RegisterCheck c1(check_name, &subscribe);
