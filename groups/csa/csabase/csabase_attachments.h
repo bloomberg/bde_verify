@@ -98,8 +98,10 @@ TYPE& Attachments::attachment()
     // The first time this is called (for the specified 'TYPE') a new
     // attachment will be created in the attachments vector.
     static size_t index = d_attachments.size();
-    if (index == d_attachments.size()) {
+    if (index >= d_attachments.size()) {
         d_attachments.resize(index + 1);
+    }
+    if (!d_attachments[index]) {
         d_attachments[index] = new Attachment<TYPE>;
     }
 
