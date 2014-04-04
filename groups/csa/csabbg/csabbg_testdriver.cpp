@@ -843,7 +843,7 @@ void report::match_print_banner(const BoundNodes& nodes)
             ul.find_first_not_of('=') != ul.npos ||
             !is_all_cappish(text)) {
             size_t col = d_manager.getPresumedColumnNumber(l2->getLocStart());
-            std::string indent(col - 9, ' ');
+            std::string indent(col > 9 ? col - 9 : col, ' ');
             d_analyser.report(l2, check_name, "TP18",
                               "Incorrect test banner format");
             d_analyser.report(l2, check_name, "TP18",

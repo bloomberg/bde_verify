@@ -142,6 +142,20 @@ groups/csa/csabbg/csabbg_testdriver.t.cpp:167:0: warning: TP08: Test plan does n
 groups/csa/csabbg/csabbg_testdriver.t.cpp:29:0: note: TP08: Test plan item is
 // [  ] BREATHING TEST
 ^
+groups/csa/csabbg/csabbg_testdriver.t.cpp:151:0: warning: TP18: Incorrect test banner format
+            cout << "'f' AND 'setf'" << endl
+^
+groups/csa/csabbg/csabbg_testdriver.t.cpp:151:0: note: TP18: Correct format is
+            cout << endl
+                 << "'f' AND 'setf'" << endl
+                 << "==============" << endl;
+
+groups/csa/csabbg/csabbg_testdriver.t.cpp:138:0: warning: TP22: Mismatch between title in comment and as printed
+        // 'f' AND "setf"
+^
+groups/csa/csabbg/csabbg_testdriver.t.cpp:151:0: note: TP22: Printed title is
+            cout << "'f' AND 'setf'" << endl
+^
 groups/csa/csabbg/csabbg_testdriver.t.cpp:146:0: warning: TP08: Test plan does not have case number 2 for this item
         //   int F() const;
 ^
@@ -154,10 +168,24 @@ groups/csa/csabbg/csabbg_testdriver.t.cpp:147:0: warning: TP09: Test plan should
 groups/csa/csabbg/csabbg_testdriver.t.cpp:25:0: warning: TP06: 'Testing' section of case 2 should contain this item from test plan
 // [ 2] void setG();
 ^
+groups/csa/csabbg/csabbg_testdriver.t.cpp:124:0: warning: TP18: Incorrect test banner format
+            cout << "Usage Example" << endl
+^
+groups/csa/csabbg/csabbg_testdriver.t.cpp:124:0: note: TP18: Correct format is
+            cout << endl
+                 << "USAGE EXAMPLE" << endl
+                 << "=============" << endl;
+
+groups/csa/csabbg/csabbg_testdriver.t.cpp:107:0: warning: TP22: Mismatch between title in comment and as printed
+        // USAGE EXAMPLE
+^
+groups/csa/csabbg/csabbg_testdriver.t.cpp:124:0: note: TP22: Printed title is
+            cout << "Usage Example" << endl
+^
 groups/csa/csabbg/csabbg_testdriver.t.cpp:120:0: warning: TP08: Test plan does not have case number 3 for this item
         //   USAGE EXAMPLE
 ^
 groups/csa/csabbg/csabbg_testdriver.t.cpp:30:0: note: TP08: Test plan item is
 // [  ] USAGE EXAMPLE
 ^
-39 warnings generated.
+43 warnings generated.
