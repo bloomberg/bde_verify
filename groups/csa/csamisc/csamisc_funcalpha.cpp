@@ -47,7 +47,8 @@ struct data
     typedef std::map<std::string, Lines> Comments;
     Comments d_comments;  // Comment lines per file.
 
-    typedef std::set<std::pair<const FunctionDecl *, const Decl *> > Functions;
+    typedef std::vector<std::pair<const FunctionDecl*, const Decl*> >
+                                                                     Functions;
     Functions d_functions;
 };
 
@@ -160,12 +161,12 @@ void report::operator()()
 
 void report::operator()(const FunctionTemplateDecl *decl)
 {
-    d.d_functions.insert(std::make_pair(decl->getTemplatedDecl(), decl));
+    d.d_functions.push_back(std::make_pair(decl->getTemplatedDecl(), decl));
 }
 
 void report::operator()(const FunctionDecl *decl)
 {
-    d.d_functions.insert(std::make_pair(decl, decl));
+    d.d_functions.push_back(std::make_pair(decl, decl));
 }
 
 void report::check_order(std::pair<const FunctionDecl *, const Decl *> p)
