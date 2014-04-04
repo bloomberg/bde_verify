@@ -11,6 +11,9 @@
 #include <llvm/Support/Regex.h>
 #include <clang/Rewrite/Core/Rewriter.h>
 
+using namespace clang;
+using namespace bde_verify::csabase;
+
 // ----------------------------------------------------------------------------
 
 static std::string const check_name("template-typename");
@@ -20,19 +23,17 @@ static std::string const check_name("template-typename");
 static llvm::Regex all_upper("^[[:upper:]](_?[[:upper:][:digit:]]+)*$");
 
 static void
-checkTemplate(bde_verify::csabase::Analyser& analyser,
-              clang::TemplateDecl const* decl)
+checkTemplateParameters(Analyser& analyser, TemplateParameterList const* parms)
 {
-    clang::TemplateParameterList const* parms = decl->getTemplateParameters();
     unsigned n = parms->size();
     for (unsigned i = 0; i < n; ++i) {
-        const clang::TemplateTypeParmDecl *parm =
-            llvm::dyn_cast<clang::TemplateTypeParmDecl>(parms->getParam(i));
+        const TemplateTypeParmDecl *parm =
+            llvm::dyn_cast<TemplateTypeParmDecl>(parms->getParam(i));
         if (parm) {
             if (parm->wasDeclaredWithTypename()) {
                  analyser.report(parm, check_name, "TY01",
                      "Template parameter uses 'typename' instead of 'class'");
-                 clang::SourceRange r = parm->getSourceRange();
+                 SourceRange r = parm->getSourceRange();
                  llvm::StringRef s = analyser.get_source(r);
                  size_t to = s.find("typename");
                  if (to != s.npos) {
@@ -52,6 +53,28 @@ checkTemplate(bde_verify::csabase::Analyser& analyser,
     }
 }
 
+static void
+check_t(Analyser& analyser, TemplateDecl const* decl)
+{
+    checkTemplateParameters(analyser, decl->getTemplateParameters());
+}
+
+static void
+check_ctps(Analyser& analyser,
+              ClassTemplatePartialSpecializationDecl const* decl)
+{
+    checkTemplateParameters(analyser, decl->getTemplateParameters());
+}
+
+static void
+check_vtps(Analyser& analyser,
+              VarTemplatePartialSpecializationDecl const* decl)
+{
+    checkTemplateParameters(analyser, decl->getTemplateParameters());
+}
+
 // ----------------------------------------------------------------------------
 
-static bde_verify::csabase::RegisterCheck register_check(check_name, &checkTemplate);
+static RegisterCheck c1(check_name, &check_t);
+static RegisterCheck c2(check_name, &check_ctps);
+static RegisterCheck c3(check_name, &check_vtps);
