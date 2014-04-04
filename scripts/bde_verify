@@ -99,6 +99,7 @@ my @config = ("-plugin-arg-bde_verify", "config=$config")   if $config ne "";
 my @debug  = ("-plugin-arg-bde_verify", "debug-on")         if $debug;
 my @tlo    = ("-plugin-arg-bde_verify", "toplevel-only-on") if $tlonly;
 my @rwd    = ("-plugin-arg-bde_verify", "rewrite-dir=$rwd") if $rwd;
+print "No such directory $rwd\n" if $rwd and ! -d $rwd;
 
 @lflags = map { "-f$_" if $_ ne "no-strict-aliasing" } @lflags;
 @wflags = map { "-W$_" } @wflags;
@@ -134,6 +135,7 @@ push(@incs, map { chomp; $_; }
             qx{ $cc -xc++ -E -v /dev/null 2>&1 |
                 sed -n '/^#include/,/^End of search list/p' |
                 sed -n '/^ [/]/s/ //p'});
+for (@incs) { print "No such directory $_\n" unless -d $_; }
 @incs = map { ("-I", $_, "-cxx-isystem", $_ ) } @incs;
 
 push(@std, "-std=$std") if $std;
