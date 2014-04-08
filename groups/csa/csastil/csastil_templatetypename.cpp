@@ -25,35 +25,36 @@ static std::string const check_name("template-typename");
 namespace
 {
 
-struct data
-{
-    data();
-};
-
-data::data()
-{
-};
-
 struct report
+    // Complain about uses of 'typename' instead of 'class'.
 {
     report(Analyser& analyser);
+        // Create an object of this type using the specified analyser.
+
     void match_has_template_parameters(const BoundNodes& nodes);
+        // Callback function invoked when the specified 'nodes' contain an
+        // object which may have template parameters.
+
     void checkTemplateParameters(TemplateParameterList const* parms);
+        // Complain about the specified template 'parms' that use 'typename'
+        // instead of 'class'.
+
     void operator()();
+        // Callback invoked at end of translation unit.
 
     Analyser& d_analyser;
-    data& d_data;
 };
 
 report::report(Analyser& analyser)
 : d_analyser(analyser)
-, d_data(analyser.attachment<data>())
 {
 }
 
 const internal::DynTypedMatcher &
 has_template_parameters_matcher()
-    // Return an AST matcher which looks for declarations.
+    // Return an AST matcher which looks for things that might have template
+    // parameters.  We could be more restrictive than just accepting any 'decl'
+    // but that would just push the same work we do in the callback elsewhere.
 {
     static const internal::DynTypedMatcher matcher =
         decl(eachOf(

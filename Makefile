@@ -21,7 +21,7 @@ STD      = CXX2011
 ifeq ($(SYSTEM),Linux)
     ifeq    ($(COMPILER),gcc)
 VERSION  = 4.8.1
-CCDIR    = /opt/swt/install/gcc-4.8.1
+CCDIR    = /opt/swt/install/gcc-$(VERSION)
 CXX      = $(CCDIR)/bin/g++
          ifeq        ($(STD),CXX2011)
 CXXFLAGS += -std=c++0x
@@ -49,16 +49,16 @@ endif
 ifeq ($(SYSTEM),SunOS)
     ifeq    ($(COMPILER),gcc)
 VERSION  = 4.8.1
-CCDIR    = /opt/swt/install/gcc-4.8.1
+CCDIR    = /opt/swt/install/gcc-$(VERSION)
 CXX      = $(CCDIR)/bin/g++
          ifeq        ($(STD),CXX2011)
-CXXFLAGS += -m32 -pthreads -mno-faster-structs
-CFLAGS   += -m32 -pthreads -mno-faster-structs
-LDFLAGS  += -m32 -pthreads -mno-faster-structs
+CXXFLAGS += -m64 -pthreads -mno-faster-structs
+CFLAGS   += -m64 -pthreads -mno-faster-structs
+LDFLAGS  += -m64 -pthreads -mno-faster-structs
 CXXFLAGS += -std=c++0x
          endif
 LINK     = $(CXX)
-LDFLAGS  += -Wl,-R,$(CCDIR)/lib
+LDFLAGS  += -Wl,-L,$(CCDIR)/lib/sparcv9 -Wl,-R,$(CCDIR)/lib/sparcv9
 CXXFLAGS += -Wno-unused-local-typedefs
     endif
 #ASPELL   = /opt/swt/install/aspell-0.60.6.1-64

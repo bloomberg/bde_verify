@@ -5,7 +5,11 @@
 #include <csabase_location.h>
 #include <csabase_ppobserver.h>
 #include <csabase_registercheck.h>
+#include <llvm/Support/Regex.h>
 #include <cctype>
+
+using namespace clang;
+using namespace bde_verify::csabase;
 
 // ----------------------------------------------------------------------------
 
@@ -15,148 +19,131 @@ static std::string const check_name("include-guard");
 
 namespace
 {
-    char my_toupper(unsigned char c)
-    {
-        return std::toupper(c);
+
+struct data
+    // Data needed for include guard checking inside headers.
+{
+    data();
+        // Create an object of this type.
+
+    bool        d_test;     // true after guard is tested
+    bool        d_define;   // trur after guard is defined
+};
+
+data::data()
+: d_test(false)
+, d_define(false)
+{
+}
+
+struct report
+    // Detect incorrect guard use in headers.
+{
+    report(Analyser& analyser);
+        // Create an object of this type using the specified analyser.
+
+    std::string guard();
+        // Return the expected include guard.
+
+    void operator()(SourceLocation, SourceRange range);
+        // Process '#if' at the specified 'range'.
+
+    void operator()(SourceLocation where, Token const& token);
+        // Process '#ifndef' of the specified 'token' at the specified location
+        // 'where'.
+
+    void operator()(Token const& token, MacroDirective const*);
+        // Process the '#define' of the specified 'token'.
+
+    void operator()(SourceLocation location,
+                    std::string const&,
+                    std::string const& filename);
+        // Process close of the specified 'file' at the specified 'location'.
+
+    Analyser& d_analyser;
+    data& d_data;
+};
+
+report::report(Analyser& analyser)
+: d_analyser(analyser)
+, d_data(analyser.attachment<data>())
+{
+}
+
+std::string report::guard()
+{
+    return "INCLUDED_" + llvm::StringRef(d_analyser.component()).upper();
+}
+
+void report::operator()(SourceLocation, SourceRange range)
+{
+    if (d_analyser.is_component_header(range.getBegin()) && !d_data.d_test) {
+        llvm::StringRef value = d_analyser.get_source(range);
+        llvm::Regex re("^ *! *defined *[(]? *" + guard() + " *[)]? *$");
+        if (!re.match(value)) {
+            d_analyser.report(range.getBegin(), check_name, "TR14",
+                              "Wrong include guard (expected '!defined(%0)')")
+                << guard();
+        }
+        d_data.d_test = true;
     }
-    bool my_isspace(unsigned char c)
-    {
-        return std::isspace(c);
+}
+
+void report::operator()(SourceLocation where, Token const& token)
+{
+    if (d_analyser.is_component_header(token.getLocation()) &&
+        !d_data.d_test) {
+        if (IdentifierInfo const* id = token.getIdentifierInfo()) {
+            if (id->getNameStart() != guard()) {
+                d_analyser.report(token.getLocation(), check_name, "TR14",
+                                  "Wrong name for include guard "
+                                  "(expected '%0')")
+                    << guard();
+            }
+            d_data.d_test = true;
+        }
     }
+}
 
-    struct include_guard
-    {
-        include_guard()
-            : d_test()
-            , d_define()
-        {
-        }
-        bool isComplete() const {
-            return d_test && d_define;
-        }
-        std::string const& get_expect(bde_verify::csabase::Analyser* analyser)
-        {
-            if (d_expect.empty()) {
-                d_expect = "INCLUDED_" + analyser->component();
-                std::transform(d_expect.begin(), d_expect.end(),
-                               d_expect.begin(),
-                               my_toupper);
-            }
-            return d_expect;
-        }
-        std::string d_expect;
-        bool        d_test;
-        bool        d_define;
-    };
+void report::operator()(Token const& token, MacroDirective const*)
+{
+    if (d_analyser.is_component_header(token.getLocation())
+        && !d_data.d_define
+        && token.getIdentifierInfo()
+        && token.getIdentifierInfo()->getNameStart() == guard()
+        ) {
+        d_data.d_define = true;
+    }
+}
 
-    struct binder
-    {
-        binder(bde_verify::csabase::Analyser* analyser)
-            : d_analyser(analyser)
-        {
-        }
-
-        void operator()(clang::SourceLocation,
-                        clang::SourceRange range) const // onIf
-        {
-            if (!d_analyser->is_component_header(range.getBegin())) {
-                return;
-            }
-            include_guard& data(d_analyser->attachment<include_guard>());
-            if (data.d_test) {
-                return;
-            }
-            char const* begin(d_analyser->manager().getCharacterData(range.getBegin()));
-            char const* end(d_analyser->manager().getCharacterData(range.getEnd()));
-            std::string value(begin, end);
-            value.erase(std::remove_if(value.begin(), value.end(),
-                                       &my_isspace), value.end());
-            std::string const& expect(data.get_expect(d_analyser));
-            if (value != "!defined(" + expect + ")"
-                && value != "!defined" + expect) {
-                d_analyser->report(range.getBegin(), check_name, "TR14",
-                                         "Wrong include guard "
-                                         "(expected '!defined(%0)')")
-                    << expect;
-            }
-            data.d_test = true;
-        }
-
-        void operator()(clang::SourceLocation where,
-                        clang::Token const& token) const  // onIfndef
-        {
-            if (!d_analyser->is_component_header(token.getLocation())) {
-                return;
-            }
-
-            //-dk:TODO llvm::errs() << "  in header\n";
-            include_guard& data(d_analyser->attachment<include_guard>());
-            if (clang::IdentifierInfo const* id
-                = data.d_test? 0: token.getIdentifierInfo())
-            {
-                std::string value(id->getNameStart());
-                //-dk:TODO llvm::errs() << "  vlaue='" << value << "'\n";
-                std::string const& expect(data.get_expect(d_analyser));
-                if (value != expect) {
-                    d_analyser->report(token.getLocation(), check_name, "TR14",
-                                             "Wrong name for include guard "
-                                             "(expected '%0')")
-                        << expect;
-                }
-                data.d_test = true;
-            }
-        }
-
-        void operator()(clang::Token const& token,
-                        clang::MacroDirective const*) const
-        {
-            include_guard& data(d_analyser->attachment<include_guard>());
-            if (d_analyser->is_component_header(token.getLocation())
-                && !data.d_define
-                && token.getIdentifierInfo()
-                && (std::string(token.getIdentifierInfo()->getNameStart())
-                    == data.get_expect(d_analyser))
-                ) {
-                data.d_define = true;
-            }
-        }
-
-        void operator()(clang::SourceLocation location,
+void report::operator()(SourceLocation location,
                         std::string const&,
-                        std::string const& filename) const
-        {
-            if (d_analyser->is_component_header(filename) &&
-                !d_analyser->attachment<include_guard>().isComplete()) {
-                include_guard const& data(
-                    d_analyser->attachment<include_guard>());
-                d_analyser->report(location, check_name, "TR14",
-                                   data.d_test ?
-                                        "Missing define for include guard %0"
-                                   : data.d_define ?
-                                        "Missing test for include guard %0"
-                                   :    "Missing include guard %0")
-                    << d_analyser->attachment<include_guard>().
-                                                        get_expect(d_analyser);
-            }
-        }
-
-        bde_verify::csabase::Analyser* d_analyser;
-    };
+                        std::string const& filename)
+{
+    if (d_analyser.is_component_header(filename) &&
+        !(d_data.d_test && d_data.d_define)) {
+        d_analyser.report(location, check_name, "TR14",
+                           d_data.d_test
+                           ? "Missing define for include guard %0"
+                           : d_data.d_define
+                           ? "Missing test for include guard %0"
+                           : "Missing include guard %0")
+            << guard();
+    }
 }
 
 // -----------------------------------------------------------------------------
 
-static void
-subscribe(bde_verify::csabase::Analyser&   analyser,
-          bde_verify::csabase::Visitor&    ,
-          bde_verify::csabase::PPObserver& observer)
+void subscribe(Analyser& analyser, Visitor&, PPObserver& observer)
 {
-    observer.onIfndef       += binder(&analyser);
-    observer.onIf           += binder(&analyser);
-    observer.onMacroDefined += binder(&analyser);
-    observer.onCloseFile    += binder(&analyser);
+    observer.onIfndef       += report(analyser);
+    observer.onIf           += report(analyser);
+    observer.onMacroDefined += report(analyser);
+    observer.onCloseFile    += report(analyser);
+}
+
 }
 
 // ----------------------------------------------------------------------------
 
-static bde_verify::csabase::RegisterCheck register_observer(check_name, &subscribe);
+static RegisterCheck register_observer(check_name, &subscribe);

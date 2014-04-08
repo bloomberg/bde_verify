@@ -18,7 +18,8 @@
 #include <string>
 #include <utility>
 
-namespace CB = bde_verify::csabase;
+using namespace clang;
+using namespace bde_verify::csabase;
 
 // ----------------------------------------------------------------------------
 
@@ -30,38 +31,17 @@ namespace
 {
     struct ExternalGuards
     {
-        typedef std::pair<std::string, clang::SourceLocation> condition_type;
+        typedef std::pair<std::string, SourceLocation> condition_type;
         std::stack<condition_type> d_conditions;
     };
-}
-
-static char
-toUpper(unsigned char c)
-{
-    return std::toupper(c);
-}
-
-static std::string
-toUpper(std::string value)
-{
-    std::transform(value.begin(), value.end(), value.begin(),
-                   static_cast<char(*)(unsigned char)>(&toUpper));
-    return value;
-}
-
-static std::string
-getComponent(std::string const& file)
-{
-    bde_verify::csabase::FileName fn(file);
-    return toUpper(fn.component());
 }
 
 // ----------------------------------------------------------------------------
 
 static void
-onIfdef(CB::Analyser*         analyser,
-        clang::SourceLocation where,
-        clang::Token const&   token)
+onIfdef(Analyser*         analyser,
+        SourceLocation where,
+        Token const&   token)
 {
     ExternalGuards& context(analyser->attachment<ExternalGuards>());
     // This condition is never part of an include guard.
@@ -73,21 +53,28 @@ onIfdef(CB::Analyser*         analyser,
 static std::string const prefix0("INCLUDED_");
 
 static void
-onIfndef(CB::Analyser*         analyser,
-         clang::SourceLocation where,
-         clang::Token const&   token)
+onIfndef(Analyser*         analyser,
+         SourceLocation where,
+         Token const&   token)
 {
     ExternalGuards& context(analyser->attachment<ExternalGuards>());
+#if 0
     std::string macro(token.getIdentifierInfo()->getNameStart());
     context.d_conditions.push(std::make_pair(macro.find(prefix0) == 0
                                              ? macro.substr(prefix0.size())
                                              : std::string(), where));
+#else
+    context.d_conditions.push(
+        std::make_pair(token.getIdentifierInfo()->getNameStart(), where));
+#endif
 }
 
 // ----------------------------------------------------------------------------
 
-static std::string const prefix1("!definedINCLUDED_");
-static std::string const prefix2("!defined(INCLUDED_");
+//static std::string const prefix1("!definedINCLUDED_");
+//static std::string const prefix2("!defined(INCLUDED_");
+static std::string const prefix1("!defined");
+static std::string const prefix2("!defined(");
 
 static bool
 isSpace(unsigned char c)
@@ -96,19 +83,19 @@ isSpace(unsigned char c)
 }
 
 static void
-onIf(CB::Analyser*         analyser,
-     clang::SourceLocation where,
-     clang::SourceRange    source)
+onIf(Analyser*         analyser,
+     SourceLocation where,
+     SourceRange    source)
 {
     ExternalGuards& context(analyser->attachment<ExternalGuards>());
     std::string condition(analyser->get_source(source));
     condition.erase(std::remove_if(condition.begin(), condition.end(), &isSpace),
                     condition.end());
-    if (condition.find(prefix1) == 0) {
-        context.d_conditions.push(std::make_pair(condition.substr(prefix1.size()), where));
-    }
-    else if (condition.find(prefix2) == 0 && condition[condition.size() - 1] == ')') {
+    if (condition.find(prefix2) == 0 && condition[condition.size() - 1] == ')') {
         context.d_conditions.push(std::make_pair(condition.substr(prefix2.size(), condition.size() - prefix2.size() - 1), where));
+    }
+    else if (condition.find(prefix1) == 0) {
+        context.d_conditions.push(std::make_pair(condition.substr(prefix1.size()), where));
     }
     else {
         context.d_conditions.push(std::make_pair(std::string(), where));
@@ -134,7 +121,7 @@ getInclude(std::string const& value)
         std::string::size_type end(value.find('>', begin));
         return end == value.npos
             ? std::string()
-            : getComponent(value.substr(begin, end - begin));
+            : value.substr(begin, end - begin);
     }
     pos = value.find(include1);
     if (pos != value.npos) {
@@ -142,41 +129,50 @@ getInclude(std::string const& value)
         std::string::size_type end(value.find('"', begin));
         return end == value.npos
             ? std::string()
-            : getComponent(value.substr(begin, end - begin));
+            : value.substr(begin, end - begin);
     }
     return std::string();
 }
 
 static void
-onEndif(CB::Analyser* analyser,
-        clang::SourceLocation end,
-        clang::SourceLocation)
+onEndif(Analyser* analyser,
+        SourceLocation end,
+        SourceLocation)
 {
     ExternalGuards& context(analyser->attachment<ExternalGuards>());
     if (!context.d_conditions.empty()) {
+        std::string guard = context.d_conditions.top().first;
+        SourceLocation where = context.d_conditions.top().second;
+        std::string component_guard =
+            "INCLUDED_" + llvm::StringRef(analyser->component()).upper();
         if (analyser->is_component_header(end)
-            && !context.d_conditions.top().first.empty()
-            && (context.d_conditions.top().first
-                != toUpper(analyser->component()))
+            && !guard.empty()
+            && guard != component_guard
             ) {
-            std::string source(analyser->get_source(
-                clang::SourceRange(context.d_conditions.top().second, end)));
+            std::string source(analyser->get_source(SourceRange(where, end)));
             source.erase(
                 std::remove_if(source.begin(), source.end(), &isSpace),
                 source.end());
             std::string include(getInclude(source));
+            std::string include_guard =
+                "INCLUDED_" + FileName(include).component().upper();
             if (include.empty()) {
-                analyser->report(context.d_conditions.top().second,
-                                 check_name, "SEG01",
-                                 "Include guard without include file");
+                analyser->report(where, check_name, "SEG01",
+                                 "Include guard '%0' without include file")
+                    << guard;
             }
-            else if (   include != context.d_conditions.top().first
+            else if (   include_guard != guard
                      && (   include.find('_') != include.npos
-                         || include + "_H" !=
-                                context.d_conditions.top().first)) {
-                analyser->report(context.d_conditions.top().second,
-                                 check_name, "SEG02",
-                                 "Include guard mismatching include file");
+                         || include_guard + "_H" != guard)
+                     ) {
+                analyser->report(where, check_name, "SEG02",
+                                 "Include guard '%0' mismatch for included "
+                                 "file '%1' - use '%2'")
+                    << guard
+                    << include
+                    << (include.find('_') == include.npos ?
+                            include_guard + "_H" :
+                            include_guard);
             }
         }
         context.d_conditions.pop();
@@ -192,8 +188,8 @@ onEndif(CB::Analyser* analyser,
 // ----------------------------------------------------------------------------
 
 static void
-onInclude(CB::Analyser*         analyser,
-          clang::SourceLocation where,
+onInclude(Analyser*         analyser,
+          SourceLocation where,
           bool                  ,
           std::string const&    file)
 {
@@ -201,29 +197,32 @@ onInclude(CB::Analyser*         analyser,
     if (analyser->is_component_header(where)
         && (context.d_conditions.empty()
             || context.d_conditions.top().first.empty()
-            || (context.d_conditions.top().first
-                == toUpper(analyser->component()))
+            || context.d_conditions.top().first
+                == "INCLUDED_" + llvm::StringRef(analyser->component()).upper()
             )
         )
     {
-        analyser->report(where, check_name,
-                         "SEG03", "Include without external include guard");
+        analyser->report(where, check_name, "SEG03",
+                         "Include of '%0' without external include guard "
+                         "'%1'")
+            << file
+            << "INCLUDED_" + FileName(file).component().upper();
     }
 }
 
 // ----------------------------------------------------------------------------
 
 static void
-subscribe(CB::Analyser& analyser, CB::Visitor&, CB::PPObserver& observer)
+subscribe(Analyser& analyser, Visitor&, PPObserver& observer)
 {
-    observer.onInclude  += CB::bind(&analyser, &onInclude);
+    observer.onInclude  += bind(&analyser, &onInclude);
     // observer.onSkipFile += binder(&analyser);
-    observer.onIfdef    += CB::bind(&analyser, &onIfdef);
-    observer.onIfndef   += CB::bind(&analyser, &onIfndef);
-    observer.onIf       += CB::bind(&analyser, &onIf);
-    observer.onEndif    += CB::bind(&analyser, &onEndif);
+    observer.onIfdef    += bind(&analyser, &onIfdef);
+    observer.onIfndef   += bind(&analyser, &onIfndef);
+    observer.onIf       += bind(&analyser, &onIf);
+    observer.onEndif    += bind(&analyser, &onEndif);
 }
 
 // ----------------------------------------------------------------------------
 
-static bde_verify::csabase::RegisterCheck register_observer(check_name, &subscribe);
+static RegisterCheck register_observer(check_name, &subscribe);
