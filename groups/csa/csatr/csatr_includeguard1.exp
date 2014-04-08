@@ -5,7 +5,7 @@ In file included from groups/csa/csatr/csatr_includeguard1.t.cpp:3:
 groups/csa/csatr/csatr_includeguard1.t.h:3:0: warning: TR14: Wrong name for include guard (expected 'INCLUDED_CSATR_INCLUDEGUARD1')
 #ifndef INCLUDED_CSATR_INCLUDEGUARD0
 ^
-groups/csa/csatr/csatr_includeguard1.t.h:3:0: warning: SEG01: Include guard without include file
+groups/csa/csatr/csatr_includeguard1.t.h:3:0: warning: SEG01: Include guard 'INCLUDED_CSATR_INCLUDEGUARD0' without include file
 #ifndef INCLUDED_CSATR_INCLUDEGUARD0
 ^
 groups/csa/csatr/csatr_includeguard1.t.h:3:0: warning: 'INCLUDED_CSATR_INCLUDEGUARD0' is used as a header guard here, followed by #define of a different macro
