@@ -101,7 +101,9 @@ void report::match_has_template_parameters(const BoundNodes& nodes)
     }
     if (TemplateTemplateParmDecl const* decl =
             nodes.getNodeAs<TemplateTemplateParmDecl>("decl")) {
-        unsigned n = decl->getNumExpansionTemplateParameters();
+        unsigned n = decl->isExpandedParameterPack() ?
+                         decl->getNumExpansionTemplateParameters() :
+                         0;
         for (unsigned i = 0; i < n; ++i) {
             checkTemplateParameters(decl->getExpansionTemplateParameters(i));
         }
