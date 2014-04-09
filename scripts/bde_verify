@@ -42,6 +42,7 @@ my @std;
 my $warnoff;
 my $tlonly;
 my $rwd;
+my $tag;
 
 sub usage()
 {
@@ -61,6 +62,7 @@ sub usage()
         --rewrite=dir
         --toplevel
         --std=type
+        --tag=string
         --debug
         --verbose
         --help
@@ -90,6 +92,7 @@ GetOptions(
     "f=s"        => \@lflags,
     "std=s"      => \$std,
     "toplevel"   => \$tlonly,
+    'tag=s'      => \$tag,
     'llvm=s'     => \$dummy,
     "m32|m64|pipe|pthread|MMD|g|c" => \$dummy,
     "O|MF|o|march|mtune=s"         => \@dummy,
@@ -100,6 +103,7 @@ my @debug  = ("-plugin-arg-bde_verify", "debug-on")         if $debug;
 my @tlo    = ("-plugin-arg-bde_verify", "toplevel-only-on") if $tlonly;
 my @rwd    = ("-plugin-arg-bde_verify", "rewrite-dir=$rwd") if $rwd;
 print "No such directory $rwd\n" if $rwd and ! -d $rwd;
+my @tag    = ("-plugin-arg-bde_verify", "tool=$tag") if $tag;
 
 @lflags = map { "-f$_" if $_ ne "no-strict-aliasing" } @lflags;
 @wflags = map { "-W$_" } @wflags;
@@ -151,6 +155,7 @@ my @command = (
     @config,
     @tlo,
     @rwd,
+    @tag,
     @cl,
     @defs,
     @incs,
