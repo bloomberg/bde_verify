@@ -15,6 +15,9 @@
 #include <limits>
 #ident "$Id$"
 
+using namespace clang;
+using namespace bde_verify::csabase;
+
 // ----------------------------------------------------------------------------
 
 static std::string const check_name("component-header");
@@ -46,23 +49,23 @@ static std::string const id_names[] = { "RCSId" };
 // ----------------------------------------------------------------------------
 
 static void 
-close_file(bde_verify::csabase::Analyser& analyser,
-           clang::SourceLocation    where,
+close_file(Analyser& analyser,
+           SourceLocation    where,
            std::string const&       ,
            std::string const&       name)
 {
     if (analyser.is_component_header(name))
     {
-        analyser.attachment<status>().line_
-            = analyser.get_location(where).line();
+        analyser.attachment<status>().line_ =
+            analyser.get_location(where).line();
     }
 }
 
 // ----------------------------------------------------------------------------
 
 static void 
-include_file(bde_verify::csabase::Analyser& analyser,
-             clang::SourceLocation    where,
+include_file(Analyser& analyser,
+             SourceLocation    where,
              bool                     ,
              std::string const&       name)
 {
@@ -92,12 +95,12 @@ include_file(bde_verify::csabase::Analyser& analyser,
 // ----------------------------------------------------------------------------
 
 static void
-declaration(bde_verify::csabase::Analyser& analyser, clang::Decl const* decl)
+declaration(Analyser& analyser, Decl const* decl)
 {
     status& status(analyser.attachment< ::status>());
     if (status.check_)
     {
-        bde_verify::csabase::Location loc(analyser.get_location(decl));
+        Location loc(analyser.get_location(decl));
         if ((analyser.toplevel() != loc.file() && status.header_seen_)
             || (analyser.toplevel() == loc.file()
                 && status.line_ < loc.line()))
@@ -107,11 +110,11 @@ declaration(bde_verify::csabase::Analyser& analyser, clang::Decl const* decl)
         else if (((analyser.toplevel() != loc.file() && !status.header_seen_)
                   || loc.line() < status.line_)
                  && builtin != loc.file() && command_line != loc.file()
-                 && (llvm::dyn_cast<clang::NamedDecl>(decl) == 0
+                 && (llvm::dyn_cast<NamedDecl>(decl) == 0
                      || utils::end(id_names)
                           == std::find(utils::begin(id_names),
                                        utils::end(id_names),
-                                       llvm::dyn_cast<clang::NamedDecl>(decl)
+                                       llvm::dyn_cast<NamedDecl>(decl)
                                                           ->getNameAsString()))
                  && !analyser.is_main())
         {
@@ -130,35 +133,32 @@ namespace
     template <typename T>
     struct analyser_binder
     {
-        analyser_binder(void (*function)(bde_verify::csabase::Analyser&,
-                                         clang::SourceLocation,
+        analyser_binder(void (*function)(Analyser&,
+                                         SourceLocation,
                                          T,
                                          std::string const&),
-                        bde_verify::csabase::Analyser& analyser):
+                        Analyser& analyser):
             function_(function),
             analyser_(analyser)
         {
         }
-        void operator()(clang::SourceLocation where,
-                        T                     arg,
-                        std::string const&    name) const
+        void operator()(SourceLocation     where,
+                        T                  arg,
+                        std::string const& name) const
         {
             function_(analyser_, where, arg, name);
         }
-        void          (*function_)(bde_verify::csabase::Analyser&,
-                                   clang::SourceLocation,
-                                   T,
-                                   std::string const&);
-        bde_verify::csabase::Analyser& analyser_;
+        void (*function_)(Analyser&,
+                          SourceLocation,
+                          T,
+                          std::string const&);
+        Analyser& analyser_;
     };
 }
 
 // -----------------------------------------------------------------------------
 
-static void
-subscribe(bde_verify::csabase::Analyser&   analyser,
-          bde_verify::csabase::Visitor&    ,
-          bde_verify::csabase::PPObserver& observer)
+static void subscribe(Analyser& analyser, Visitor&, PPObserver& observer)
 {
     observer.onInclude   += analyser_binder<bool>(include_file, analyser);
     observer.onCloseFile += analyser_binder<std::string const&>(close_file,
@@ -167,6 +167,5 @@ subscribe(bde_verify::csabase::Analyser&   analyser,
 
 // -----------------------------------------------------------------------------
 
-static bde_verify::csabase::RegisterCheck register_observer(check_name,
-                                                      &subscribe);
-static bde_verify::csabase::RegisterCheck register_check(check_name, &declaration);
+static RegisterCheck register_observer(check_name, &subscribe);
+static RegisterCheck register_check(check_name, &declaration);
