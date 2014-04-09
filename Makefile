@@ -297,7 +297,8 @@ PFLAGS += -I $(BB)/include/stlport -cxx-isystem $(BB)/include/stlport
 
 PFLAGS += $$($(CXX) -xc++ -E -v /dev/null 2>&1 | \
               sed -n '/^ [/][^ ]*$$/s/ //p' | \
-              sed 's/^/-cxx-isystem/')
+              perl -MCwd=abs_path -p -e '$$_ = abs_path($$_)' | \
+              sed 's/^/-cxx-isystem /')
 
 PFLAGS += -std=c++0x
 PFLAGS += -Wno-string-plus-int
