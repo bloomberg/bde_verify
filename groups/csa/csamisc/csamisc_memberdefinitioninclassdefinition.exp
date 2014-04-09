@@ -5,5 +5,4 @@ groups/csa/csamisc/csamisc_memberdefinitioninclassdefinition.v.hpp:23:0: warning
 groups/csa/csamisc/csamisc_memberdefinitioninclassdefinition.v.hpp:31:0: warning: CD01: Member function 'bde_verify::csamisc::memberdefinitioninclassdefinition_bar::g' is defined in the class definition.
             void g() {}
 ^
-groups/csa/csamisc/csamisc_memberdefinitioninclassdefinition.v.hpp:31:0: warning: CD01: Member function 'bde_verify::csamisc::memberdefinitioninclassdefinition_bar<int>::g' is defined in the class definition.
-3 warnings generated.
+2 warnings generated.

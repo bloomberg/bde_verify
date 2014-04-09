@@ -27,10 +27,23 @@ namespace
 // -----------------------------------------------------------------------------
 
 static void
-member_definition_in_class_definition(bde_verify::csabase::Analyser& analyser, clang::CXXMethodDecl const* decl)
+member_definition_in_class_definition(bde_verify::csabase::Analyser& analyser,
+                                      clang::CXXMethodDecl const* decl)
 {
-    clang::CXXConstructorDecl const* ctor(llvm::dyn_cast<clang::CXXConstructorDecl>(decl));
-    clang::CXXDestructorDecl const*  dtor(llvm::dyn_cast<clang::CXXDestructorDecl>(decl));
+    member_definition& data = analyser.attachment<member_definition>();
+
+    clang::CXXConstructorDecl const* ctor =
+        llvm::dyn_cast<clang::CXXConstructorDecl>(decl);
+    clang::CXXDestructorDecl const* dtor =
+        llvm::dyn_cast<clang::CXXDestructorDecl>(decl);
+
+    if (decl->isTemplateInstantiation()) {
+        if (clang::CXXMethodDecl const* tplt =
+                llvm::dyn_cast<clang::CXXMethodDecl>(
+                    decl->getTemplateInstantiationPattern())) {
+            decl = tplt;
+        }
+    }
 
     if (decl->getLexicalDeclContext() == decl->getDeclContext()
         && decl->hasInlineBody()
@@ -38,14 +51,14 @@ member_definition_in_class_definition(bde_verify::csabase::Analyser& analyser, c
         && !decl->getParent()->isLocalClass()
         && (!ctor || !ctor->isImplicit())
         && (!dtor || !dtor->isImplicit())
-        && !analyser.attachment<member_definition>().reported_[decl->getCanonicalDecl()]
+        && !data.reported_[decl->getCanonicalDecl()]
         && !analyser.is_test_driver()
         && !decl->getLocStart().isMacroID())
     {
         analyser.report(decl, check_name, "CD01",
                 "Member function '%0' is defined in the class definition.")
             << decl->getQualifiedNameAsString();
-        analyser.attachment<member_definition>().reported_[decl->getCanonicalDecl()] = true;
+        data.reported_[decl->getCanonicalDecl()] = true;
     }
 }
 
