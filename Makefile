@@ -396,7 +396,7 @@ check-all: $(OBJ)/$(TARGET)
 depend $(OBJ)/make.depend:
 	@if [ ! -d $(OBJ) ]; then mkdir $(OBJ); fi
 	@echo analysing dependencies
-	$(VERBOSE) $(CXX) $(DEFFLAGS) -M $(LIBCXXFILES) \
+	$(VERBOSE) $(CXX) $(INCFLAGS) $(DEFFLAGS) -M $(LIBCXXFILES) \
            | scripts/fixdepend $(OBJ) > $(OBJ)/make.depend
 
            include $(OBJ)/make.depend
