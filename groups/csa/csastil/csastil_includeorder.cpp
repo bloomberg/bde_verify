@@ -141,7 +141,8 @@ check_order(CB::Analyser*                   analyser,
                          : "Source doesn't include component header first");
     }
     std::string ident =
-        analyser->group() == "bsl" ? "bsls_ident" : "bdes_ident";
+        analyser->group() == "bsl" || analyser->group() == "bdl" ?
+            "bsls_ident" : "bdes_ident";
     if (analyser->component() == ident ||
         (analyser->is_test_driver() && !header)) {
         if (it != headers.end()) {
