@@ -120,13 +120,15 @@ push(@defs, (
     "_SYS_SYSMACROS_H",
     "_THREAD_SAFE",
 )) if $defdef;
-if ($defdef && !grep(m{\bbsl[^/]*$}, @ARGV)) {
+if ($defdef && !grep(m{\bb[sd]l[^/]*$}, @ARGV)) {
     push(@defs, "BSL_OVERRIDES_STD");
 }
 @defs = map { "-D$_" } @defs;
 
 for (@ARGV) {
-    if (m{^(.*)/.*$}) {
+    if (! -f) {
+        warn "Cannot find file $_\n";
+    } elsif (m{^(.*)/.*$}) {
         push(@incs, $1) unless grep($_ eq $1, @incs);
     } else {
         push(@incs, ".") unless grep($_ eq ".", @incs);
@@ -140,9 +142,10 @@ push(@incs, map { chomp; $_; }
             qx{ $cc -xc++ -E -v /dev/null 2>&1 |
                 sed -n '/^#include/,/^End of search list/p' |
                 sed -n '/^ [/]/s/ //p'});
-for (@incs) { print "No such directory $_\n" unless -d $_; }
-@incs = map { Cwd::abs_path($_) } @incs;
-@incs = map { ("-I", $_, "-cxx-isystem", $_ ) } @incs;
+for (@incs) { warn "cannot find directory $_\n" unless -d; }
+@incs = map { ("-I", $_, "-cxx-isystem", $_ ) }
+        map { Cwd::abs_path($_) }
+        grep { -d } @incs;
 
 push(@std, "-std=$std") if $std;
 
