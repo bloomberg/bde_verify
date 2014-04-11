@@ -387,9 +387,17 @@ nested_allocator_trait_matcher()
 
 void report::match_nested_allocator_trait(const BoundNodes& nodes)
 {
-    analyser_.attachment<data>().decls_with_true_allocator_trait_.insert(
-        llvm::dyn_cast<NamedDecl>(
-            nodes.getNodeAs<NamedDecl>("class")->getCanonicalDecl()));
+    data::DeclsWithAllocatorTrait& tat =
+        analyser_.attachment<data>().decls_with_true_allocator_trait_;
+    CXXRecordDecl const* record = nodes.getNodeAs<CXXRecordDecl>("class");
+    do {
+ERRS(); record->dump(); llvm::errs() << "\n";
+        tat.insert(record);
+        if (InjectedClassNameType const* icnt =
+            llvm::dyn_cast<InjectedClassNameType>(record->getTypeForDecl())) {
+                    record = icnt->getDecl();
+        }
+    } while (!tat.count(record));
 }
 
 static const DynTypedMatcher &
@@ -550,8 +558,16 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
 
     int count = 0;
     for (data::Ctors::const_iterator itr = begin; itr != end; ++itr) {
-        const CXXConstructorDecl *decl = *itr;
-        const CXXRecordDecl *record = decl->getParent()->getCanonicalDecl();
+        const CXXConstructorDecl *decl = (*itr)->getCanonicalDecl();
+        const CXXRecordDecl* record =
+            llvm::dyn_cast<CXXRecordDecl>(decl->getParent()->getFirstDecl());
+ERRS(); record->dump(); llvm::errs() << "\n";
+        while (InjectedClassNameType const* icnt =
+                llvm::dyn_cast<InjectedClassNameType>(
+                    record->getTypeForDecl())) {
+            record = icnt->getDecl();
+ERRS(); record->dump(); llvm::errs() << "\n";
+        }
         bool uses_allocator = takes_allocator(
                    record->getTypeForDecl()->getCanonicalTypeInternal());
         bool has_true_alloc_trait =
@@ -565,9 +581,10 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
         const CXXRecordDecl *tr = record;
         if (const ClassTemplateSpecializationDecl* ts =
                 llvm::dyn_cast<ClassTemplateSpecializationDecl>(tr)) {
-            const CXXRecordDecl* tr = ts->getSpecializedTemplate()
-                                          ->getTemplatedDecl()
-                                          ->getCanonicalDecl();
+            const CXXRecordDecl* tr =
+                llvm::dyn_cast<CXXRecordDecl>(ts->getSpecializedTemplate()
+                                                ->getTemplatedDecl());
+ERRS(); tr->dump(); llvm::errs() << "\n";
             if (uses_allocator &&
                 !has_true_alloc_trait &&
                 !has_false_alloc_trait &&
@@ -906,8 +923,10 @@ static void
 gather_ctor_exprs(Analyser& analyser, const CXXConstructExpr* expr)
     // Accumulate the specified 'expr' within the specified 'analyser'.
 {
-    data& info(analyser.attachment<data>());
-    info.cexprs_.insert(expr);
+    if (analyser.is_component(expr)) {
+        data& info(analyser.attachment<data>());
+        info.cexprs_.insert(expr);
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -916,7 +935,9 @@ static void
 gather_ctor_decls(Analyser& analyser, CXXConstructorDecl const* decl)
     // Accumulate the specified 'decl' within the specified 'analyser'.
 {
-    analyser.attachment<data>().ctors_.insert(decl);
+    if (analyser.is_component(decl)) {
+        analyser.attachment<data>().ctors_.insert(decl);
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -925,7 +946,9 @@ static void
 gather_return_stmts(Analyser& analyser, ReturnStmt const* stmt)
     // Accumulate the specified 'stmt' within the specified 'analyser'.
 {
-    analyser.attachment<data>().returns_.insert(stmt);
+    if (analyser.is_component(stmt)) {
+        analyser.attachment<data>().returns_.insert(stmt);
+    }
 }
 
 // -----------------------------------------------------------------------------

@@ -11,12 +11,9 @@
 #include <csabase_registercheck.h>
 #include <csabase_ppobserver.h>
 #include <csabase_location.h>
-#include <cctype>
-#include <algorithm>
-#include <functional>
+#include <llvm/Support/Regex.h>
 #include <stack>
 #include <string>
-#include <utility>
 
 using namespace clang;
 using namespace bde_verify::csabase;
@@ -50,86 +47,58 @@ onIfdef(Analyser*         analyser,
 
 // ----------------------------------------------------------------------------
 
-static std::string const prefix0("INCLUDED_");
-
 static void
-onIfndef(Analyser*         analyser,
+onIfndef(Analyser*      analyser,
          SourceLocation where,
          Token const&   token)
 {
-    ExternalGuards& context(analyser->attachment<ExternalGuards>());
-#if 0
-    std::string macro(token.getIdentifierInfo()->getNameStart());
-    context.d_conditions.push(std::make_pair(macro.find(prefix0) == 0
-                                             ? macro.substr(prefix0.size())
-                                             : std::string(), where));
-#else
-    context.d_conditions.push(
-        std::make_pair(token.getIdentifierInfo()->getNameStart(), where));
-#endif
+    llvm::StringRef guard = token.getIdentifierInfo()->getName();
+    if (!guard.startswith("INCLUDE")) {
+        guard = llvm::StringRef();
+    }
+    analyser->attachment<ExternalGuards>().d_conditions.push(
+        std::make_pair(guard.str(), where));
 }
 
 // ----------------------------------------------------------------------------
 
-//static std::string const prefix1("!definedINCLUDED_");
-//static std::string const prefix2("!defined(INCLUDED_");
-static std::string const prefix1("!defined");
-static std::string const prefix2("!defined(");
-
-static bool
-isSpace(unsigned char c)
-{
-    return std::isspace(c);
-}
+static llvm::Regex ndef(
+    "^ *! *defined *[(]? *(INCLUDE[_[:alnum:]]*) *[)]? *$");
 
 static void
-onIf(Analyser*         analyser,
+onIf(Analyser*      analyser,
      SourceLocation where,
      SourceRange    source)
 {
-    ExternalGuards& context(analyser->attachment<ExternalGuards>());
-    std::string condition(analyser->get_source(source));
-    condition.erase(std::remove_if(condition.begin(), condition.end(), &isSpace),
-                    condition.end());
-    if (condition.find(prefix2) == 0 && condition[condition.size() - 1] == ')') {
-        context.d_conditions.push(std::make_pair(condition.substr(prefix2.size(), condition.size() - prefix2.size() - 1), where));
+    llvm::SmallVector<llvm::StringRef, 7> matches;
+    llvm::StringRef guard;
+    if (ndef.match(analyser->get_source(source), &matches)) {
+        guard = matches[1];
     }
-    else if (condition.find(prefix1) == 0) {
-        context.d_conditions.push(std::make_pair(condition.substr(prefix1.size()), where));
-    }
-    else {
-        context.d_conditions.push(std::make_pair(std::string(), where));
-    }
+    analyser->attachment<ExternalGuards>().d_conditions.push(
+        std::make_pair(guard, where));
 }
 
 // ----------------------------------------------------------------------------
 
-static std::string const hashif("#if");
-static std::string const include0("#include<");
-static std::string const include1("#include\"");
+static llvm::Regex next_include_before_if(
+    "(^ *# *if)|"                     // 1
+    "(^ *# *include *\"([^\"]*)\")|"  // 2, 3
+    "(^ *# *include *<([^>]*)>)",     // 4, 5
+    llvm::Regex::Newline
+);
 
 static std::string
-getInclude(std::string const& value)
+getInclude(llvm::StringRef source)
 {
-    std::string::size_type pos(value.find(hashif));
-    if (pos != value.npos) {
-        return std::string();
-    }
-    pos = value.find(include0);
-    if (pos != value.npos) {
-        std::string::size_type begin(pos + include0.size());
-        std::string::size_type end(value.find('>', begin));
-        return end == value.npos
-            ? std::string()
-            : value.substr(begin, end - begin);
-    }
-    pos = value.find(include1);
-    if (pos != value.npos) {
-        std::string::size_type begin(pos + include1.size());
-        std::string::size_type end(value.find('"', begin));
-        return end == value.npos
-            ? std::string()
-            : value.substr(begin, end - begin);
+    llvm::SmallVector<llvm::StringRef, 7> matches;
+    if (next_include_before_if.match(source, &matches)) {
+        if (matches[3].size()) {
+            return matches[3];
+        }
+        if (matches[5].size()) {
+            return matches[5];
+        }
     }
     return std::string();
 }
@@ -149,11 +118,8 @@ onEndif(Analyser* analyser,
             && !guard.empty()
             && guard != component_guard
             ) {
-            std::string source(analyser->get_source(SourceRange(where, end)));
-            source.erase(
-                std::remove_if(source.begin(), source.end(), &isSpace),
-                source.end());
-            std::string include(getInclude(source));
+            std::string include =
+                getInclude(analyser->get_source(SourceRange(where, end)));
             std::string include_guard =
                 "INCLUDED_" + FileName(include).component().upper();
             if (include.empty()) {
