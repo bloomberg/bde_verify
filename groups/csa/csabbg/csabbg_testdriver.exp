@@ -54,8 +54,8 @@ groups/csa/csabbg/csabbg_testdriver.t.cpp:29:0: warning: TP03: Missing test numb
 groups/csa/csabbg/csabbg_testdriver.t.cpp:30:0: warning: TP03: Missing test number
 // [  ] USAGE EXAMPLE
 ^~~~
-groups/csa/csabbg/csabbg_testdriver.t.cpp:273:0: warning: TP23: Final statement of `main()` must be `return testStatus;`
-    }
+groups/csa/csabbg/csabbg_testdriver.t.cpp:274:0: warning: TP23: Final statement of `main()` must be `return testStatus;`
+    return testStatus ? testStatus : 0;
 ^
 groups/csa/csabbg/csabbg_testdriver.t.cpp:272:0: warning: TP24: `default:` case should set `testStatus = -1;`
       }

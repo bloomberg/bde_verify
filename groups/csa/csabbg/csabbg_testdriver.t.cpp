@@ -271,6 +271,7 @@ int main(int argc, char *argv[])
         // testStatus = -1;
       }
     }
+    return testStatus ? testStatus : 0;
 }
 
 // ---------------------------------------------------------------------------

@@ -28,6 +28,15 @@ using namespace clang;
 using namespace clang::ast_matchers;
 using namespace bde_verify::csabase;
 
+namespace clang {
+namespace ast_matchers {
+    AST_MATCHER_P(ReturnStmt, returnExpr,
+                    internal::Matcher<Expr>, InnerMatcher) {
+        return InnerMatcher.matches(*Node.getRetValue(), Finder, Builder);
+    }
+}
+}
+
 namespace
 {
 
@@ -53,6 +62,8 @@ struct data
     CCLines d_cclines;
 
     const CompoundStmt *d_main;  // The compound statement of 'main()'.
+    const Stmt *d_return;        // The correct 'main()' return statement.
+
 };
 
 struct report
@@ -335,19 +346,15 @@ return_status_matcher()
     // Return an AST matcher which looks for a 'return testStatus;' statement.
 {
     static const internal::DynTypedMatcher matcher =
-        stmt(anyOf(returnStmt(declRefExpr(hasDeclaration(namedDecl(
-                                  hasName("testStatus"))))).bind("good"),
-                   stmt().bind("bad"))).bind("all");
+        returnStmt(returnExpr(ignoringParenImpCasts(declRefExpr(hasDeclaration(
+            namedDecl(hasName("testStatus"))
+        ))))).bind("good");
     return matcher;
 }
 
 void report::match_return_status(const BoundNodes& nodes)
 {
-    if (const Stmt *bad = nodes.getNodeAs<Stmt>("bad")) {
-        d_analyser.report(bad->getLocEnd(), check_name, "TP23",
-                          "Final statement of `main()` must be "
-                          "`return testStatus;`");
-    }
+    d_data.d_return = nodes.getNodeAs<Stmt>("good");
 }
 
 const internal::DynTypedMatcher &
@@ -497,7 +504,13 @@ void report::operator()()
         if (!last) {
             last = stmt;
         }
+        d_data.d_return = 0;
         mf.match(*last, *d_analyser.context());
+        if (!d_data.d_return) {
+            d_analyser.report(last->getLocEnd(), check_name, "TP23",
+                              "Final statement of `main()` must be "
+                              "`return testStatus;`");
+        }
     } else {
         d_analyser.report(stmt, check_name, "TP11",
                           "No switch statement found in test driver main");
