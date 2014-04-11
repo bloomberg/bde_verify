@@ -387,17 +387,9 @@ nested_allocator_trait_matcher()
 
 void report::match_nested_allocator_trait(const BoundNodes& nodes)
 {
-    data::DeclsWithAllocatorTrait& tat =
-        analyser_.attachment<data>().decls_with_true_allocator_trait_;
-    CXXRecordDecl const* record = nodes.getNodeAs<CXXRecordDecl>("class");
-    do {
-ERRS(); record->dump(); llvm::errs() << "\n";
-        tat.insert(record);
-        if (InjectedClassNameType const* icnt =
-            llvm::dyn_cast<InjectedClassNameType>(record->getTypeForDecl())) {
-                    record = icnt->getDecl();
-        }
-    } while (!tat.count(record));
+    analyser_.attachment<data>().decls_with_true_allocator_trait_.insert(
+        llvm::dyn_cast<NamedDecl>(
+            nodes.getNodeAs<NamedDecl>("class")->getCanonicalDecl()));
 }
 
 static const DynTypedMatcher &
@@ -558,16 +550,8 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
 
     int count = 0;
     for (data::Ctors::const_iterator itr = begin; itr != end; ++itr) {
-        const CXXConstructorDecl *decl = (*itr)->getCanonicalDecl();
-        const CXXRecordDecl* record =
-            llvm::dyn_cast<CXXRecordDecl>(decl->getParent()->getFirstDecl());
-ERRS(); record->dump(); llvm::errs() << "\n";
-        while (InjectedClassNameType const* icnt =
-                llvm::dyn_cast<InjectedClassNameType>(
-                    record->getTypeForDecl())) {
-            record = icnt->getDecl();
-ERRS(); record->dump(); llvm::errs() << "\n";
-        }
+        const CXXConstructorDecl *decl = *itr;
+        const CXXRecordDecl* record = decl->getParent()->getCanonicalDecl();
         bool uses_allocator = takes_allocator(
                    record->getTypeForDecl()->getCanonicalTypeInternal());
         bool has_true_alloc_trait =
@@ -581,10 +565,9 @@ ERRS(); record->dump(); llvm::errs() << "\n";
         const CXXRecordDecl *tr = record;
         if (const ClassTemplateSpecializationDecl* ts =
                 llvm::dyn_cast<ClassTemplateSpecializationDecl>(tr)) {
-            const CXXRecordDecl* tr =
-                llvm::dyn_cast<CXXRecordDecl>(ts->getSpecializedTemplate()
-                                                ->getTemplatedDecl());
-ERRS(); tr->dump(); llvm::errs() << "\n";
+            const CXXRecordDecl* tr = ts->getSpecializedTemplate()
+                                          ->getTemplatedDecl()
+                                          ->getCanonicalDecl();
             if (uses_allocator &&
                 !has_true_alloc_trait &&
                 !has_false_alloc_trait &&

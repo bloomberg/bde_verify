@@ -240,6 +240,12 @@ struct alloc_h {
     explicit alloc_h(bslma::Allocator*) { }
 };
 
+template <class TYPE>
+struct alloc_i {
+    BSLALG_DECLARE_NESTED_TRAITS(alloc_i, bslalg::TypeTraitUsesBslmaAllocator);
+    explicit alloc_i(bslma::Allocator*) { }
+};
+
 }
 }
 
