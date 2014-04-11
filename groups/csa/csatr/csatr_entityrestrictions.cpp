@@ -15,6 +15,7 @@ enum_declaration(bde_verify::csabase::Analyser&  analyser,
                  clang::EnumDecl const    *decl)
 {
     if (llvm::dyn_cast<clang::NamespaceDecl>(decl->getDeclContext())
+        && !decl->getLocation().isMacroID()
         && analyser.is_component_header(decl)
         && !analyser.is_standard_namespace(decl->getQualifiedNameAsString())) {
         analyser.report(decl, check_name, "TR17",
@@ -30,6 +31,7 @@ var_declaration(bde_verify::csabase::Analyser&  analyser,
                 clang::VarDecl const     *decl)
 {
     if (llvm::dyn_cast<clang::NamespaceDecl>(decl->getDeclContext())
+        && !decl->getLocation().isMacroID()
         && analyser.is_component_header(decl)
         && !analyser.is_standard_namespace(decl->getQualifiedNameAsString())) {
         analyser.report(decl, check_name, "TR17",
@@ -57,6 +59,7 @@ function_declaration(bde_verify::csabase::Analyser&   analyser,
                      clang::FunctionDecl const *decl)
 {
     if (llvm::dyn_cast<clang::NamespaceDecl>(decl->getDeclContext())
+        && !decl->getLocation().isMacroID()
         && analyser.is_component_header(decl)
         && !decl->isOverloadedOperator()
         && !is_swap(decl)
@@ -85,6 +88,7 @@ typedef_declaration(bde_verify::csabase::Analyser&  analyser,
         package = package.substr(7);
     }
     if (llvm::dyn_cast<clang::NamespaceDecl>(decl->getDeclContext())
+        && !decl->getLocation().isMacroID()
         && analyser.is_component_header(decl)
         && decl->getNameAsString().find(package) != 0
         && !analyser.is_standard_namespace(decl->getQualifiedNameAsString())
