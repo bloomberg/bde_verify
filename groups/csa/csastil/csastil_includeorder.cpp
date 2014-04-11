@@ -10,6 +10,7 @@
 #include <csabase_ppobserver.h>
 #include <csabase_registercheck.h>
 #include <csabase_util.h>
+#include <utils/array.hpp>
 #include <cctype>
 #include <algorithm>
 #include <functional>
@@ -167,8 +168,23 @@ check_order(CB::Analyser*                   analyser,
         ++it;
     }
 
+    // These components are or are needed by b??scm_version, and so should not
+    // themselves require inclusion of b??scm_version.
+    static std::string const subscm[] = {
+        "bdes_ident",
+        "bdescm_versiontag",
+        "bsls_buildtarget",
+        "bsls_ident",
+        "bsls_linkcoercion",
+        "bsls_platform",
+        "bslscm_version",
+        "bslscm_versiontag",
+    };
+
     std::string version = analyser->group() + "scm_version";
-    if (   analyser->component() != version
+    if (   std::find(utils::begin(subscm),
+                     utils::end(subscm),
+                     analyser->component()) == utils::end(subscm)
         && header
         && (it == headers.end()
             || it->first != version
@@ -182,8 +198,8 @@ check_order(CB::Analyser*                   analyser,
     include_order::headers_t::const_iterator end
           = std::find_if(it, headers.end(),
                          std::not1(std::ptr_fun(&is_component)));
-    include_order::headers_t::const_iterator package_end
-          = std::find_if(it, end, std::not1(has_prefix(analyser->package() + "_")));
+    include_order::headers_t::const_iterator package_end = std::find_if(
+        it, end, std::not1(has_prefix(analyser->package() + "_")));
     check_order(analyser, "Package", it, package_end, end);
     include_order::headers_t::const_iterator group_end
           = std::find_if(it, end, std::not1(has_prefix(analyser->group())));
