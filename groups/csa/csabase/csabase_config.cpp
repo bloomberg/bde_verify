@@ -189,7 +189,15 @@ bde_verify::csabase::Config::process(std::string const& line)
             std::string file;
             while (args >> file) {
                 bde_verify::csabase::FileName fn(file);
-                d_suppressions.insert(std::make_pair(tag, fn.name()));
+                if (d_suppressions.insert(std::make_pair(tag, fn.name()))
+                        .second &&
+                    d_groups.find(tag) != d_groups.end()) {
+                    const std::vector<std::string>& group_items =
+                        d_groups.find(tag)->second;
+                    for (size_t i = 0; i < group_items.size(); ++i) {
+                        process("suppress " + group_items[i] + " " + file);
+                    }
+                }
             }
         }
         else {
