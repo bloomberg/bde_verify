@@ -113,6 +113,8 @@ class bde_verify::csabase::Analyser:
 
     clang::SourceManager& manager() const;
     llvm::StringRef         get_source(clang::SourceRange, bool exact = false);
+    clang::SourceRange      get_line_range(clang::SourceLocation);
+    llvm::StringRef         get_source_line(clang::SourceLocation);
     bde_verify::csabase::Location get_location(clang::SourceLocation) const;
     bde_verify::csabase::Location get_location(clang::Decl const*) const;
     bde_verify::csabase::Location get_location(clang::Expr const*) const;

@@ -368,6 +368,28 @@ bde_verify::csabase::Analyser::get_source(clang::SourceRange range, bool exact)
     return llvm::StringRef(pb, pe - pb);
 }
 
+clang::SourceRange
+bde_verify::csabase::Analyser::get_line_range(clang::SourceLocation loc)
+{
+    clang::SourceRange range(loc, loc);
+
+    if (loc.isValid()) {
+        clang::SourceManager& sm(manager());
+        clang::FileID fid = sm.getFileID(loc);
+        size_t line_num = sm.getPresumedLineNumber(loc);
+        range.setBegin(sm.translateLineCol(fid, line_num, 1u));
+        range.setEnd(sm.translateLineCol(fid, line_num, ~0u));
+    } 
+
+    return range;
+}
+
+llvm::StringRef
+bde_verify::csabase::Analyser::get_source_line(clang::SourceLocation loc)
+{
+    return get_source(get_line_range(loc), true);
+}
+
 // -----------------------------------------------------------------------------
 
 bde_verify::csabase::Location
