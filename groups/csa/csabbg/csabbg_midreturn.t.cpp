@@ -79,5 +79,50 @@ namespace bde_verify
             }
             return 0;
         }
+
+        struct y {
+            y()
+            {
+                if (f()) {
+                    return;
+                }
+                if (f()) {
+                    return;                                          // RETURN
+                }
+                if (f()) {
+                    return;
+                }
+                if (f()) {
+                    return;                                           // RETURN
+                }
+                return;
+            }
+        };
+
+        template <class X>
+        struct z {
+            z()
+            {
+                if (f()) {
+                    return;
+                }
+                if (f()) {
+                    return;                                          // RETURN
+                }
+                if (f()) {
+                    return;
+                }
+                if (f()) {
+                    return;                                           // RETURN
+                }
+                return;
+            }
+        };
+
+        void w()
+        {
+            z<char> z1;
+            z<int> z2;
+        }
     }
 }
