@@ -6,6 +6,7 @@
 // ----------------------------------------------------------------------------
 
 #include <csabase_analyser.h>
+#include <csabase_debug.h>
 #include <csabase_ppobserver.h>
 #include <csabase_registercheck.h>
 #include <csabase_location.h>
@@ -65,9 +66,9 @@ close_file(Analyser& analyser,
 
 static void 
 include_file(Analyser& analyser,
-             SourceLocation    where,
-             bool                     ,
-             std::string const&       name)
+             SourceLocation where,
+             bool,
+             std::string const& name)
 {
     ::status& status(analyser.attachment< ::status>());
     if (status.check_)
@@ -100,6 +101,13 @@ declaration(Analyser& analyser, Decl const* decl)
     status& status(analyser.attachment< ::status>());
     if (status.check_)
     {
+        if (!status.header_seen_ &&
+            analyser.is_component_header(analyser.toplevel()))
+        {
+            status.header_seen_ = true;
+            status.line_ = 0;
+        }
+
         Location loc(analyser.get_location(decl));
         if ((analyser.toplevel() != loc.file() && status.header_seen_)
             || (analyser.toplevel() == loc.file()
