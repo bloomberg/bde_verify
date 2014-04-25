@@ -1,49 +1,158 @@
 groups/csa/csabbg/csabbg_midreturn.t.cpp:17:0: warning: MR01: Mid-function 'return' requires '// RETURN' comment
                         return false;
 ^
+groups/csa/csabbg/csabbg_midreturn.t.cpp:17:0: warning: MR01: Correct text is
+                        return false;                                 // RETURN
 groups/csa/csabbg/csabbg_midreturn.t.cpp:23:0: warning: MR01: Mid-function 'return' requires '// RETURN' comment
                 return 1;
 ^
+groups/csa/csabbg/csabbg_midreturn.t.cpp:23:0: warning: MR01: Correct text is
+                return 1;                                             // RETURN
 groups/csa/csabbg/csabbg_midreturn.t.cpp:26:0: warning: MR02: '// RETURN' comment must end in column 79, not 78
                 return 2;                                            // RETURN
 ^
+groups/csa/csabbg/csabbg_midreturn.t.cpp:26:0: warning: MR01: Correct text is
+                return 2;                                             // RETURN
 groups/csa/csabbg/csabbg_midreturn.t.cpp:29:0: warning: MR01: Mid-function 'return' requires '// RETURN' comment
                 return 3;
 ^
+groups/csa/csabbg/csabbg_midreturn.t.cpp:29:0: warning: MR01: Correct text is
+                return 3;                                             // RETURN
 groups/csa/csabbg/csabbg_midreturn.t.cpp:44:0: warning: MR01: Mid-function 'return' requires '// RETURN' comment
                         return false;
 ^
+groups/csa/csabbg/csabbg_midreturn.t.cpp:44:0: warning: MR01: Correct text is
+                        return false;                                 // RETURN
 groups/csa/csabbg/csabbg_midreturn.t.cpp:50:0: warning: MR01: Mid-function 'return' requires '// RETURN' comment
                 return 1;
 ^
+groups/csa/csabbg/csabbg_midreturn.t.cpp:50:0: warning: MR01: Correct text is
+                return 1;                                             // RETURN
 groups/csa/csabbg/csabbg_midreturn.t.cpp:53:0: warning: MR02: '// RETURN' comment must end in column 79, not 78
                 return 2;                                            // RETURN
 ^
+groups/csa/csabbg/csabbg_midreturn.t.cpp:53:0: warning: MR01: Correct text is
+                return 2;                                             // RETURN
 groups/csa/csabbg/csabbg_midreturn.t.cpp:56:0: warning: MR01: Mid-function 'return' requires '// RETURN' comment
                 return 3;
 ^
+groups/csa/csabbg/csabbg_midreturn.t.cpp:56:0: warning: MR01: Correct text is
+                return 3;                                             // RETURN
 groups/csa/csabbg/csabbg_midreturn.t.cpp:72:0: warning: MR02: '// RETURN' comment must end in column 79, not 78
                 return 5;          // Comment                        // RETURN
 ^
+groups/csa/csabbg/csabbg_midreturn.t.cpp:72:0: warning: MR01: Correct text is
+                return 5;          // Comment                         // RETURN
 groups/csa/csabbg/csabbg_midreturn.t.cpp:78:0: warning: MR02: '// RETURN' comment must end in column 79, not 80
                 return 7;          // Comment                          // RETURN
 ^
+groups/csa/csabbg/csabbg_midreturn.t.cpp:78:0: warning: MR01: Correct text is
+                return 7;          // Comment                         // RETURN
 groups/csa/csabbg/csabbg_midreturn.t.cpp:87:0: warning: MR01: Mid-function 'return' requires '// RETURN' comment
                     return;
 ^
+groups/csa/csabbg/csabbg_midreturn.t.cpp:87:0: warning: MR01: Correct text is
+                    return;                                           // RETURN
 groups/csa/csabbg/csabbg_midreturn.t.cpp:90:0: warning: MR02: '// RETURN' comment must end in column 79, not 78
                     return;                                          // RETURN
 ^
+groups/csa/csabbg/csabbg_midreturn.t.cpp:90:0: warning: MR01: Correct text is
+                    return;                                           // RETURN
 groups/csa/csabbg/csabbg_midreturn.t.cpp:93:0: warning: MR01: Mid-function 'return' requires '// RETURN' comment
                     return;
 ^
+groups/csa/csabbg/csabbg_midreturn.t.cpp:93:0: warning: MR01: Correct text is
+                    return;                                           // RETURN
 groups/csa/csabbg/csabbg_midreturn.t.cpp:107:0: warning: MR01: Mid-function 'return' requires '// RETURN' comment
                     return;
 ^
+groups/csa/csabbg/csabbg_midreturn.t.cpp:107:0: warning: MR01: Correct text is
+                    return;                                           // RETURN
 groups/csa/csabbg/csabbg_midreturn.t.cpp:110:0: warning: MR02: '// RETURN' comment must end in column 79, not 78
                     return;                                          // RETURN
 ^
+groups/csa/csabbg/csabbg_midreturn.t.cpp:110:0: warning: MR01: Correct text is
+                    return;                                           // RETURN
 groups/csa/csabbg/csabbg_midreturn.t.cpp:113:0: warning: MR01: Mid-function 'return' requires '// RETURN' comment
                     return;
 ^
-16 warnings generated.
+groups/csa/csabbg/csabbg_midreturn.t.cpp:113:0: warning: MR01: Correct text is
+                    return;                                           // RETURN
+groups/csa/csabbg/csabbg_midreturn.t.cpp:130:0: warning: MR01: Mid-function 'return' requires '// RETURN' comment
+            if (f()) return                                                    1;
+^
+groups/csa/csabbg/csabbg_midreturn.t.cpp:130:0: warning: MR01: Correct text is
+            if (f()) return                                                    1;
+                                                                      // RETURN
+groups/csa/csabbg/csabbg_midreturn.t.cpp:131:0: warning: MR01: Mid-function 'return' requires '// RETURN' comment
+            if (f()) return                                                   1;
+^
+groups/csa/csabbg/csabbg_midreturn.t.cpp:131:0: warning: MR01: Correct text is
+            if (f()) return                                                   1;
+                                                                      // RETURN
+groups/csa/csabbg/csabbg_midreturn.t.cpp:132:0: warning: MR01: Mid-function 'return' requires '// RETURN' comment
+            if (f()) return                                                  1;
+^
+groups/csa/csabbg/csabbg_midreturn.t.cpp:132:0: warning: MR01: Correct text is
+            if (f()) return                                                  1;
+                                                                      // RETURN
+groups/csa/csabbg/csabbg_midreturn.t.cpp:133:0: warning: MR01: Mid-function 'return' requires '// RETURN' comment
+            if (f()) return                                                 1;
+^
+groups/csa/csabbg/csabbg_midreturn.t.cpp:133:0: warning: MR01: Correct text is
+            if (f()) return                                                 1;
+                                                                      // RETURN
+groups/csa/csabbg/csabbg_midreturn.t.cpp:134:0: warning: MR01: Mid-function 'return' requires '// RETURN' comment
+            if (f()) return                                                1;
+^
+groups/csa/csabbg/csabbg_midreturn.t.cpp:134:0: warning: MR01: Correct text is
+            if (f()) return                                                1;
+                                                                      // RETURN
+groups/csa/csabbg/csabbg_midreturn.t.cpp:135:0: warning: MR01: Mid-function 'return' requires '// RETURN' comment
+            if (f()) return                                               1;
+^
+groups/csa/csabbg/csabbg_midreturn.t.cpp:135:0: warning: MR01: Correct text is
+            if (f()) return                                               1;
+                                                                      // RETURN
+groups/csa/csabbg/csabbg_midreturn.t.cpp:136:0: warning: MR01: Mid-function 'return' requires '// RETURN' comment
+            if (f()) return                                              1;
+^
+groups/csa/csabbg/csabbg_midreturn.t.cpp:136:0: warning: MR01: Correct text is
+            if (f()) return                                              1;
+                                                                      // RETURN
+groups/csa/csabbg/csabbg_midreturn.t.cpp:137:0: warning: MR01: Mid-function 'return' requires '// RETURN' comment
+            if (f()) return                                             1;
+^
+groups/csa/csabbg/csabbg_midreturn.t.cpp:137:0: warning: MR01: Correct text is
+            if (f()) return                                             1;
+                                                                      // RETURN
+groups/csa/csabbg/csabbg_midreturn.t.cpp:138:0: warning: MR01: Mid-function 'return' requires '// RETURN' comment
+            if (f()) return                                            1;
+^
+groups/csa/csabbg/csabbg_midreturn.t.cpp:138:0: warning: MR01: Correct text is
+            if (f()) return                                            1;
+                                                                      // RETURN
+groups/csa/csabbg/csabbg_midreturn.t.cpp:139:0: warning: MR01: Mid-function 'return' requires '// RETURN' comment
+            if (f()) return                                           1;
+^
+groups/csa/csabbg/csabbg_midreturn.t.cpp:139:0: warning: MR01: Correct text is
+            if (f()) return                                           1;
+                                                                      // RETURN
+groups/csa/csabbg/csabbg_midreturn.t.cpp:140:0: warning: MR01: Mid-function 'return' requires '// RETURN' comment
+            if (f()) return                                          1;
+^
+groups/csa/csabbg/csabbg_midreturn.t.cpp:140:0: warning: MR01: Correct text is
+            if (f()) return                                          1;
+                                                                      // RETURN
+groups/csa/csabbg/csabbg_midreturn.t.cpp:141:0: warning: MR01: Mid-function 'return' requires '// RETURN' comment
+            if (f()) return                                         1;
+^
+groups/csa/csabbg/csabbg_midreturn.t.cpp:141:0: warning: MR01: Correct text is
+            if (f()) return                                         1;
+                                                                      // RETURN
+groups/csa/csabbg/csabbg_midreturn.t.cpp:142:0: warning: MR01: Mid-function 'return' requires '// RETURN' comment
+            if (f()) return                                        1;
+^
+groups/csa/csabbg/csabbg_midreturn.t.cpp:142:0: warning: MR01: Correct text is
+            if (f()) return                                        1; // RETURN
+58 warnings generated.

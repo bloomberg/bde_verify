@@ -6,6 +6,7 @@
 #include <csabase_ppobserver.h>
 #include <csabase_registercheck.h>
 #include <csabase_util.h>
+#include <clang/Rewrite/Core/Rewriter.h>
 #include <set>
 #include <string>
 #include <sstream>
@@ -127,8 +128,19 @@ struct report
             // Ignore final top-level return statements.
             if (!d.d_last_returns.count(*it) &&
                 !is_commented(*it, d.d_rcs.begin(), d.d_rcs.end())) {
-                    d_analyser.report(*it, check_name, "MR01",
+                d_analyser.report(*it, check_name, "MR01",
                         "Mid-function 'return' requires '// RETURN' comment");
+                SourceRange line_range =
+                    d_analyser.get_line_range((*it)->getLocEnd());
+                llvm::StringRef line = d_analyser.get_source(line_range);
+                std::string tag = (line.size() < 70
+                                   ? std::string(70 - line.size(), ' ')
+                                   : "\n" + std::string(70, ' ')
+                                  ) + "// RETURN";
+                d_analyser.report(*it, check_name, "MR01",
+                        "Correct text is\n%0")
+                    << line.str() + tag;
+                d_analyser.rewriter().InsertTextAfter(line_range.getEnd(), tag);
             }
         }
     }
@@ -160,6 +172,20 @@ struct report
                         ss << " (place it alone on the next line)";
                     }
                     d_analyser.report(*it, check_name, "MR02", ss.str());
+                    SourceRange line_range = d_analyser.get_line_range(*it);
+                    llvm::StringRef line = d_analyser.get_source(line_range)
+                                               .slice(0, ccolm - 1)
+                                               .rtrim();
+                    std::string tag = (line.size() < 70
+                                       ? std::string(70 - line.size(), ' ')
+                                       : "\n" + std::string(70, ' ')
+                                      ) + "// RETURN";
+                    d_analyser.report(*it, check_name, "MR01",
+                            "Correct text is\n%0")
+                        << line.str() + tag;
+                    line_range.setBegin(
+                        line_range.getBegin().getLocWithOffset(line.size()));
+                    d_analyser.rewriter().ReplaceText(line_range, tag);
                 }
                 return true;
             }

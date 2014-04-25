@@ -124,5 +124,53 @@ namespace bde_verify
             z<char> z1;
             z<int> z2;
         }
+
+        int l()
+        {
+            if (f()) return                                                    1;
+            if (f()) return                                                   1;
+            if (f()) return                                                  1;
+            if (f()) return                                                 1;
+            if (f()) return                                                1;
+            if (f()) return                                               1;
+            if (f()) return                                              1;
+            if (f()) return                                             1;
+            if (f()) return                                            1;
+            if (f()) return                                           1;
+            if (f()) return                                          1;
+            if (f()) return                                         1;
+            if (f()) return                                        1;
+            return 0;
+        }
+
+        int m()
+        {
+            if (f()) return                                                    1;
+                                                                      // RETURN
+            if (f()) return                                                   1;
+                                                                      // RETURN
+            if (f()) return                                                  1;
+                                                                      // RETURN
+            if (f()) return                                                 1;
+                                                                      // RETURN
+            if (f()) return                                                1;
+                                                                      // RETURN
+            if (f()) return                                               1;
+                                                                      // RETURN
+            if (f()) return                                              1;
+                                                                      // RETURN
+            if (f()) return                                             1;
+                                                                      // RETURN
+            if (f()) return                                            1;
+                                                                      // RETURN
+            if (f()) return                                           1;
+                                                                      // RETURN
+            if (f()) return                                          1;
+                                                                      // RETURN
+            if (f()) return                                         1;
+                                                                      // RETURN
+            if (f()) return                                        1; // RETURN
+            return 0;
+        }
     }
 }
