@@ -138,7 +138,8 @@ struct report
                                    : "\n" + std::string(70, ' ')
                                   ) + "// RETURN";
                 d_analyser.report(*it, check_name, "MR01",
-                        "Correct text is\n%0")
+                        "Correct text is\n%0",
+                        false, clang::DiagnosticsEngine::Note)
                     << line.str() + tag;
                 d_analyser.rewriter().InsertTextAfter(line_range.getEnd(), tag);
             }
@@ -181,7 +182,8 @@ struct report
                                        : "\n" + std::string(70, ' ')
                                       ) + "// RETURN";
                     d_analyser.report(*it, check_name, "MR01",
-                            "Correct text is\n%0")
+                            "Correct text is\n%0",
+                            false, clang::DiagnosticsEngine::Note)
                         << line.str() + tag;
                     line_range.setBegin(
                         line_range.getBegin().getLocWithOffset(line.size()));
