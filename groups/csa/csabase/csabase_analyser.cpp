@@ -527,6 +527,8 @@ bde_verify::csabase::Analyser::is_ADL_candidate(clang::Decl const* decl)
 
 // ----------------------------------------------------------------------------
 
+static llvm::Regex generated("GENERATED FILE -+ DO NOT EDIT");
+
 bool bde_verify::csabase::Analyser::is_generated(clang::SourceLocation loc) const
     // Return true if this is an automatically generated file.  The criterion
     // is a first line containing "GENERATED FILE -- DO NOT EDIT".
@@ -536,9 +538,8 @@ bool bde_verify::csabase::Analyser::is_generated(clang::SourceLocation loc) cons
     if (i == is_generated_.end()) {
         i = is_generated_.insert(std::make_pair(
                 fid,
-                d_source_manager.getBufferData(fid)
-                    .split('\n').first.find("GENERATED FILE -- DO NOT EDIT") !=
-                                       llvm::StringRef::npos
+                generated.match(d_source_manager.getBufferData(fid)
+                    .split('\n').first)
         )).first;
     }
     return i->second;
