@@ -95,6 +95,11 @@ struct report
     void match_return(const BoundNodes& nodes)
     {
         const ReturnStmt *ret = nodes.getNodeAs<ReturnStmt>("return");
+
+        if (!d_analyser.is_component(ret->getLocStart())) {
+            return;                                                   // RETURN
+        }
+
         // If the statement is contained in a function template specialization
         // (even nested within local classes) ignore it - the original in the
         // template will be processed.
@@ -132,16 +137,19 @@ struct report
                         "Mid-function 'return' requires '// RETURN' comment");
                 SourceRange line_range =
                     d_analyser.get_line_range((*it)->getLocEnd());
-                llvm::StringRef line = d_analyser.get_source(line_range);
-                std::string tag = (line.size() < 70
-                                   ? std::string(70 - line.size(), ' ')
-                                   : "\n" + std::string(70, ' ')
-                                  ) + "// RETURN";
-                d_analyser.report(*it, check_name, "MR01",
-                        "Correct text is\n%0",
-                        false, clang::DiagnosticsEngine::Note)
-                    << line.str() + tag;
-                d_analyser.rewriter().InsertTextAfter(line_range.getEnd(), tag);
+                if (line_range.isValid()) {
+                    llvm::StringRef line = d_analyser.get_source(line_range);
+                    std::string tag = (line.size() < 70
+                                       ? std::string(70 - line.size(), ' ')
+                                       : "\n" + std::string(70, ' ')
+                                      ) + "// RETURN";
+                    d_analyser.report(*it, check_name, "MR01",
+                                      "Correct text is\n%0",
+                                      false, clang::DiagnosticsEngine::Note)
+                        << line.str() + tag;
+                    d_analyser.rewriter().InsertTextAfter(
+                        line_range.getEnd(), tag);
+                }
             }
         }
     }

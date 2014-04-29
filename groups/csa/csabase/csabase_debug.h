@@ -54,5 +54,6 @@ bde_verify::csabase::Debug::operator<< (T const& value) const
 // -----------------------------------------------------------------------------
 
 #define ERRS() (llvm::errs() << __FUNCTION__ << " " << __LINE__ << " ")
+#define ERNL() (llvm::errs() << "\n")
 
 #endif

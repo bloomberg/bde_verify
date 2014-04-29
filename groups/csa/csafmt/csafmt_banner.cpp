@@ -138,7 +138,9 @@ void files::check_comment(SourceRange comment_range)
                               "Banner ends at column %0 instead of 79")
                 << static_cast<int>(matches[3].size());
             SourceRange line_range = d_analyser.get_line_range(separator_start);
-            d_analyser.rewriter().ReplaceText(line_range, expected_banner);
+            if (line_range.isValid()) {
+                d_analyser.rewriter().ReplaceText(line_range, expected_banner);
+            }
         }
     }
 
@@ -180,7 +182,9 @@ void files::check_comment(SourceRange comment_range)
                               false, clang::DiagnosticsEngine::Note)
                 << expected_text;
             SourceRange line_range = d_analyser.get_line_range(sl);
-            d_analyser.rewriter().ReplaceText(line_range, expected_text);
+            if (line_range.isValid()) {
+                d_analyser.rewriter().ReplaceText(line_range, expected_text);
+            }
         }
 
         llvm::StringRef bottom_rule = matches[7];
@@ -203,7 +207,9 @@ void files::check_comment(SourceRange comment_range)
                 << "//" + std::string(expected_last_space_pos - 2, ' ') +
                        bottom_rule.str();
             SourceRange line_range = d_analyser.get_line_range(bottom_loc);
-            d_analyser.rewriter().ReplaceText(line_range, expected_text);
+            if (line_range.isValid()) {
+                d_analyser.rewriter().ReplaceText(line_range, expected_text);
+            }
         }
     }
 }
