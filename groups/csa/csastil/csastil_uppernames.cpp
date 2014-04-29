@@ -71,7 +71,8 @@ void report::match_has_name(const BoundNodes& nodes)
     if (!d_analyser.is_component(decl)) {
         return;                                                       // RETURN
     }
-    if (llvm::dyn_cast<TemplateTypeParmDecl>(decl)) {
+    if (llvm::dyn_cast<TemplateTypeParmDecl>(decl) ||
+        llvm::dyn_cast<NonTypeTemplateParmDecl>(decl)) {
         return;                                                       // RETURN
     }
     if (FunctionDecl const* func = llvm::dyn_cast<FunctionDecl>(decl)) {
