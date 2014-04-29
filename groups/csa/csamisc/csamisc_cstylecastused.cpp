@@ -9,11 +9,8 @@
 #include <csabase_registercheck.h>
 #ident "$Id$"
 
-using bde_verify::csabase::Analyser;
-using clang::CStyleCastExpr;
-using clang::FunctionDecl;
-using clang::FunctionTemplateDecl;
-using clang::Stmt;
+using namespace clang;
+using namespace bde_verify::csabase;
 
 // ----------------------------------------------------------------------------
 
@@ -23,20 +20,22 @@ static void
 check_cast(Analyser& analyser, CStyleCastExpr const* expr)
 {
     switch (expr->getCastKind()) {
-      case clang::CK_NullToPointer:
-      case clang::CK_NullToMemberPointer:
-      case clang::CK_MemberPointerToBoolean:
-      case clang::CK_PointerToBoolean:
-      case clang::CK_ToVoid:
-      case clang::CK_IntegralCast:
-      case clang::CK_IntegralToBoolean:
-      case clang::CK_IntegralToFloating:
-      case clang::CK_FloatingToIntegral:
-      case clang::CK_FloatingToBoolean:
-      case clang::CK_FloatingCast:
+      case CK_NullToPointer:
+      case CK_NullToMemberPointer:
+      case CK_MemberPointerToBoolean:
+      case CK_PointerToBoolean:
+      case CK_ToVoid:
+      case CK_IntegralCast:
+      case CK_IntegralToBoolean:
+      case CK_IntegralToFloating:
+      case CK_FloatingToIntegral:
+      case CK_FloatingToBoolean:
+      case CK_FloatingCast:
         break;
       default: {
-        if (!expr->getLocStart().isMacroID()) {
+          if (!expr->getLocStart().isMacroID() &&
+              !expr->getSubExprAsWritten()->isNullPointerConstant(
+                   *analyser.context(), Expr::NPC_ValueDependentIsNotNull)) {
             analyser.report(expr, check_name, "CC01", "C-style cast is used")
                 << expr->getSourceRange();
         }
@@ -75,5 +74,5 @@ static void check_ft(Analyser& analyser, FunctionTemplateDecl const* decl)
 
 // ----------------------------------------------------------------------------
 
-static bde_verify::csabase::RegisterCheck c1(check_name, &check_f);
-static bde_verify::csabase::RegisterCheck c2(check_name, &check_ft);
+static RegisterCheck c1(check_name, &check_f);
+static RegisterCheck c2(check_name, &check_ft);
