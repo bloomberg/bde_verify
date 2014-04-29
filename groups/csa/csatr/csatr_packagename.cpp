@@ -66,13 +66,21 @@ namespace
 
                 if (fn.component().count('_') != (fn.package() == "bslfwd" ?
                             2 : fn.package().count('_') + 1)) {
-                    analyser.report(where, check_name, "PN02",
-                                    "Component name '%0' must consist of "
-                                    "package '%1' followed by underscore and "
-                                    "name with no underscores", true)
-                        << fn.component()
-                        << fn.package();
-                        return;
+                    std::string super =
+                        (fn.pkgdir() +
+                         fn.component().substr(0, fn.component().rfind('_')) +
+                         ".h"
+                        ).str();
+                    struct stat buffer;
+                    if (stat(super.c_str(), &buffer)) {
+                        analyser.report(where, check_name, "PN02",
+                                    "Cannot find component header file '%0' "
+                                    "to which this component '%1' is "
+                                    "subordinate")
+                            << super
+                            << fn.component();
+                        return;                                       // RETURN
+                    }
                 }
 
                 llvm::StringRef srpackage = fn.package();
