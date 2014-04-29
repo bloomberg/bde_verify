@@ -887,6 +887,10 @@ void report::match_no_print(const BoundNodes& nodes)
 {
     const Stmt *quiet = nodes.getNodeAs<Stmt>("loop");
 
+    if (quiet->getLocStart().isMacroID()) {
+        return;                                                       // RETURN
+    }
+
     // Don't warn about this in case 0, the usage example.
     for (const Stmt *s = quiet;
          const CaseStmt *cs = d_analyser.get_parent<CaseStmt>(s);
