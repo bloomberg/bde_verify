@@ -17,14 +17,14 @@ namespace bde_verify
             template <class T>
             T* t()
             {
-                return (T*)0;
+                return (T*)1;
             }
         }
 
         static char* f()
         {
             t<char>();
-            return (char*)0;
+            return (char*)1;
         }
 
         static void g()

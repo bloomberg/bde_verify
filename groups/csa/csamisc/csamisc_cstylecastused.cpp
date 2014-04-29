@@ -22,10 +22,25 @@ static std::string const check_name("c-cast");
 static void
 check_cast(Analyser& analyser, CStyleCastExpr const* expr)
 {
-    if (expr->getCastKind() != clang::CK_ToVoid &&
-        !expr->getLocStart().isMacroID()) {
-        analyser.report(expr, check_name, "CC01", "C-style cast is used")
-            << expr->getSourceRange();
+    switch (expr->getCastKind()) {
+      case clang::CK_NullToPointer:
+      case clang::CK_NullToMemberPointer:
+      case clang::CK_MemberPointerToBoolean:
+      case clang::CK_PointerToBoolean:
+      case clang::CK_ToVoid:
+      case clang::CK_IntegralCast:
+      case clang::CK_IntegralToBoolean:
+      case clang::CK_IntegralToFloating:
+      case clang::CK_FloatingToIntegral:
+      case clang::CK_FloatingToBoolean:
+      case clang::CK_FloatingCast:
+        break;
+      default: {
+        if (!expr->getLocStart().isMacroID()) {
+            analyser.report(expr, check_name, "CC01", "C-style cast is used")
+                << expr->getSourceRange();
+        }
+      } break;
     }
 }
 
