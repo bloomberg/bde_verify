@@ -349,9 +349,9 @@ bde_verify::csabase::Analyser::get_source(clang::SourceRange range, bool exact)
 
     if (range.isValid()) {
         clang::SourceManager& sm(manager());
-        clang::SourceLocation b = sm.getSpellingLoc(range.getBegin());
-        clang::SourceLocation e = sm.getSpellingLoc(range.getEnd());
-        clang::SourceLocation t = exact ? e : sm.getSpellingLoc(
+        clang::SourceLocation b = sm.getFileLoc(range.getBegin());
+        clang::SourceLocation e = sm.getFileLoc(range.getEnd());
+        clang::SourceLocation t = exact ? e : sm.getFileLoc(
                 clang::Lexer::getLocForEndOfToken(
                     e.getLocWithOffset(-1), 0, sm, context()->getLangOpts()));
         if (!t.isValid()) {
@@ -375,6 +375,7 @@ bde_verify::csabase::Analyser::get_line_range(clang::SourceLocation loc)
 
     if (loc.isValid()) {
         clang::SourceManager& sm(manager());
+        loc = sm.getFileLoc(loc);
         clang::FileID fid = sm.getFileID(loc);
         size_t line_num = sm.getPresumedLineNumber(loc);
         range.setBegin(sm.translateLineCol(fid, line_num, 1u));
