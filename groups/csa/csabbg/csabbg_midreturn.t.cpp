@@ -174,3 +174,25 @@ namespace bde_verify
         }
     }
 }
+
+#include <stdio.h>
+
+namespace bde_verify
+{
+    namespace csabbg
+    {
+        void *n()
+        {
+            if (f()) {
+                return NULL;
+            }
+            if (f()) {
+                return NULL;  // RETURN
+            }
+            if (f()) {
+                return NULL;                                          // RETURN
+            }
+            return NULL;
+        }
+    }
+}

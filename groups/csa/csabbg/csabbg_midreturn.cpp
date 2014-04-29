@@ -2,6 +2,7 @@
 // ----------------------------------------------------------------------------
 
 #include <csabase_analyser.h>
+#include <csabase_debug.h>
 #include <csabase_location.h>
 #include <csabase_ppobserver.h>
 #include <csabase_registercheck.h>
@@ -160,9 +161,10 @@ struct report
                       std::set<SourceLocation>::iterator comments_end)
     {
         SourceManager& m = d_analyser.manager();
-        unsigned       sline = m.getPresumedLineNumber(stmt->getLocEnd());
-        unsigned       scolm = m.getPresumedColumnNumber(stmt->getLocEnd());
-        FileID  sfile = m.getFileID(stmt->getLocEnd());
+        SourceLocation loc = m.getFileLoc(stmt->getLocEnd());
+        unsigned       sline = m.getPresumedLineNumber(loc);
+        unsigned       scolm = m.getPresumedColumnNumber(loc);
+        FileID  sfile = m.getFileID(loc);
 
         for (std::set<SourceLocation>::iterator it = comments_begin;
              it != comments_end;
