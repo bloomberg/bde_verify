@@ -7,6 +7,7 @@
 #include <csabase_registercheck.h>
 #include <csabase_util.h>
 #include <llvm/Support/Regex.h>
+#include <clang/Rewrite/Core/Rewriter.h>
 #include <string>
 
 #ident "$Id$"
@@ -64,20 +65,24 @@ void files::operator()(SourceLocation loc,
         llvm::SmallVector<llvm::StringRef, 7> matches;
         while (bad_ws.match(s = buf.drop_front(offset), &matches)) {
             llvm::StringRef text = matches[0];
-            std::pair<size_t, size_t> m = bde_verify::csabase::mid_match(s, text);
+            std::pair<size_t, size_t> m =
+                bde_verify::csabase::mid_match(s, text);
             size_t matchpos = offset + m.first;
             offset = matchpos + text.size();
+            SourceLocation sloc = loc.getLocWithOffset(matchpos);
             if (text[0] == '\t') {
-                d_analyser.report(loc.getLocWithOffset(matchpos),
-                        check_name, "TAB01",
+                d_analyser.report(sloc, check_name, "TAB01",
                         "Tab character%s0 in source")
                     << static_cast<long>(text.size());
+                d_analyser.rewriter().ReplaceText(
+                    sloc, text.size(), std::string(text.size(), ' '));
             }
             else {
                 d_analyser.report(loc.getLocWithOffset(matchpos),
                         check_name, "ESP01",
                         "Space%s0 at end of line")
                     << static_cast<long>(text.size() - 1);
+                d_analyser.rewriter().RemoveText(sloc, text.size() - 1);
             }
         }
     }
