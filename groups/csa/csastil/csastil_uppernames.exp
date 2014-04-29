@@ -1,46 +1,46 @@
-groups/csa/csastil/csastil_uppernames.t.cpp:9:0: warning: UC01: Name should not be all upper-case
+groups/csa/csastil/csastil_uppernames.v.cpp:9:0: warning: UC01: Name should not be all upper-case
 int AA;
 ^
-groups/csa/csastil/csastil_uppernames.t.cpp:11:0: warning: UC01: Name should not be all upper-case
+groups/csa/csastil/csastil_uppernames.v.cpp:11:0: warning: UC01: Name should not be all upper-case
 void BB()
 ^
-groups/csa/csastil/csastil_uppernames.t.cpp:13:0: warning: UC01: Name should not be all upper-case
+groups/csa/csastil/csastil_uppernames.v.cpp:13:0: warning: UC01: Name should not be all upper-case
     int BB_AA;
 ^
-groups/csa/csastil/csastil_uppernames.t.cpp:14:0: warning: UC01: Name should not be all upper-case
+groups/csa/csastil/csastil_uppernames.v.cpp:14:0: warning: UC01: Name should not be all upper-case
     struct BB_CC
 ^
-groups/csa/csastil/csastil_uppernames.t.cpp:19:0: warning: UC01: Name should not be all upper-case
+groups/csa/csastil/csastil_uppernames.v.cpp:19:0: warning: UC01: Name should not be all upper-case
 struct CC
 ^
-groups/csa/csastil/csastil_uppernames.t.cpp:21:0: warning: UC01: Name should not be all upper-case
+groups/csa/csastil/csastil_uppernames.v.cpp:21:0: warning: UC01: Name should not be all upper-case
     int CC_AA;
 ^
-groups/csa/csastil/csastil_uppernames.t.cpp:22:0: warning: UC01: Name should not be all upper-case
+groups/csa/csastil/csastil_uppernames.v.cpp:22:0: warning: UC01: Name should not be all upper-case
     template <class CC_DD> struct CC_EE { };
 ^
-groups/csa/csastil/csastil_uppernames.t.cpp:27:0: warning: UC01: Name should not be all upper-case
+groups/csa/csastil/csastil_uppernames.v.cpp:27:0: warning: UC01: Name should not be all upper-case
 template <class DD> struct EE
 ^
-groups/csa/csastil/csastil_uppernames.t.cpp:29:0: warning: UC01: Name should not be all upper-case
+groups/csa/csastil/csastil_uppernames.v.cpp:29:0: warning: UC01: Name should not be all upper-case
     int EE_AA;
 ^
-groups/csa/csastil/csastil_uppernames.t.cpp:30:0: warning: UC01: Name should not be all upper-case
+groups/csa/csastil/csastil_uppernames.v.cpp:30:0: warning: UC01: Name should not be all upper-case
     struct EE_CC  { };
 ^
-groups/csa/csastil/csastil_uppernames.t.cpp:31:0: warning: UC01: Name should not be all upper-case
+groups/csa/csastil/csastil_uppernames.v.cpp:31:0: warning: UC01: Name should not be all upper-case
     template <class EE_DD> struct EE_EE { };
 ^
-groups/csa/csastil/csastil_uppernames.t.cpp:32:0: warning: UC01: Name should not be all upper-case
+groups/csa/csastil/csastil_uppernames.v.cpp:32:0: warning: UC01: Name should not be all upper-case
     template <class EE_FF> struct EE_GG;
 ^
-groups/csa/csastil/csastil_uppernames.t.cpp:40:0: warning: UC01: Name should not be all upper-case
+groups/csa/csastil/csastil_uppernames.v.cpp:40:0: warning: UC01: Name should not be all upper-case
 struct bde_verify::csastil::EE<EE_HH>::EE_GG
 ^
-groups/csa/csastil/csastil_uppernames.t.cpp:42:0: warning: UC01: Name should not be all upper-case
+groups/csa/csastil/csastil_uppernames.v.cpp:42:0: warning: UC01: Name should not be all upper-case
     EE_HH JJ;
 ^
-groups/csa/csastil/csastil_uppernames.t.cpp:43:0: warning: UC01: Name should not be all upper-case
+groups/csa/csastil/csastil_uppernames.v.cpp:43:0: warning: UC01: Name should not be all upper-case
     EE_II KK;
 ^
 15 warnings generated.

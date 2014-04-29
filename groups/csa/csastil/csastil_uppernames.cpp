@@ -104,11 +104,13 @@ void report::match_has_name(const BoundNodes& nodes)
 
 void report::operator()()
 {
-    MatchFinder mf;
-    OnMatch<report, &report::match_has_name> m1(this);
-    mf.addDynamicMatcher(has_name_matcher(), &m1);
-    mf.match(*d_analyser.context()->getTranslationUnitDecl(),
-             *d_analyser.context());
+    if (!d_analyser.is_test_driver()) {
+        MatchFinder mf;
+        OnMatch<report, &report::match_has_name> m1(this);
+        mf.addDynamicMatcher(has_name_matcher(), &m1);
+        mf.match(*d_analyser.context()->getTranslationUnitDecl(),
+                 *d_analyser.context());
+    }
 }
 
 void subscribe(Analyser& analyser, Visitor&, PPObserver&)
