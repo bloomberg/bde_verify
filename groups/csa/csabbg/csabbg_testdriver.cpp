@@ -301,7 +301,12 @@ noisy_print_matcher()
         caseStmt(has(compoundStmt(forEachDescendant(
             ifStmt(hasCondition(ignoringImpCasts(
                        declRefExpr(to(varDecl(hasName("verbose")))))),
-                   anyOf(hasAncestor(doStmt()),
+                   anyOf(hasAncestor(doStmt(unless(anyOf(
+                            hasCondition(boolLiteral(equals(false))),
+                            hasCondition(characterLiteral(equals('\0'))),
+                            hasCondition(integerLiteral(equals(0))),
+                            hasCondition(nullPtrLiteralExpr())
+                         )))),
                          hasAncestor(forStmt()),
                          hasAncestor(whileStmt()))).bind("noisy")))));
     return matcher;
@@ -879,6 +884,11 @@ void report::match_print_banner(const BoundNodes& nodes)
 void report::match_noisy_print(const BoundNodes& nodes)
 {
     const IfStmt *noisy = nodes.getNodeAs<IfStmt>("noisy");
+
+    if (noisy->getLocStart().isMacroID()) {
+        return;                                                       // RETURN
+    }
+
     d_analyser.report(noisy->getCond(), check_name, "TP20",
                       "Within loops, act on very verbose");
 }
