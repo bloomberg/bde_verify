@@ -157,6 +157,7 @@ void comments::operator()(SourceRange range)
 struct ParmInfo
 {
     bool is_matched    : 1;
+    bool is_exact      : 1;
     bool is_quoted     : 1;
     bool is_not_quoted : 1;
 
@@ -165,6 +166,7 @@ struct ParmInfo
 
 ParmInfo::ParmInfo()
 : is_matched(false)
+, is_exact(false)
 , is_quoted(false)
 , is_not_quoted(false)
 {
@@ -179,6 +181,7 @@ struct Word
     bool is_noise      : 1;
     bool is_specify    : 1;
     bool is_optionally : 1;
+    bool is_exact      : 1;
 
     Word();
 
@@ -198,6 +201,7 @@ Word::Word()
 , is_noise(false)
 , is_specify(false)
 , is_optionally(false)
+, is_exact(false)
 {
 }
 
@@ -225,6 +229,12 @@ void Word::set(std::vector<ParmInfo>* parm_info,
                                 static_cast<unsigned char>(s[0])
                 && p.substr(1) == s.substr(1))) {
             parm = i;
+            if (!is_exact) {
+                is_exact = p[0] == s[0];
+            }
+            if (is_exact || parm > i) {
+                parm = i;
+            }
             break;
         }
     }
@@ -242,6 +252,7 @@ void Word::set(std::vector<ParmInfo>* parm_info,
         } else {
             pi.is_not_quoted = true;
         }
+        pi.is_exact = is_exact;
     }
 }
 
@@ -713,6 +724,20 @@ void report::critiqueContract(const FunctionDecl* func, SourceRange comment)
                         && parm_info[i].is_quoted
                         && parm_info[i].is_not_quoted
                         && !words[j].is_quoted) {
+                        continue;
+                    }
+
+                    // If we know that the parameter name appears exactly as
+                    // spelled somewhere in the comment, and that this instance
+                    // of the parameter doesn't have 'specified' and isn't
+                    // spelled the same, ignore it.  E.g.,
+                    //..
+                    //  ... if derived from 'bslma::Allocator',
+                    //      the specified 'allocator' is ...
+                    //..
+                    if (!specify_found &&
+                        parm_info[i].is_exact &&
+                        words[j].word != parms[i]) {
                         continue;
                     }
 
