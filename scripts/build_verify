@@ -4,7 +4,7 @@
 #   bde_build.pl -k -DCC={this} -DCXX={this} -c bde_verify ...
 
 : ${VD:=/home/hrosen4/bde_verify}
-: ${EXE:=$VD/Linux-clang-3.5/bde_verify}
+: ${EXE:=$VD/Linux-gcc-4.8.1/bde_verify}
 "$VD/scripts/bde_verify"                                                      \
     --nodefinc                                                                \
     --nodefdef                                                                \

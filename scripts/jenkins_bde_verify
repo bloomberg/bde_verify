@@ -18,7 +18,7 @@ then
 fi
 
 VD=$WORKSPACE/bde-verify
-EXE=$VD/Linux-clang-3.5/bde_verify
+EXE=$VD/Linux-gcc-4.8.1/bde_verify
 export VD EXE
 
 BDE_VERIFY="$VD/scripts/build_verify"
