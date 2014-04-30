@@ -901,13 +901,14 @@ void report::match_no_print(const BoundNodes& nodes)
         return;                                                       // RETURN
     }
 
-    // Don't warn about this in case 0, the usage example.
+    // Don't warn about this in case 0, the usage example, or in negative cases
+    // (which are not regulare tests).
     for (const Stmt *s = quiet;
          const CaseStmt *cs = d_analyser.get_parent<CaseStmt>(s);
          s = cs) {
         llvm::APSInt val;
         if (cs->getLHS()->isIntegerConstantExpr(val, *d_analyser.context()) &&
-            !val.getBoolValue()) {
+            !val.isStrictlyPositive()) {
             return;                                                   // RETURN
         }
     }
