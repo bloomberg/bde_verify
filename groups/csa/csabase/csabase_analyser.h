@@ -162,8 +162,6 @@ private:
     mutable IsGlobalPackage               is_global_package_;
     typedef std::map<std::string, bool>   IsStandardNamespace;
     mutable IsStandardNamespace           is_standard_namespace_;
-    typedef std::map<clang::FileID, bool> IsGenerated;
-    mutable IsGenerated                   is_generated_;
 };
 
 // -----------------------------------------------------------------------------

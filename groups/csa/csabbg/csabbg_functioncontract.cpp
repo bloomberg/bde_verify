@@ -363,10 +363,6 @@ struct report
         // Utility method to process function declarations from the specified
         // 'decls' container.
 
-    bool isGenerated(const FunctionDecl *func);
-        // Return true iff the specified 'func' appears between comments
-        // "// {{{ BEGIN GENERATED CODE" and "// }}} END GENERATED CODE".
-
     bool doesNotNeedContract(const FunctionDecl *func);
         // Return 'true' iff the specified 'func' does not need a contract.
         //
@@ -483,37 +479,6 @@ void report::processAllFunDecls(data::FunDecls& decls)
     }
 }
 
-bool report::isGenerated(const FunctionDecl *func)
-{
-    // Note that it is necessary to scan the file buffer rather than using the
-    // comments callback from the preprocessor because the generator brackets
-    // its generated code awkwardly within '#if/#else' constructs, and thus
-    // some of the brackets never show up:
-    //..
-    //  #if !BSLS_COMPILERFEATURES_SIMULATE_CPP11_FEATURES
-    //  #elif BSLS_COMPILERFEATURES_SIMULATE_VARIADIC_TEMPLATES
-    //  // {{{ BEGIN GENERATED CODE
-    //  #else
-    //  // }}} END GENERATED CODE
-    //  #endif
-    //..
-
-    SourceManager&  m    = d_manager;
-    clang::FileID   file = m.getFileID(func->getLocStart());
-    llvm::StringRef buf  = m.getBufferData(file);
-    unsigned        pos  = m.getFileOffset(func->getLocStart());
-
-    const char *const bg = "\n// {{{ BEGIN GENERATED CODE";
-    const char *const eg = "\n// }}} END GENERATED CODE";
-
-    size_t bpos = buf.npos;
-    for (size_t p = 0; (p = buf.find(bg, p)) < pos; ++p) {
-        bpos = p;
-    }
-    size_t epos = buf.find(eg, bpos);
-    return bpos != buf.npos && (epos == buf.npos || bpos < epos);
-}
-
 bool report::doesNotNeedContract(const FunctionDecl *func)
 {
     const CXXConstructorDecl *ctor;
@@ -527,8 +492,7 @@ bool report::doesNotNeedContract(const FunctionDecl *func)
                 || (   (meth = llvm::dyn_cast<CXXMethodDecl>(func))
                     && meth->isCopyAssignmentOperator())))
         || (   d_analyser.is_test_driver()
-            && func->getNameAsString() == "aSsErT")
-        || isGenerated(func);
+            && func->getNameAsString() == "aSsErT");
 }
 
 SourceRange report::getContract(const FunctionDecl     *func,

@@ -552,18 +552,34 @@ bde_verify::csabase::Analyser::is_ADL_candidate(clang::Decl const* decl)
 
 static llvm::Regex generated("GENERATED FILE -+ DO NOT EDIT");
 
-bool bde_verify::csabase::Analyser::is_generated(clang::SourceLocation loc) const
+bool
+bde_verify::csabase::Analyser::is_generated(clang::SourceLocation loc) const
     // Return true if this is an automatically generated file.  The criterion
     // is a first line containing "GENERATED FILE -- DO NOT EDIT".
 {
+    loc = d_source_manager.getFileLoc(loc);
     clang::FileID fid = d_source_manager.getFileID(loc);
-    IsGenerated::const_iterator i = is_generated_.find(fid);
-    if (i == is_generated_.end()) {
-        i = is_generated_.insert(std::make_pair(
-                fid,
-                generated.match(d_source_manager.getBufferData(fid)
-                    .split('\n').first)
-        )).first;
+    llvm::StringRef buf = d_source_manager.getBufferData(fid);
+    if (generated.match(buf.split('\n').first)) {
+        return true;                                                  // RETURN
     }
-    return i->second;
+
+    // Note that the bg/eg tags below do not respect preprocessor sections.
+    // They can look like
+    //..
+    //  #if !BSLS_COMPILERFEATURES_SIMULATE_CPP11_FEATURES
+    //  #elif BSLS_COMPILERFEATURES_SIMULATE_VARIADIC_TEMPLATES
+    //  // {{{ BEGIN GENERATED CODE
+    //  #else
+    //  // }}} END GENERATED CODE
+    //  #endif
+    //..
+    unsigned pos = d_source_manager.getFileOffset(loc);
+    static const char bg[] = "\n// {{{ BEGIN GENERATED CODE";
+    static const char eg[] = "\n// }}} END GENERATED CODE";
+    size_t bpos = buf.npos;
+    for (size_t p = 0; (p = buf.find(bg, p)) < pos; ++p) {
+        bpos = p;
+    }
+    return bpos != buf.npos && pos < buf.find(eg, bpos);
 }
