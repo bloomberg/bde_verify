@@ -335,51 +335,29 @@ void report::match_allocator_type(const BoundNodes& nodes)
 
 static const DynTypedMatcher &
 nested_allocator_trait_matcher()
-    // Return an AST matcher which looks for nested allocator traits.  Expanded
-    // from macros, the declaration looks like
+    // Return an AST matcher which looks for nested traits.  Expanded from
+    // macros, allocator traits look like:
     //..
     //  class MyClass { operator bslalg::TypeTraitUsesBslmaAllocator::
     //                           NestedTraitDeclaration<MyClass>() const ... };
     //..
     // or
     //..
-    //  class MyClass { operator bslmf::NestedTraitDeclaration<
+    //  class MyClass { operator BloombergLP::bslmf::NestedTraitDeclaration<
     //                                      MyClass,
     //                                      bslma::UsesBslmaAllocator,
     //                                      true>() const ... };
     //..
+    // In the second case above, the final boolean parameter may also be false
+    // or missing.  The details of the classes involved are too hairy to tease
+    // out in the AST matcher; instead the matcher looks for a superset of
+    // methods and the callback look sfor further structure.
 {
     static const DynTypedMatcher matcher = decl(forEachDescendant(
         methodDecl(
-            hasName("operator NestedTraitDeclaration"),
-            returns(qualType(hasDeclaration(classTemplateSpecializationDecl(
-                anyOf(
-                    allOf(
-                        matchesName("^::BloombergLP::bslalg::"
-                                    "TypeTraitUsesBslmaAllocator::"),
-                        templateArgumentCountIs(1)
-                    ),
-                    allOf(
-                        matchesName("^::BloombergLP::bslmf::"),
-                        hasTemplateArgument(1, refersToTemplate(
-                            namedDecl(hasName(
-                                "::BloombergLP::bslma::UsesBslmaAllocator"
-                        )))),
-                        anyOf(
-                            templateArgumentCountIs(2),
-                            allOf(
-                                templateArgumentCountIs(3),
-                                hasTemplateArgument(2, equalsIntegral(1))
-                            )
-                        )
-                    )
-                ),
-                hasTemplateArgument(
-                    0,
-                    refersToType(qualType(hasDeclaration(
-                        recordDecl().bind("class")))))
-            )))),
-            ofClass(recordDecl(decl(equalsBoundNode("class"))))
+            matchesName("::operator NestedTraitDeclaration($|<)"),
+            returns(qualType().bind("type")),
+            ofClass(recordDecl().bind("class"))
         )
     ));
     return matcher;
@@ -387,9 +365,22 @@ nested_allocator_trait_matcher()
 
 void report::match_nested_allocator_trait(const BoundNodes& nodes)
 {
-    analyser_.attachment<data>().decls_with_true_allocator_trait_.insert(
-        llvm::dyn_cast<NamedDecl>(
-            nodes.getNodeAs<NamedDecl>("class")->getCanonicalDecl()));
+    CXXRecordDecl const* decl = nodes.getNodeAs<CXXRecordDecl>("class");
+    std::string type = nodes.getNodeAs<QualType>("type")->getAsString();
+
+    if (type.find("bslalg::struct "
+                  "TypeTraitUsesBslmaAllocator::NestedTraitDeclaration<") ==
+            0 ||
+        (type.find("BloombergLP::bslmf::NestedTraitDeclaration<") == 0 &&
+         (type.find(", bslma::UsesBslmaAllocator, true>") != type.npos ||
+          type.find(", bslma::UsesBslmaAllocator>") != type.npos))) {
+        analyser_.attachment<data>().decls_with_true_allocator_trait_.insert(
+            llvm::dyn_cast<NamedDecl>(decl->getCanonicalDecl()));
+    } else if (type.find("BloombergLP::bslmf::NestedTraitDeclaration<") == 0 &&
+               type.find(", bslma::UsesBslmaAllocator, false>") != type.npos) {
+        analyser_.attachment<data>().decls_with_false_allocator_trait_.insert(
+            llvm::dyn_cast<NamedDecl>(decl->getCanonicalDecl()));
+    }
 }
 
 static const DynTypedMatcher &

@@ -254,6 +254,46 @@ struct alloc_j {
 
 template class alloc_j<int>;
 
+template <class TYPE>
+struct alloc_k {
+    BSLMF_NESTED_TRAIT_DECLARATION_IF(alloc_k, bslma::UsesBslmaAllocator, true);
+    explicit alloc_k(bslma::Allocator*) { }
+};
+
+template <class TYPE>
+struct alloc_l {
+    BSLMF_NESTED_TRAIT_DECLARATION_IF(alloc_l, bslma::UsesBslmaAllocator, false);
+    explicit alloc_l(bslma::Allocator*) { }
+};
+
+template <class TYPE>
+struct alloc_m {
+    BSLMF_NESTED_TRAIT_DECLARATION_IF(alloc_m, bslma::UsesBslmaAllocator, true);
+    explicit alloc_m(bslma::Allocator*) { }
+};
+
+template class alloc_m<int>;
+
+template <class TYPE>
+struct alloc_n {
+    BSLMF_NESTED_TRAIT_DECLARATION_IF(alloc_n, bslma::UsesBslmaAllocator, false);
+    explicit alloc_n(bslma::Allocator*) { }
+};
+
+template class alloc_n<int>;
+
+template <class TYPE>
+struct alloc_o {
+    explicit alloc_o(bslma::Allocator*) { }
+};
+
+template <class TYPE>
+struct alloc_p {
+    explicit alloc_p(bslma::Allocator*) { }
+};
+
+template class alloc_p<int>;
+
 }
 }
 
