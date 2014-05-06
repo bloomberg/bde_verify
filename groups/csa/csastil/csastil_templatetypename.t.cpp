@@ -69,3 +69,8 @@ template <typename PP>
 struct II::JJ::LL<OO>::NN
 {
 };
+
+template<template <class> class QQ>
+void RR()
+{
+}

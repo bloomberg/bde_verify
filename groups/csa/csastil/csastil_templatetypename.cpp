@@ -142,13 +142,15 @@ void report::checkTemplateParameters(TemplateParameterList const* parms)
                         r.getBegin().getLocWithOffset(to), 8, "class");
                  }
             }
-            if (parm->getName().size() == 1) {
-                 d_analyser.report(parm, check_name, "TY02",
-                     "Template parameter uses single-letter name");
-            }
-            if (!all_upper.match(parm->getName())) {
-                 d_analyser.report(parm, check_name, "TY03",
-                     "Template parameter is not in ALL_CAPS format");
+            if (parm->getIdentifier()) {
+                if (parm->getName().size() == 1) {
+                    d_analyser.report(parm, check_name, "TY02",
+                        "Template parameter uses single-letter name");
+                }
+                if (!all_upper.match(parm->getName())) {
+                    d_analyser.report(parm, check_name, "TY03",
+                        "Template parameter is not in ALL_CAPS format");
+                }
             }
         }
     }
