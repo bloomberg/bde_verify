@@ -19,20 +19,16 @@
 
 // ----------------------------------------------------------------------------
 
-namespace bde_verify
-{
-    namespace csabase
-    {
-        struct DiagnosticFilterType {};
-        DiagnosticFilterType* operator+(DiagnosticFilterType);
-        DiagnosticFilterType* operator-(DiagnosticFilterType);
-    }
-}
+namespace csabase {
+    struct DiagnosticFilterType {};
+    DiagnosticFilterType* operator+(DiagnosticFilterType);
+    DiagnosticFilterType* operator-(DiagnosticFilterType);
+} // close package namespace
 
 // ----------------------------------------------------------------------------
 
-inline bde_verify::csabase::DiagnosticFilterType*
-bde_verify::csabase::operator+(DiagnosticFilterType value)
+inline csabase::DiagnosticFilterType*
+csabase::operator+(DiagnosticFilterType value)
 {
     return &value;
 }

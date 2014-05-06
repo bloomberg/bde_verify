@@ -18,7 +18,7 @@ static std::string const check_name("spell-check");
 // ----------------------------------------------------------------------------
 
 using namespace clang;
-using namespace bde_verify::csabase;
+using namespace csabase;
 
 #if SPELL_CHECK
 
@@ -42,7 +42,7 @@ void comments::append(Analyser& analyser, SourceRange range)
     SourceManager& m = analyser.manager();
     comments::Ranges& c = d_comments[m.getFilename(range.getBegin())];
     if (c.size() != 0 &&
-        bde_verify::csabase::areConsecutive(m, c.back(), range)) {
+        csabase::areConsecutive(m, c.back(), range)) {
         c.back().setEnd(range.getEnd());
     } else {
         c.push_back(range);
@@ -291,4 +291,4 @@ void subscribe(Analyser&, Visitor&, PPObserver&)
 
 #endif  // SPELL_CHECK
 
-static bde_verify::csabase::RegisterCheck c1(check_name, &subscribe);
+static csabase::RegisterCheck c1(check_name, &subscribe);

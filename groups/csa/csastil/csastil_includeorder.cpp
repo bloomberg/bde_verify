@@ -17,7 +17,7 @@
 #include <utility>
 #include <vector>
 
-namespace CB = bde_verify::csabase;
+namespace CB = csabase;
 
 // ----------------------------------------------------------------------------
 
@@ -227,7 +227,7 @@ namespace
 
     struct binder
     {
-        binder(bde_verify::csabase::Analyser* analyser)
+        binder(csabase::Analyser* analyser)
             : d_analyser(analyser)
         {
         }
@@ -244,7 +244,7 @@ namespace
             std::string value(begin, end);
             value.erase(std::remove_if(value.begin(), value.end(),
                                        &is_space), value.end());
-            value = bde_verify::csabase::to_lower(value);
+            value = csabase::to_lower(value);
             if (value.find(prefix1) == 0 && value[value.size() - 1] == ')') {
                 data.add_include(d_analyser->is_component_header(range.getBegin()),
                                  value.substr(prefix1.size(), value.size() - prefix1.size() - 1),
@@ -267,7 +267,7 @@ namespace
             if (clang::IdentifierInfo const* id = token.getIdentifierInfo())
             {
                 std::string value(id->getNameStart());
-                value = bde_verify::csabase::to_lower(value);
+                value = csabase::to_lower(value);
                 if (value.find(prefix0) == 0) {
                     data.add_include(d_analyser->is_component_header(token.getLocation()),
                                      value.substr(prefix0.size()),
@@ -302,14 +302,14 @@ namespace
             }
         }
 
-        bde_verify::csabase::Analyser* d_analyser;
+        csabase::Analyser* d_analyser;
     };
 }
 
 // ----------------------------------------------------------------------------
 
 static void
-subscribe(bde_verify::csabase::Analyser& analyser, bde_verify::csabase::Visitor&, bde_verify::csabase::PPObserver& observer)
+subscribe(csabase::Analyser& analyser, csabase::Visitor&, csabase::PPObserver& observer)
 {
     analyser.onTranslationUnitDone += binder(&analyser);
     observer.onInclude             += binder(&analyser);
@@ -319,4 +319,4 @@ subscribe(bde_verify::csabase::Analyser& analyser, bde_verify::csabase::Visitor&
 
 // ----------------------------------------------------------------------------
 
-static bde_verify::csabase::RegisterCheck register_observer(check_name, &subscribe);
+static csabase::RegisterCheck register_observer(check_name, &subscribe);

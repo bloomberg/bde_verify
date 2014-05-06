@@ -11,22 +11,17 @@
 
 // -----------------------------------------------------------------------------
 
-namespace bde_verify
-{
-    namespace csabase
-    {
-        int* diagnosticFilterExtraInlineDummy(int);
-    }
-}
+namespace csabase {
+    int* diagnosticFilterExtraInlineDummy(int);
+} // close package namespace
 
 // ----------------------------------------------------------------------------
 
 inline int*
-bde_verify::csabase::diagnosticFilterExtraInlineDummy(int value)
+csabase::diagnosticFilterExtraInlineDummy(int value)
 {
     return &value;
 }
-
 
 // -----------------------------------------------------------------------------
 

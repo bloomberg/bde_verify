@@ -20,10 +20,10 @@ using clang::PresumedLoc;
 using clang::Stmt;
 using clang::SourceManager;
 
-using bde_verify::csabase::Analyser;
-using bde_verify::csabase::Location;
-using bde_verify::csabase::PPObserver;
-using bde_verify::csabase::Visitor;
+using csabase::Analyser;
+using csabase::Location;
+using csabase::PPObserver;
+using csabase::Visitor;
 
 namespace
 {
@@ -153,5 +153,5 @@ void subscribe(Analyser& analyser, Visitor&, PPObserver& observer)
 
 // ----------------------------------------------------------------------------
 
-static bde_verify::csabase::RegisterCheck c1(check_name, &long_inlines);
-static bde_verify::csabase::RegisterCheck c2(check_name, &subscribe);
+static csabase::RegisterCheck c1(check_name, &long_inlines);
+static csabase::RegisterCheck c2(check_name, &subscribe);

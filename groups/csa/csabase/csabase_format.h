@@ -14,25 +14,21 @@
 
 // -----------------------------------------------------------------------------
 
-namespace bde_verify
-{
-    namespace csabase
-    {
-        template <typename T> class Formatter;
-        template <typename T> Formatter<T> format(T const& value);
-        template <typename T>
-        llvm::raw_ostream&
-        operator<< (llvm::raw_ostream&, Formatter<T> const&);
-        template <typename T>
-        clang::DiagnosticBuilder&
-        operator<< (clang::DiagnosticBuilder&, Formatter<T> const&);
-    }
-}
+namespace csabase {
+    template <typename T> class Formatter;
+    template <typename T> Formatter<T> format(T const& value);
+    template <typename T>
+    llvm::raw_ostream&
+    operator<< (llvm::raw_ostream&, Formatter<T> const&);
+    template <typename T>
+    clang::DiagnosticBuilder&
+    operator<< (clang::DiagnosticBuilder&, Formatter<T> const&);
+} // close package namespace
 
 // -----------------------------------------------------------------------------
 
 template <typename T>
-class bde_verify::csabase::Formatter
+class csabase::Formatter
 {
 public:
     Formatter(T const& value);
@@ -44,7 +40,7 @@ private:
 };
 
 template <typename T>
-bde_verify::csabase::Formatter<T>::Formatter(T const& value):
+csabase::Formatter<T>::Formatter(T const& value):
     value_(value)
 {
 }
@@ -52,18 +48,18 @@ bde_verify::csabase::Formatter<T>::Formatter(T const& value):
 // -----------------------------------------------------------------------------
 
 template <typename T>
-bde_verify::csabase::Formatter<T>
-bde_verify::csabase::format(T const& value)
+csabase::Formatter<T>
+csabase::format(T const& value)
 {
-    return bde_verify::csabase::Formatter<T>(value);
+    return csabase::Formatter<T>(value);
 }
 
 // -----------------------------------------------------------------------------
 
 template <typename T>
 llvm::raw_ostream&
-bde_verify::csabase::operator<< (llvm::raw_ostream&                 out,
-                           bde_verify::csabase::Formatter<T> const& value)
+csabase::operator<< (llvm::raw_ostream&                 out,
+                           csabase::Formatter<T> const& value)
 {
     value.print(out);
     return out;
@@ -71,8 +67,8 @@ bde_verify::csabase::operator<< (llvm::raw_ostream&                 out,
 
 template <typename T>
 clang::DiagnosticBuilder&
-bde_verify::csabase::operator<< (clang::DiagnosticBuilder&          builder,
-                           bde_verify::csabase::Formatter<T> const& value)
+csabase::operator<< (clang::DiagnosticBuilder&          builder,
+                           csabase::Formatter<T> const& value)
 {
     value.print(builder);
     return builder;

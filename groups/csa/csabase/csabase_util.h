@@ -16,7 +16,6 @@
 #include <string>
 #include <utility>
 
-namespace bde_verify {
 namespace csabase {
 
 std::pair<size_t, size_t>
@@ -78,7 +77,6 @@ void OnMatch<Class, Method>::run(
     (object_->*Method)(result.Nodes);
 }
 
-}
-}
+} // close package namespace
 
 #endif

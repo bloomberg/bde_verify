@@ -14,7 +14,7 @@
 static std::string const check_name("auto");
 
 static void
-check(bde_verify::csabase::Analyser& analyser, clang::VarDecl const* decl)
+check(csabase::Analyser& analyser, clang::VarDecl const* decl)
 {
     if (decl->hasDefinition() == clang::VarDecl::Definition) {
         clang::TypeSourceInfo const* tsinfo(decl->getTypeSourceInfo());
@@ -40,4 +40,4 @@ check(bde_verify::csabase::Analyser& analyser, clang::VarDecl const* decl)
 
 // ----------------------------------------------------------------------------
 
-static bde_verify::csabase::RegisterCheck register_check(check_name, &check);
+static csabase::RegisterCheck register_check(check_name, &check);

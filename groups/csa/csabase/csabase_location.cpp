@@ -13,7 +13,7 @@
 
 // -----------------------------------------------------------------------------
 
-bde_verify::csabase::Location::Location()
+csabase::Location::Location()
     : d_file("<unknown>")
     , d_line(0)
     , d_column(0)
@@ -21,7 +21,7 @@ bde_verify::csabase::Location::Location()
 {
 }
 
-bde_verify::csabase::Location::Location(clang::SourceManager const& manager,
+csabase::Location::Location(clang::SourceManager const& manager,
                                   clang::SourceLocation       location)
     : d_file()
     , d_line(0)
@@ -43,31 +43,31 @@ bde_verify::csabase::Location::Location(clang::SourceManager const& manager,
 // -----------------------------------------------------------------------------
 
 std::string
-bde_verify::csabase::Location::file() const
+csabase::Location::file() const
 {
     return d_file;
 }
 
 size_t
-bde_verify::csabase::Location::line() const
+csabase::Location::line() const
 {
     return d_line;
 }
 
 size_t
-bde_verify::csabase::Location::column() const
+csabase::Location::column() const
 {
     return d_column;
 }
 
 clang::SourceLocation
-bde_verify::csabase::Location::location() const
+csabase::Location::location() const
 {
     return d_location;
 }
 
 bool
-bde_verify::csabase::Location::operator< (bde_verify::csabase::Location const& rhs) const
+csabase::Location::operator< (csabase::Location const& rhs) const
 {
     if (d_file < rhs.d_file) {
         return true;
@@ -93,7 +93,7 @@ bde_verify::csabase::Location::operator< (bde_verify::csabase::Location const& r
 // -----------------------------------------------------------------------------
 
 llvm::raw_ostream&
-bde_verify::csabase::operator<< (llvm::raw_ostream& out, bde_verify::csabase::Location const& loc)
+csabase::operator<< (llvm::raw_ostream& out, csabase::Location const& loc)
 {
     return out << loc.file() << ":" << loc.line() << ":" << loc.column();
 }
@@ -101,7 +101,7 @@ bde_verify::csabase::operator<< (llvm::raw_ostream& out, bde_verify::csabase::Lo
 // -----------------------------------------------------------------------------
 
 std::ostream&
-bde_verify::csabase::operator<< (std::ostream& out, bde_verify::csabase::Location const& loc)
+csabase::operator<< (std::ostream& out, csabase::Location const& loc)
 {
     return out << loc.file() << ":" << loc.line() << ":" << loc.column();
 }
@@ -109,8 +109,8 @@ bde_verify::csabase::operator<< (std::ostream& out, bde_verify::csabase::Locatio
 // -----------------------------------------------------------------------------
 
 bool
-bde_verify::csabase::operator==(bde_verify::csabase::Location const& a,
-                          bde_verify::csabase::Location const& b)
+csabase::operator==(csabase::Location const& a,
+                          csabase::Location const& b)
 {
     return a.file()   == b.file()
         && a.line()   == b.line()
@@ -120,8 +120,8 @@ bde_verify::csabase::operator==(bde_verify::csabase::Location const& a,
 // -----------------------------------------------------------------------------
 
 bool
-bde_verify::csabase::operator!=(bde_verify::csabase::Location const& a,
-                          bde_verify::csabase::Location const& b)
+csabase::operator!=(csabase::Location const& a,
+                          csabase::Location const& b)
 {
     return a.file()   != b.file()
         || a.line()   != b.line()
@@ -130,11 +130,11 @@ bde_verify::csabase::operator!=(bde_verify::csabase::Location const& a,
 
 // -----------------------------------------------------------------------------
 
-bde_verify::csabase::Range::Range()
+csabase::Range::Range()
 {
 }
 
-bde_verify::csabase::Range::Range(clang::SourceManager const& manager,
+csabase::Range::Range(clang::SourceManager const& manager,
                             clang::SourceRange range)
     : d_from(manager, range.getBegin())
     , d_to(manager, range.getEnd())
@@ -143,20 +143,20 @@ bde_verify::csabase::Range::Range(clang::SourceManager const& manager,
 
 // -----------------------------------------------------------------------------
 
-const bde_verify::csabase::Location&
-bde_verify::csabase::Range::from() const
+const csabase::Location&
+csabase::Range::from() const
 {
     return d_from;
 }
 
-const bde_verify::csabase::Location&
-bde_verify::csabase::Range::to() const
+const csabase::Location&
+csabase::Range::to() const
 {
     return d_to;
 }
 
 bool
-bde_verify::csabase::Range::operator< (bde_verify::csabase::Range const& rhs) const
+csabase::Range::operator< (csabase::Range const& rhs) const
 {
     if (d_from < rhs.d_from) {
         return true;
@@ -176,7 +176,7 @@ bde_verify::csabase::Range::operator< (bde_verify::csabase::Range const& rhs) co
 // -----------------------------------------------------------------------------
 
 llvm::raw_ostream&
-bde_verify::csabase::operator<< (llvm::raw_ostream& out, bde_verify::csabase::Range const& loc)
+csabase::operator<< (llvm::raw_ostream& out, csabase::Range const& loc)
 {
     return out << "[" << loc.from() << ", " << loc.to() << "]";
 }
@@ -184,7 +184,7 @@ bde_verify::csabase::operator<< (llvm::raw_ostream& out, bde_verify::csabase::Ra
 // -----------------------------------------------------------------------------
 
 std::ostream&
-bde_verify::csabase::operator<< (std::ostream& out, bde_verify::csabase::Range const& loc)
+csabase::operator<< (std::ostream& out, csabase::Range const& loc)
 {
     return out << "[" << loc.from() << ", " << loc.to() << "]";
 }
@@ -192,8 +192,8 @@ bde_verify::csabase::operator<< (std::ostream& out, bde_verify::csabase::Range c
 // -----------------------------------------------------------------------------
 
 bool
-bde_verify::csabase::operator==(bde_verify::csabase::Range const& a,
-                          bde_verify::csabase::Range const& b)
+csabase::operator==(csabase::Range const& a,
+                          csabase::Range const& b)
 {
     return a.from() == b.from() && a.to() == b.to();
 }
@@ -201,8 +201,8 @@ bde_verify::csabase::operator==(bde_verify::csabase::Range const& a,
 // -----------------------------------------------------------------------------
 
 bool
-bde_verify::csabase::operator!=(bde_verify::csabase::Range const& a,
-                          bde_verify::csabase::Range const& b)
+csabase::operator!=(csabase::Range const& a,
+                          csabase::Range const& b)
 {
     return a.from() != b.from() || a.to() != b.to();
 }

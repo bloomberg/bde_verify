@@ -14,16 +14,12 @@
 
 // -----------------------------------------------------------------------------
 
-namespace bde_verify
-{
-    namespace csabase
-    {
-        class Analyser;
-        class Visitor;
-        class PPObserver;
-        class CheckRegistry;
-    }
-}
+namespace csabase {
+    class Analyser;
+    class Visitor;
+    class PPObserver;
+    class CheckRegistry;
+} // close package namespace
 
 // -----------------------------------------------------------------------------
 // This class maintains a list of all the registered checks. Essentially, it
@@ -31,16 +27,16 @@ namespace bde_verify
 // operations to subscribe to the suitable events on the visitor object its
 // gets passed.
 
-class bde_verify::csabase::CheckRegistry
+class csabase::CheckRegistry
 {
 public:
-    typedef utils::function<void(bde_verify::csabase::Analyser&,
-                                bde_verify::csabase::Visitor&,
-                                bde_verify::csabase::PPObserver&)> Subscriber;
+    typedef utils::function<void(csabase::Analyser&,
+                                csabase::Visitor&,
+                                csabase::PPObserver&)> Subscriber;
     static void add_check(std::string const&, Subscriber);
-    static void attach(bde_verify::csabase::Analyser&,
-                       bde_verify::csabase::Visitor&,
-                       bde_verify::csabase::PPObserver&);
+    static void attach(csabase::Analyser&,
+                       csabase::Visitor&,
+                       csabase::PPObserver&);
 };
 
 // -----------------------------------------------------------------------------

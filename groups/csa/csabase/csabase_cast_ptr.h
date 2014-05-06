@@ -10,18 +10,14 @@
 
 // ----------------------------------------------------------------------------
 
-namespace bde_verify
-{
-    namespace csabase
-    {
-        template <typename T> class cast_ptr;
-    }
-}
+namespace csabase {
+    template <typename T> class cast_ptr;
+} // close package namespace
 
 // ----------------------------------------------------------------------------
 
 template <typename T>
-class bde_verify::csabase::cast_ptr
+class csabase::cast_ptr
 {
 public:
     template <typename P> cast_ptr(P const* p);
@@ -38,34 +34,34 @@ private:
 
 template <typename T>
     template <typename P>
-bde_verify::csabase::cast_ptr<T>::cast_ptr(P const* p)
+csabase::cast_ptr<T>::cast_ptr(P const* p)
   : d_pointer(llvm::dyn_cast<T>(p))
 {
 }
 
 template <typename T>
-bde_verify::csabase::cast_ptr<T>::operator bool() const
+csabase::cast_ptr<T>::operator bool() const
 {
     return d_pointer;
 }
 
 template <typename T>
 T const&
-bde_verify::csabase::cast_ptr<T>::operator*() const
+csabase::cast_ptr<T>::operator*() const
 {
     return *d_pointer;
 }
 
 template <typename T>
 T const*
-bde_verify::csabase::cast_ptr<T>::operator->() const
+csabase::cast_ptr<T>::operator->() const
 {
     return d_pointer;
 }
 
 template <typename T>
 T const*
-bde_verify::csabase::cast_ptr<T>::get() const
+csabase::cast_ptr<T>::get() const
 {
     return d_pointer;
 }

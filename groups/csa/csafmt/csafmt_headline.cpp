@@ -24,11 +24,11 @@ namespace
     template <typename T>
     struct analyser_binder
     {
-        analyser_binder(void (*function)(bde_verify::csabase::Analyser&,
+        analyser_binder(void (*function)(csabase::Analyser&,
                                          clang::SourceLocation,
                                          T,
                                          std::string const&),
-                        bde_verify::csabase::Analyser& analyser):
+                        csabase::Analyser& analyser):
             function_(function),
             analyser_(analyser)
         {
@@ -39,23 +39,23 @@ namespace
         {
             function_(analyser_, where, arg, name);
         }
-        void          (*function_)(bde_verify::csabase::Analyser&,
+        void          (*function_)(csabase::Analyser&,
                                    clang::SourceLocation,
                                    T,
                                    std::string const&);
-        bde_verify::csabase::Analyser& analyser_;
+        csabase::Analyser& analyser_;
     };
 }
 
 // ----------------------------------------------------------------------------
 
 static void
-open_file(bde_verify::csabase::Analyser& analyser,
+open_file(csabase::Analyser& analyser,
           clang::SourceLocation    where, 
           const std::string&       ,
           const std::string&       name)
 {
-    bde_verify::csabase::FileName fn(name);
+    csabase::FileName fn(name);
     std::string filename = fn.name();
     if (analyser.is_component_header(filename) || name == analyser.toplevel()) {
         const clang::SourceManager &m = analyser.manager();
@@ -72,9 +72,9 @@ open_file(bde_verify::csabase::Analyser& analyser,
             && !buf.equals(expectc)
             && buf.find("GENERATED") == buf.npos) {
             std::pair<size_t, size_t> mcpp =
-                bde_verify::csabase::mid_mismatch(buf, expectcpp);
+                csabase::mid_mismatch(buf, expectcpp);
             std::pair<size_t, size_t> mc =
-                bde_verify::csabase::mid_mismatch(buf, expectc);
+                csabase::mid_mismatch(buf, expectc);
             std::pair<size_t, size_t> m;
             std::string expect;
 
@@ -105,9 +105,9 @@ open_file(bde_verify::csabase::Analyser& analyser,
 // ----------------------------------------------------------------------------
 
 static void
-subscribe(bde_verify::csabase::Analyser& analyser,
-          bde_verify::csabase::Visitor&  ,
-          bde_verify::csabase::PPObserver& observer)
+subscribe(csabase::Analyser& analyser,
+          csabase::Visitor&  ,
+          csabase::PPObserver& observer)
 {
     observer.onOpenFile += analyser_binder<std::string const&>(open_file,
                                                                  analyser);
@@ -115,5 +115,5 @@ subscribe(bde_verify::csabase::Analyser& analyser,
 
 // ----------------------------------------------------------------------------
 
-static bde_verify::csabase::RegisterCheck register_observer(check_name,&subscribe);
+static csabase::RegisterCheck register_observer(check_name,&subscribe);
 

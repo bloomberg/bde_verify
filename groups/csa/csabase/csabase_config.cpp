@@ -27,19 +27,19 @@ static std::string const check_name("base");
 // ----------------------------------------------------------------------------
 
 std::istream&
-bde_verify::csabase::operator>> (std::istream&                  in,
-                           bde_verify::csabase::Config::Status& value)
+csabase::operator>> (std::istream&                  in,
+                           csabase::Config::Status& value)
 {
     std::string string;
     if (in >> string)
     {
         if (string == "on")
         {
-            value = bde_verify::csabase::Config::on;
+            value = csabase::Config::on;
         }
         else if (string == "off")
         {
-            value = bde_verify::csabase::Config::off;
+            value = csabase::Config::off;
         }
         else
         {
@@ -50,23 +50,23 @@ bde_verify::csabase::operator>> (std::istream&                  in,
 }
 
 std::ostream&
-bde_verify::csabase::operator<< (std::ostream& out,
-                           bde_verify::csabase::Config::Status value)
+csabase::operator<< (std::ostream& out,
+                           csabase::Config::Status value)
 {
     switch (value) {
     default:                         out << "<unknown>"; break;
-    case bde_verify::csabase::Config::on:  out << "on";        break;
-    case bde_verify::csabase::Config::off: out << "off";       break;
+    case csabase::Config::on:  out << "on";        break;
+    case csabase::Config::off: out << "off";       break;
     }
     return out;
 }
 
 // ----------------------------------------------------------------------------
 static void
-set_status(std::map<std::string, bde_verify::csabase::Config::Status>&   checks,
+set_status(std::map<std::string, csabase::Config::Status>&   checks,
            std::map<std::string, std::vector<std::string> > const& groups,
            std::string const&                                      check,
-           bde_verify::csabase::Config::Status                           status,
+           csabase::Config::Status                           status,
            std::vector<std::string>&                               path)
 {
     std::map<std::string, std::vector<std::string> >::const_iterator it =
@@ -87,7 +87,7 @@ set_status(std::map<std::string, bde_verify::csabase::Config::Status>&   checks,
 
 // ----------------------------------------------------------------------------
 
-bde_verify::csabase::Config::Config(std::vector<std::string> const& config,
+csabase::Config::Config(std::vector<std::string> const& config,
                               clang::SourceManager& manager)
 : d_toplevel_namespace("BloombergLP")
 , d_all(on)
@@ -100,7 +100,7 @@ bde_verify::csabase::Config::Config(std::vector<std::string> const& config,
 }
 
 void
-bde_verify::csabase::Config::process(std::string const& line)
+csabase::Config::process(std::string const& line)
 {
     std::string command;
     std::istringstream args(line);
@@ -118,7 +118,7 @@ bde_verify::csabase::Config::process(std::string const& line)
         }
     }
     else if (command == "all") {
-        bde_verify::csabase::Config::Status status;
+        csabase::Config::Status status;
         if (args >> status) {
             d_all = status;
         }
@@ -130,7 +130,7 @@ bde_verify::csabase::Config::process(std::string const& line)
     }
     else if (command == "check") {
         std::string                   check;
-        bde_verify::csabase::Config::Status status;
+        csabase::Config::Status status;
         if (args >> check >> status) {
             std::vector<std::string> path;
             set_status(d_checks, d_groups, check, status, path);
@@ -188,7 +188,7 @@ bde_verify::csabase::Config::process(std::string const& line)
         if (args >> tag) {
             std::string file;
             while (args >> file) {
-                bde_verify::csabase::FileName fn(file);
+                csabase::FileName fn(file);
                 if (d_suppressions.insert(std::make_pair(tag, fn.name()))
                         .second &&
                     d_groups.find(tag) != d_groups.end()) {
@@ -213,7 +213,7 @@ bde_verify::csabase::Config::process(std::string const& line)
 }
 
 void
-bde_verify::csabase::Config::load(std::string const& original)
+csabase::Config::load(std::string const& original)
 {
     std::string file(original);
     if (!file.empty() && file[0] == '$') {
@@ -257,29 +257,29 @@ bde_verify::csabase::Config::load(std::string const& original)
 // ----------------------------------------------------------------------------
 
 std::string const&
-bde_verify::csabase::Config::toplevel_namespace() const
+csabase::Config::toplevel_namespace() const
 {
     return d_toplevel_namespace;
 }
 
-std::map<std::string, bde_verify::csabase::Config::Status> const&
-bde_verify::csabase::Config::checks() const
+std::map<std::string, csabase::Config::Status> const&
+csabase::Config::checks() const
 {
     return d_checks;
 }
 
-void bde_verify::csabase::Config::set_value(const std::string& key,
+void csabase::Config::set_value(const std::string& key,
                                       const std::string& value)
 {
     d_values[key] = value;
 }
 
-void bde_verify::csabase::Config::bv_stack_level(
+void csabase::Config::bv_stack_level(
     std::vector<clang::SourceLocation>* stack,
     clang::SourceLocation where) const
 {
-    bde_verify::csabase::Location location(d_manager, where);
-    bde_verify::csabase::FileName fn(location.file());
+    csabase::Location location(d_manager, where);
+    csabase::FileName fn(location.file());
     stack->clear();
     stack->push_back(where);
     if (d_local_bv_pragmas.find(fn.name()) != d_local_bv_pragmas.end()) {
@@ -299,12 +299,12 @@ void bde_verify::csabase::Config::bv_stack_level(
 }
 
 const std::string&
-bde_verify::csabase::Config::value(const std::string& key,
+csabase::Config::value(const std::string& key,
                              clang::SourceLocation where) const
 {
     if (where.isValid()) {
-        bde_verify::csabase::Location location(d_manager, where);
-        bde_verify::csabase::FileName fn(location.file());
+        csabase::Location location(d_manager, where);
+        csabase::FileName fn(location.file());
         if (d_local_bv_pragmas.find(fn.name()) != d_local_bv_pragmas.end()) {
             const std::vector<BVData>& ls =
                 d_local_bv_pragmas.find(fn.name())->second;
@@ -345,17 +345,17 @@ bde_verify::csabase::Config::value(const std::string& key,
     return empty;
 }
 
-bool bde_verify::csabase::Config::all() const
+bool csabase::Config::all() const
 {
     return d_all;
 }
 
 bool
-bde_verify::csabase::Config::suppressed(const std::string& tag,
+csabase::Config::suppressed(const std::string& tag,
                                   clang::SourceLocation where) const
 {
-    bde_verify::csabase::Location location(d_manager, where);
-    bde_verify::csabase::FileName fn(location.file());
+    csabase::Location location(d_manager, where);
+    csabase::FileName fn(location.file());
 
     if (d_local_bv_pragmas.find(fn.name()) != d_local_bv_pragmas.end()) {
         const std::vector<BVData>& ls =
@@ -393,29 +393,29 @@ bde_verify::csabase::Config::suppressed(const std::string& tag,
 }
 
 void
-bde_verify::csabase::Config::push_suppress(clang::SourceLocation where)
+csabase::Config::push_suppress(clang::SourceLocation where)
 {
-    bde_verify::csabase::Location location(d_manager, where);
-    bde_verify::csabase::FileName fn(location.file());
+    csabase::Location location(d_manager, where);
+    csabase::FileName fn(location.file());
     d_local_bv_pragmas[fn.name()].push_back(BVData(where, '>'));
 }
 
 void
-bde_verify::csabase::Config::pop_suppress(clang::SourceLocation where)
+csabase::Config::pop_suppress(clang::SourceLocation where)
 {
-    bde_verify::csabase::Location location(d_manager, where);
-    bde_verify::csabase::FileName fn(location.file());
+    csabase::Location location(d_manager, where);
+    csabase::FileName fn(location.file());
     d_local_bv_pragmas[fn.name()].push_back(BVData(where, '<'));
 }
 
-void bde_verify::csabase::Config::suppress(const std::string& tag,
+void csabase::Config::suppress(const std::string& tag,
                                      clang::SourceLocation where,
                                      bool on,
                                      std::set<std::string> in_progress)
 {
     if (!in_progress.count(tag)) {
-        bde_verify::csabase::Location location(d_manager, where);
-        bde_verify::csabase::FileName fn(location.file());
+        csabase::Location location(d_manager, where);
+        csabase::FileName fn(location.file());
         d_local_bv_pragmas[fn.name()]
             .push_back(BVData(where, on ? '-' : '+', tag));
         if (d_groups.find(tag) != d_groups.end()) {
@@ -429,18 +429,18 @@ void bde_verify::csabase::Config::suppress(const std::string& tag,
     }
 }
 
-void bde_verify::csabase::Config::set_bv_value(clang::SourceLocation where,
+void csabase::Config::set_bv_value(clang::SourceLocation where,
                                          const std::string& variable,
                                          const std::string& value)
 {
-    bde_verify::csabase::Location location(d_manager, where);
-    bde_verify::csabase::FileName fn(location.file());
+    csabase::Location location(d_manager, where);
+    csabase::FileName fn(location.file());
     d_local_bv_pragmas[fn.name()]
         .push_back(BVData(where, '=', variable, value));
 }
 
-void bde_verify::csabase::Config::check_bv_stack(
-    bde_verify::csabase::Analyser& analyser) const
+void csabase::Config::check_bv_stack(
+    csabase::Analyser& analyser) const
 {
     for (std::map<std::string, std::vector<BVData> >::const_iterator
              b = d_local_bv_pragmas.begin(),

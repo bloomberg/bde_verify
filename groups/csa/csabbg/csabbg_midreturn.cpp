@@ -22,7 +22,7 @@ static std::string const check_name("mid-return");
 
 using namespace clang;
 using namespace clang::ast_matchers;
-using namespace bde_verify::csabase;
+using namespace csabase;
 
 namespace
 {
@@ -55,7 +55,6 @@ struct comments
         }
     }
 };
-
 
 const internal::DynTypedMatcher &
 return_matcher()

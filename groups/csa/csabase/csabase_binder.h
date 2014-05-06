@@ -10,31 +10,27 @@
 
 // ----------------------------------------------------------------------------
 
-namespace bde_verify
-{
-    namespace csabase
-    {
-        class Analyser;
+namespace csabase {
+    class Analyser;
 
-        template <typename Function> class Binder;
-        template <>
-        class Binder<void(*)(Analyser*)>;
-        template <typename T0>
-        class Binder<void(*)(Analyser*, T0)>;
-        template <typename T0, typename T1>
-        class Binder<void(*)(Analyser*, T0, T1)>;
-        template <typename T0, typename T1, typename T2>
-        class Binder<void(*)(Analyser*, T0, T1, T2)>;
+    template <typename Function> class Binder;
+    template <>
+    class Binder<void(*)(Analyser*)>;
+    template <typename T0>
+    class Binder<void(*)(Analyser*, T0)>;
+    template <typename T0, typename T1>
+    class Binder<void(*)(Analyser*, T0, T1)>;
+    template <typename T0, typename T1, typename T2>
+    class Binder<void(*)(Analyser*, T0, T1, T2)>;
 
-        template <typename Function>
-        Binder<Function> bind(Analyser*, Function);
-    }
-}
+    template <typename Function>
+    Binder<Function> bind(Analyser*, Function);
+} // close package namespace
 
 // ----------------------------------------------------------------------------
 
 template <>
-class bde_verify::csabase::Binder<void(*)(bde_verify::csabase::Analyser*)>
+class csabase::Binder<void(*)(csabase::Analyser*)>
 {
 private:
     Analyser* d_analyser;
@@ -55,7 +51,7 @@ public:
 // ----------------------------------------------------------------------------
 
 template <typename T0>
-class bde_verify::csabase::Binder<void(*)(bde_verify::csabase::Analyser*, T0)>
+class csabase::Binder<void(*)(csabase::Analyser*, T0)>
 {
 private:
     Analyser* d_analyser;
@@ -76,7 +72,7 @@ public:
 // ----------------------------------------------------------------------------
 
 template <typename T0, typename T1>
-class bde_verify::csabase::Binder<void(*)(bde_verify::csabase::Analyser*, T0, T1)>
+class csabase::Binder<void(*)(csabase::Analyser*, T0, T1)>
 {
 private:
     Analyser* d_analyser;
@@ -97,7 +93,7 @@ public:
 // ----------------------------------------------------------------------------
 
 template <typename T0, typename T1, typename T2>
-class bde_verify::csabase::Binder<void(*)(bde_verify::csabase::Analyser*, T0, T1, T2)>
+class csabase::Binder<void(*)(csabase::Analyser*, T0, T1, T2)>
 {
 private:
     Analyser* d_analyser;
@@ -118,10 +114,10 @@ public:
 // ----------------------------------------------------------------------------
 
 template <typename Function>
-bde_verify::csabase::Binder<Function>
-bde_verify::csabase::bind(bde_verify::csabase::Analyser* analyser, Function function)
+csabase::Binder<Function>
+csabase::bind(csabase::Analyser* analyser, Function function)
 {
-    return bde_verify::csabase::Binder<Function>(analyser, function);
+    return csabase::Binder<Function>(analyser, function);
 }
 
 // ----------------------------------------------------------------------------

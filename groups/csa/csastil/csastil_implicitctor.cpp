@@ -20,7 +20,7 @@ namespace
 {
     struct suppressions
     {
-        std::set<bde_verify::csabase::Location> entries_;
+        std::set<csabase::Location> entries_;
         std::vector<clang::Decl const*>   reports_;
     };
 }
@@ -28,7 +28,7 @@ namespace
 // -----------------------------------------------------------------------------
 
 static void
-check(bde_verify::csabase::Analyser& analyser, clang::CXXConstructorDecl const* decl)
+check(csabase::Analyser& analyser, clang::CXXConstructorDecl const* decl)
 {
     if (decl->isConvertingConstructor(false)
         && !decl->isCopyOrMoveConstructor()
@@ -45,18 +45,18 @@ namespace
 {
     struct report
     {
-        report(bde_verify::csabase::Analyser& analyser): analyser_(&analyser) {}
-        bde_verify::csabase::Analyser* analyser_;
+        report(csabase::Analyser& analyser): analyser_(&analyser) {}
+        csabase::Analyser* analyser_;
         void
         operator()()
         {
-            bde_verify::csabase::Analyser* analyser(analyser_);
+            csabase::Analyser* analyser(analyser_);
             //-dk:TODO the suppression handling should be in a shared place!
             suppressions const& attachment(analyser->attachment<suppressions>());
             for (std::vector<clang::Decl const*>::const_iterator rit(attachment.reports_.begin()), rend(attachment.reports_.end());
                  rit != rend; ++rit) {
                 clang::Decl const* decl(*rit);
-                typedef bde_verify::csabase::Location            Location;
+                typedef csabase::Location            Location;
                 typedef std::set<Location>::const_iterator const_iterator;
                 clang::SourceLocation end(decl->getLocStart());
                 Location loc(analyser->get_location(end));
@@ -97,12 +97,12 @@ namespace
 {
     struct comments
     {
-        comments(bde_verify::csabase::Analyser& analyser): analyser_(&analyser) {}
-        bde_verify::csabase::Analyser* analyser_;
+        comments(csabase::Analyser& analyser): analyser_(&analyser) {}
+        csabase::Analyser* analyser_;
         void
         operator()(clang::SourceRange range)
         {
-            bde_verify::csabase::Location location(analyser_->get_location(range.getBegin()));
+            csabase::Location location(analyser_->get_location(range.getBegin()));
             if (analyser_->is_component(location.file())) {
                 std::string comment(analyser_->get_source(range));
                 if (comment == "// IMPLICIT") {
@@ -114,7 +114,7 @@ namespace
 }
 
 static void
-subscribe(bde_verify::csabase::Analyser& analyser, bde_verify::csabase::Visitor&, bde_verify::csabase::PPObserver& observer)
+subscribe(csabase::Analyser& analyser, csabase::Visitor&, csabase::PPObserver& observer)
 {
     analyser.onTranslationUnitDone += report(analyser);
     observer.onComment += comments(analyser);
@@ -122,5 +122,5 @@ subscribe(bde_verify::csabase::Analyser& analyser, bde_verify::csabase::Visitor&
 
 // -----------------------------------------------------------------------------
 
-static bde_verify::csabase::RegisterCheck register_check(check_name, &check);
-static bde_verify::csabase::RegisterCheck register_observer(check_name, &subscribe);
+static csabase::RegisterCheck register_check(check_name, &check);
+static csabase::RegisterCheck register_observer(check_name, &subscribe);

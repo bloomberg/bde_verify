@@ -15,7 +15,7 @@
 static std::string const check_name("superfluous-temporary");
 
 static void
-check_entry(bde_verify::csabase::Analyser& analyser, clang::CXXConstructExpr const* expr)
+check_entry(csabase::Analyser& analyser, clang::CXXConstructExpr const* expr)
 {
     if (expr && expr->getNumArgs() == 1)
     {
@@ -36,4 +36,4 @@ check_entry(bde_verify::csabase::Analyser& analyser, clang::CXXConstructExpr con
 
 // -----------------------------------------------------------------------------
 
-static bde_verify::csabase::RegisterCheck check(check_name, &check_entry);
+static csabase::RegisterCheck check(check_name, &check_entry);

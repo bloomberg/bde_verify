@@ -42,7 +42,7 @@ namespace
 namespace
 {
     std::string
-    get_string(bde_verify::csabase::Analyser* analyser, clang::SourceLocation begin, clang::SourceLocation end)
+    get_string(csabase::Analyser* analyser, clang::SourceLocation begin, clang::SourceLocation end)
     {
         return std::string(clang::FullSourceLoc(begin, analyser->manager()).getCharacterData(),
                            clang::FullSourceLoc(end, analyser->manager()).getCharacterData());
@@ -56,9 +56,9 @@ namespace
     static std::string const suffixes[] = { ".h", ".H", ".hh", ".h++", ".hpp", ".hxx" };
 
     void
-    inspect_guard_name(bde_verify::csabase::Analyser* analyser, clang::SourceLocation begin, std::string const& name)
+    inspect_guard_name(csabase::Analyser* analyser, clang::SourceLocation begin, std::string const& name)
     {
-        bde_verify::csabase::FileName fn(analyser->get_location(begin).file());
+        csabase::FileName fn(analyser->get_location(begin).file());
         if (bde_verify::end(suffixes) == std::find(bde_verify::begin(suffixes), bde_verify::end(suffixes), fn.extension().str()))
         {
             analyser->report(begin, check_name, "HS01",
@@ -87,7 +87,7 @@ namespace
 namespace
 {
     std::string const not_defined("!defined(");
-    void on_if(bde_verify::csabase::Analyser* analyser, clang::SourceRange range)
+    void on_if(csabase::Analyser* analyser, clang::SourceRange range)
     {
         std::string expr(get_string(analyser, range.getBegin(), range.getEnd()));
         expr.erase(std::remove_if(expr.begin(), expr.end(), is_space), expr.end());
@@ -103,7 +103,7 @@ namespace
 
 namespace
 {
-    void on_ifndef(bde_verify::csabase::Analyser* analyser, clang::Token token)
+    void on_ifndef(csabase::Analyser* analyser, clang::Token token)
     {
         //-dk:TODO remove llvm::errs() << "onIfndef\n";
         inspect_guard_name(analyser, token.getLocation(), get_string(analyser, token.getLocation(), token.getLastLoc()));
@@ -113,7 +113,7 @@ namespace
 // -----------------------------------------------------------------------------
 
 static void
-subscribe(bde_verify::csabase::Analyser& analyser, bde_verify::csabase::Visitor&, bde_verify::csabase::PPObserver& observer)
+subscribe(csabase::Analyser& analyser, csabase::Visitor&, csabase::PPObserver& observer)
 {
     observer.onIf      += std::bind1st(std::ptr_fun(on_if), &analyser);
     observer.onIfndef  += std::bind1st(std::ptr_fun(on_ifndef), &analyser);
@@ -121,4 +121,4 @@ subscribe(bde_verify::csabase::Analyser& analyser, bde_verify::csabase::Visitor&
 
 // -----------------------------------------------------------------------------
 
-static bde_verify::csabase::RegisterCheck register_observer(check_name, &subscribe);
+static csabase::RegisterCheck register_observer(check_name, &subscribe);

@@ -36,20 +36,20 @@ namespace
 // -----------------------------------------------------------------------------
 
 void
-bde_verify::csabase::Debug::set_debug(bool value)
+csabase::Debug::set_debug(bool value)
 {
     do_debug = value;
 }
 
 bool
-bde_verify::csabase::Debug::get_debug()
+csabase::Debug::get_debug()
 {
     return do_debug;
 }
 
 // -----------------------------------------------------------------------------
 
-bde_verify::csabase::Debug::Debug(char const* message, bool nest):
+csabase::Debug::Debug(char const* message, bool nest):
     message_(message),
     nest_(nest)
 {
@@ -60,7 +60,7 @@ bde_verify::csabase::Debug::Debug(char const* message, bool nest):
     }
 }
 
-bde_verify::csabase::Debug::~Debug()
+csabase::Debug::~Debug()
 {
     if (do_debug && nest_)
     {
@@ -76,7 +76,7 @@ namespace
 }
 
 llvm::raw_ostream&
-bde_verify::csabase::Debug::indent() const
+csabase::Debug::indent() const
 {
     return do_debug? start(::indent) << "| ": dummy_stream;
 }

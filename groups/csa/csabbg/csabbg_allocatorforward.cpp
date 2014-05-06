@@ -25,7 +25,7 @@
 using namespace clang;
 using namespace clang::ast_matchers;
 using namespace clang::ast_matchers::internal;
-using namespace bde_verify::csabase;
+using namespace csabase;
 
 // -----------------------------------------------------------------------------
 
@@ -502,7 +502,6 @@ void report::match_dependent_allocator_trait(const BoundNodes& nodes)
         &analyser_.attachment<data>().decls_with_dependent_allocator_trait_,
         nodes);
 }
-
 
 void report::operator()()
 {

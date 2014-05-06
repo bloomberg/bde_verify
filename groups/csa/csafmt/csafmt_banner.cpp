@@ -25,11 +25,11 @@ using clang::FixItHint;
 using clang::SourceLocation;
 using clang::SourceManager;
 using clang::SourceRange;
-using bde_verify::csabase::Analyser;
-using bde_verify::csabase::Location;
-using bde_verify::csabase::PPObserver;
-using bde_verify::csabase::Range;
-using bde_verify::csabase::Visitor;
+using csabase::Analyser;
+using csabase::Location;
+using csabase::PPObserver;
+using csabase::Range;
+using csabase::Visitor;
 
 namespace
 {
@@ -48,7 +48,7 @@ void comments::append(Analyser& analyser, SourceRange range)
 {
     SourceManager& m = analyser.manager();
     comments::Ranges& c = d_comments[m.getFilename(range.getBegin())];
-    if (c.size() != 0 && bde_verify::csabase::areConsecutive(m, c.back(), range)) {
+    if (c.size() != 0 && csabase::areConsecutive(m, c.back(), range)) {
         c.back().setEnd(range.getEnd());
     } else {
         c.push_back(range);
@@ -109,7 +109,6 @@ void files::check_comment(SourceRange comment_range)
 {
     SourceManager& manager = d_analyser.manager();
     llvm::SmallVector<llvm::StringRef, 8> matches;
-
 
     llvm::StringRef comment = d_analyser.get_source(comment_range, true);
 
@@ -248,4 +247,4 @@ void subscribe(Analyser& analyser, Visitor&, PPObserver& observer)
 
 // ----------------------------------------------------------------------------
 
-static bde_verify::csabase::RegisterCheck c1(check_name, &subscribe);
+static csabase::RegisterCheck c1(check_name, &subscribe);

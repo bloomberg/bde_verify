@@ -15,7 +15,6 @@
 
 // -----------------------------------------------------------------------------
 
-namespace bde_verify {
 namespace csabase {
 
 struct AttachmentBase
@@ -111,7 +110,6 @@ TYPE& Attachments::attachment()
     return static_cast<Attachment<TYPE>*>(d_attachments[index])->data();
 }
 
-}
-}
+} // close package namespace
 
 #endif

@@ -17,27 +17,23 @@
 
 // -----------------------------------------------------------------------------
 
-namespace bde_verify
-{
-    namespace csabase
-    {
-        class Location;
-        llvm::raw_ostream& operator<< (llvm::raw_ostream&, Location const&);
-        std::ostream& operator<< (std::ostream&, Location const&);
-        bool operator== (Location const&, Location const&);
-        bool operator!= (Location const&, Location const&);
+namespace csabase {
+    class Location;
+    llvm::raw_ostream& operator<< (llvm::raw_ostream&, Location const&);
+    std::ostream& operator<< (std::ostream&, Location const&);
+    bool operator== (Location const&, Location const&);
+    bool operator!= (Location const&, Location const&);
 
-        class Range;
-        llvm::raw_ostream& operator<< (llvm::raw_ostream&, Range const&);
-        std::ostream& operator<< (std::ostream&, Range const&);
-        bool operator== (Range const&, Range const&);
-        bool operator!= (Range const&, Range const&);
-    }
-}
+    class Range;
+    llvm::raw_ostream& operator<< (llvm::raw_ostream&, Range const&);
+    std::ostream& operator<< (std::ostream&, Range const&);
+    bool operator== (Range const&, Range const&);
+    bool operator!= (Range const&, Range const&);
+} // close package namespace
 
 // -----------------------------------------------------------------------------
 
-class bde_verify::csabase::Location
+class csabase::Location
 {
 private:
     std::string           d_file;
@@ -55,10 +51,10 @@ public:
     size_t                column() const;
     clang::SourceLocation location() const;
 
-    bool operator< (bde_verify::csabase::Location const& location) const;
+    bool operator< (csabase::Location const& location) const;
 };
 
-class bde_verify::csabase::Range
+class csabase::Range
 {
 private:
     Location d_from;
@@ -72,7 +68,7 @@ public:
     const Location& from() const;
     const Location& to() const;
 
-    bool operator< (bde_verify::csabase::Range const& range) const;
+    bool operator< (csabase::Range const& range) const;
 };
 
 // -----------------------------------------------------------------------------

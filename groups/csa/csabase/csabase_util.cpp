@@ -4,7 +4,6 @@
 #include <csabase_debug.h>
 #include <llvm/Support/Regex.h>
 
-namespace bde_verify {
 namespace csabase {
 
 std::pair<size_t, size_t>
@@ -66,5 +65,5 @@ std::string to_lower(std::string s)
     return s;
 }
 
-}
-}
+} // close package namespace
+

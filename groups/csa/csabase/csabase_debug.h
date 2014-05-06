@@ -13,17 +13,13 @@
 
 // -----------------------------------------------------------------------------
 
-namespace bde_verify
-{
-    namespace csabase
-    {
-        class Debug;
-    }
-}
+namespace csabase {
+    class Debug;
+} // close package namespace
 
 // -----------------------------------------------------------------------------
 
-class bde_verify::csabase::Debug
+class csabase::Debug
 {
 public:
     static void set_debug(bool);
@@ -46,7 +42,7 @@ private:
 
 template <typename T>
 llvm::raw_ostream&
-bde_verify::csabase::Debug::operator<< (T const& value) const
+csabase::Debug::operator<< (T const& value) const
 {
     return indent() << value;
 }

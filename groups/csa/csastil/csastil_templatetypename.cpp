@@ -14,7 +14,7 @@
 
 using namespace clang;
 using namespace clang::ast_matchers;
-using namespace bde_verify::csabase;
+using namespace csabase;
 
 // ----------------------------------------------------------------------------
 

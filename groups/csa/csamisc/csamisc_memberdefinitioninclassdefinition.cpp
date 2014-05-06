@@ -27,7 +27,7 @@ namespace
 // -----------------------------------------------------------------------------
 
 static void
-member_definition_in_class_definition(bde_verify::csabase::Analyser& analyser,
+member_definition_in_class_definition(csabase::Analyser& analyser,
                                       clang::CXXMethodDecl const* decl)
 {
     member_definition& data = analyser.attachment<member_definition>();
@@ -64,4 +64,4 @@ member_definition_in_class_definition(bde_verify::csabase::Analyser& analyser,
 
 // -----------------------------------------------------------------------------
 
-static bde_verify::csabase::RegisterCheck check(check_name, &member_definition_in_class_definition);
+static csabase::RegisterCheck check(check_name, &member_definition_in_class_definition);

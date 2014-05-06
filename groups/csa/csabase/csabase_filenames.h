@@ -13,43 +13,39 @@
 
 // -----------------------------------------------------------------------------
 
-namespace bde_verify
-{
-    namespace csabase
-    {
-        class FileName {
-        public:
-            FileName() { }
-            FileName(llvm::StringRef sr) { reset(sr); }
-            void reset(llvm::StringRef sr = llvm::StringRef());
+namespace csabase {
+    class FileName {
+    public:
+        FileName() { }
+        FileName(llvm::StringRef sr) { reset(sr); }
+        void reset(llvm::StringRef sr = llvm::StringRef());
 
-            llvm::StringRef component() const { return component_; }
-            llvm::StringRef directory() const { return directory_; }
-            llvm::StringRef extension() const { return extension_; }
-            llvm::StringRef extra()     const { return extra_;     }
-            llvm::StringRef full()      const { return full_;      }
-            llvm::StringRef group()     const { return group_;     }
-            llvm::StringRef grpdir()    const { return grpdir_;    }
-            llvm::StringRef name()      const { return name_;      }
-            llvm::StringRef package()   const { return package_;   }
-            llvm::StringRef pkgdir()    const { return pkgdir_;    }
-            llvm::StringRef prefix()    const { return prefix_;    }
+        llvm::StringRef component() const { return component_; }
+        llvm::StringRef directory() const { return directory_; }
+        llvm::StringRef extension() const { return extension_; }
+        llvm::StringRef extra()     const { return extra_;     }
+        llvm::StringRef full()      const { return full_;      }
+        llvm::StringRef group()     const { return group_;     }
+        llvm::StringRef grpdir()    const { return grpdir_;    }
+        llvm::StringRef name()      const { return name_;      }
+        llvm::StringRef package()   const { return package_;   }
+        llvm::StringRef pkgdir()    const { return pkgdir_;    }
+        llvm::StringRef prefix()    const { return prefix_;    }
 
-        private:
-            llvm::StringRef component_;
-            llvm::StringRef directory_;
-            llvm::StringRef extension_;
-            llvm::StringRef extra_;
-            std::string     full_;
-            llvm::StringRef group_;
-            llvm::StringRef grpdir_;
-            llvm::StringRef name_;
-            llvm::StringRef package_;
-            llvm::StringRef pkgdir_;
-            llvm::StringRef prefix_;
-        };
-    }
-}
+    private:
+        llvm::StringRef component_;
+        llvm::StringRef directory_;
+        llvm::StringRef extension_;
+        llvm::StringRef extra_;
+        std::string     full_;
+        llvm::StringRef group_;
+        llvm::StringRef grpdir_;
+        llvm::StringRef name_;
+        llvm::StringRef package_;
+        llvm::StringRef pkgdir_;
+        llvm::StringRef prefix_;
+    };
+} // close package namespace
 
 // -----------------------------------------------------------------------------
 
