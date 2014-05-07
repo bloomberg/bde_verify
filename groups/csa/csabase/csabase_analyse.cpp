@@ -9,7 +9,6 @@
 #include <csabase_analyser.h>
 #include <csabase_debug.h>
 #include <csabase_diagnosticfilter.h>
-#include <clang/Frontend/FrontendPluginRegistry.h>
 #include <clang/AST/ASTConsumer.h>
 #include <clang/Rewrite/Core/Rewriter.h>
 #include <clang/Sema/SemaConsumer.h>
@@ -21,40 +20,11 @@
 #include <llvm/Support/raw_ostream.h>
 #include <string>
 #include <vector>
-#ident "$Id: bde_verifyyse.cpp 167 2012-04-14 19:38:03Z kuehl $"
+#ident "$Id: csabase_analyse.cpp 167 2012-04-14 19:38:03Z kuehl $"
 
 // -----------------------------------------------------------------------------
 
-namespace
-{
-
-class PluginAction : public clang::PluginASTAction
-{
-  public:
-    PluginAction();
-
-    bool debug() const;
-    const std::vector<std::string>& config() const;
-    std::string tool_name() const;
-    bool toplevel_only() const;
-    std::string rewrite_dir() const;
-
-  protected:
-    clang::ASTConsumer* CreateASTConsumer(clang::CompilerInstance& compiler,
-                                          llvm::StringRef source);
-
-    bool ParseArgs(clang::CompilerInstance const& compiler,
-                   std::vector<std::string> const& args);
-
-  private:
-    bool debug_;
-    std::vector<std::string> config_;
-    std::string tool_name_;
-    bool toplevel_only_;
-    std::string rewrite_dir_;
-};
-
-}
+using csabase::PluginAction;
 
 // -----------------------------------------------------------------------------
 
@@ -239,8 +209,3 @@ PluginAction::rewrite_dir() const
 {
     return rewrite_dir_;
 }
-
-// -----------------------------------------------------------------------------
-
-clang::FrontendPluginRegistry::Add<PluginAction> registerPlugin(
-    "bde_verify", "analyse source");

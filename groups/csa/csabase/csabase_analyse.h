@@ -9,6 +9,37 @@
 #define INCLUDED_CSABASE_UTILSYSE 1
 #ident "$Id$"
 
-// keep utilsyser happy on its own sources...
+#include <clang/Frontend/FrontendPluginRegistry.h>
+
+namespace csabase
+{
+
+class PluginAction : public clang::PluginASTAction
+{
+  public:
+    PluginAction();
+
+    bool debug() const;
+    const std::vector<std::string>& config() const;
+    std::string tool_name() const;
+    bool toplevel_only() const;
+    std::string rewrite_dir() const;
+
+  protected:
+    clang::ASTConsumer* CreateASTConsumer(clang::CompilerInstance& compiler,
+                                          llvm::StringRef source);
+
+    bool ParseArgs(clang::CompilerInstance const& compiler,
+                   std::vector<std::string> const& args);
+
+  private:
+    bool debug_;
+    std::vector<std::string> config_;
+    std::string tool_name_;
+    bool toplevel_only_;
+    std::string rewrite_dir_;
+};
+
+}
 
 #endif

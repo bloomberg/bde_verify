@@ -9,4 +9,8 @@
 #define INCLUDED_CSABASE_TOOL 1
 #ident "$Id$"
 
+namespace csabase {
+    int run(int argc_, const char **argv_);
+}
+
 #endif
