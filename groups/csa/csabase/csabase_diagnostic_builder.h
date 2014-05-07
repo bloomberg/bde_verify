@@ -18,7 +18,7 @@
 
 // -----------------------------------------------------------------------------
 
-namespace bde_verify
+namespace csabase
 {
     class diagnostic_builder
     {
@@ -33,7 +33,7 @@ namespace bde_verify
         }
 #if defined(UTILS_CXX2011)
         diagnostic_builder(diagnostic_builder&& other):
-            builder_(static_cast<bde_verify::unique_ptr<clang::DiagnosticBuilder>&&>(other.builder_))
+            builder_(static_cast<csabase::unique_ptr<clang::DiagnosticBuilder>&&>(other.builder_))
 #else
         diagnostic_builder(diagnostic_builder const& other):
             builder_(other.builder_.release())
@@ -62,7 +62,7 @@ namespace bde_verify
         }
     private:
 #if defined(UTILS_CXX2011)
-        bde_verify::unique_ptr<clang::DiagnosticBuilder> builder_;
+        csabase::unique_ptr<clang::DiagnosticBuilder> builder_;
 #else
         mutable std::auto_ptr<clang::DiagnosticBuilder> builder_;
 #endif

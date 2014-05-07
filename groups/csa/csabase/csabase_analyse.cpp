@@ -174,7 +174,7 @@ bool PluginAction::ParseArgs(clang::CompilerInstance const& compiler,
         }
         else
         {
-            llvm::errs() << "unknown bde_verify argument = '" << arg << "'\n";
+            llvm::errs() << "unknown csabase argument = '" << arg << "'\n";
         }
     }
     return true;

@@ -312,7 +312,7 @@ csabase::Analyser::is_main() const
 
 // -----------------------------------------------------------------------------
 
-bde_verify::diagnostic_builder
+csabase::diagnostic_builder
 csabase::Analyser::report(clang::SourceLocation where,
                                 std::string const& check,
                                 std::string const& tag,
@@ -326,10 +326,10 @@ csabase::Analyser::report(clang::SourceLocation where,
     {
         unsigned int id(compiler_.getDiagnostics().
             getCustomDiagID(level, tool_name() + tag + ": " + message));
-        return bde_verify::diagnostic_builder(
+        return csabase::diagnostic_builder(
             compiler_.getDiagnostics().Report(where, id));
     }
-    return bde_verify::diagnostic_builder();
+    return csabase::diagnostic_builder();
 }
 
 // -----------------------------------------------------------------------------
