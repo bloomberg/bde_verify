@@ -45,31 +45,37 @@ my $tlonly;
 my $rwd;
 my $tag;
 
+my $command = join " \\\n", $0, map { s/ /\\ /g; $_ } @ARGV;
+
 sub usage()
 {
     print "
-    usage: $0 [options] [additional compiler options] file.cpp ...
-        -I{directory}
-        -D{macro}
-        -w                       # disable normal compiler warnings
-        -W{warning}
-        -f{flag}
-        --config=config_file     [$config]  
-        --cl=config_line
-        --bb=dir                 [$bb]
-        --exe=bde_verify         [$exe]
-        --[no]definc             [$definc]
-        --[no]defdef             [$defdef]
-        --rewrite=dir
-        --toplevel
-        --std=type
-        --tag=string
-        --debug
-        --verbose
-        --help
+usage: $0 [options] [additional compiler options] file.cpp ...
+    -I{directory}
+    -D{macro}
+    -w                       # disable normal compiler warnings
+    -W{warning}
+    -f{flag}
+    --config=config_file     [$config]  
+    --cl=config_line
+    --bb=dir                 [$bb]
+    --exe=bde_verify         [$exe]
+    --[no]definc             [$definc]
+    --[no]defdef             [$defdef]
+    --rewrite=dir
+    --toplevel
+    --std=type
+    --tag=string
+    --debug
+    --verbose
+    --help
 
+For full documentation, see {TEAM BDE:BDE_VERIFY<GO>} or
+<http://cms.prod.bloomberg.com/team/display/bde/bde_verify>.
+
+Invoked as:
+$command
 ";
-    print "Invoked as\n", join(" \\\n", @ARGV), "\n";
     exit(1);
 }
 
