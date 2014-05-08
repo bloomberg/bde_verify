@@ -34,22 +34,18 @@ namespace clang
     class SourceManager;
 }
 
-namespace bde_verify
-{
-    namespace csabase
-    {
-        class Analyser;
-        class Config;
-        class Location;
-        class PPObserver;
-        class Visitor;
-    }
-}
+namespace csabase {
+    class Analyser;
+    class Config;
+    class Location;
+    class PPObserver;
+    class Visitor;
+} // close package namespace
 
 // -----------------------------------------------------------------------------
 
-class bde_verify::csabase::Analyser:
-    public bde_verify::csabase::Attachments
+class csabase::Analyser:
+    public csabase::Attachments
 {
   public:
     Analyser(clang::CompilerInstance& compiler,
@@ -116,10 +112,10 @@ class bde_verify::csabase::Analyser:
     clang::SourceRange      get_line_range(clang::SourceLocation);
     clang::SourceRange      get_trim_line_range(clang::SourceLocation);
     llvm::StringRef         get_source_line(clang::SourceLocation);
-    bde_verify::csabase::Location get_location(clang::SourceLocation) const;
-    bde_verify::csabase::Location get_location(clang::Decl const*) const;
-    bde_verify::csabase::Location get_location(clang::Expr const*) const;
-    bde_verify::csabase::Location get_location(clang::Stmt const*) const;
+    csabase::Location get_location(clang::SourceLocation) const;
+    csabase::Location get_location(clang::Decl const*) const;
+    csabase::Location get_location(clang::Expr const*) const;
+    csabase::Location get_location(clang::Stmt const*) const;
 
     template <typename InIt> void process_decls(InIt, InIt);
     void process_decl(clang::Decl const*);
@@ -139,15 +135,15 @@ class bde_verify::csabase::Analyser:
         // 0 if there is no such object.
 
 private:
-    Analyser(bde_verify::csabase::Analyser const&);
-    void operator= (bde_verify::csabase::Analyser const&);
+    Analyser(csabase::Analyser const&);
+    void operator= (csabase::Analyser const&);
         
-    std::auto_ptr<bde_verify::csabase::Config>  d_config;
+    std::auto_ptr<csabase::Config>  d_config;
     std::string                           tool_name_;
     clang::CompilerInstance&              compiler_;
     clang::SourceManager const&           d_source_manager;
-    std::auto_ptr<bde_verify::csabase::Visitor> visitor_;
-    bde_verify::csabase::PPObserver*      pp_observer_;
+    std::auto_ptr<csabase::Visitor> visitor_;
+    csabase::PPObserver*      pp_observer_;
     clang::ASTContext*                    context_;
     clang::Rewriter*                      rewriter_;
     std::string                           toplevel_;
@@ -169,7 +165,7 @@ private:
 
 template <typename InIt>
 void
-bde_verify::csabase::Analyser::process_decls(InIt it, InIt end)
+csabase::Analyser::process_decls(InIt it, InIt end)
 {
     for (; it != end; ++it)
     {
@@ -179,7 +175,7 @@ bde_verify::csabase::Analyser::process_decls(InIt it, InIt end)
 
 template <typename T>
 bde_verify::diagnostic_builder
-bde_verify::csabase::Analyser::report(T where,
+csabase::Analyser::report(T where,
                                 std::string const& check,
                                 std::string const& tag,
                                 std::string const& message,
@@ -194,35 +190,35 @@ bde_verify::csabase::Analyser::report(T where,
 
 template <typename T>
 bool
-bde_verify::csabase::Analyser::is_component(T const* value)
+csabase::Analyser::is_component(T const* value)
 {
     return is_component(get_location(value).file());
 }
 
 template <typename T>
 bool
-bde_verify::csabase::Analyser::is_component_header(T const* value)
+csabase::Analyser::is_component_header(T const* value)
 {
     return is_component_header(get_location(value).file());
 }
 
 template <typename T>
 bool
-bde_verify::csabase::Analyser::is_component_source(T const* value)
+csabase::Analyser::is_component_source(T const* value)
 {
     return is_component_source(get_location(value).file());
 }
 
 template <typename T>
 T*
-bde_verify::csabase::Analyser::lookup_name_as(const std::string& name)
+csabase::Analyser::lookup_name_as(const std::string& name)
 {
     clang::NamedDecl* nd = lookup_name(name);
     return nd ? llvm::dyn_cast<T>(nd) : 0;
 }
 
 template <typename Parent, typename Node>
-const Parent *bde_verify::csabase::Analyser::get_parent(const Node *node)
+const Parent *csabase::Analyser::get_parent(const Node *node)
 {
     for (clang::ASTContext::ParentVector pv = context()->getParents(*node);
          pv.size() >= 1;

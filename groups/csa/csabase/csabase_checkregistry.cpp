@@ -18,7 +18,7 @@
 
 namespace
 {
-    typedef std::multimap<std::string, bde_verify::csabase::CheckRegistry::Subscriber> map_type;
+    typedef std::multimap<std::string, csabase::CheckRegistry::Subscriber> map_type;
 
     map_type&
     checks()
@@ -31,8 +31,8 @@ namespace
 // -----------------------------------------------------------------------------
 
 void
-bde_verify::csabase::CheckRegistry::add_check(std::string const& name,
-                                        bde_verify::csabase::CheckRegistry::Subscriber check)
+csabase::CheckRegistry::add_check(std::string const& name,
+                                        csabase::CheckRegistry::Subscriber check)
 {
     checks().insert(std::make_pair(name, check));
 }
@@ -40,12 +40,12 @@ bde_verify::csabase::CheckRegistry::add_check(std::string const& name,
 // -----------------------------------------------------------------------------
 
 void
-bde_verify::csabase::CheckRegistry::attach(bde_verify::csabase::Analyser& analyser,
-                                     bde_verify::csabase::Visitor& visitor,
-                                     bde_verify::csabase::PPObserver& observer)
+csabase::CheckRegistry::attach(csabase::Analyser& analyser,
+                                     csabase::Visitor& visitor,
+                                     csabase::PPObserver& observer)
 {
     typedef map_type::const_iterator const_iterator;
-    typedef std::map<std::string, bde_verify::csabase::Config::Status> checks_type;
+    typedef std::map<std::string, csabase::Config::Status> checks_type;
     checks_type const& config(analyser.config()->checks());
     for (checks_type::const_iterator it(config.begin()), end(config.end());
          it != end; ++it) {
@@ -66,7 +66,7 @@ bde_verify::csabase::CheckRegistry::attach(bde_verify::csabase::Analyser& analys
     {
         checks_type::const_iterator cit(config.find(it->first));
         if ((config.end() == cit && analyser.config()->all()) ||
-            cit->second == bde_verify::csabase::Config::on)
+            cit->second == csabase::Config::on)
         {
             it->second(analyser, visitor, observer);
         }

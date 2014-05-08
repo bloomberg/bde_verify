@@ -35,7 +35,7 @@ is_swap(clang::FunctionDecl const* decl)
 static bool
 isSpecialFunction(clang::NamedDecl const* decl)
 {
-    bde_verify::csabase::cast_ptr<clang::FunctionDecl> function(decl);
+    csabase::cast_ptr<clang::FunctionDecl> function(decl);
     return function
         && (function->isOverloadedOperator() || is_swap(function.get()));
 }
@@ -43,7 +43,7 @@ isSpecialFunction(clang::NamedDecl const* decl)
 // ----------------------------------------------------------------------------
 
 static void
-check(bde_verify::csabase::Analyser& analyser, clang::Decl const* decl)
+check(csabase::Analyser& analyser, clang::Decl const* decl)
 {
     if (analyser.is_main() &&
         analyser.config()->value("main_namespace_check") == "off") {
@@ -54,7 +54,7 @@ check(bde_verify::csabase::Analyser& analyser, clang::Decl const* decl)
         return;                                                       // RETURN
     }
 
-    bde_verify::csabase::Location location(analyser.get_location(decl));
+    csabase::Location location(analyser.get_location(decl));
     clang::NamedDecl const* named(llvm::dyn_cast<clang::NamedDecl>(decl));
     if (analyser.is_component(location.file()) && named) {
         if (llvm::dyn_cast<clang::NamespaceDecl>(decl)
@@ -135,8 +135,8 @@ check(bde_verify::csabase::Analyser& analyser, clang::Decl const* decl)
                 && (   spname != analyser.config()->toplevel_namespace()
                     || name.find(analyser.package() + '_') != 0
                     )
-                && bde_verify::csabase::to_lower(spname) !=
-                   bde_verify::csabase::to_lower(analyser.component())
+                && csabase::to_lower(spname) !=
+                   csabase::to_lower(analyser.component())
                 && !llvm::dyn_cast<clang::ClassTemplateSpecializationDecl>(decl)
                 && !llvm::dyn_cast<clang::ClassTemplatePartialSpecializationDecl>(decl)
                 && name.find("operator new") == std::string::npos
@@ -163,4 +163,4 @@ check(bde_verify::csabase::Analyser& analyser, clang::Decl const* decl)
 
 // -----------------------------------------------------------------------------
 
-static bde_verify::csabase::RegisterCheck register_check(check_name, &check);
+static csabase::RegisterCheck register_check(check_name, &check);

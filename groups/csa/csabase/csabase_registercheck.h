@@ -14,29 +14,25 @@
 
 // -----------------------------------------------------------------------------
 
-namespace bde_verify
-{
-    namespace csabase
-    {
-        class Analyser;
-        class PPObserver;
-        class Visitor;
-        class RegisterCheck;
-    }
-}
+namespace csabase {
+    class Analyser;
+    class PPObserver;
+    class Visitor;
+    class RegisterCheck;
+} // close package namespace
 
 // -----------------------------------------------------------------------------
 
-class bde_verify::csabase::RegisterCheck
+class csabase::RegisterCheck
 {
 public:
     template <typename T>
     RegisterCheck(std::string const& name,
-                  void (*check)(bde_verify::csabase::Analyser&, T const*));
+                  void (*check)(csabase::Analyser&, T const*));
     RegisterCheck(std::string const& name,
-                  utils::function<void(bde_verify::csabase::Analyser&,
-                                      bde_verify::csabase::Visitor&,
-                                      bde_verify::csabase::PPObserver&)>);
+                  utils::function<void(csabase::Analyser&,
+                                      csabase::Visitor&,
+                                      csabase::PPObserver&)>);
 };
 
 // -----------------------------------------------------------------------------

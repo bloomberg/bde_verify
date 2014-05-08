@@ -16,19 +16,15 @@
 
 // -----------------------------------------------------------------------------
 
-namespace bde_verify
-{
-    namespace csabase
-    {
-        class AbstractVisitor;
-    }
-}
+namespace csabase {
+    class AbstractVisitor;
+} // close package namespace
 
 // -----------------------------------------------------------------------------
 
-class bde_verify::csabase::AbstractVisitor:
-    public clang::DeclVisitor<bde_verify::csabase::AbstractVisitor>,
-    public clang::StmtVisitor<bde_verify::csabase::AbstractVisitor>
+class csabase::AbstractVisitor:
+    public clang::DeclVisitor<csabase::AbstractVisitor>,
+    public clang::StmtVisitor<csabase::AbstractVisitor>
 {
 public:
     virtual ~AbstractVisitor();

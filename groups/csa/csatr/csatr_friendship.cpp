@@ -21,11 +21,11 @@ static std::string const check_name("local-friendship-only");
 // ----------------------------------------------------------------------------
 
 static bool
-is_extern_type(bde_verify::csabase::Analyser&  analyser,
+is_extern_type(csabase::Analyser&  analyser,
               Type const         *type)
 {
     CXXRecordDecl const* record(type->getAsCXXRecordDecl());
-    bde_verify::csabase::Location cloc(analyser.get_location(record));
+    csabase::Location cloc(analyser.get_location(record));
     return (type->isIncompleteType()
             && record->getLexicalDeclContext()->isFileContext())
         || !analyser.is_component(cloc.file());
@@ -34,7 +34,7 @@ is_extern_type(bde_verify::csabase::Analyser&  analyser,
 // ----------------------------------------------------------------------------
 
 static void
-local_friendship_only(bde_verify::csabase::Analyser&  analyser,
+local_friendship_only(csabase::Analyser&  analyser,
                       FriendDecl const  *decl)
 {
     const NamedDecl *named = decl->getFriendDecl();
@@ -89,7 +89,7 @@ local_friendship_only(bde_verify::csabase::Analyser&  analyser,
             analyser.report(decl, check_name,  "TR19",
                             "Unknonwn kind of friendship (%0)")
                 << decl->getSourceRange()
-                << bde_verify::csabase::format(named->getKind());
+                << csabase::format(named->getKind());
         }
     }
     else {
@@ -108,5 +108,5 @@ local_friendship_only(bde_verify::csabase::Analyser&  analyser,
 
 // ----------------------------------------------------------------------------
 
-static bde_verify::csabase::RegisterCheck check(check_name,
+static csabase::RegisterCheck check(check_name,
                                           &local_friendship_only);

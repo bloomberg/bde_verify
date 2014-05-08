@@ -8,7 +8,6 @@
 #include <csabase_attachments.h>
 #ident "$Id$"
 
-namespace bde_verify {
 namespace csabase {
 
 AttachmentBase::~AttachmentBase()
@@ -26,5 +25,5 @@ Attachments::~Attachments()
     }
 }
 
-}  // close package namespace
-}  // close enterprise namespace
+} // close package namespace
+

@@ -70,7 +70,7 @@ namespace
         void HandleTranslationUnit(clang::ASTContext&);
 
     private:
-        bde_verify::csabase::Analyser  analyser_;
+        csabase::Analyser  analyser_;
         std::string const        source_;
     };
 }
@@ -89,7 +89,7 @@ AnalyseConsumer::AnalyseConsumer(clang::CompilerInstance& compiler,
 {
     analyser_.toplevel(source);
 
-    compiler.getDiagnostics().setClient(new bde_verify::csabase::DiagnosticFilter(
+    compiler.getDiagnostics().setClient(new csabase::DiagnosticFilter(
         analyser_, plugin.toplevel_only(), compiler.getDiagnosticOpts()));
     compiler.getDiagnostics().getClient()->BeginSourceFile(
         compiler.getLangOpts(),
@@ -174,12 +174,12 @@ bool PluginAction::ParseArgs(clang::CompilerInstance const& compiler,
         llvm::StringRef arg = args[i];
         if (arg == "debug-on")
         {
-            bde_verify::csabase::Debug::set_debug(true);
+            csabase::Debug::set_debug(true);
             debug_ = true;
         }
         else if (arg == "debug-off")
         {
-            bde_verify::csabase::Debug::set_debug(false);
+            csabase::Debug::set_debug(false);
             debug_ = false;
         }
         else if (arg == "toplevel-only-on")

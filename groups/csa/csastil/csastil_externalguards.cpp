@@ -16,7 +16,7 @@
 #include <string>
 
 using namespace clang;
-using namespace bde_verify::csabase;
+using namespace csabase;
 
 // ----------------------------------------------------------------------------
 

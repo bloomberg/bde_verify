@@ -25,7 +25,7 @@ static std::string const check_name("function-contract");
 // ----------------------------------------------------------------------------
 
 using namespace clang;
-using namespace bde_verify::csabase;
+using namespace csabase;
 
 namespace
 {
@@ -136,7 +136,7 @@ bool comments::isDirective(llvm::StringRef comment)
 bool
 comments::areConsecutive(const SourceRange& r1, const SourceRange& r2) const
 {
-    return bde_verify::csabase::areConsecutive(d_manager, r1, r2) &&
+    return csabase::areConsecutive(d_manager, r1, r2) &&
            !comments::isDirective(d_analyser.get_source(r1)) &&
            !comments::isDirective(d_analyser.get_source(r2));
 }
@@ -825,6 +825,6 @@ void subscribe(Analyser& analyser, Visitor&, PPObserver& observer)
 
 // ----------------------------------------------------------------------------
 
-static bde_verify::csabase::RegisterCheck c1(check_name, &allFunDecls);
-static bde_verify::csabase::RegisterCheck c2(check_name, &allTpltFunDecls);
-static bde_verify::csabase::RegisterCheck c3(check_name, &subscribe);
+static csabase::RegisterCheck c1(check_name, &allFunDecls);
+static csabase::RegisterCheck c2(check_name, &allTpltFunDecls);
+static csabase::RegisterCheck c3(check_name, &subscribe);

@@ -24,7 +24,7 @@ static std::string const check_name("component-prefix");
 // ----------------------------------------------------------------------------
 
 static bool
-wrong_prefix(bde_verify::csabase::Analyser&  analyser,
+wrong_prefix(csabase::Analyser&  analyser,
              const clang::NamedDecl   *named)
 {
     std::string package_prefix = analyser.package() + "_";
@@ -32,9 +32,9 @@ wrong_prefix(bde_verify::csabase::Analyser&  analyser,
     if (name.find(package_prefix) != 0) {
         name = package_prefix + name;
     }
-    return 0 != bde_verify::csabase::to_lower(name).find(analyser.component()) &&
-           0 != bde_verify::csabase::to_lower(named->getQualifiedNameAsString())
-                    .find(bde_verify::csabase::to_lower(
+    return 0 != csabase::to_lower(name).find(analyser.component()) &&
+           0 != csabase::to_lower(named->getQualifiedNameAsString())
+                    .find(csabase::to_lower(
                          analyser.config()->toplevel_namespace() + "::" +
                          analyser.component() + "::"));
 }
@@ -42,7 +42,7 @@ wrong_prefix(bde_verify::csabase::Analyser&  analyser,
 // ----------------------------------------------------------------------------
 
 static void
-component_prefix(bde_verify::csabase::Analyser&  analyser,
+component_prefix(csabase::Analyser&  analyser,
                  clang::Decl const        *decl)
 {
     const clang::DeclContext *dc = decl->getDeclContext();
@@ -93,4 +93,4 @@ component_prefix(bde_verify::csabase::Analyser&  analyser,
 
 // ----------------------------------------------------------------------------
 
-static bde_verify::csabase::RegisterCheck check(check_name, &component_prefix);
+static csabase::RegisterCheck check(check_name, &component_prefix);

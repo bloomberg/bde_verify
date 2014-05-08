@@ -15,7 +15,7 @@
 #ident "$Id: contiguous_switch.cpp 165 2012-03-06 00:42:25Z kuehl $"
 
 using namespace clang;
-using namespace bde_verify::csabase;
+using namespace csabase;
 
 // ----------------------------------------------------------------------------
 

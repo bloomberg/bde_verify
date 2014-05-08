@@ -14,18 +14,14 @@
 
 // -----------------------------------------------------------------------------
 
-namespace bde_verify
-{
-    namespace csabase
-    {
-        class Visitor;
-    }
-}
+namespace csabase {
+    class Visitor;
+} // close package namespace
 
 // -----------------------------------------------------------------------------
 
-class bde_verify::csabase::Visitor:
-    public bde_verify::csabase::AbstractVisitor
+class csabase::Visitor:
+    public csabase::AbstractVisitor
 {
 public:
 #define DECL(CLASS, BASE)                                                     \

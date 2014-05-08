@@ -19,22 +19,18 @@ namespace clang
     class DiagnosticOptions;
 }
 
-namespace bde_verify
-{
-    namespace csabase
-    {
-        class Analyser;
-        class DiagnosticFilter;
-    }
-}
+namespace csabase {
+    class Analyser;
+    class DiagnosticFilter;
+} // close package namespace
 
 // ----------------------------------------------------------------------------
 
-class bde_verify::csabase::DiagnosticFilter
+class csabase::DiagnosticFilter
     : public clang::DiagnosticConsumer
 {
 public:
-    DiagnosticFilter(bde_verify::csabase::Analyser const& analyser,
+    DiagnosticFilter(csabase::Analyser const& analyser,
                      bool toplevel_only,
                      clang::DiagnosticOptions & options);
     ~DiagnosticFilter();
@@ -53,7 +49,7 @@ private:
 
     clang::DiagnosticOptions *               d_options;
     std::auto_ptr<clang::DiagnosticConsumer> d_client;
-    bde_verify::csabase::Analyser const*           d_analyser;
+    csabase::Analyser const*           d_analyser;
     bool                                     d_toplevel_only;
 };
 

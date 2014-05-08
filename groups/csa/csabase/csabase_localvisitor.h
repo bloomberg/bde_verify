@@ -41,7 +41,7 @@ namespace bde_verify
 #if defined(UTILS_CXX2011)
 template <>
 class bde_verify::detail::visitor<>:
-    public bde_verify::csabase::AbstractVisitor
+    public csabase::AbstractVisitor
 {
 };
 #endif
@@ -74,7 +74,7 @@ private:
 #if !defined(UTILS_2011)
 template <typename F0>
 class bde_verify::detail::visitor:
-    public bde_verify::csabase::AbstractVisitor
+    public csabase::AbstractVisitor
 {
 public:
     typedef typename F0::argument_type argument_type;
@@ -117,7 +117,7 @@ public:
     }
     
 private:
-    std::auto_ptr<bde_verify::csabase::AbstractVisitor> visitor_;
+    std::auto_ptr<csabase::AbstractVisitor> visitor_;
 };
 
 // -----------------------------------------------------------------------------

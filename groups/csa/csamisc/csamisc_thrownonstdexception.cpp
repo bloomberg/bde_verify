@@ -18,7 +18,7 @@ static std::string const check_name("throw-non-std-exception");
 //-dk:TODO cache the type of std::exception
 
 static void
-check(bde_verify::csabase::Analyser& analyser, clang::CXXThrowExpr const* expr)
+check(csabase::Analyser& analyser, clang::CXXThrowExpr const* expr)
 {
     static const clang::TypeDecl *e = analyser.lookup_type("::std::exception");
     clang::Expr *object(const_cast<clang::Expr*>(expr->getSubExpr()));
@@ -38,4 +38,4 @@ check(bde_verify::csabase::Analyser& analyser, clang::CXXThrowExpr const* expr)
 
 // -----------------------------------------------------------------------------
 
-static bde_verify::csabase::RegisterCheck register_check(check_name, &check);
+static csabase::RegisterCheck register_check(check_name, &check);

@@ -5,7 +5,6 @@
 // LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt).     
 // -----------------------------------------------------------------------------
 
-
 #include <csabase_analyser.h>
 #include <csabase_registercheck.h>
 #include <csabase_abstractvisitor.h>
@@ -21,7 +20,7 @@ static std::string const check_name("constant-return");
 // -----------------------------------------------------------------------------
 
 static void
-check(bde_verify::csabase::Analyser& analyser, clang::FunctionDecl const* decl)
+check(csabase::Analyser& analyser, clang::FunctionDecl const* decl)
 {
     if (analyser.is_component(decl)
         && decl->hasBody()
@@ -66,4 +65,4 @@ check(bde_verify::csabase::Analyser& analyser, clang::FunctionDecl const* decl)
 
 // -----------------------------------------------------------------------------
 
-static bde_verify::csabase::RegisterCheck register_check(check_name, &check);
+static csabase::RegisterCheck register_check(check_name, &check);

@@ -19,7 +19,7 @@ static std::string const check_name("hash-pointer");
 using namespace clang;
 using namespace clang::ast_matchers;
 using namespace clang::ast_matchers::internal;
-using namespace bde_verify::csabase;
+using namespace csabase;
 
 namespace
 {
@@ -92,4 +92,4 @@ void subscribe(Analyser& analyser, Visitor& visitor, PPObserver& observer)
 
 // ----------------------------------------------------------------------------
 
-static bde_verify::csabase::RegisterCheck c1(check_name, &subscribe);
+static csabase::RegisterCheck c1(check_name, &subscribe);

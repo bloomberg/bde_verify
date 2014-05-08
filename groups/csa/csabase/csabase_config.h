@@ -18,18 +18,14 @@
 
 // -----------------------------------------------------------------------------
 
-namespace bde_verify
-{
-    namespace csabase
-    {
-        class Analyser;
-        class Config;
-    }
-}
+namespace csabase {
+    class Analyser;
+    class Config;
+} // close package namespace
 
 // -----------------------------------------------------------------------------
 
-class bde_verify::csabase::Config
+class csabase::Config
 {
 public:
     enum Status
@@ -40,7 +36,7 @@ public:
 
     Config(std::vector<std::string> const& config,
            clang::SourceManager& manager);
-        // Create a 'bde_verify::csabase::Config' object initialized with the
+        // Create a 'csabase::Config' object initialized with the
         // set of specified 'config' lines, and holding the specified
         // 'manager'.
 
@@ -129,14 +125,10 @@ private:
 
 // -----------------------------------------------------------------------------
 
-namespace bde_verify
-{
-    namespace csabase
-    {
-        std::istream& operator>> (std::istream&, bde_verify::csabase::Config::Status&);
-        std::ostream& operator<< (std::ostream&, bde_verify::csabase::Config::Status);
-    }
-}
+namespace csabase {
+    std::istream& operator>> (std::istream&, csabase::Config::Status&);
+    std::ostream& operator<< (std::ostream&, csabase::Config::Status);
+} // close package namespace
 
 // -----------------------------------------------------------------------------
 

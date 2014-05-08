@@ -18,21 +18,17 @@
 
 // -----------------------------------------------------------------------------
 
-namespace bde_verify
-{
-    namespace csabase
-    {
-        class PPObserver;
-    }
-}
+namespace csabase {
+    class PPObserver;
+} // close package namespace
 
 // -----------------------------------------------------------------------------
 
-class bde_verify::csabase::PPObserver
+class csabase::PPObserver
     : public clang::PPCallbacks
 {
 public:
-    PPObserver(clang::SourceManager const*, bde_verify::csabase::Config*);
+    PPObserver(clang::SourceManager const*, csabase::Config*);
     ~PPObserver();
     void detach();
     clang::CommentHandler* get_comment_handler();
@@ -238,7 +234,7 @@ private:
     clang::SourceManager const* source_manager_;
     std::stack<std::string>     files_;
     bool                        connected_;
-    bde_verify::csabase::Config*      config_;
+    csabase::Config*      config_;
 };
 
 // -----------------------------------------------------------------------------
