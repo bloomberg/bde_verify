@@ -11,21 +11,21 @@
 
 namespace bde_verify
 {
-    struct csatr_packagelegacy
-    {
-    };
+struct csatr_packagelegacy
+{
+};
 
-    struct csatr_packagelegacyhelper
-    {
-    };
+struct csatr_packagelegacyhelper
+{
+};
 
-    struct csat_packagelegacy
-    {
-    };
+struct csat_packagelegacy
+{
+};
 
-    struct csatr_packagelegac
-    {
-    };
+struct csatr_packagelegac
+{
+};
 }
 
 #endif

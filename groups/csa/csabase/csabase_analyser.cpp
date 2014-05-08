@@ -385,7 +385,7 @@ csabase::Analyser::get_line_range(clang::SourceLocation loc)
 }
 
 clang::SourceRange
-bde_verify::csabase::Analyser::get_trim_line_range(clang::SourceLocation loc)
+csabase::Analyser::get_trim_line_range(clang::SourceLocation loc)
 {
     clang::SourceRange range(get_line_range(loc));
     llvm::StringRef line = get_source(range);

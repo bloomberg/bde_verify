@@ -21,7 +21,6 @@ csabase::Location::Location()
 {
 }
 
-<<<<<<< HEAD
 csabase::Location::Location(clang::SourceManager const& manager,
                             clang::SourceLocation location)
 : d_file()

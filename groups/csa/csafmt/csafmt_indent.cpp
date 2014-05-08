@@ -28,7 +28,7 @@ static std::string const check_name("indentation");
 using namespace clang;
 using namespace clang::ast_matchers;
 using namespace clang::ast_matchers::internal;
-using namespace bde_verify::csabase;
+using namespace csabase;
 
 namespace
 {
