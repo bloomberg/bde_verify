@@ -1,0 +1,16 @@
+groups/csa/csamisc/csamisc_unnamed_temporary.t.cpp:11:0: warning: expression result unused
+    int(5);
+^~
+groups/csa/csamisc/csamisc_unnamed_temporary.t.cpp:16:0: warning: UT01: Unnamed object will be immediately destructed
+    std::string("5");
+^
+groups/csa/csamisc/csamisc_unnamed_temporary.t.cpp:19:0: warning: UT01: Unnamed object will be immediately destructed
+    std::string(std::string("5"));
+^
+groups/csa/csamisc/csamisc_unnamed_temporary.t.cpp:22:0: warning: UT01: Unnamed object will be immediately destructed
+    std::string(5, ' ');
+^
+groups/csa/csamisc/csamisc_unnamed_temporary.t.cpp:25:0: warning: UT01: Unnamed object will be immediately destructed
+    std::string(std::string(5, ' '));
+^
+5 warnings generated.

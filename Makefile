@@ -114,6 +114,7 @@ TSTCXXFILES +=                                                                \
         groups/csa/csamisc/csamisc_stringadd.cpp                              \
         groups/csa/csamisc/csamisc_swapab.cpp                                 \
         groups/csa/csamisc/csamisc_thrownonstdexception.cpp                   \
+        groups/csa/csamisc/csamisc_unnamed_temporary.cpp                      \
         groups/csa/csamisc/csamisc_verifysameargumentnames.cpp                \
         groups/csa/csastil/csastil_externalguards.cpp                         \
         groups/csa/csastil/csastil_implicitctor.cpp                           \

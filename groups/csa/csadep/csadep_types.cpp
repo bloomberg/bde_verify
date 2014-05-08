@@ -37,7 +37,7 @@ record_needed_declaration(csabase::Analyser& analyser,
     // print = true;
     if (print) {
         clang::SourceLocation location(decl->getLocStart());
-        analyser.report(location, check_name, "IF01",
+        analyser.report(location, check_name, "??IF01",
                 "In file %2 need %0 for %1")
             << (need_definition? "definition": "declaration")
             << named->getQualifiedNameAsString()
@@ -121,7 +121,7 @@ check_type(csabase::Analyser& analyser,
         break; // SIMD vectors are not part of standard C++
     case clang::Type::FunctionProto: // fall through
     case clang::Type::FunctionNoProto:
-        analyser.report(decl, check_name, "FP01", "TODO: function proto");
+        analyser.report(decl, check_name, "??FP01", "TODO: function proto");
         break;
     case clang::Type::UnresolvedUsing:
         break; // these need to be checked during instantiation
@@ -201,7 +201,7 @@ check_type(csabase::Analyser& analyser,
     case clang::Type::PackExpansion:
         break; // these become available with C++2011 only
     default:
-        analyser.report(decl, check_name, "UT01",
+        analyser.report(decl, check_name, "??UT01",
                 "Unknown type class: %0")
             << csabase::format(type->getTypeClass());
         break;
