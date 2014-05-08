@@ -68,6 +68,9 @@ void report::match_has_name(const BoundNodes& nodes)
     if (!d_data.d_decls.insert(decl).second) {
         return;                                                       // RETURN
     }
+    if (decl->getLocation().isMacroID()) {
+        return;                                                       // RETURN
+    }
     if (!d_analyser.is_component(decl)) {
         return;                                                       // RETURN
     }

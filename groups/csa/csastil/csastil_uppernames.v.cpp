@@ -44,3 +44,7 @@ struct bde_verify::csastil::EE<EE_HH>::EE_GG
 };
 
 int LL_CSASTIL_UPPERNAMES;
+
+#define BIG BIG_NAME
+
+int BIG;
