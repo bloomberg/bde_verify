@@ -94,6 +94,7 @@ TSTCXXFILES +=                                                                \
         groups/csa/csafmt/csafmt_banner.cpp                                   \
         groups/csa/csafmt/csafmt_comments.cpp                                 \
         groups/csa/csafmt/csafmt_headline.cpp                                 \
+        groups/csa/csafmt/csafmt_indent.cpp                                   \
         groups/csa/csafmt/csafmt_longlines.cpp                                \
         groups/csa/csafmt/csafmt_nonascii.cpp                                 \
         groups/csa/csafmt/csafmt_whitespace.cpp                               \

@@ -5,9 +5,9 @@
 // LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt).     
 // -----------------------------------------------------------------------------
 
-#include <csabase_ppobserver.h>
 #include <csabase_debug.h>
 #include <csabase_location.h>
+#include <csabase_ppobserver.h>
 #include <clang/Basic/FileManager.h>
 #include <clang/Basic/SourceManager.h>
 #include <llvm/Support/Regex.h>
@@ -134,12 +134,14 @@ bde_verify::csabase::PPObserver::do_pragma(clang::SourceLocation location, std::
     onPragma(location, value);
 }
 
-void
-bde_verify::csabase::PPObserver::do_macro_expands(clang::Token const&          token,
-                                            const clang::MacroDirective *macro)
+void bde_verify::csabase::PPObserver::do_macro_expands(
+    clang::Token const& token,
+    const clang::MacroDirective* macro,
+    clang::SourceRange range,
+    clang::MacroArgs const* args)
 {
     bde_verify::csabase::Debug d("do_macro_expands");
-    onMacroExpands(token, macro);
+    onMacroExpands(token, macro, range, args);
 }
 
 void
@@ -419,13 +421,13 @@ bde_verify::csabase::PPObserver::PragmaMessage(clang::SourceLocation location,
 
 // -----------------------------------------------------------------------------
 
-void
-bde_verify::csabase::PPObserver::MacroExpands(clang::Token const&          token,
-                                        const clang::MacroDirective *macro,
-                                        clang::SourceRange           range,
-                                        const clang::MacroArgs      *args)
+void bde_verify::csabase::PPObserver::MacroExpands(
+    clang::Token const& token,
+    const clang::MacroDirective* macro,
+    clang::SourceRange range,
+    const clang::MacroArgs* args)
 {
-    do_macro_expands(token, macro);
+    do_macro_expands(token, macro, range, args);
 }
 
 void

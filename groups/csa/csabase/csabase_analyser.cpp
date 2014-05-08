@@ -385,6 +385,18 @@ bde_verify::csabase::Analyser::get_line_range(clang::SourceLocation loc)
     return range;
 }
 
+clang::SourceRange
+bde_verify::csabase::Analyser::get_trim_line_range(clang::SourceLocation loc)
+{
+    clang::SourceRange range(get_line_range(loc));
+    llvm::StringRef line = get_source(range);
+    range.setBegin(
+        range.getBegin().getLocWithOffset(line.size() - line.ltrim().size()));
+    range.setEnd(
+        range.getEnd().getLocWithOffset(line.rtrim().size() - line.size()));
+    return range;
+}
+
 llvm::StringRef
 bde_verify::csabase::Analyser::get_source_line(clang::SourceLocation loc)
 {

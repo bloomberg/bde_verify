@@ -1,0 +1,33 @@
+groups/csa/csafmt/csafmt_indent.t.cpp:12:0: warning: IND01: Possibly mis-indented line
+    {
+^
+groups/csa/csafmt/csafmt_indent.t.cpp:12:0: note: IND01: Correct version may be
+{
+groups/csa/csafmt/csafmt_indent.t.cpp:13:0: warning: IND01: Possibly mis-indented line
+  F(); F();
+^
+groups/csa/csafmt/csafmt_indent.t.cpp:13:0: note: IND01: Correct version may be
+    F(); F();
+groups/csa/csafmt/csafmt_indent.t.cpp:21:0: warning: IND01: Possibly mis-indented line
+        return 0;
+^
+groups/csa/csafmt/csafmt_indent.t.cpp:21:0: note: IND01: Correct version may be
+    return 0;
+groups/csa/csafmt/csafmt_indent.t.cpp:25:0: warning: IND02: Function parameters should be all on a single line or each on a separate line
+       int c)
+^
+groups/csa/csafmt/csafmt_indent.t.cpp:30:0: warning: IND02: Function parameters should be all on a single line or each on a separate line
+       int b, int c)
+^
+groups/csa/csafmt/csafmt_indent.t.cpp:40:0: warning: IND03: Function parameter names should align vertically
+      int c)
+^
+groups/csa/csafmt/csafmt_indent.t.cpp:38:0: note: IND03: Starting alignment was here
+void j(int a,
+^
+groups/csa/csafmt/csafmt_indent.t.cpp:40:0: warning: IND01: Possibly mis-indented line
+      int c)
+^
+groups/csa/csafmt/csafmt_indent.t.cpp:40:0: note: IND01: Correct version may be
+       int c)
+7 warnings generated.

@@ -49,13 +49,16 @@ public:
     Location();
     Location(clang::SourceManager const& manager,
              clang::SourceLocation location);
+    Location(const Location&) = default;
+    Location& operator=(const Location&) = default;
 
     std::string           file() const;
     size_t                line() const;
     size_t                column() const;
     clang::SourceLocation location() const;
 
-    bool operator< (bde_verify::csabase::Location const& location) const;
+    bool operator< (Location const& location) const;
+    operator bool() const;
 };
 
 class bde_verify::csabase::Range
@@ -68,11 +71,14 @@ public:
     Range();
     Range(clang::SourceManager const& manager,
           clang::SourceRange range);
+    Range(const Range&) = default;
+    Range& operator=(const Range&) = default;
 
     const Location& from() const;
     const Location& to() const;
 
-    bool operator< (bde_verify::csabase::Range const& range) const;
+    bool operator< (Range const& range) const;
+    operator bool() const;
 };
 
 // -----------------------------------------------------------------------------

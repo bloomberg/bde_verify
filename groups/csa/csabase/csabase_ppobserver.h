@@ -45,7 +45,10 @@ public:
     utils::event<void(std::string const&, clang::PPCallbacks::FileChangeReason)>      onOtherFile;
     utils::event<void(clang::SourceLocation, std::string const&)>                     onIdent;
     utils::event<void(clang::SourceLocation, std::string const&)>                     onPragma;
-    utils::event<void(clang::Token const&, clang::MacroDirective const*)>                  onMacroExpands;
+    utils::event<void(clang::Token const &,
+                      clang::MacroDirective const *,
+                      clang::SourceRange,
+                      clang::MacroArgs const*)> onMacroExpands;
     utils::event<void(clang::Token const&, clang::MacroDirective const*)>                  onMacroDefined;
     utils::event<void(clang::Token const&, clang::MacroDirective const*)>                  onMacroUndefined;
     utils::event<void(clang::SourceLocation, clang::SourceRange)>                     onIf;
@@ -216,7 +219,10 @@ private:
     void do_other_file(std::string const&, clang::PPCallbacks::FileChangeReason);
     void do_ident(clang::SourceLocation, std::string const&);
     void do_pragma(clang::SourceLocation, std::string const&);
-    void do_macro_expands(clang::Token const&, clang::MacroDirective const*);
+    void do_macro_expands(clang::Token const &,
+                          clang::MacroDirective const *,
+                          clang::SourceRange,
+                          clang::MacroArgs const *);
     void do_macro_defined(clang::Token const&, clang::MacroDirective const*);
     void do_macro_undefined(clang::Token const&, clang::MacroDirective const*);
     void do_if(clang::SourceLocation, clang::SourceRange);
