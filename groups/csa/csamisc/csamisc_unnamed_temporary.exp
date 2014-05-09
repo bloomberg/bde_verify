@@ -13,4 +13,10 @@ groups/csa/csamisc/csamisc_unnamed_temporary.t.cpp:22:0: warning: UT01: Unnamed 
 groups/csa/csamisc/csamisc_unnamed_temporary.t.cpp:25:0: warning: UT01: Unnamed object will be immediately destructed
     std::string(std::string(5, ' '));
 ^
-5 warnings generated.
+groups/csa/csamisc/csamisc_unnamed_temporary.t.cpp:32:0: warning: UT01: Unnamed object will be immediately destructed
+    for (std::string(); i; std::string()) {
+^
+groups/csa/csamisc/csamisc_unnamed_temporary.t.cpp:32:0: warning: UT01: Unnamed object will be immediately destructed
+    for (std::string(); i; std::string()) {
+^
+7 warnings generated.

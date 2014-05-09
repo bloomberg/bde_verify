@@ -5,7 +5,7 @@
 namespace bde_verify {
 namespace {
 
-void f()
+std::string f()
 {
     int i1(5);
     int(5);
@@ -23,6 +23,16 @@ void f()
     (void)std::string(5, ' ');
     std::string s4(std::string(5, ' '));
     std::string(std::string(5, ' '));
+
+    static volatile int i;
+    if (i) return std::string();
+    if (i) return std::string("5");
+    if (i) return std::string(5, ' ');
+
+    for (std::string(); i; std::string()) {
+    }
+
+    return std::string();
 }
 
 }
