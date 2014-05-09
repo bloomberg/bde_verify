@@ -53,7 +53,7 @@ struct data
     FunDecls d_fundecls;  // FunDecl, comment
 
     typedef std::multimap<long long, std::string> TestsOfCases;
-    TestsOfCases d_tests_of_cases;  // Map functions to tets numbers.
+    TestsOfCases d_tests_of_cases;  // Map functions to test numbers.
 
     typedef std::multimap<std::string, long long> CasesOfTests;
     CasesOfTests d_cases_of_tests;  // Map test numbers to functions.

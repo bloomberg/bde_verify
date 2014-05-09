@@ -84,5 +84,7 @@
 #pragma bde_verify pop
 
 //@CLASSES:
+//    a::b : first class
+//    c_d: not so first class
 //
 //@DESCRIPTION: flak

@@ -479,13 +479,22 @@ void files::check_description(SourceRange range)
     llvm::StringRef comment = d_analyser.get_source(range, true);
     size_t cpos = comment.find("//@CLASSES:");
     size_t dpos = comment.find("//@DESCRIPTION:", cpos);
+    llvm::StringRef desc = comment.slice(dpos, comment.find("\n//\n", dpos));
     if (cpos != comment.npos && dpos != comment.npos) {
-        size_t cb = comment.find_first_not_of(' ', cpos + 11);
-        size_t ce = comment.rfind(':', comment.find('\n', cb));
-        if (cb != comment.npos && ce != comment.npos) {
-            std::string qc = ("'" + comment.slice(cb, ce) + "'").str();
-            comment = comment.slice(dpos, comment.find("\n//\n", dpos));
-            if (qc != "''" && comment.find(qc) == comment.npos) {
+        cpos += 11;
+        for (;;) {
+            size_t cb = comment.find_first_of("ABCDEFGHIJKLMNOPQRSTUVWXYZ_"
+                                              "abcdefghijklmnopqrstuvwxyz",
+                                              cpos);
+            cpos = comment.find('\n', cb);
+            size_t ce = comment.rfind(':', cpos);
+            if (cpos == comment.npos ||
+                cb == comment.npos ||
+                ce == comment.npos) {
+                break;
+            }
+            std::string qc = ("'" + comment.slice(cb, ce).trim() + "'").str();
+            if (qc != "''" && desc.find(qc) == desc.npos) {
                 d_analyser.report(range.getBegin().getLocWithOffset(dpos),
                                   check_name, "DC01",
                                   "Description should contain single-quoted "
