@@ -274,6 +274,28 @@ int main(int argc, char *argv[])
     return testStatus ? testStatus : 0;
 }
 
+// ============================================================================
+//                                 TEST CLASS
+// ============================================================================
+//
+//@CLASSES:
+//    joe : just a class
+//    bsl::basic_nonesuch : not there
+
+namespace BloombergLP
+{
+    struct joe {
+        void setF();
+        void setG();
+        int F() const;
+        int F();
+        int G() const;
+        joe();
+        joe(int);
+        ~joe();
+    };
+}
+
 // ---------------------------------------------------------------------------
 // NOTICE:
 //      Copyright (C) Bloomberg L.P., 2013

@@ -43,6 +43,9 @@ namespace
 struct data
     // Data attached to analyser for this check.
 {
+    data();
+        // Create an object of thi stype.
+
     typedef std::vector<SourceRange> Comments;
     Comments d_comments;  // Comment blocks per file.
 
@@ -64,7 +67,19 @@ struct data
     const CompoundStmt *d_main;  // The compound statement of 'main()'.
     const Stmt *d_return;        // The correct 'main()' return statement.
 
+    enum { NOT_YET, NOW, DONE };
+    int d_collecting_classes;  // True for //@CLASSES: section.
+    std::map<llvm::StringRef, SourceRange> d_classes;  // The classes named.
+    std::map<std::string, unsigned> d_names_to_test;  // Public methods.
+    std::map<std::string, unsigned> d_names_in_plan;  // Methods tested.
 };
+
+data::data()
+: d_main(0)
+, d_return(0)
+, d_collecting_classes(NOT_YET)
+{
+}
 
 struct report
     // Callback object for inspecting test drivers.
@@ -102,6 +117,9 @@ struct report
 
     void check_boilerplate();
         // Check test driver boilerplate in the main file.
+
+    void get_function_names();
+        // Find the public methods of the classes in @CLASSES.
 
     void search(SourceLocation *best_loc,
                 llvm::StringRef *best_needle,
@@ -175,6 +193,14 @@ llvm::Regex test_item(
     "^[^.;]*[[:alpha:]][^.;]*;?[^.;]*$",
     llvm::Regex::Newline);  // Loosely match a test item; at least one letter,
                             // no more than one ';', and no '.'.
+
+llvm::Regex tested_method(
+    "(" "operator" " *" "(" "[(] *[)]"
+                        "|" "[^([:alnum:][:space:]]+"
+                        ")"
+    "|" "[[:alnum:]]+"
+    ")" "[[:space:]]*[(]",
+    llvm::Regex::Newline);  // Match a method name in a test item.
 
 const internal::DynTypedMatcher &
 print_banner_matcher()
@@ -391,6 +417,67 @@ void report::match_set_status(const BoundNodes& nodes)
     }
 }
 
+void report::get_function_names()
+{
+    for (auto p : d_data.d_classes) {
+        std::string name = p.first.str();
+        if (!p.first.startswith("::")) {
+            name = "::" + name;
+        }
+        bool is_bsl = llvm::StringRef(name).startswith("::bsl::");
+        NamedDecl *decl = d_analyser.lookup_name(name);
+        if (!decl && is_bsl) {
+            decl = d_analyser.lookup_name("::std::" + name.substr(7));
+        }
+        if (!decl) {
+            decl = d_analyser.lookup_name(
+                "::" + d_analyser.config()->toplevel_namespace() + name);
+            if (!decl && is_bsl) {
+                decl = d_analyser.lookup_name(
+                    "::" + d_analyser.config()->toplevel_namespace() +
+                    "::std::" + name.substr(7));
+            }
+        }
+
+        CXXRecordDecl *record = 0;
+        if (decl) {
+            while (UsingShadowDecl *usd =
+                       llvm::dyn_cast<UsingShadowDecl>(decl)) {
+                decl = usd->getTargetDecl();
+            }
+            record = llvm::dyn_cast<CXXRecordDecl>(decl);
+            if (!record) {
+                ClassTemplateDecl *tplt =
+                    llvm::dyn_cast<ClassTemplateDecl>(decl);
+                if (tplt) {
+                    record = tplt->getTemplatedDecl();
+                }
+            }
+        }
+        if (record) {
+            CXXRecordDecl::method_iterator b = record->method_begin();
+            CXXRecordDecl::method_iterator e = record->method_end();
+            for (; b != e; ++b) {
+                if ((*b)->getAccess() == AS_public && (*b)->isUserProvided()) {
+                    std::string method = (*b)->getNameAsString();
+                    size_t lt = method.find('<');
+                    if (lt != method.npos &&
+                        !llvm::StringRef(method).startswith("operator")) {
+                        method = method.substr(0, lt);
+                    }
+                    ++d_data.d_names_to_test[method];
+                }
+            }
+        }
+        else {
+            d_analyser.report(p.second.getBegin(), check_name, "TP25",
+                              "Cannot find definition of class '%0' from "
+                              "@CLASSES section.")
+                << p.first;
+        }
+    }
+}
+
 void report::operator()()
 {
     if (!d_analyser.is_test_driver()) {
@@ -398,6 +485,8 @@ void report::operator()()
     }
 
     check_boilerplate();
+
+    get_function_names();
 
     SourceRange plan_range = get_test_plan();
 
@@ -475,6 +564,9 @@ void report::operator()()
         } else {
             d_data.d_tests_of_cases.insert(std::make_pair(test_num, item));
             d_data.d_cases_of_tests.insert(std::make_pair(item, test_num));
+            if (tested_method.match(item, &matches)) {
+                ++d_data.d_names_in_plan[matches[1]];
+            }
         }
 
         if (cruft.find_first_not_of(" ") != cruft.npos) {
@@ -487,6 +579,22 @@ void report::operator()()
         d_analyser.report(plan_range.getBegin().getLocWithOffset(plan_pos),
                           check_name, "TP13",
                           "No test items found in test plan");
+    }
+    else {
+        for (const auto &a : d_data.d_names_to_test) {
+            if (a.second > d_data.d_names_in_plan[a.first]) {
+                d_analyser.report(
+                    plan_range.getBegin().getLocWithOffset(plan_pos),
+                    check_name, "TP26",
+                    "Tested %plural{1:class has|:classes have}0 "
+                    "%plural{1:a|:%1}1 function%s1 named '%2' "
+                    "but the test plan has %plural{0:none|:%3}3")
+                << int(d_data.d_classes.size())
+                << int(a.second)
+                << a.first
+                << int(d_data.d_names_in_plan[a.first]);
+            }
+        }
     }
 
     CompoundStmt const* stmt = d_data.d_main;
@@ -704,6 +812,26 @@ void report::operator()(SourceRange range)
         }
         else {
             c.back().setEnd(range.getEnd());
+        }
+    }
+    if (d_data.d_collecting_classes != data::DONE &&
+        d_analyser.is_component(location.file())) {
+        llvm::StringRef line = d_analyser.get_source_line(location.location());
+        if (d_data.d_collecting_classes == data::NOT_YET) {
+            if (line.find("//@CLASS") == 0) {
+                d_data.d_collecting_classes = data::NOW;
+            }
+        }
+        else {
+            line = line.slice(line.find_first_of("ABCDEFGHIJKLMNOPQRSTUVWXYZ_"
+                                                 "abcdefghijklmnopqrstuvwxyz"),
+                              line.rfind(':')).trim();
+            if (line.empty()) {
+                d_data.d_collecting_classes = data::DONE;
+            }
+            else {
+                d_data.d_classes[line] = range;
+            }
         }
     }
 }
