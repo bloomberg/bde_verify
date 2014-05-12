@@ -386,10 +386,13 @@ void report::operator()(const Token &token,
 
 void report::operator()(SourceRange comment)
 {
-    if (d_analyser.get_source_line(comment.getBegin()) == "//..") {
+    if (d_analyser.is_test_driver() &&
+        d_analyser.get_source_line(comment.getBegin()) == "//..") {
         Location loc(d_analyser.manager(), comment.getBegin());
-        add_indent(comment.getBegin(),
-                   (d_data.d_in_dotdot[loc.file()] ^= 1) ? +4 : -4);
+        if (loc.file() == d_analyser.toplevel()) {
+            add_indent(comment.getBegin(),
+                       (d_data.d_in_dotdot[loc.file()] ^= 1) ? +4 : -4);
+        }
     }
 }
 
