@@ -483,6 +483,7 @@ void files::check_description(SourceRange range)
     if (cpos != comment.npos && dpos != comment.npos) {
         cpos += 11;
         for (;;) {
+            size_t end = comment.find_first_of("//\n");
             size_t cb = comment.find_first_of("ABCDEFGHIJKLMNOPQRSTUVWXYZ_"
                                               "abcdefghijklmnopqrstuvwxyz",
                                               cpos);
@@ -490,7 +491,8 @@ void files::check_description(SourceRange range)
             size_t ce = comment.rfind(':', cpos);
             if (cpos == comment.npos ||
                 cb == comment.npos ||
-                ce == comment.npos) {
+                ce == comment.npos ||
+                end < cb) {
                 break;
             }
             std::string qc = ("'" + comment.slice(cb, ce).trim() + "'").str();
