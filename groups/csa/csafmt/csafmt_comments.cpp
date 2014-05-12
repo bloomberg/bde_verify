@@ -483,7 +483,7 @@ void files::check_description(SourceRange range)
     if (cpos != comment.npos && dpos != comment.npos) {
         cpos += 11;
         for (;;) {
-            size_t end = comment.find_first_of("//\n");
+            size_t end = comment.find("//\n", cpos);
             size_t cb = comment.find_first_of("ABCDEFGHIJKLMNOPQRSTUVWXYZ_"
                                               "abcdefghijklmnopqrstuvwxyz",
                                               cpos);
