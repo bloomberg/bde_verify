@@ -32,7 +32,6 @@ CXXFLAGS += -std=c++0x
          endif
 LINK     = $(CXX)
 AR       = /usr/bin/ar
-LDFLAGS  += -Wl,-rpath,$(CCDIR)/lib64
 CXXFLAGS += -Wno-unused-local-typedefs
     endif
     ifeq ($(COMPILER),clang)
@@ -46,10 +45,6 @@ CXXFLAGS += -Wno-c++11-extensions
         endif
 LINK     = $(CXX)
     endif
-ASPELL   = /opt/swt/install/aspell-0.60.6.1-64
-CXXFLAGS += -DSPELL_CHECK=1
-INCFLAGS += -I$(ASPELL)/include
-LDFLAGS  += -L$(ASPELL)/lib64 -laspell -L$(OBJ) -l$(CSABASE)
 endif
 ifeq ($(SYSTEM),SunOS)
 BB = /bb/build/share/packages/refroot/solaris10-sparc/unstable/bb
@@ -60,34 +55,25 @@ CXX      = $(CCDIR)/bin/g++
          ifeq        ($(STD),CXX2011)
 CXXFLAGS += -m64 -pthreads -mno-faster-structs
 CFLAGS   += -m64 -pthreads -mno-faster-structs
-LDFLAGS  += -m64 -pthreads -mno-faster-structs
 CXXFLAGS += -std=c++0x
          endif
 LINK     = $(CXX)
 AR       = /usr/ccs/bin/ar
-LDFLAGS  += -Wl,-L,$(CCDIR)/lib/sparcv9 -Wl,-R,$(CCDIR)/lib/sparcv9
 CXXFLAGS += -Wno-unused-local-typedefs
     endif
-ASPELL   = /opt/swt/install/aspell-0.60.6.1-64
-CXXFLAGS += -DSPELL_CHECK=1
-INCFLAGS += -I$(ASPELL)/include
-LDFLAGS  += -Wl,-L,$(ASPELL)/lib64 -Wl,-R,$(ASPELL)/lib64 -laspell -L$(OBJ) -l$(CSABASE)
-EXTRALIBS += -lrt
-EXTRALIBS += -lmalloc
 endif
 
 OBJ      = $(SYSTEM)-$(COMPILER)-$(VERSION)
 
 LLVM     = /home/hrosen4/mbig/llvm-3.4/install-$(SYSTEM)
 INCFLAGS += -I$(LLVM)/include
-LDFLAGS  += -L$(LLVM)/lib
 
 #VERBOSE  =
 VERBOSE  = @
 
 #  ----------------------------------------------------------------------------
 
-CSABASECXXFILES =                                                             \
+CXXFILES =                                                 \
         csabase_abstractvisitor.cpp                        \
         csabase_analyse.cpp                                \
         csabase_analyser.cpp                               \
@@ -117,18 +103,15 @@ REDIRECT = $(VERBOSE:@=>/dev/null 2>&1)
 DEFFLAGS += -D__STDC_LIMIT_MACROS
 DEFFLAGS += -D__STDC_CONSTANT_MACROS
 INCFLAGS += -I.
-INCFLAGS += -Igroups/csa/csabase
-INCFLAGS += -Igroups/csa/csadep
 CXXFLAGS += -g -fno-common -fno-strict-aliasing -fno-exceptions -fno-rtti
-LDFLAGS += -g
 
-CSABASEOFILES = $(CSABASECXXFILES:%.cpp=$(OBJ)/%.o)
+OFILES = $(CXXFILES:%.cpp=$(OBJ)/%.o)
 
 $(CSABASE): $(OBJ)/$(LIBCSABASE)
 
-$(OBJ)/$(LIBCSABASE): $(CSABASEOFILES)
+$(OBJ)/$(LIBCSABASE): $(OFILES)
 	@echo creating library
-	$(VERBOSE) $(AR) cr $@ $(CSABASEOFILES)
+	$(VERBOSE) $(AR) cr $@ $(OFILES)
 
 $(OBJ)/%.o: %.cpp
 	@if [ ! -d $(@D) ]; then scripts/mkdirhier $(@D); fi
@@ -138,7 +121,7 @@ $(OBJ)/%.o: %.cpp
 
 clean:
 	$(RM) $(OFILES)
-	$(RM) $(OBJ)/$(TARGET)
+	$(RM) $(OBJ)/$(LIBCSABASE)
 	$(RM) $(OBJ)/make.depend
 	$(RM) -r $(OBJ)
 	$(RM) mkerr olderr *~
@@ -148,7 +131,7 @@ clean:
 depend $(OBJ)/make.depend:
 	@if [ ! -d $(OBJ) ]; then mkdir $(OBJ); fi
 	@echo analysing dependencies
-	$(VERBOSE) $(CXX) $(INCFLAGS) $(DEFFLAGS) -M $(CSABASECXXFILES) \
+	$(VERBOSE) $(CXX) $(INCFLAGS) $(DEFFLAGS) -M $(CXXFILES) \
 		| perl -pe 's[^(?! )][$(OBJ)/]' > $(OBJ)/make.depend
 
            include $(OBJ)/make.depend

@@ -238,14 +238,11 @@ LIBS     =    -lcsabase                                                       \
 
 $(TARGET): $(OBJ)/$(TARGET)
 
-$(OBJ)/$(TARGET): make_csabase $(TSTOFILES)
+$(OBJ)/$(TARGET): $(CSABASEDIR)/$(OBJ)/$(LIBCSABASE) $(TSTOFILES)
 	@echo linking executable
 	$(VERBOSE) $(LINK) $(LDFLAGS) -o $@ $(TSTOFILES) $(LIBS)
 
-
-.phony: make_csabase
-
-make_csabase:
+$(CSABASEDIR)/$(OBJ)/$(LIBCSABASE):
 	$(MAKE) -C $(CSABASEDIR)
 
 $(OBJ)/%.o: %.cpp
@@ -254,12 +251,15 @@ $(OBJ)/%.o: %.cpp
 	$(VERBOSE) $(CXX) $(INCFLAGS) $(DEFFLAGS) $(CXXFLAGS) $(WARNFLAGS) \
                           -o $@ -c $(@:$(OBJ)/%.o=%.cpp)
 
+.phony: clean
+
 clean:
 	$(RM) $(TSTOFILES)
 	$(RM) $(OBJ)/$(TARGET)
 	$(RM) $(OBJ)/make.depend
 	$(RM) -r $(OBJ)
 	$(RM) mkerr olderr *~
+	$(MAKE) -C $(CSABASEDIR) clean
 
 # -----------------------------------------------------------------------------
 
