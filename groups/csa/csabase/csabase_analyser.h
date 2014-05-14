@@ -90,7 +90,7 @@ class csabase::Analyser:
     bool               is_ADL_candidate(clang::Decl const*);
     bool               is_generated(clang::SourceLocation) const;
 
-    bde_verify::diagnostic_builder report(clang::SourceLocation where,
+    csabase::diagnostic_builder report(clang::SourceLocation where,
                                     std::string const& check,
                                     std::string const& tag,
                                     std::string const& message,
@@ -99,7 +99,7 @@ class csabase::Analyser:
                                         clang::DiagnosticsEngine::Warning);
 
     template <typename T>
-    bde_verify::diagnostic_builder report(T where,
+    csabase::diagnostic_builder report(T where,
                                     std::string const& check,
                                     std::string const& tag,
                                     std::string const& message,
@@ -174,7 +174,7 @@ csabase::Analyser::process_decls(InIt it, InIt end)
 }
 
 template <typename T>
-bde_verify::diagnostic_builder
+csabase::diagnostic_builder
 csabase::Analyser::report(T where,
                                 std::string const& check,
                                 std::string const& tag,

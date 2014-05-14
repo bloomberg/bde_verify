@@ -18,7 +18,7 @@
 namespace csabase {
 
 struct AttachmentBase
-    // The base class for attachment data.  The intent is that each bde_verify
+    // The base class for attachment data.  The intent is that each csabase
     // module creates a private class to hold the data it needs, and creates an
     // attchment to hold it.
 {
@@ -29,7 +29,7 @@ struct AttachmentBase
 template <typename TYPE>
 class Attachment : public AttachmentBase
     // The per-type class for attachment data.  It is intended that attachments
-    // be held within a global data structure of the bde_verify analyser, and
+    // be held within a global data structure of the csabase analyser, and
     // that callback objects access this structure as needed.
 {
   private:

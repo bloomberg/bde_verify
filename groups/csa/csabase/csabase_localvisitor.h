@@ -21,7 +21,7 @@
 
 // -----------------------------------------------------------------------------
 
-namespace bde_verify
+namespace csabase
 {
     namespace detail
     {
@@ -40,7 +40,7 @@ namespace bde_verify
 
 #if defined(UTILS_CXX2011)
 template <>
-class bde_verify::detail::visitor<>:
+class csabase::detail::visitor<>:
     public csabase::AbstractVisitor
 {
 };
@@ -50,14 +50,14 @@ class bde_verify::detail::visitor<>:
 
 #if defined(UTILS_2011)
 template <typename F0, typename... F>
-class bde_verify::detail::visitor<F0, F...>:
-    public bde_verify::detail::visitor<F...>
+class csabase::detail::visitor<F0, F...>:
+    public csabase::detail::visitor<F...>
 {
 public:
     typedef typename F0::argument_type argument_type;
     visitor(F0&& functor, F&&... functors):
-        bde_verify::detail::visitor<F...>(bde_verify::forward<F>(functors)...),
-        functor_(bde_verify::forward<F0>(functor))
+        csabase::detail::visitor<F...>(csabase::forward<F>(functors)...),
+        functor_(csabase::forward<F0>(functor))
     {
     }
     void do_visit(argument_type arg)
@@ -73,7 +73,7 @@ private:
 
 #if !defined(UTILS_2011)
 template <typename F0>
-class bde_verify::detail::visitor:
+class csabase::detail::visitor:
     public csabase::AbstractVisitor
 {
 public:
@@ -93,17 +93,17 @@ private:
 
 // -----------------------------------------------------------------------------
 
-class bde_verify::local_visitor
+class csabase::local_visitor
 {
 public:
 #if defined(UTILS_2011)
     template <typename... F>
     local_visitor(F&&... functors):
-        visitor_(new bde_verify::detail::visitor<F...>(bde_verify::forward<F>(functors)...))
+        visitor_(new csabase::detail::visitor<F...>(csabase::forward<F>(functors)...))
 #else
     template <typename F0>
     local_visitor(F0 const& functor):
-        visitor_(new bde_verify::detail::visitor<F0>(functor))
+        visitor_(new csabase::detail::visitor<F0>(functor))
 #endif
     {
     }

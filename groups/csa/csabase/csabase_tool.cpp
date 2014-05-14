@@ -1,5 +1,6 @@
 // csabase_tool.cpp                                                   -*-C++-*-
 #include <csabase_tool.h>
+#include <csabase_analyse.h>
 #include <clang/Frontend/CompilerInstance.h>
 #include <clang/Frontend/FrontendActions.h>
 #include <clang/Frontend/FrontendDiagnostic.h>
@@ -43,7 +44,7 @@ namespace {
 
 // -----------------------------------------------------------------------------
 
-int main(int argc_, const char **argv_)
+int csabase::run(int argc_, const char **argv_)
 {
     sys::PrintStackTraceOnErrorSignal();
     PrettyStackTraceProgram X(argc_, argv_);

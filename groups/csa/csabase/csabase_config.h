@@ -92,7 +92,7 @@ public:
         // specified '#pragma bdeverify set variable value'.
 
     void check_bv_stack(Analyser& analyser) const;
-        // Verify that the bde_verify pragmas form a proper stack.
+        // Verify that the csabase pragmas form a proper stack.
 
 private:
     std::string                                      d_toplevel_namespace;

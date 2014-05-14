@@ -8,6 +8,9 @@
 # $Id$
 
 TARGET   = bde_verify
+CSABASE  = csabase
+LIBCSABASE = libcsabase.a
+CSABASEDIR = groups/csa/csabase
 
 default: $(TARGET)
 
@@ -30,6 +33,7 @@ CXX      = $(CCDIR)/bin/g++
 CXXFLAGS += -std=c++0x
          endif
 LINK     = $(CXX)
+AR       = /usr/bin/ar
 LDFLAGS  += -Wl,-rpath,$(CCDIR)/lib64
 CXXFLAGS += -Wno-unused-local-typedefs
     endif
@@ -62,13 +66,14 @@ LDFLAGS  += -m64 -pthreads -mno-faster-structs
 CXXFLAGS += -std=c++0x
          endif
 LINK     = $(CXX)
+AR       = /usr/ccs/bin/ar
 LDFLAGS  += -Wl,-L,$(CCDIR)/lib/sparcv9 -Wl,-R,$(CCDIR)/lib/sparcv9
 CXXFLAGS += -Wno-unused-local-typedefs
     endif
 ASPELL   = /opt/swt/install/aspell-0.60.6.1-64
 CXXFLAGS += -DSPELL_CHECK=1
 INCFLAGS += -I$(ASPELL)/include
-LDFLAGS  += -Wl,-L,$(ASPELL)/lib64 -Wl,-R,$(ASPELL)/lib64 -laspell
+LDFLAGS  += -Wl,-L,$(ASPELL)/lib64 -Wl,-R,$(ASPELL)/lib64 -laspell -L$(OBJ)
 EXTRALIBS += -lrt
 EXTRALIBS += -lmalloc
 endif
@@ -77,14 +82,15 @@ OBJ      = $(SYSTEM)-$(COMPILER)-$(VERSION)
 
 LLVM     = /home/hrosen4/mbig/llvm-3.4/install-$(SYSTEM)
 INCFLAGS += -I$(LLVM)/include
-LDFLAGS  += -L$(LLVM)/lib
+LDFLAGS  += -L$(LLVM)/lib -L$(CSABASEDIR)/$(OBJ)
 
 #VERBOSE  =
 VERBOSE  = @
 
 #  ----------------------------------------------------------------------------
 
-TSTCXXFILES +=                                                                \
+TSTCXXFILES =                                                                 \
+        groups/csa/csabde/csabde_tool.cpp                                     \
         groups/csa/csabbg/csabbg_allocatorforward.cpp                         \
         groups/csa/csabbg/csabbg_allocatornewwithpointer.cpp                  \
         groups/csa/csabbg/csabbg_enumvalue.cpp                                \
@@ -136,25 +142,6 @@ TSTCXXFILES +=                                                                \
         groups/csa/csatr/csatr_usingdeclarationinheader.cpp                   \
         groups/csa/csatr/csatr_usingdirectiveinheader.cpp                     \
 
-LIBCXXFILES +=                                                                \
-        groups/csa/csabase/csabase_abstractvisitor.cpp                        \
-        groups/csa/csabase/csabase_analyse.cpp                                \
-        groups/csa/csabase/csabase_analyser.cpp                               \
-        groups/csa/csabase/csabase_attachments.cpp                            \
-        groups/csa/csabase/csabase_checkregistry.cpp                          \
-        groups/csa/csabase/csabase_config.cpp                                 \
-        groups/csa/csabase/csabase_debug.cpp                                  \
-        groups/csa/csabase/csabase_diagnosticfilter.cpp                       \
-        groups/csa/csabase/csabase_filenames.cpp                              \
-        groups/csa/csabase/csabase_format.cpp                                 \
-        groups/csa/csabase/csabase_location.cpp                               \
-        groups/csa/csabase/csabase_ppobserver.cpp                             \
-        groups/csa/csabase/csabase_registercheck.cpp                          \
-        groups/csa/csabase/csabase_tool.cpp                                   \
-        groups/csa/csabase/csabase_util.cpp                                   \
-        groups/csa/csabase/csabase_visitor.cpp                                \
-        $(TSTCXXFILES)
-
 TODO =                                                                        \
         groups/csa/csadep/csadep_dependencies.cpp                             \
         groups/csa/csadep/csadep_types.cpp                                    \
@@ -175,14 +162,14 @@ REDIRECT = $(VERBOSE:@=>/dev/null 2>&1)
 DEFFLAGS += -D__STDC_LIMIT_MACROS
 DEFFLAGS += -D__STDC_CONSTANT_MACROS
 INCFLAGS += -I.
-INCFLAGS += -Igroups/csa/csabase
+INCFLAGS += -I$(CSABASEDIR)
 INCFLAGS += -Igroups/csa/csadep
 CXXFLAGS += -g -fno-common -fno-strict-aliasing -fno-exceptions -fno-rtti
 LDFLAGS += -g
 
-OFILES = $(LIBCXXFILES:%.cpp=$(OBJ)/%.o)
+TSTOFILES = $(TSTCXXFILES:%.cpp=$(OBJ)/%.o)
 
-LIBS     =                                                                    \
+LIBS     =    -lcsabase                                                       \
               -lLLVMX86AsmParser                                              \
               -lclangFrontendTool                                             \
               -lclangCodeGen                                                  \
@@ -251,9 +238,15 @@ LIBS     =                                                                    \
 
 $(TARGET): $(OBJ)/$(TARGET)
 
-$(OBJ)/$(TARGET): $(OFILES)
+$(OBJ)/$(TARGET): make_csabase $(TSTOFILES)
 	@echo linking executable
-	$(VERBOSE) $(LINK) $(LDFLAGS) -o $@ $(OFILES) $(LIBS)
+	$(VERBOSE) $(LINK) $(LDFLAGS) -o $@ $(TSTOFILES) $(LIBS)
+
+
+.phony: make_csabase
+
+make_csabase:
+	$(MAKE) -C $(CSABASEDIR)
 
 $(OBJ)/%.o: %.cpp
 	@if [ ! -d $(@D) ]; then scripts/mkdirhier $(@D); fi
@@ -262,7 +255,7 @@ $(OBJ)/%.o: %.cpp
                           -o $@ -c $(@:$(OBJ)/%.o=%.cpp)
 
 clean:
-	$(RM) $(OFILES)
+	$(RM) $(TSTOFILES)
 	$(RM) $(OBJ)/$(TARGET)
 	$(RM) $(OBJ)/make.depend
 	$(RM) -r $(OBJ)
@@ -398,7 +391,7 @@ check-all: $(OBJ)/$(TARGET)
 depend $(OBJ)/make.depend:
 	@if [ ! -d $(OBJ) ]; then mkdir $(OBJ); fi
 	@echo analysing dependencies
-	$(VERBOSE) $(CXX) $(INCFLAGS) $(DEFFLAGS) -M $(LIBCXXFILES) \
+	$(VERBOSE) $(CXX) $(INCFLAGS) $(DEFFLAGS) -M $(TSTCXXFILES) \
            | scripts/fixdepend $(OBJ) > $(OBJ)/make.depend
 
            include $(OBJ)/make.depend
