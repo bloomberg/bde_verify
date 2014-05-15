@@ -60,4 +60,16 @@ groups/csa/csabbg/csabbg_allocatorforward.t.cpp:186:0: warning: AR01: Type using
 groups/csa/csabbg/csabbg_allocatorforward.t.cpp:188:0: warning: AR01: Type using allocator is returned by value
                 return object(o);
 ^
-21 warnings generated.
+groups/csa/csabbg/csabbg_allocatorforward.t.cpp:317:0: warning: GA01: Variable with global storage must be initialized with non-default allocator
+bde_verify::csabbg::alloc_a a{};
+^
+groups/csa/csabbg/csabbg_allocatorforward.t.cpp:318:0: warning: GA01: Variable with global storage must be initialized with non-default allocator
+bde_verify::csabbg::alloc_a b{0};
+^
+groups/csa/csabbg/csabbg_allocatorforward.t.cpp:319:0: warning: GA01: Variable with global storage must be initialized with non-default allocator
+bde_verify::csabbg::alloc_a c[2];
+^
+groups/csa/csabbg/csabbg_allocatorforward.t.cpp:320:0: warning: GA01: Variable with global storage must be initialized with non-default allocator
+bde_verify::csabbg::alloc_a d[2][2];
+^
+25 warnings generated.

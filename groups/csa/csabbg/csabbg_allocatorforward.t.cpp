@@ -204,52 +204,52 @@ using namespace BloombergLP;
 
 struct alloc_a {
     BSLMF_NESTED_TRAIT_DECLARATION(alloc_a, bslma::UsesBslmaAllocator);
-    explicit alloc_a(bslma::Allocator*) { }
+    explicit alloc_a(bslma::Allocator* = 0) { }
 };
 
 struct alloc_b {
     BSLALG_DECLARE_NESTED_TRAITS(alloc_b, bslalg::TypeTraitUsesBslmaAllocator);
-    explicit alloc_b(bslma::Allocator*) { }
+    explicit alloc_b(bslma::Allocator* = 0) { }
 };
 
 struct alloc_c {
-    explicit alloc_c(bslma::Allocator*) { }
+    explicit alloc_c(bslma::Allocator* = 0) { }
 };
 
 struct alloc_d {
-    explicit alloc_d(bslma::Allocator*) { }
+    explicit alloc_d(bslma::Allocator* = 0) { }
 };
 
 struct alloc_e {
     BSLMF_NESTED_TRAIT_DECLARATION_IF(alloc_e, bslma::UsesBslmaAllocator, true);
-    explicit alloc_e(bslma::Allocator*) { }
+    explicit alloc_e(bslma::Allocator* = 0) { }
 };
 
 struct alloc_f {
     BSLMF_NESTED_TRAIT_DECLARATION_IF(alloc_f, bslma::UsesBslmaAllocator, false);
-    explicit alloc_f(bslma::Allocator*) { }
+    explicit alloc_f(bslma::Allocator* = 0) { }
 };
 
 template <class TYPE>
 struct alloc_g {
-    explicit alloc_g(bslma::Allocator*) { }
+    explicit alloc_g(bslma::Allocator* = 0) { }
 };
 
 template <class TYPE>
 struct alloc_h {
-    explicit alloc_h(bslma::Allocator*) { }
+    explicit alloc_h(bslma::Allocator* = 0) { }
 };
 
 template <class TYPE>
 struct alloc_i {
     BSLALG_DECLARE_NESTED_TRAITS(alloc_i, bslalg::TypeTraitUsesBslmaAllocator);
-    explicit alloc_i(bslma::Allocator*) { }
+    explicit alloc_i(bslma::Allocator* = 0) { }
 };
 
 template <class TYPE>
 struct alloc_j {
     BSLALG_DECLARE_NESTED_TRAITS(alloc_j, bslalg::TypeTraitUsesBslmaAllocator);
-    explicit alloc_j(bslma::Allocator*) { }
+    explicit alloc_j(bslma::Allocator* = 0) { }
 };
 
 template class alloc_j<int>;
@@ -257,19 +257,19 @@ template class alloc_j<int>;
 template <class TYPE>
 struct alloc_k {
     BSLMF_NESTED_TRAIT_DECLARATION_IF(alloc_k, bslma::UsesBslmaAllocator, true);
-    explicit alloc_k(bslma::Allocator*) { }
+    explicit alloc_k(bslma::Allocator* = 0) { }
 };
 
 template <class TYPE>
 struct alloc_l {
     BSLMF_NESTED_TRAIT_DECLARATION_IF(alloc_l, bslma::UsesBslmaAllocator, false);
-    explicit alloc_l(bslma::Allocator*) { }
+    explicit alloc_l(bslma::Allocator* = 0) { }
 };
 
 template <class TYPE>
 struct alloc_m {
     BSLMF_NESTED_TRAIT_DECLARATION_IF(alloc_m, bslma::UsesBslmaAllocator, true);
-    explicit alloc_m(bslma::Allocator*) { }
+    explicit alloc_m(bslma::Allocator* = 0) { }
 };
 
 template class alloc_m<int>;
@@ -277,19 +277,19 @@ template class alloc_m<int>;
 template <class TYPE>
 struct alloc_n {
     BSLMF_NESTED_TRAIT_DECLARATION_IF(alloc_n, bslma::UsesBslmaAllocator, false);
-    explicit alloc_n(bslma::Allocator*) { }
+    explicit alloc_n(bslma::Allocator* = 0) { }
 };
 
 template class alloc_n<int>;
 
 template <class TYPE>
 struct alloc_o {
-    explicit alloc_o(bslma::Allocator*) { }
+    explicit alloc_o(bslma::Allocator* = 0) { }
 };
 
 template <class TYPE>
 struct alloc_p {
-    explicit alloc_p(bslma::Allocator*) { }
+    explicit alloc_p(bslma::Allocator* = 0) { }
 };
 
 template class alloc_p<int>;
@@ -314,3 +314,7 @@ struct UsesBslmaAllocator<bde_verify::csabbg::alloc_h<TYPE> >
 }
 }
 
+bde_verify::csabbg::alloc_a a{};
+bde_verify::csabbg::alloc_a b{0};
+bde_verify::csabbg::alloc_a c[2];
+bde_verify::csabbg::alloc_a d[2][2];

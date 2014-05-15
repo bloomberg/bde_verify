@@ -36,14 +36,6 @@ static std::string const check_name("allocator-forward");
 namespace clang {
 namespace ast_matchers {
 
-AST_MATCHER_P(TemplateArgument, refersToTemplate,
-                internal::Matcher<TemplateDecl>, InnerMatcher) {
-    return Node.getKind() == TemplateArgument::Template &&
-           Node.getAsTemplate().getAsTemplateDecl() &&
-           InnerMatcher.matches(
-               *Node.getAsTemplate().getAsTemplateDecl(), Finder, Builder);
-}
-           
 AST_MATCHER_P(TemplateArgument, equalsIntegral, unsigned, N) {
   return Node.getKind() == TemplateArgument::Integral &&
          Node.getAsIntegral() == N;
@@ -102,6 +94,9 @@ struct data
 
     typedef std::set<const ReturnStmt*> Returns;
     Returns returns_;
+
+    typedef std::set<const VarDecl*> Globals;
+    Globals globals_;
 };
 
 struct report
@@ -166,6 +161,9 @@ struct report
 
     void operator()();
         // Invoke the checking procedures.
+
+    void check_globals_use_allocator(data::Globals::const_iterator begin,
+                                     data::Globals::const_iterator end);
 
     void check_not_forwarded(data::Ctors::const_iterator begin,
                              data::Ctors::const_iterator end);
@@ -278,6 +276,9 @@ bool report::last_arg_is_explicit(const CXXConstructExpr* call)
 
 bool report::takes_allocator(QualType type)
 {
+    while (type->isArrayType()) {
+        type = QualType(type->getArrayElementTypeNoTypeQual(), 0);
+    }
     return data_.type_takes_allocator_
         [type.getTypePtr()->getCanonicalTypeInternal().getTypePtr()];
 }
@@ -531,6 +532,36 @@ void report::operator()()
     check_not_forwarded(data_.ctors_.begin(), data_.ctors_.end());
     check_wrong_parm(data_.cexprs_.begin(), data_.cexprs_.end());
     check_alloc_returns(data_.returns_.begin(), data_.returns_.end());
+    check_globals_use_allocator(data_.globals_.begin(), data_.globals_.end());
+}
+
+void report::check_globals_use_allocator(data::Globals::const_iterator begin,
+                                         data::Globals::const_iterator end)
+{
+    for (data::Globals::const_iterator itr = begin; itr != end; ++itr) {
+        const VarDecl *decl = *itr;
+        const CXXConstructExpr *expr =
+            llvm::dyn_cast<CXXConstructExpr>(decl->getInit());
+        if (takes_allocator(expr->getType())) {
+            unsigned n = expr->getNumArgs();
+            bool bad = n == 0;
+            if (n > 0) {
+                const Expr *last = expr->getArg(n - 1);
+                bool result;
+                if (last->isDefaultArgument() ||
+                    (last->EvaluateAsBooleanCondition(
+                         result, *analyser_.context()) &&
+                     result == false)) {
+                    bad = true;
+                }
+            }
+            if (bad) {
+                analyser_.report(decl, check_name, "GA01",
+                                 "Variable with global storage must be "
+                                 "initialized with non-default allocator");
+            }
+        }
+    }
 }
 
 void report::check_not_forwarded(data::Ctors::const_iterator begin,
@@ -872,7 +903,6 @@ void report::check_alloc_return(const ReturnStmt *stmt)
 {
     if (   stmt->getRetValue()
         && !stmt->getRetValue()->getType()->isPointerType()
-        //&& takes_allocator(stmt->getRetValue()->getType())
         && data_.decls_with_true_allocator_trait_.count(
             get_record_decl(stmt->getRetValue()->getType()))) {
         const FunctionDecl* func = analyser_.get_parent<FunctionDecl>(stmt);
@@ -892,6 +922,19 @@ void subscribe(Analyser& analyser, Visitor&, PPObserver&)
 
 // -----------------------------------------------------------------------------
 
+static void
+gather_var_decls(Analyser& analyser, const VarDecl* decl)
+{
+    if (analyser.is_component(decl) &&
+        decl->hasGlobalStorage() &&
+        decl->hasInit() &&
+        llvm::dyn_cast<CXXConstructExpr>(decl->getInit())) {
+        data& info(analyser.attachment<data>());
+        info.globals_.insert(decl);
+    }
+}
+
+// -----------------------------------------------------------------------------
 static void
 gather_ctor_exprs(Analyser& analyser, const CXXConstructExpr* expr)
     // Accumulate the specified 'expr' within the specified 'analyser'.
@@ -932,3 +975,4 @@ static RegisterCheck c2(check_name, &gather_ctor_decls);
 static RegisterCheck c3(check_name, &gather_ctor_exprs);
 static RegisterCheck c4(check_name, &subscribe);
 static RegisterCheck c8(check_name, &gather_return_stmts);
+static RegisterCheck c1(check_name, &gather_var_decls);
