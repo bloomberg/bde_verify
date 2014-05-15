@@ -147,7 +147,7 @@ check_order(CB::Analyser*                   analyser,
     if (analyser->component() == ident ||
         (analyser->is_test_driver() && !header)) {
         if (it != headers.end()) {
-            if (it->first == "bdes_ident") {
+            if (it->first == ident/*"bdes_ident"*/) {
                 bdes_ident_location = &it->second;
             }
             if (it->first == ident) {
@@ -162,7 +162,7 @@ check_order(CB::Analyser*                   analyser,
             << ident;
     }
     else {
-        if (it->first == "bdes_ident") {
+        if (it->first == ident/*"bdes_ident"*/) {
             bdes_ident_location = &it->second;
         }
         ++it;
@@ -292,13 +292,15 @@ namespace
                 check_order(d_analyser, data.d_header, true));
             clang::SourceLocation const* source_bdes_ident(
                 check_order(d_analyser, data.d_source, false));
-            if ((header_bdes_ident == 0) != (source_bdes_ident == 0)) {
-                d_analyser->report(*(header_bdes_ident ? header_bdes_ident :
-                                                         source_bdes_ident),
-                                   check_name, "SHO08",
-                                   "bdes_ident.h is used inconsistently with "
-                                   "the %0")
-                    << (header_bdes_ident ? "source" : "header");
+            if (header_bdes_ident && !source_bdes_ident) {
+                d_analyser->report(*header_bdes_ident, check_name, "SHO08",
+                                   "Component header includes '..._ident.h' "
+                                   "but component source does not");
+            }
+            if (!header_bdes_ident && source_bdes_ident) {
+                d_analyser->report(*source_bdes_ident, check_name, "SHO08",
+                                   "Component source includes '..._ident.h' "
+                                   "but header does not");
             }
         }
 

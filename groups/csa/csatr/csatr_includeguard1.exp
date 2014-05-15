@@ -20,7 +20,7 @@ groups/csa/csatr/csatr_includeguard1.t.h:3:0: warning: SHO04: Header without or 
 ^
 groups/csa/csatr/csatr_includeguard1.t.h:3:0: warning: SHO06: Missing include for bdes_ident.h
 groups/csa/csatr/csatr_includeguard1.t.h:3:0: warning: SHO07: Missing include for csascm_version.h
-groups/csa/csatr/csatr_includeguard1.t.cpp:4:0: warning: SHO08: bdes_ident.h is used inconsistently with the header
+groups/csa/csatr/csatr_includeguard1.t.cpp:4:0: warning: SHO08: Component source includes '..._ident.h' but header does not
 #include <bdes_ident.h>
 ^
 groups/csa/csatr/csatr_includeguard1.t.cpp:1:0: warning: TP14: TEST PLAN section is absent
