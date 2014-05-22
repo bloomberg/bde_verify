@@ -74,7 +74,7 @@ void report::match_unnamed_temporary(const BoundNodes &nodes)
     const clang::Expr* e = nodes.getNodeAs<Expr>("ut");
 
     d_analyser.report(e, check_name, "UT01",
-                      "Unnamed object will be immediately destructed");
+                      "Unnamed object will be immediately destroyed");
 }
 
 void report::operator()()
