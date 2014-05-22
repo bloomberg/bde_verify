@@ -46,7 +46,7 @@ groups/csa/csabbg/csabbg_testdriver.t.cpp:61:0: note: TP19: One correct form (of
 #define L_ __LINE__                           // current Line number
 
 groups/csa/csabbg/csabbg_testdriver.t.cpp:283:0: warning: TP25: Cannot find definition of class 'bsl::basic_nonesuch' from @CLASSES section.
-//    bsl::basic_nonesuch : not there
+//    bsl::basic_nonesuch : not there::more stuff
 ^
 groups/csa/csabbg/csabbg_testdriver.t.cpp:24:0: warning: TP03: Missing test number
 // [  ] void setF();

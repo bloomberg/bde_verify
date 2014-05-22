@@ -800,6 +800,12 @@ void report::operator()()
     }
 }
 
+llvm::Regex classes(
+    "^// *" "("
+                      "[[:alpha:]][[:alnum:]_]*"
+                "(" "::[[:alpha:]][[:alnum:]_]*" ")*"
+            ")");
+
 void report::operator()(SourceRange range)
 {
     Location location(d_analyser.get_location(range.getBegin()));
@@ -823,14 +829,12 @@ void report::operator()(SourceRange range)
             }
         }
         else {
-            line = line.slice(line.find_first_of("ABCDEFGHIJKLMNOPQRSTUVWXYZ_"
-                                                 "abcdefghijklmnopqrstuvwxyz"),
-                              line.rfind(':')).trim();
-            if (line.empty()) {
-                d_data.d_collecting_classes = data::DONE;
+            llvm::SmallVector<llvm::StringRef, 7> matches;
+            if (classes.match(line, &matches)) {
+                d_data.d_classes[matches[1]] = range;
             }
             else {
-                d_data.d_classes[line] = range;
+                d_data.d_collecting_classes = data::DONE;
             }
         }
     }

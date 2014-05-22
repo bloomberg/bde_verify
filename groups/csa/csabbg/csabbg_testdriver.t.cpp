@@ -279,8 +279,8 @@ int main(int argc, char *argv[])
 // ============================================================================
 //
 //@CLASSES:
-//    joe : just a class
-//    bsl::basic_nonesuch : not there
+//    joe : just a class : stuff
+//    bsl::basic_nonesuch : not there::more stuff
 
 namespace BloombergLP
 {
