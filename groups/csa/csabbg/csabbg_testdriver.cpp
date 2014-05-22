@@ -196,9 +196,9 @@ llvm::Regex test_item(
 
 llvm::Regex tested_method(
     "(" "operator" " *" "(" "[(] *[)]"
-                        "|" "[^([:alnum:][:space:]]+"
+                        "|" "[^([:alnum:]_[:space:]]+"
                         ")"
-    "|" "[[:alnum:]]+"
+    "|" "~?[[:alnum:]_]+"
     ")" "[[:space:]]*[(]",
     llvm::Regex::Newline);  // Match a method name in a test item.
 
@@ -507,19 +507,22 @@ void report::operator()()
         offset += plan.drop_front(offset).find(matches[0]) + matches[0].size();
     }
 
-    // Hack off past the separator if there is one.
+    // Find the separator if there is one.
+    size_t sep_offset = 0;
     if (separator.match(plan.drop_front(offset), &matches)) {
-        offset += plan.drop_front(offset).find(matches[0]) + matches[0].size();
-    } else {
-        d_analyser.report(plan_range.getBegin(),
-                          check_name, "TP02",
-                          "TEST PLAN section is missing '//---...---' "
-                          "separator line");
+        sep_offset = offset + plan.drop_front(offset).find(matches[0]);
     }
 
     // Hack off everything before the first item with brackets.
     if (test_plan.match(plan.drop_front(offset), &matches)) {
         offset += plan.drop_front(offset).find(matches[0]);
+    }
+
+    if (sep_offset > offset) {
+        d_analyser.report(plan_range.getBegin(),
+                          check_name, "TP02",
+                          "TEST PLAN section is missing '//---...---' "
+                          "separator line");
     }
 
     size_t plan_pos = offset;
