@@ -182,6 +182,7 @@ struct Word
     bool is_specify    : 1;
     bool is_optionally : 1;
     bool is_exact      : 1;
+    bool is_spelled_ok : 1;
 
     Word();
 
@@ -202,8 +203,42 @@ Word::Word()
 , is_specify(false)
 , is_optionally(false)
 , is_exact(false)
+, is_spelled_ok(false)
 {
 }
+
+#if !SPELL_CHECK
+
+bool correctly_spelled(llvm::StringRef word)
+{
+    return false;
+}
+
+#else
+
+#include <aspell.h>
+
+bool correctly_spelled(llvm::StringRef word)
+{
+    static AspellSpeller *spell_checker = 0;
+    if (!spell_checker) {
+        AspellConfig *spell_config = new_aspell_config();
+        aspell_config_replace(spell_config, "lang", "en_US");
+        aspell_config_replace(spell_config, "size", "90");
+        aspell_config_replace(spell_config, "ignore-case", "false");
+        aspell_config_replace(spell_config, "add-extra-dicts", "en_CA");
+        aspell_config_replace(spell_config, "add-extra-dicts", "en_GB");
+        aspell_config_replace(spell_config, "guess", "false");
+        AspellCanHaveError *possible_err = new_aspell_speller(spell_config);
+        if (aspell_error_number(possible_err) == 0) {
+            spell_checker = to_aspell_speller(possible_err);
+        }
+    }
+    return spell_checker &&
+           aspell_speller_check(spell_checker, word.data(), word.size());
+}
+
+#endif
 
 void Word::set(std::vector<ParmInfo>* parm_info,
                llvm::StringRef s,
@@ -235,6 +270,8 @@ void Word::set(std::vector<ParmInfo>* parm_info,
             if (is_exact || parm > i) {
                 parm = i;
             }
+
+            is_spelled_ok = correctly_spelled(p);
             break;
         }
     }
@@ -787,7 +824,8 @@ void report::critiqueContract(const FunctionDecl* func, SourceRange comment)
             }
         }
 
-        // Warn about unquoted parameters unless they're on the whitelist.
+        // Warn about unquoted parameters unless they're on the whitelist or
+        // they're English words.
         if (really_matched && parm_info[i].is_not_quoted) {
             std::string ok =
                 " " + llvm::StringRef(d_analyser.config()->value(
@@ -798,7 +836,10 @@ void report::critiqueContract(const FunctionDecl* func, SourceRange comment)
             if (ok.find(mw) == ok.npos) {
                 for (size_t j = first_index; j < words.size(); ++j) {
                     const Word& word = words[j];
-                    if (word.parm == i && !word.is_quoted && !word.is_noise) {
+                    if (word.parm == i &&
+                        !word.is_quoted &&
+                        !word.is_noise &&
+                        !(parm_info[i].is_quoted && word.is_spelled_ok)) {
                         SourceRange r = word_range(comment, word);
                         d_analyser.report(
                                 r.getBegin(),

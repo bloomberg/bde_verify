@@ -298,4 +298,7 @@ groups/csa/csabbg/csabbg_functioncontract.t.cpp:294:0: warning: FD02: Function c
 groups/csa/csabbg/csabbg_functioncontract.t.cpp:302:0: warning: FD01: Function declaration requires contract
         inline void spall()
 ^~~~~
-100 warnings generated.
+groups/csa/csabbg/csabbg_functioncontract.t.cpp:327:0: warning: FD04: Parameter 'getabl' is not single-quoted in the function contract
+            // quotes as havoc and getabl.
+^~~~~~
+101 warnings generated.

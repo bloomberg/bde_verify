@@ -321,5 +321,9 @@ namespace bde_verify
 
         void araroba() { }
             // A contract, really!
+
+        void foraminous(int havoc, int getabl);
+            // The specified 'havoc' and 'getabl' are then mentioned without
+            // quotes as havoc and getabl.
     }
 }
