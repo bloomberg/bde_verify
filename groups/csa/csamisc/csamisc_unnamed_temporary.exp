@@ -1,22 +1,22 @@
 groups/csa/csamisc/csamisc_unnamed_temporary.t.cpp:11:0: warning: expression result unused
     int(5);
 ^~
-groups/csa/csamisc/csamisc_unnamed_temporary.t.cpp:16:0: warning: UT01: Unnamed object will be immediately destructed
+groups/csa/csamisc/csamisc_unnamed_temporary.t.cpp:16:0: warning: UT01: Unnamed object will be immediately destroyed
     std::string("5");
 ^
-groups/csa/csamisc/csamisc_unnamed_temporary.t.cpp:19:0: warning: UT01: Unnamed object will be immediately destructed
+groups/csa/csamisc/csamisc_unnamed_temporary.t.cpp:19:0: warning: UT01: Unnamed object will be immediately destroyed
     std::string(std::string("5"));
 ^
-groups/csa/csamisc/csamisc_unnamed_temporary.t.cpp:22:0: warning: UT01: Unnamed object will be immediately destructed
+groups/csa/csamisc/csamisc_unnamed_temporary.t.cpp:22:0: warning: UT01: Unnamed object will be immediately destroyed
     std::string(5, ' ');
 ^
-groups/csa/csamisc/csamisc_unnamed_temporary.t.cpp:25:0: warning: UT01: Unnamed object will be immediately destructed
+groups/csa/csamisc/csamisc_unnamed_temporary.t.cpp:25:0: warning: UT01: Unnamed object will be immediately destroyed
     std::string(std::string(5, ' '));
 ^
-groups/csa/csamisc/csamisc_unnamed_temporary.t.cpp:32:0: warning: UT01: Unnamed object will be immediately destructed
+groups/csa/csamisc/csamisc_unnamed_temporary.t.cpp:32:0: warning: UT01: Unnamed object will be immediately destroyed
     for (std::string(); i; std::string()) {
 ^
-groups/csa/csamisc/csamisc_unnamed_temporary.t.cpp:32:0: warning: UT01: Unnamed object will be immediately destructed
+groups/csa/csamisc/csamisc_unnamed_temporary.t.cpp:32:0: warning: UT01: Unnamed object will be immediately destroyed
     for (std::string(); i; std::string()) {
 ^
 7 warnings generated.
