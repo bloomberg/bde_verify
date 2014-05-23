@@ -474,29 +474,31 @@ void files::check_purpose(SourceRange range)
     }
 }
 
+llvm::Regex classes(
+    "// *" "("
+                     "[[:alpha:]][[:alnum:]_]*"
+               "(" "::[[:alpha:]][[:alnum:]_]*" ")*"
+           ")");
+
 void files::check_description(SourceRange range)
 {
     llvm::StringRef comment = d_analyser.get_source(range, true);
     size_t cpos = comment.find("//@CLASSES:");
+    size_t end = comment.find("//\n", cpos);
+    if (end == comment.npos) {
+        end = comment.size();
+    }
     size_t dpos = comment.find("//@DESCRIPTION:", cpos);
     llvm::StringRef desc = comment.slice(dpos, comment.find("\n//\n", dpos));
     if (cpos != comment.npos && dpos != comment.npos) {
-        cpos += 11;
-        for (;;) {
-            size_t end = comment.find("//\n", cpos);
-            size_t cb = comment.find_first_of("ABCDEFGHIJKLMNOPQRSTUVWXYZ_"
-                                              "abcdefghijklmnopqrstuvwxyz",
-                                              cpos);
-            cpos = comment.find('\n', cb);
-            size_t ce = comment.rfind(':', cpos);
-            if (cpos == comment.npos ||
-                cb == comment.npos ||
-                ce == comment.npos ||
-                end < cb) {
+        while ((cpos = comment.find('\n', cpos)) < end) {
+            llvm::SmallVector<llvm::StringRef, 7> matches;
+            if (!classes.match(comment.slice(cpos, end), &matches)) {
                 break;
             }
-            std::string qc = ("'" + comment.slice(cb, ce).trim() + "'").str();
-            if (qc != "''" && desc.find(qc) == desc.npos) {
+            cpos += comment.slice(cpos, end).find(matches[1]);
+            std::string qc = ("'" + matches[1] + "'").str();
+            if (desc.find(qc) == desc.npos) {
                 d_analyser.report(range.getBegin().getLocWithOffset(dpos),
                                   check_name, "DC01",
                                   "Description should contain single-quoted "
