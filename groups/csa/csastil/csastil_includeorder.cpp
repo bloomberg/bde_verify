@@ -287,6 +287,9 @@ namespace
         }
         void operator()()  // translation unit done
         {
+            if (d_analyser->is_test_driver()) {
+                return;
+            }
             include_order& data(d_analyser->attachment<include_order>());
             clang::SourceLocation const* header_bdes_ident(
                 check_order(d_analyser, data.d_header, true));

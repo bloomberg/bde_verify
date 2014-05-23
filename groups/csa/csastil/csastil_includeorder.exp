@@ -1,17 +1,17 @@
-In file included from groups/csa/csastil/csastil_includeorder.t.cpp:3:
-groups/csa/csastil/csastil_includeorder.t.h:15:0: warning: SHO01: Package header out of order
+In file included from groups/csa/csastil/csastil_includeorder.v.cpp:3:
+groups/csa/csastil/csastil_includeorder.v.h:15:0: warning: SHO01: Package header out of order
 #ifndef INCLUDED_CSASTIL_TESTA
 ^
-groups/csa/csastil/csastil_includeorder.t.h:24:0: warning: SHO02: Package header coming late
+groups/csa/csastil/csastil_includeorder.v.h:24:0: warning: SHO02: Package header coming late
 #ifndef INCLUDED_CSASTIL_TESTD
 ^
-groups/csa/csastil/csastil_includeorder.t.h:27:0: warning: SHO01: Group header out of order
+groups/csa/csastil/csastil_includeorder.v.h:27:0: warning: SHO01: Group header out of order
 #ifndef INCLUDED_CSAPKGA_TESTB
 ^
-groups/csa/csastil/csastil_includeorder.t.h:39:0: warning: SHO01: Group header out of order
+groups/csa/csastil/csastil_includeorder.v.h:39:0: warning: SHO01: Group header out of order
 #ifndef INCLUDED_CSAPKGB_TESTB
 ^
-groups/csa/csastil/csastil_includeorder.t.h:54:0: warning: SHO01: Component header out of order
+groups/csa/csastil/csastil_includeorder.v.h:54:0: warning: SHO01: Component header out of order
 #ifndef INCLUDED_CSAPKGA_TESTD
 ^
 5 warnings generated.
