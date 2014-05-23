@@ -6,6 +6,8 @@
 #include <csabase_util.h>
 #include <clang/ASTMatchers/ASTMatchers.h>
 #include <clang/ASTMatchers/ASTMatchFinder.h>
+#include <clang/Frontend/CompilerInstance.h>
+#include <clang/Lex/Preprocessor.h>
 #include <functional>
 
 #ident "$Id$"
@@ -72,6 +74,21 @@ unnamed_temporary_matcher()
 void report::match_unnamed_temporary(const BoundNodes &nodes)
 {
     const clang::Expr* e = nodes.getNodeAs<Expr>("ut");
+
+    // Test drivers may construct unnamed objects within various ASSERT macros
+    // for negative testing purposes.
+    if (d_analyser.is_test_driver()) {
+        SourceManager &sm = d_analyser.manager();
+        Preprocessor &pp = d_analyser.compiler().getPreprocessor();
+        for (SourceLocation loc = e->getExprLoc();
+             loc.isMacroID();
+             loc = sm.getImmediateMacroCallerLoc(loc)) {
+            StringRef macro = pp.getImmediateMacroName(loc);
+            if (macro.find("ASSERT") != macro.npos) {
+                return;  // RETURN
+            }
+        }
+    }
 
     d_analyser.report(e, check_name, "UT01",
                       "Unnamed object will be immediately destroyed");
