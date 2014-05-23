@@ -6,6 +6,7 @@
 // ----------------------------------------------------------------------------
 
 #include <csabase_analyser.h>
+#include <csabase_debug.h>
 #include <csabase_location.h>
 #include <csabase_ppobserver.h>
 #include <csabase_registercheck.h>
@@ -17,7 +18,8 @@
 #include <utility>
 #include <vector>
 
-namespace CB = csabase;
+using namespace clang;
+using namespace csabase;
 
 // ----------------------------------------------------------------------------
 
@@ -29,12 +31,13 @@ namespace
 {
     struct include_order
     {
-        typedef std::vector<std::pair<std::string, clang::SourceLocation> > headers_t;
+        typedef std::vector<std::pair<std::string, SourceLocation> >
+            headers_t;
         headers_t d_header;
         headers_t d_source;
         void add_include(bool                         in_header,
                          std::string                  header,
-                         clang::SourceLocation const& where)
+                         SourceLocation const& where)
         {
             std::string::size_type pos(header.find('.'));
             if (pos != header.npos) {
@@ -55,7 +58,8 @@ namespace
 {
     struct has_prefix
     {
-        typedef std::pair<std::string, clang::SourceLocation> const& argument_type;
+        typedef std::pair<std::string, SourceLocation> const&
+            argument_type;
         has_prefix(std::string const& prefix)
             : d_prefix(prefix)
         {
@@ -71,8 +75,8 @@ namespace
 // ----------------------------------------------------------------------------
 
 static bool
-first_is_greater(std::pair<std::string, clang::SourceLocation> const& entry0,
-                 std::pair<std::string, clang::SourceLocation> const& entry1)
+first_is_greater(std::pair<std::string, SourceLocation> const& entry0,
+                 std::pair<std::string, SourceLocation> const& entry1)
 {
     return entry1.first < entry0.first;
 }
@@ -80,10 +84,11 @@ first_is_greater(std::pair<std::string, clang::SourceLocation> const& entry0,
 // ----------------------------------------------------------------------------
 
 static bool
-is_component(std::pair<std::string, clang::SourceLocation> const& entry)
+is_component(std::pair<std::string, SourceLocation> const& entry)
 {
     std::string const&     header(entry.first);
-    std::string::size_type start(header.find("a_") == 0 || header.find("e_") == 0? 2: 0);
+    std::string::size_type start(
+        header.find("a_") == 0 || header.find("e_") == 0 ? 2 : 0);
     std::string::size_type under(header.find('_', 0));
     return under != header.npos && 4 < under - start && under - start < 8;
 }
@@ -91,7 +96,7 @@ is_component(std::pair<std::string, clang::SourceLocation> const& entry)
 // ----------------------------------------------------------------------------
 
 static void
-check_order(CB::Analyser*                              analyser,
+check_order(Analyser*                              analyser,
             std::string const&                         message,
             include_order::headers_t::const_iterator it,
             include_order::headers_t::const_iterator end)
@@ -105,7 +110,7 @@ check_order(CB::Analyser*                              analyser,
 }
 
 static void
-check_order(CB::Analyser*                              analyser,
+check_order(Analyser*                              analyser,
             std::string const&                         message,
             include_order::headers_t::const_iterator it,
             include_order::headers_t::const_iterator section_end,
@@ -113,7 +118,8 @@ check_order(CB::Analyser*                              analyser,
 {
     check_order(analyser, message, it, section_end);
     for (it = section_end;
-         end != (it = std::find_if(it, end, has_prefix(analyser->package() + "_")));
+         end != (it = std::find_if(
+                     it, end, has_prefix(analyser->package() + "_")));
          ++it) {
         analyser->report(it->second, check_name, "SHO02",
                          "%0 header coming late")
@@ -121,14 +127,14 @@ check_order(CB::Analyser*                              analyser,
     }
 }
 
-static clang::SourceLocation const*
-check_order(CB::Analyser*                   analyser,
+static SourceLocation const*
+check_order(Analyser*                       analyser,
             include_order::headers_t const& headers,
             bool                            header)
 {
-    clang::SourceLocation const* bdes_ident_location(0);
+    SourceLocation const* bdes_ident_location(0);
     if (headers.empty()) {
-        analyser->report(clang::SourceLocation(), check_name, "SHO03",
+        analyser->report(SourceLocation(), check_name, "SHO03",
                          header
                          ? "Header without include guard included"
                          : "Source without component include");
@@ -227,55 +233,61 @@ namespace
 
     struct binder
     {
-        binder(csabase::Analyser* analyser)
+        binder(Analyser* analyser)
             : d_analyser(analyser)
         {
         }
 
-        void operator()(clang::SourceLocation,
-                        clang::SourceRange range) const // onIf
+        void operator()(SourceLocation,
+                        SourceRange range) const // onIf
         {
             if (!d_analyser->is_component(range.getBegin())) {
                 return;
             }
-            include_order& data(d_analyser->attachment<include_order>()); 
-            char const* begin(d_analyser->manager().getCharacterData(range.getBegin()));
-            char const* end(d_analyser->manager().getCharacterData(range.getEnd()));
+            include_order& data(d_analyser->attachment<include_order>());
+            char const* begin(
+                d_analyser->manager().getCharacterData(range.getBegin()));
+            char const* end(
+                d_analyser->manager().getCharacterData(range.getEnd()));
             std::string value(begin, end);
             value.erase(std::remove_if(value.begin(), value.end(),
                                        &is_space), value.end());
-            value = csabase::to_lower(value);
+            value = to_lower(value);
             if (value.find(prefix1) == 0 && value[value.size() - 1] == ')') {
-                data.add_include(d_analyser->is_component_header(range.getBegin()),
-                                 value.substr(prefix1.size(), value.size() - prefix1.size() - 1),
-                                 range.getBegin());
+                data.add_include(
+                    d_analyser->is_component_header(range.getBegin()),
+                    value.substr(
+                        prefix1.size(), value.size() - prefix1.size() - 1),
+                    range.getBegin());
             }
             else if (value.find(prefix2) == 0) {
-                data.add_include(d_analyser->is_component_header(range.getBegin()),
-                                 value.substr(prefix2.size()),
-                                 range.getBegin());
+                data.add_include(
+                    d_analyser->is_component_header(range.getBegin()),
+                    value.substr(prefix2.size()),
+                    range.getBegin());
             }
         }
-        void operator()(clang::SourceLocation where,
-                        clang::Token const& token) const // onIfndef
+        void operator()(SourceLocation where,
+                        Token const& token) const // onIfndef
         {
             if (!d_analyser->is_component(token.getLocation())) {
                 return;
             }
 
             include_order& data(d_analyser->attachment<include_order>());
-            if (clang::IdentifierInfo const* id = token.getIdentifierInfo())
+            if (IdentifierInfo const* id = token.getIdentifierInfo())
             {
                 std::string value(id->getNameStart());
-                value = csabase::to_lower(value);
+                value = to_lower(value);
                 if (value.find(prefix0) == 0) {
-                    data.add_include(d_analyser->is_component_header(token.getLocation()),
-                                     value.substr(prefix0.size()),
-                                     token.getLocation());
+                    data.add_include(
+                        d_analyser->is_component_header(token.getLocation()),
+                        value.substr(prefix0.size()),
+                        token.getLocation());
                 }
             }
         }
-        void operator()(clang::SourceLocation where,
+        void operator()(SourceLocation where,
                         bool,
                         std::string const& name)
         {
@@ -287,13 +299,14 @@ namespace
         }
         void operator()()  // translation unit done
         {
-            if (d_analyser->is_test_driver()) {
+            if (d_analyser->is_test_driver() ||
+                d_analyser->is_component_header(d_analyser->toplevel())) {
                 return;
             }
             include_order& data(d_analyser->attachment<include_order>());
-            clang::SourceLocation const* header_bdes_ident(
+            SourceLocation const* header_bdes_ident(
                 check_order(d_analyser, data.d_header, true));
-            clang::SourceLocation const* source_bdes_ident(
+            SourceLocation const* source_bdes_ident(
                 check_order(d_analyser, data.d_source, false));
             if (header_bdes_ident && !source_bdes_ident) {
                 d_analyser->report(*header_bdes_ident, check_name, "SHO08",
@@ -307,14 +320,14 @@ namespace
             }
         }
 
-        csabase::Analyser* d_analyser;
+        Analyser* d_analyser;
     };
 }
 
 // ----------------------------------------------------------------------------
 
 static void
-subscribe(csabase::Analyser& analyser, csabase::Visitor&, csabase::PPObserver& observer)
+subscribe(Analyser& analyser, Visitor&, PPObserver& observer)
 {
     analyser.onTranslationUnitDone += binder(&analyser);
     observer.onInclude             += binder(&analyser);
@@ -324,4 +337,4 @@ subscribe(csabase::Analyser& analyser, csabase::Visitor&, csabase::PPObserver& o
 
 // ----------------------------------------------------------------------------
 
-static csabase::RegisterCheck register_observer(check_name, &subscribe);
+static RegisterCheck register_observer(check_name, &subscribe);
