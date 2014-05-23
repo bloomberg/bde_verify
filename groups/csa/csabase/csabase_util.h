@@ -15,6 +15,7 @@
 #include <stddef.h>
 #include <string>
 #include <utility>
+#include <functional>
 
 namespace csabase {
 
@@ -43,8 +44,12 @@ bool areConsecutive(clang::SourceManager& manager,
 std::string to_lower(std::string s);
     // Return a copy of the specified 's' with all letters in lower case.
 
-template <class Class,
-          void (Class::*Method)(const clang::ast_matchers::BoundNodes &)>
+struct UseLambda {
+    void NotFunction(const clang::ast_matchers::BoundNodes &);
+};
+    
+template <class Class = UseLambda,
+          void (Class::*Method)(const clang::ast_matchers::BoundNodes &) = &UseLambda::NotFunction>
 class OnMatch : public clang::ast_matchers::MatchFinder::MatchCallback
     // This class template acts as an intermediary to forward AST match
     // callbacks to the specified 'Method' of the specified 'Class'.
@@ -76,6 +81,21 @@ void OnMatch<Class, Method>::run(
 {
     (object_->*Method)(result.Nodes);
 }
+
+template <>
+class OnMatch<UseLambda, &UseLambda::NotFunction> : public clang::ast_matchers::MatchFinder::MatchCallback
+    // This class template acts as an intermediary to forward AST match callbacks to the specified lambda.
+{
+  public:
+    OnMatch(const std::function<void(const clang::ast_matchers::BoundNodes &)> &fun);
+        // Create an 'OnMatch' object, storing the specified 'function'
+
+    void run(const clang::ast_matchers::MatchFinder::MatchResult &result);
+        // Invoke the 'function_', passing the 'BoundNodes' from the specified 'result' as an argument.
+
+  private:
+    std::function<void(const clang::ast_matchers::BoundNodes &)> function_;
+};
 
 } // close package namespace
 

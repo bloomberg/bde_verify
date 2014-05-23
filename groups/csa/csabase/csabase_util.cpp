@@ -65,5 +65,15 @@ std::string to_lower(std::string s)
     return s;
 }
 
+OnMatch<UseLambda, &UseLambda::NotFunction>::OnMatch(const std::function<void(const clang::ast_matchers::BoundNodes &)> &fun)
+    : function_(fun)
+{
+}
+
+void OnMatch<UseLambda, &UseLambda::NotFunction>::run(const clang::ast_matchers::MatchFinder::MatchResult &result)
+{
+    function_(result.Nodes);
+}
+
 } // close package namespace
 
