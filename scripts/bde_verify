@@ -149,7 +149,8 @@ push(@incs, map { chomp; $_; }
                 sed -n '/^#include/,/^End of search list/p' |
                 sed -n '/^ [/]/s/ //p'});
 for (@incs) { warn "cannot find directory $_\n" unless -d; }
-@incs = map { ("-I", $_, "-cxx-isystem", $_ ) }
+@incs = map { ( "-I", $_, "-isystem", $_ ) }
+        map { $_ eq Cwd::cwd() ? "." : $_ }
         map { Cwd::abs_path($_) }
         grep { -d } @incs;
 
