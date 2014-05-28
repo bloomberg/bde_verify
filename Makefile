@@ -84,8 +84,8 @@ LLVM     = /home/hrosen4/mbig/llvm-3.4/install-$(SYSTEM)
 INCFLAGS += -I$(LLVM)/include
 LDFLAGS  += -L$(LLVM)/lib -L$(CSABASEDIR)/$(OBJ)
 
-#VERBOSE  =
-VERBOSE  = @
+#export VERBOSE =
+export VERBOSE ?= @
 
 #  ----------------------------------------------------------------------------
 
@@ -151,11 +151,6 @@ TODO =                                                                        \
         groups/csa/csamisc/csamisc_superfluoustemporary.cpp                   \
 
 # -----------------------------------------------------------------------------
-
-#DEBUG    = on
-DEBUG    = off
-
-REDIRECT = $(VERBOSE:@=>/dev/null 2>&1)
 
 #DEFFLAGS += -D_DEBUG
 #DEFFLAGS += -D_GNU_SOURCE
@@ -251,7 +246,7 @@ $(OBJ)/%.o: %.cpp
 	$(VERBOSE) $(CXX) $(INCFLAGS) $(DEFFLAGS) $(CXXFLAGS) $(WARNFLAGS) \
                           -o $@ -c $(@:$(OBJ)/%.o=%.cpp)
 
-.phony: clean
+.PHONY: clean
 
 clean:
 	$(RM) $(TSTOFILES)
@@ -263,128 +258,38 @@ clean:
 
 # -----------------------------------------------------------------------------
 
-CURRENT  = csafmt/csafmt_nonascii.t.cpp
+export BDE_VERIFY_DIR := $(shell /bin/pwd)
 
-VERIFY   = $(OBJ)/$(TARGET) -plugin bde_verify
-POSTPROCESS = sed -e 's/\([^:]*:[0-9][0-9]*\):[^:]*:/\1:0:/' \
-            | sed -e '/\^/s/ //g' \
-            | sed -e 's/~~~~~\(~*\)/~~~~~/g' \
-            | sed -e '/^$$/d' \
-            | sed -e 's/\x1B[^m]*m//g'
+# All the Makefiles below the checks directory.
+define ALLM :=
+    $(shell find checks -name Makefile | sort)
+endef
 
-EXPECT      = $$(echo $$f | \
-               sed -e 's/test\.cpp$$/.exp/' | \
-               sed -e 's/\.t.cpp$$/.exp/' | \
-               sed -e 's/\.v.cpp$$/.exp/')
+# All the Makefiles below both the checks and CURRENT directory.
+define CURM :=
+    $(shell find checks -regex 'checks\(/.*\)?/$(CURRENT)\(/.*\)?/Makefile' | \
+            sort)
+endef
 
-SOURCE      = $$(echo $$f | \
-               sed -e 's/test\.cpp$$/.cpp/' | \
-               sed -e 's/\.t.cpp$$/.cpp/' | \
-               sed -e 's/\.v.cpp$$/.cpp/')
+CNAMES   := $(foreach N,$(ALLM),$(patsubst %,%.check,$(N)))
+CCURNAME := $(foreach N,$(CURM),$(patsubst %,%.check,$(N)))
+RNAMES   := $(foreach N,$(ALLM),$(patsubst %,%.run,$(N)))
+RCURNAME := $(foreach N,$(CURM),$(patsubst %,%.run,$(N)))
 
-CHECK_NAME  = $$(echo | \
-                 sed -n 's/.*check_name("\([^"]*\)".*/\1/p' \
-                    $(SOURCE) 2>/dev/null)
+.PHONY: check-current check $(CNAMES) run-current run $(RNAMES)
 
-PFLAGS += -I include -cxx-isystem include
-PFLAGS += -I $(BB)/include -cxx-isystem $(BB)/include
-PFLAGS += -I $(BB)/include/stlport -cxx-isystem $(BB)/include/stlport
+check: $(CNAMES)
+check-current: $(CCURNAME)
 
-PFLAGS += $$($(CXX) -xc++ -E -v /dev/null 2>&1 | \
-              sed -n '/^ [/][^ ]*$$/s/ //p' | \
-              perl -MCwd=abs_path -p -e '$$_ = abs_path($$_)' | \
-              sed 's/^/-cxx-isystem /')
+$(CNAMES):
+	$(VERBOSE) $(MAKE) -s -C $(@D) check
 
-PFLAGS += -std=c++0x
-PFLAGS += -Wno-string-plus-int
-PFLAGS += -fcxx-exceptions
-PFLAGS += -fcolor-diagnostics
+run: $(RNAMES)
+run-current: $(RCURNAME)
 
-check: check-all
-	@echo '*** SUCCESS ***'
+$(RNAMES):
+	$(VERBOSE) $(MAKE) -s -C $(@D) run
 
-current: $(OBJ)/$(TARGET)
-	$(VERBOSE) \
-    f=groups/csa/$(CURRENT); \
-    if echo $(TODO) | grep -q $(SOURCE); then echo skipping $$f; else \
-      trap "rm -f $$$$" EXIT; \
-      (echo namespace bde_verify; \
-       echo all on) > $$$$; \
-      if [ -f "$(SOURCE)" -a ! -z "$(CHECK_NAME)" ]; then \
-        (echo namespace bde_verify; \
-         echo all off; \
-         echo check $(CHECK_NAME) on) > $$$$; \
-      fi; \
-      $(VERIFY) \
-        -plugin-arg-bde_verify debug-$(DEBUG) \
-        -plugin-arg-bde_verify config=$$$$ \
-        $(DEFFLAGS) $(PFLAGS) $$f; \
-    fi
-
-check-current: $(OBJ)/$(TARGET)
-	$(VERBOSE) \
-    success=1; \
-    f=groups/csa/$(CURRENT); \
-    if echo $(TODO) | grep -q $(SOURCE); then echo skipping $$f; else \
-      trap "rm -f $$$$" EXIT; \
-      (echo namespace bde_verify; \
-       echo all on) > $$$$; \
-      if [ -f "$(SOURCE)" -a ! -z "$(CHECK_NAME)" ]; then \
-        (echo namespace bde_verify; \
-         echo all off; \
-         echo check $(CHECK_NAME) on) > $$$$; \
-      fi; \
-      if $(VERIFY) -plugin-arg-bde_verify config=$$$$ \
-        $(DEFFLAGS) $(PFLAGS) $$f 2>&1 \
-          | $(POSTPROCESS) \
-          | diff - $(EXPECT) $(REDIRECT); \
-      then \
-        echo OK; \
-      else \
-        success=0; \
-        cat $$$$; \
-        $(VERIFY) -plugin-arg-bde_verify config=$$$$ \
-          $(DEFFLAGS) $(PFLAGS) $$f 2>&1 \
-            | $(POSTPROCESS) \
-            | diff - $(EXPECT); \
-        echo -e "\x1b[31mfail\x1b[0m"; \
-      fi; \
-    fi; \
-    [ $$success = 1 ]
-
-check-all: $(OBJ)/$(TARGET)
-	$(VERBOSE) \
-    success=1; \
-    for f in $$(find groups -name \*.[vt].cpp -or -name \*test.cpp); \
-    do \
-      if echo $(TODO) | grep -q $(SOURCE); \
-        then echo skipping $$f; continue; fi; \
-      echo "testing $$f "; \
-      trap "rm -f $$$$" EXIT; \
-      (echo namespace bde_verify; \
-       echo all on) > $$$$; \
-      if [ -f "$(SOURCE)" -a ! -z "$(CHECK_NAME)" ]; then \
-        (echo namespace bde_verify; \
-         echo all off; \
-         echo check $(CHECK_NAME) on) > $$$$; \
-      fi; \
-      if $(VERIFY) -plugin-arg-bde_verify config=$$$$ \
-        $(DEFFLAGS) $(PFLAGS) $$f 2>&1 \
-          | $(POSTPROCESS) \
-          | diff - $(EXPECT) $(REDIRECT); \
-      then \
-        echo OK; \
-      else \
-        success=0; \
-        cat $$$$; \
-        $(VERIFY) -plugin-arg-bde_verify config=$$$$ \
-          $(DEFFLAGS) $(PFLAGS) $$f 2>&1 \
-            | $(POSTPROCESS) \
-            | diff - $(EXPECT); \
-        echo -e "\x1b[31mfail\x1b[0m"; \
-      fi; \
-    done; \
-    [ $$success = 1 ]
 
 # -----------------------------------------------------------------------------
 

@@ -1,6 +1,0 @@
-groups/csa/csatr/csatr1_packname.t.cpp:1:0: warning: FI01: Header file 'groups/csa/csatr/csatr1_packname.h' not accessible
-// csatr1_packname.t.cpp                                              -*-C++-*-
-^
-groups/csa/csatr/csatr1_packname.t.cpp:1:0: warning: PN05: Component 'csatr1_packname' doesn't seem to be in package 'csatr1'
-groups/csa/csatr/csatr1_packname.t.cpp:1:0: warning: TP14: TEST PLAN section is absent
-3 warnings generated.

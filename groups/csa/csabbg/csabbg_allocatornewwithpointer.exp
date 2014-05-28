@@ -1,4 +1,0 @@
-groups/csa/csabbg/csabbg_allocatornewwithpointer.v.cpp:21:0: warning: ANP01: Allocator new with pointer
-    new(&BloombergLP::get_allocator()) int;
-^~~~~~
-1 warning generated.
