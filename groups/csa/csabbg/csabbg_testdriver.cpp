@@ -1193,6 +1193,26 @@ const char standard_bde_loop_assert_test_macros_bsl[] =
 ""                                                                           NL
 ;
 
+const char standard_bde_loop_assert_test_macros_bdl[] =
+"//=================="
+"==========================================================="                NL
+"//                      STANDARD BDE TEST DRIVER MACROS"                    NL
+"//------------------"
+"-----------------------------------------------------------"                NL
+""                                                                           NL
+"#define ASSERT       BDLS_TESTUTIL_ASSERT"                                  NL
+"#define LOOP_ASSERT  BDLS_TESTUTIL_LOOP_ASSERT"                             NL
+"#define LOOP0_ASSERT BDLS_TESTUTIL_LOOP0_ASSERT"                            NL
+"#define LOOP1_ASSERT BDLS_TESTUTIL_LOOP1_ASSERT"                            NL
+"#define LOOP2_ASSERT BDLS_TESTUTIL_LOOP2_ASSERT"                            NL
+"#define LOOP3_ASSERT BDLS_TESTUTIL_LOOP3_ASSERT"                            NL
+"#define LOOP4_ASSERT BDLS_TESTUTIL_LOOP4_ASSERT"                            NL
+"#define LOOP5_ASSERT BDLS_TESTUTIL_LOOP5_ASSERT"                            NL
+"#define LOOP6_ASSERT BDLS_TESTUTIL_LOOP6_ASSERT"                            NL
+"#define ASSERTV      BDLS_TESTUTIL_ASSERTV"                                 NL
+""                                                                           NL
+;
+
 const char semi_standard_test_output_macros[] =
 ""                                                                           NL
 "// ================="
@@ -1218,6 +1238,16 @@ const char semi_standard_test_output_macros_bsl[] =
 "#define P_  BSLS_BSLTESTUTIL_P_  // P(X) without '\\n'."                    NL
 "#define T_  BSLS_BSLTESTUTIL_T_  // Print a tab (w/o newline)."             NL
 "#define L_  BSLS_BSLTESTUTIL_L_  // current Line number"                    NL
+""                                                                           NL
+;
+
+const char semi_standard_test_output_macros_bdl[] =
+""                                                                           NL
+"#define Q   BDLS_TESTUTIL_Q   // Quote identifier literally."               NL
+"#define P   BDLS_TESTUTIL_P   // Print identifier and value."               NL
+"#define P_  BDLS_TESTUTIL_P_  // P(X) without '\\n'."                       NL
+"#define T_  BDLS_TESTUTIL_T_  // Print a tab (w/o newline)."                NL
+"#define L_  BDLS_TESTUTIL_L_  // current Line number"                       NL
 ""                                                                           NL
 ;
 
@@ -1356,6 +1386,7 @@ void report::check_boilerplate()
     needles.push_back(standard_bde_loop_assert_test_macros_old);
     needles.push_back(standard_bde_loop_assert_test_macros_new);
     needles.push_back(standard_bde_loop_assert_test_macros_bsl);
+    needles.push_back(standard_bde_loop_assert_test_macros_bdl);
     search(&loc, &needle, &distance, "define LOOP_ASSERT", needles, fid);
     if (distance != 0) {
         d_analyser.report(loc, check_name, "TP19",
@@ -1369,6 +1400,7 @@ void report::check_boilerplate()
     needles.clear();
     needles.push_back(semi_standard_test_output_macros);
     needles.push_back(semi_standard_test_output_macros_bsl);
+    needles.push_back(semi_standard_test_output_macros_bdl);
     search(&loc, &needle, &distance, "define P_", needles, fid);
     if (distance != 0) {
         d_analyser.report(loc, check_name, "TP19",
