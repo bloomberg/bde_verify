@@ -165,7 +165,7 @@ void files::check_comment(SourceRange comment_range)
             0, 10);
         size_t expected_last_space_pos =
             ((79 - 2 - text.size()) / 2 + 2) & ~3;
-        if (actual_last_space_pos < expected_last_space_pos - banner_slack ||
+        if (actual_last_space_pos + banner_slack < expected_last_space_pos ||
             actual_last_space_pos > expected_last_space_pos + banner_slack) {
             std::string expected_text =
                 "//" + std::string(expected_last_space_pos - 2, ' ') +
@@ -203,8 +203,7 @@ void files::check_comment(SourceRange comment_range)
                               check_name, "BAN04",
                               "Correct version is\n%0",
                               false, clang::DiagnosticsEngine::Note)
-                << "//" + std::string(expected_last_space_pos - 2, ' ') +
-                       bottom_rule.str();
+                << expected_text;
             SourceRange line_range = d_analyser.get_line_range(bottom_loc);
             if (line_range.isValid()) {
                 d_analyser.rewriter().ReplaceText(line_range, expected_text);
