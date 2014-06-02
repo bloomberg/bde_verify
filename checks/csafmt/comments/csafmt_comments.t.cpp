@@ -88,3 +88,6 @@
 //    c_d: not so first class
 //
 //@DESCRIPTION: flak
+
+// This is a modifiable reference, while this other one contains non-modifiable
+// references.

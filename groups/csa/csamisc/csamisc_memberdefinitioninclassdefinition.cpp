@@ -10,6 +10,9 @@
 #include <map>
 #ident "$Id$"
 
+using namespace clang;
+using namespace csabase;
+
 // -----------------------------------------------------------------------------
 
 static std::string const check_name("member-definition-in-class-definition");
@@ -27,30 +30,22 @@ namespace
 // -----------------------------------------------------------------------------
 
 static void
-member_definition_in_class_definition(csabase::Analyser& analyser,
-                                      clang::CXXMethodDecl const* decl)
+member_definition_in_class_definition(Analyser& analyser,
+                                      CXXMethodDecl const* decl)
 {
     member_definition& data = analyser.attachment<member_definition>();
 
-    clang::CXXConstructorDecl const* ctor =
-        llvm::dyn_cast<clang::CXXConstructorDecl>(decl);
-    clang::CXXDestructorDecl const* dtor =
-        llvm::dyn_cast<clang::CXXDestructorDecl>(decl);
-
     if (decl->isTemplateInstantiation()) {
-        if (clang::CXXMethodDecl const* tplt =
-                llvm::dyn_cast<clang::CXXMethodDecl>(
-                    decl->getTemplateInstantiationPattern())) {
+        if (CXXMethodDecl const* tplt = llvm::dyn_cast<CXXMethodDecl>(
+                decl->getTemplateInstantiationPattern())) {
             decl = tplt;
         }
     }
 
     if (decl->getLexicalDeclContext() == decl->getDeclContext()
         && decl->hasInlineBody()
-        && !decl->isTrivial()
         && !decl->getParent()->isLocalClass()
-        && (!ctor || !ctor->isImplicit())
-        && (!dtor || !dtor->isImplicit())
+        && !decl->isImplicit()
         && !data.reported_[decl->getCanonicalDecl()]
         && !analyser.is_test_driver()
         && !decl->getLocStart().isMacroID())
@@ -64,4 +59,4 @@ member_definition_in_class_definition(csabase::Analyser& analyser,
 
 // -----------------------------------------------------------------------------
 
-static csabase::RegisterCheck check(check_name, &member_definition_in_class_definition);
+static RegisterCheck check(check_name, &member_definition_in_class_definition);

@@ -75,6 +75,9 @@ struct files
     void check_pp(SourceRange range);
         // Warn about comment containing "pure procedure(s)".
 
+    void check_mr(SourceRange range);
+        // Warn about comment containing "modifiable reference".
+
     void check_bubble(SourceRange range);
         // Warn about comment containing badly formed inheritance diagram.
 
@@ -124,6 +127,7 @@ void files::operator()()
              ++comments_itr) {
             check_fvs(*comments_itr);
             check_pp(*comments_itr);
+            check_mr(*comments_itr);
             check_bubble(*comments_itr);
             check_wrapped(*comments_itr);
             check_purpose(*comments_itr);
@@ -183,6 +187,34 @@ void files::check_pp(SourceRange range)
                            range.getBegin().getLocWithOffset(offset - 1));
     }
 }
+
+llvm::Regex mr(
+    "((non-?)?" "modifiable)" "[^_[:alnum:]]*" "(references?)",
+    llvm::Regex::IgnoreCase);
+
+void files::check_mr(SourceRange range)
+{
+    llvm::SmallVector<llvm::StringRef, 7> matches;
+    llvm::StringRef comment = d_analyser.get_source(range, true);
+
+    size_t offset = 0;
+    llvm::StringRef s;
+    while (mr.match(s = comment.drop_front(offset), &matches)) {
+        llvm::StringRef text = matches[0];
+        std::pair<size_t, size_t> m = csabase::mid_match(s, text);
+        size_t matchpos = offset + m.first;
+        offset = matchpos + text.size();
+        d_analyser.report(range.getBegin().getLocWithOffset(matchpos),
+                          check_name, "MOR01",
+                          "The term \"%0 %1\" is deprecated; use \"%1 "
+                          "offering %0 access\"")
+            << matches[1]
+            << matches[3]
+            << SourceRange(range.getBegin().getLocWithOffset(matchpos),
+                           range.getBegin().getLocWithOffset(offset - 1));
+    }
+}
+
 
 llvm::Regex bad_bubble(
                              "([(]" "[[:blank:]]*"              // 1
@@ -407,7 +439,8 @@ void files::check_wrapped(SourceRange range)
         size_t ll = banner.match(text, &banners) ? banners[1].size() - 3 :
                                                    77 - (c - n);
 
-        std::pair<size_t, size_t> bad_pos = bad_wrap_pos(text, ll - wrap_slack);
+        std::pair<size_t, size_t> bad_pos =
+            bad_wrap_pos(text, ll - wrap_slack);
         if (bad_pos.first != text.npos) {
             d_analyser.report(
                 range.getBegin().getLocWithOffset(matchpos + bad_pos.first),
