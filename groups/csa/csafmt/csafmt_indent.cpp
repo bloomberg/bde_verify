@@ -92,12 +92,11 @@ struct report : public RecursiveASTVisitor<report>
 
     bool WalkUpFromCompoundStmt(CompoundStmt *stmt);
     bool WalkUpFromTagDecl(TagDecl *tag);
-    bool WalkUpFromFunctionDecl(FunctionDecl *func);
+    bool WalkUpFromFunctionTypeLoc(FunctionTypeLoc func);
     bool WalkUpFromTemplateDecl(TemplateDecl *tplt);
     bool WalkUpFromAccessSpecDecl(AccessSpecDecl *as);
     bool WalkUpFromCallExpr(CallExpr *call);
     bool WalkUpFromParenListExpr(ParenListExpr *list);
-    bool WalkUpFromSwitchStmt(SwitchStmt *stmt);
     bool WalkUpFromSwitchCase(SwitchCase *sc);
 };
 
@@ -161,15 +160,15 @@ bool report::WalkUpFromTagDecl(TagDecl *tag)
     return RecursiveASTVisitor<report>::WalkUpFromTagDecl(tag);
 }
 
-bool report::WalkUpFromFunctionDecl(FunctionDecl *func)
+bool report::WalkUpFromFunctionTypeLoc(FunctionTypeLoc func)
 {
-    unsigned n = func->getNumParams();;
-    if (n > 0 && !func->getLocation().isMacroID()) {
-        Location f(d_analyser.manager(), func->getLocation());
+    unsigned n = func.getNumArgs();
+    if (n > 0 && !func.getLocalRangeBegin().isMacroID()) {
+        Location f(d_analyser.manager(), func.getLocalRangeBegin());
         Location arg1(
-            d_analyser.manager(), func->getParamDecl(0)->getLocStart());
+            d_analyser.manager(), func.getArg(0)->getLocStart());
         Location argn(
-            d_analyser.manager(), func->getParamDecl(n - 1)->getLocStart());
+            d_analyser.manager(), func.getArg(n - 1)->getLocStart());
 
         if (n > 1) {
             bool one_per_line = true;
@@ -177,7 +176,7 @@ bool report::WalkUpFromFunctionDecl(FunctionDecl *func)
             size_t line = arg1.line();
             SourceLocation bad = arg1.location();
             for (size_t i = 1; i < n; ++i) {
-                ParmVarDecl *parm = func->getParamDecl(i);
+                ParmVarDecl *parm = func.getArg(i);
                 Location arg(d_analyser.manager(), parm->getLocStart());
                 if (arg.line() != line) {
                     all_on_one_line = false;
@@ -205,7 +204,7 @@ bool report::WalkUpFromFunctionDecl(FunctionDecl *func)
             else if (one_per_line) {
                 Location an1;
                 for (size_t i = 0; i < n; ++i) {
-                    ParmVarDecl *parm = func->getParamDecl(i);
+                    ParmVarDecl *parm = func.getArg(i);
                     if (parm->getIdentifier()) {
                         Location an(d_analyser.manager(), parm->getLocation());
                         if (!an1) {
@@ -233,13 +232,13 @@ bool report::WalkUpFromFunctionDecl(FunctionDecl *func)
                      d_analyser.get_trim_line_range(f.location()));
             level = arg1.column() - tr.from().column();
             add_indent(arg1.location(), level);
-            add_indent(func->getParamDecl(n - 1)->getLocEnd(), -level);
+            add_indent(func.getArg(n - 1)->getLocEnd(), -level);
         } else {
             size_t length = 0;
             for (size_t i = f.line() == arg1.line() ? 1 : 0; i < n; ++i) {
                 size_t line_length =
                     llvm::StringRef(d_analyser.get_source_line(
-                                        func->getParamDecl(i)->getLocStart()))
+                                        func.getArg(i)->getLocStart()))
                         .trim().size();
                 if (length < line_length) {
                     length = line_length;
@@ -251,10 +250,10 @@ bool report::WalkUpFromFunctionDecl(FunctionDecl *func)
             add_indent(arg1.location(), in);
             in.d_right_justified = false;
             in.d_offset = -level;
-            add_indent(func->getParamDecl(n - 1)->getLocEnd(), in);
+            add_indent(func.getArg(n - 1)->getLocEnd(), in);
         }
     }
-    return RecursiveASTVisitor<report>::WalkUpFromFunctionDecl(func);
+    return RecursiveASTVisitor<report>::WalkUpFromFunctionTypeLoc(func);
 }
 
 bool report::WalkUpFromTemplateDecl(TemplateDecl *tplt)
@@ -341,20 +340,11 @@ bool report::WalkUpFromParenListExpr(ParenListExpr *list)
     return RecursiveASTVisitor<report>::WalkUpFromParenListExpr(list);
 }
 
-bool report::WalkUpFromSwitchStmt(SwitchStmt *stmt)
-{
-    if (!stmt->getLocStart().isMacroID()) {
-        add_indent(stmt->getBody()->getLocStart(), -4);
-        add_indent(stmt->getBody()->getLocEnd(), +4);
-    }
-    return RecursiveASTVisitor<report>::WalkUpFromSwitchStmt(stmt);
-}
-
 bool report::WalkUpFromSwitchCase(SwitchCase *stmt)
 {
     if (!stmt->getLocStart().isMacroID()) {
-        add_indent(stmt->getKeywordLoc(), +2);
-        add_indent(stmt->getColonLoc(), -2);
+        add_indent(stmt->getKeywordLoc(), -2);
+        add_indent(stmt->getColonLoc(), +2);
     }
     return RecursiveASTVisitor<report>::WalkUpFromSwitchCase(stmt);
 }
