@@ -57,4 +57,10 @@ csafmt_comments.t.cpp:90:1: warning: DC01: Description should contain single-quo
 //@DESCRIPTION: flak
 ^
 csafmt_comments.t.cpp:90:1: warning: DC01: Description should contain single-quoted class name 'c_d'
-15 warnings generated.
+csafmt_comments.t.cpp:92:14: warning: MOR01: The term "modifiable reference" is deprecated; use "reference offering modifiable access"
+// This is a modifiable reference, while this other one contains non-modifiable
+             ^~~~~~~~~~~~~~~~~~~~
+csafmt_comments.t.cpp:92:66: warning: MOR01: The term "non-modifiable references" is deprecated; use "references offering non-modifiable access"
+// This is a modifiable reference, while this other one contains non-modifiable
+                                                                 ^~~~~~~~~~~~~~
+17 warnings generated.
