@@ -166,7 +166,9 @@ bool report::WalkUpFromTagDecl(TagDecl *tag)
 bool report::WalkUpFromFunctionTypeLoc(FunctionTypeLoc func)
 {
     unsigned n = func.getNumArgs();
-    if (n > 0 && !func.getLocalRangeBegin().isMacroID()) {
+    if (n > 0 &&
+        func.getLocalRangeBegin().isValid() &&
+        !func.getLocalRangeBegin().isMacroID()) {
         Location f(d_analyser.manager(), func.getLocalRangeBegin());
         Location arg1(
             d_analyser.manager(), func.getArg(0)->getLocStart());
