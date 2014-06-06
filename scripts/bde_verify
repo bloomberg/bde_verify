@@ -13,10 +13,12 @@ use Getopt::Long qw(:config no_ignore_case);
 use Cwd;
 
 chomp(my $system   = `uname -s`);
+chomp (my $hw = `uname -p`);
 my $clangver = "3.4";
 my $gccver   = "4.8.1";
 my $home     = "/home/hrosen4/bde_verify";
-my $bb       = "/bb/build/share/packages/refroot/amd64/unstable/bb";
+my $bb       = "/bb/build/$system-$hw-64" .
+               "/release/robolibs/trunk/lib/dpkgroot/opt/bb";
 my $config   = "$home/bde_verify.cfg";
 my @cl;
 #my $exe      = "$home/$system-clang-$clangver/bde_verify";
