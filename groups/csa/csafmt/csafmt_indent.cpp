@@ -37,9 +37,10 @@ struct indent
 {
     indent(int offset = 0);
 
-    bool d_right_justified;
-    bool d_accept_any;
-    bool d_macro;
+    bool d_right_justified : 1;
+    bool d_accept_any      : 1;
+    bool d_macro           : 1;
+    bool d_dotdot          : 1;
     int  d_offset;
 };
 
@@ -47,6 +48,7 @@ indent::indent(int offset)
 : d_right_justified(false)
 , d_accept_any(false)
 , d_macro(false)
+, d_dotdot(false)
 , d_offset(offset)
 {
 }
@@ -97,6 +99,7 @@ struct report : public RecursiveASTVisitor<report>
     bool WalkUpFromAccessSpecDecl(AccessSpecDecl *as);
     bool WalkUpFromCallExpr(CallExpr *call);
     bool WalkUpFromParenListExpr(ParenListExpr *list);
+    bool WalkUpFromSwitchStmt(SwitchStmt *stmt);
     bool WalkUpFromSwitchCase(SwitchCase *sc);
 };
 
@@ -125,7 +128,7 @@ bool report::VisitStmt(Stmt *stmt)
     if (d_analyser.is_component(stmt)) {
         Range r(d_analyser.manager(), stmt->getSourceRange());
         if (r) {
-            process(r, true && llvm::dyn_cast<Expr>(stmt) != 0);
+            process(r, llvm::dyn_cast<Expr>(stmt) != 0);
         }
     }
     return true;
@@ -287,7 +290,9 @@ bool report::WalkUpFromAccessSpecDecl(AccessSpecDecl *as)
 bool report::WalkUpFromCallExpr(CallExpr *call)
 {
     unsigned n = call->getNumArgs();
-    if (n > 0 && !call->getLocStart().isMacroID()) {
+    if (n > 0 &&
+        !call->getLocStart().isMacroID() &&
+        !llvm::dyn_cast<CXXOperatorCallExpr>(call)) {
         Location c(d_analyser.manager(), call->getLocStart());
         Location l(d_analyser.manager(),
                    call->getArg(0)->getSourceRange().getBegin());
@@ -340,11 +345,24 @@ bool report::WalkUpFromParenListExpr(ParenListExpr *list)
     return RecursiveASTVisitor<report>::WalkUpFromParenListExpr(list);
 }
 
+bool report::WalkUpFromSwitchStmt(SwitchStmt *stmt)
+{
+    if (!stmt->getLocStart().isMacroID()) {
+        //add_indent(stmt->getBody()->getLocStart(), -4);
+        //add_indent(stmt->getBody()->getLocEnd(), +4);
+    }
+    return RecursiveASTVisitor<report>::WalkUpFromSwitchStmt(stmt);
+}
+
 bool report::WalkUpFromSwitchCase(SwitchCase *stmt)
 {
     if (!stmt->getLocStart().isMacroID()) {
         add_indent(stmt->getKeywordLoc(), -2);
         add_indent(stmt->getColonLoc(), +2);
+    }
+    if (CompoundStmt *sub = llvm::dyn_cast<CompoundStmt>(stmt->getSubStmt())) {
+        add_indent(sub->getLBracLoc().getLocWithOffset(1), -4);
+        add_indent(sub->getRBracLoc(), +4);
     }
     return RecursiveASTVisitor<report>::WalkUpFromSwitchCase(stmt);
 }
@@ -380,8 +398,9 @@ void report::operator()(SourceRange comment)
         d_analyser.get_source_line(comment.getBegin()) == "//..") {
         Location loc(d_analyser.manager(), comment.getBegin());
         if (loc.file() == d_analyser.toplevel()) {
-            add_indent(comment.getBegin(),
-                       (d_data.d_in_dotdot[loc.file()] ^= 1) ? +4 : -4);
+            indent ind((d_data.d_in_dotdot[loc.file()] ^= 1) ? +4 : -4);
+            ind.d_dotdot = true;
+            add_indent(comment.getBegin(), ind);
         }
     }
 }
@@ -392,17 +411,20 @@ void report::process(Range r, bool greater)
         int offset = 0;
         int exact_offset = 0;
         unsigned end = d_analyser.manager().getFileOffset(r.from().location());
+        bool dotdot = false;
         for (const auto &i : d_data.d_indent[r.from().file()]) {
             if (end < i.first) {
                 break;
             }
             offset += i.second.d_offset;
+            dotdot ^= i.second.d_dotdot;
             exact_offset =
                 i.second.d_right_justified ? i.second.d_offset : offset;
         }
         llvm::StringRef line = d_analyser.get_source_line(r.from().location());
-        if (line.substr(0, r.from().column() - 1).find_first_not_of(' ') ==
-                line.npos &&
+        if (!dotdot &&
+            line.substr(0, r.from().column() - 1)
+                               .find_first_not_of(' ') == line.npos &&
             (!greater || line.size() - line.ltrim().size() < exact_offset)) {
             std::string expect =
                 std::string(std::max(0,
