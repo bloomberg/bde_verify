@@ -153,7 +153,7 @@ check_order(Analyser*                       analyser,
     if (analyser->component() == ident ||
         (analyser->is_test_driver() && !header)) {
         if (it != headers.end()) {
-            if (it->first == ident/*"bdes_ident"*/) {
+            if (it->first == ident) {
                 bdes_ident_location = &it->second;
             }
             if (it->first == ident) {
@@ -168,7 +168,7 @@ check_order(Analyser*                       analyser,
             << ident;
     }
     else {
-        if (it->first == ident/*"bdes_ident"*/) {
+        if (it->first == ident) {
             bdes_ident_location = &it->second;
         }
         ++it;
@@ -179,6 +179,8 @@ check_order(Analyser*                       analyser,
     static std::string const subscm[] = {
         "bdes_ident",
         "bdescm_versiontag",
+        "bdlscm_version",
+        "bdlscm_versiontag",
         "bsls_buildtarget",
         "bsls_ident",
         "bsls_linkcoercion",
@@ -188,7 +190,20 @@ check_order(Analyser*                       analyser,
     };
 
     std::string version = analyser->group() + "scm_version";
-    if (   std::find(utils::begin(subscm),
+    if (   (   analyser->package() == "bsls"
+            || analyser->package() == "bdls")
+        && header
+        && it != headers.end()
+        && it->first == version) {
+        analyser->report(it->second, check_name, "SHO09",
+                         "'%0' components should not include '%1'")
+                    << analyser->package()
+                    << version;
+    }
+
+    if (   analyser->package() != "bsls"
+        && analyser->package() != "bdls"
+        && std::find(utils::begin(subscm),
                      utils::end(subscm),
                      analyser->component()) == utils::end(subscm)
         && header
