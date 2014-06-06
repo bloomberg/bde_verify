@@ -16,7 +16,6 @@ static void aSsErT(int c, const char *s, int i)
         if (testStatus >= 0 && testStatus <= 100) ++testStatus;
     }
 }
-#define ASSERT(X) { aSsErT(!(X), #X, __LINE__); }
 
 csabbg_testdriver.t.cpp:49:23: warning: TP19: Missing or malformed standard test driver section
 //                       STANDARD BDE TEST DRIVER MACROS
