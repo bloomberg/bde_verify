@@ -8,6 +8,7 @@
 #include <csabase_registercheck.h>
 #include <csabase_util.h>
 #include <csabase_visitor.h>
+#include <llvm/Support/Regex.h>
 #include <clang/ASTMatchers/ASTMatchers.h>
 #include <clang/AST/RecursiveASTVisitor.h>
 #include <clang/Basic/TokenKinds.h>
@@ -394,15 +395,25 @@ void report::operator()(const Token &token,
     }
 }
 
+llvm::Regex outdent ("^ *// *(v-*)[-^]$");
+llvm::Regex reindent("^ *// *[-^](-*v)$");
+
 void report::operator()(SourceRange comment)
 {
-    if (d_analyser.is_test_driver() &&
-        d_analyser.get_source_line(comment.getBegin()) == "//..") {
+    if (d_analyser.is_test_driver()) {
+        llvm::StringRef line = d_analyser.get_source_line(comment.getBegin());
         Location loc(d_analyser.manager(), comment.getBegin());
-        if (loc.file() == d_analyser.toplevel()) {
-            indent ind((d_data.d_in_dotdot[loc.file()] ^= 1) ? +4 : -4);
-            ind.d_dotdot = true;
-            add_indent(comment.getBegin(), ind);
+        llvm::SmallVector<llvm::StringRef, 7> matches;
+        if (line == "//..") {
+            if (loc.file() == d_analyser.toplevel()) {
+                indent ind((d_data.d_in_dotdot[loc.file()] ^= 1) ? +4 : -4);
+                ind.d_dotdot = true;
+                add_indent(comment.getEnd(), ind);
+            }
+        } else if (outdent.match(line, &matches)) {
+            add_indent(comment.getEnd(), -matches[1].size());
+        } else if (reindent.match(line, &matches)) {
+            add_indent(comment.getEnd(), matches[1].size());
         }
     }
 }
