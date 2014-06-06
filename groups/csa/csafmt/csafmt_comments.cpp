@@ -508,7 +508,7 @@ void files::check_purpose(SourceRange range)
 }
 
 llvm::Regex classes(
-    "// *" "("
+    "// *(@CLASSES: *)?" "("
                      "[[:alpha:]][[:alnum:]_]*"
                "(" "::[[:alpha:]][[:alnum:]_]*" ")*"
            ")");
@@ -523,14 +523,39 @@ void files::check_description(SourceRange range)
     }
     size_t dpos = comment.find("//@DESCRIPTION:", cpos);
     llvm::StringRef desc = comment.slice(dpos, comment.find("\n//\n", dpos));
+
+    size_t first_class = comment.npos;
+
+    if (cpos != comment.npos &&
+        d_analyser.get_source_line(range.getBegin().getLocWithOffset(cpos))
+                .trim() != "//@CLASSES:") {
+        d_analyser.report(range.getBegin().getLocWithOffset(cpos + 11),
+                          check_name, "CLS01",
+                          "'//@CLASSES:' line should contain no other text "
+                          "(classes go on subsequent lines, one per line)");
+        first_class = cpos;
+    }
+
     if (cpos != comment.npos && dpos != comment.npos) {
-        while ((cpos = comment.find('\n', cpos)) < end) {
+        while ((cpos = (first_class != comment.npos ?
+                            first_class :
+                            comment.find('\n', cpos))) < end) {
+            first_class = comment.npos;
             llvm::SmallVector<llvm::StringRef, 7> matches;
             if (!classes.match(comment.slice(cpos, end), &matches)) {
                 break;
             }
-            cpos += comment.slice(cpos, end).find(matches[1]);
-            std::string qc = ("'" + matches[1] + "'").str();
+            cpos += comment.slice(cpos, end).find(matches[2]);
+            size_t after =
+                comment.find_first_not_of(' ', cpos + matches[2].size());
+            if (after >= end || comment[after] != ':') {
+                d_analyser.report(range.getBegin().getLocWithOffset(
+                                      cpos + matches[2].size()),
+                                  check_name, "CLS02",
+                                  "Class name must be followed by "
+                                  "': description'");
+            }
+            std::string qc = ("'" + matches[2] + "'").str();
             if (desc.find(qc) == desc.npos) {
                 d_analyser.report(range.getBegin().getLocWithOffset(dpos),
                                   check_name, "DC01",
