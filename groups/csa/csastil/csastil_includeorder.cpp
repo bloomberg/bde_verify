@@ -198,7 +198,7 @@ check_order(Analyser*                       analyser,
         analyser->report(it->second, check_name, "SHO09",
                          "'%0' components should not include '%1'")
                     << analyser->package()
-                    << version;
+                    << (version + ".h");
     }
 
     if (   analyser->package() != "bsls"
