@@ -660,6 +660,8 @@ void report::operator()()
 
         llvm::APSInt case_value;
         cs->getLHS()->EvaluateAsInt(case_value, *d_analyser.context());
+        bool negative = 0 >  case_value.getSExtValue();
+        bool zero     = 0 == case_value.getSExtValue();
 
         MatchFinder mf;
         OnMatch<report, &report::match_print_banner> m1(this);
@@ -673,7 +675,7 @@ void report::operator()()
         banner_text = llvm::StringRef();
         banner_literal = 0;
         mf.match(*cs, *d_analyser.context());
-        if (!found_banner && case_value != 0) {
+        if (!found_banner && !zero) {
             d_analyser.report(sc->getLocStart(),
                               check_name, "TP17",
                               "Test case does not contain "
@@ -681,14 +683,14 @@ void report::operator()()
         }
 
         if (!cr.isValid()) {
-            if (case_value != 0) {
+            if (!zero) {
                 d_analyser.report(sc->getLocStart(),
                                   check_name, "TP05",
                                   "Test case has no comment");
             }
             continue;
         } else {
-            if (case_value == 0) {
+            if (zero) {
                 d_analyser.report(sc->getLocStart(),
                         check_name, "TP10",
                         "Case 0 should not have a test comment");
@@ -737,7 +739,7 @@ void report::operator()()
                     check_name, "TP15",
                     "Correct format is '// Testing:'");
             }
-        } else {
+        } else if (!negative) {
             d_analyser.report(cr.getBegin(),
                               check_name, "TP12",
                               "Comment should contain a 'Testing:' section");
@@ -776,7 +778,7 @@ void report::operator()()
                         "Test plan item is", false,
                         DiagnosticsEngine::Note);
             }
-            else if (test_item.match(line)) {
+            else if (!negative && test_item.match(line)) {
                 d_analyser.report(cr.getBegin().getLocWithOffset(line_pos),
                                   check_name, "TP09",
                                   "Test plan should contain this item from "
@@ -1072,7 +1074,9 @@ const char standard_bde_assert_test_macros[] =
 "        if (testStatus >= 0 && testStatus <= 100) ++testStatus;"            NL
 "    }"                                                                      NL
 "}"                                                                          NL
+#if 0
 "#define ASSERT(X) { aSsErT(!(X), #X, __LINE__); }"                          NL
+#endif
 ;
 
 const char standard_bde_assert_test_macros_bsl[] =
