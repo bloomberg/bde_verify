@@ -278,14 +278,14 @@ RCURNAME := $(foreach N,$(CURM),$(patsubst %,%.run,$(N)))
 
 .PHONY: check-current check $(CNAMES) run-current run $(RNAMES)
 
-check: $(TARGET) $(CNAMES)
-check-current: $(TARGET) $(CCURNAME)
+check: $(OBJ)/$(TARGET) $(CNAMES)
+check-current: $(OBJ)/$(TARGET) $(CCURNAME)
 
 $(CNAMES):
 	$(VERBOSE) $(MAKE) -s -C $(@D) check
 
-run: $(TARGET) $(RNAMES)
-run-current: $(TARGET) $(RCURNAME)
+run: $(OBJ)/$(TARGET) $(RNAMES)
+run-current: $(OBJ)/$(TARGET) $(RCURNAME)
 
 $(RNAMES):
 	$(VERBOSE) $(MAKE) -s -C $(@D) run
