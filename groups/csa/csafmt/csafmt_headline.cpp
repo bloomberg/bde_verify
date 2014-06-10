@@ -57,7 +57,8 @@ open_file(csabase::Analyser& analyser,
 {
     csabase::FileName fn(name);
     std::string filename = fn.name();
-    if (analyser.is_component_header(filename) || name == analyser.toplevel()) {
+    if (analyser.is_component_header(filename) ||
+        name == analyser.toplevel()) {
         const clang::SourceManager &m = analyser.manager();
         llvm::StringRef buf = m.getBuffer(m.getFileID(where))->getBuffer();
         buf = buf.substr(0, buf.find('\n')).rtrim();
@@ -93,12 +94,14 @@ open_file(csabase::Analyser& analyser,
                             "Correct format is\n%0",
                             true, clang::DiagnosticsEngine::Note)
                 << expect;
-            analyser.rewriter().ReplaceText(
-                where.getLocWithOffset(m.first),
-                buf.size() - m.first - m.second + 1,
-                llvm::StringRef(expect)
-                    .drop_front(m.first)
-                    .drop_back(m.second - 1));
+            if (buf.size() > 0) {
+                analyser.rewriter().ReplaceText(
+                    where.getLocWithOffset(m.first),
+                    buf.size() - m.first - m.second + 1,
+                    llvm::StringRef(expect).
+                        drop_front(m.first).
+                        drop_back(m.second - 1));
+            }
         }
     }
 }
