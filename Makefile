@@ -12,8 +12,6 @@ CSABASE  = csabase
 LIBCSABASE = libcsabase.a
 CSABASEDIR = groups/csa/csabase
 
-default: $(TARGET)
-
 SHELL    = /opt/swt/bin/bash
 
 SYSTEM   = $(shell uname -s)
@@ -231,14 +229,16 @@ LIBS     =    -lcsabase                                                       \
               -ldl                                                            \
               $(EXTRALIBS)
 
-$(TARGET): $(OBJ)/$(TARGET)
+default: $(OBJ)/$(TARGET)
 
-$(OBJ)/$(TARGET): $(CSABASEDIR)/$(OBJ)/$(LIBCSABASE) $(TSTOFILES)
+.PHONY: csabase
+
+csabase:
+	$(VERBOSE) $(MAKE) -s -C $(CSABASEDIR)
+
+$(OBJ)/$(TARGET): csabase $(TSTOFILES)
 	@echo linking executable
 	$(VERBOSE) $(LINK) $(LDFLAGS) -o $@ $(TSTOFILES) $(LIBS)
-
-$(CSABASEDIR)/$(OBJ)/$(LIBCSABASE):
-	$(MAKE) -C $(CSABASEDIR)
 
 $(OBJ)/%.o: %.cpp
 	@if [ ! -d $(@D) ]; then scripts/mkdirhier $(@D); fi
