@@ -106,7 +106,7 @@ csabase::Config::process(std::string const& line)
     std::istringstream args(line);
     if (!(args >> command >> std::ws)) {
     }
-    else if (command == "namespace") {
+    else if ("namespace" == command) {
         std::string name;
         if (args >> name) {
             d_toplevel_namespace = name;
@@ -117,7 +117,7 @@ csabase::Config::process(std::string const& line)
                 << line << "'\n";
         }
     }
-    else if (command == "all") {
+    else if ("all" == command) {
         csabase::Config::Status status;
         if (args >> status) {
             d_all = status;
@@ -128,8 +128,8 @@ csabase::Config::process(std::string const& line)
                 << line << "'\n";
         }
     }
-    else if (command == "check") {
-        std::string                   check;
+    else if ("check" == command) {
+        std::string             check;
         csabase::Config::Status status;
         if (args >> check >> status) {
             std::vector<std::string> path;
@@ -141,7 +141,7 @@ csabase::Config::process(std::string const& line)
                 << line << "'\n";
         }
     }
-    else if (command == "group") {
+    else if ("group" == command) {
         std::string name;
         if (args >> name) {
             d_groups[name].assign(std::istream_iterator<std::string>(args),
@@ -153,7 +153,7 @@ csabase::Config::process(std::string const& line)
                 << line << "'\n";
         }
     }
-    else if (command == "load") {
+    else if ("load" == command) {
         std::string name;
         if (args >> name) {
             load(name);
@@ -164,26 +164,31 @@ csabase::Config::process(std::string const& line)
                 << line << "'\n";
         }
     }
-    else if (command == "set") {
+    else if ("set" == command || "append" == command || "prepend" == command) {
         std::string key;
         if (args >> key) {
-            std::string value;
-            if (std::getline(args, value)) {
-                set_value(key, llvm::StringRef(value).trim());
+            std::string rest;
+            if (std::getline(args, rest)) {
+                if ("append" == command) {
+                    rest = value(key) + " " + rest;
+                } else if ("prepend" == command) {
+                    rest = rest + " " + value(key);
+                }
+                set_value(key, llvm::StringRef(rest).trim());
             }
             else {
-                llvm::errs()
-                    << "WARNING: set could not read value on line '"
-                    << line << "'\n";
+                llvm::errs() << "WARNING: " << command
+                             << " could not read value on line '" << line
+                             << "'\n";
             }
         }
         else {
             llvm::errs()
-                << "WARNING: set needs name and value on line '"
+                << "WARNING: " << command << " needs name and value on line '"
                 << line << "'\n";
         }
     }
-    else if (command == "suppress") {
+    else if ("suppress" == command) {
         std::string tag;
         if (args >> tag) {
             std::string file;
