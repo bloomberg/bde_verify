@@ -12,8 +12,14 @@ use strict;
 use Getopt::Long qw(:config no_ignore_case);
 use Cwd;
 
+my @known_systems = ('AIX', 'HP-UX', 'Linux', 'SunOS');
 chomp(my $system   = `uname -s`);
+$system = 'Linux' unless grep(/$system/, @known_systems);
+
+my @known_hw = ('powerpc', 'ia64', 'x86_64', 'sparc', 'i386');
 chomp (my $hw = `uname -p`);
+$hw = 'x86_64' unless grep(/$hw/, @known_hw);
+
 my $clangver = "3.4";
 my $gccver   = "4.8.1";
 my $home     = "/home/hrosen4/bde_verify";
