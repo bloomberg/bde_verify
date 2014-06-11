@@ -233,10 +233,10 @@ default: $(OBJ)/$(TARGET)
 
 .PHONY: csabase
 
-csabase:
+$(CSABASEDIR)/$(OBJ)/$(LIBCSABASE): csabase
 	$(VERBOSE) $(MAKE) -s -C $(CSABASEDIR)
 
-$(OBJ)/$(TARGET): csabase $(TSTOFILES)
+$(OBJ)/$(TARGET): $(CSABASEDIR)/$(OBJ)/$(LIBCSABASE) $(TSTOFILES)
 	@echo linking executable
 	$(VERBOSE) $(LINK) $(LDFLAGS) -o $@ $(TSTOFILES) $(LIBS)
 

@@ -508,10 +508,10 @@ void files::check_purpose(SourceRange range)
 }
 
 llvm::Regex classes(
-    "// *(@CLASSES: *)?" "("
+    "^// *(@CLASSES: *)?" "("
                      "[[:alpha:]][[:alnum:]_]*"
                "(" "::[[:alpha:]][[:alnum:]_]*" ")*"
-           ")");
+           ")" "( *: *[^:].*)?");
 
 void files::check_description(SourceRange range)
 {
@@ -524,42 +524,46 @@ void files::check_description(SourceRange range)
     size_t dpos = comment.find("//@DESCRIPTION:", cpos);
     llvm::StringRef desc = comment.slice(dpos, comment.find("\n//\n", dpos));
 
-    size_t first_class = comment.npos;
+    if (cpos == comment.npos) {
+        return;                                                       // RETURN
+    }
 
-    if (cpos != comment.npos &&
-        d_analyser.get_source_line(range.getBegin().getLocWithOffset(cpos))
+    if (d_analyser.get_source_line(range.getBegin().getLocWithOffset(cpos))
                 .trim() != "//@CLASSES:") {
         d_analyser.report(range.getBegin().getLocWithOffset(cpos + 11),
                           check_name, "CLS01",
                           "'//@CLASSES:' line should contain no other text "
                           "(classes go on subsequent lines, one per line)");
-        first_class = cpos;
+    }
+    else {
+        cpos = comment.find('\n', cpos) + 1;
     }
 
-    if (cpos != comment.npos && dpos != comment.npos) {
-        while ((cpos = (first_class != comment.npos ?
-                            first_class :
-                            comment.find('\n', cpos))) < end) {
-            first_class = comment.npos;
-            llvm::SmallVector<llvm::StringRef, 7> matches;
-            if (!classes.match(comment.slice(cpos, end), &matches)) {
-                break;
-            }
-            cpos += comment.slice(cpos, end).find(matches[2]);
-            size_t after =
-                comment.find_first_not_of(' ', cpos + matches[2].size());
-            if (after >= end || comment[after] != ':') {
-                d_analyser.report(range.getBegin().getLocWithOffset(
-                                      cpos + matches[2].size()),
-                                  check_name, "CLS02",
+    for (; cpos < end; cpos = comment.find('\n', cpos) + 1) {
+        llvm::SmallVector<llvm::StringRef, 7> matches;
+        if (!classes.match(comment.slice(cpos, end), &matches)) {
+            d_analyser.report(range.getBegin().getLocWithOffset(cpos),
+                              check_name,
+                              "CLS03",
+                              "Badly formatted class line; should be "
+                              "'//    class: description'");
+        } else {
+            cpos += comment.slice(cpos, end).find(matches[2]) +
+                    matches[2].size();
+            if (matches[4].empty()) {
+                d_analyser.report(range.getBegin().getLocWithOffset(cpos),
+                                  check_name,
+                                  "CLS02",
                                   "Class name must be followed by "
                                   "': description'");
             }
             std::string qc = ("'" + matches[2] + "'").str();
-            if (desc.find(qc) == desc.npos) {
+            if (dpos != comment.npos && desc.find(qc) == desc.npos) {
                 d_analyser.report(range.getBegin().getLocWithOffset(dpos),
-                                  check_name, "DC01",
-                                  "Description should contain single-quoted "
+                                  check_name,
+                                  "DC01",
+                                  "Description should contain "
+                                  "single-quoted "
                                   "class name %0")
                     << qc;
             }

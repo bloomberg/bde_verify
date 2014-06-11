@@ -24,31 +24,34 @@
 
 // -----------------------------------------------------------------------------
 
-using csabase::PluginAction;
+using namespace clang;
+using namespace csabase;
 
 // -----------------------------------------------------------------------------
 
 namespace
 {
-    class AnalyseConsumer:
-        public clang::ASTConsumer
-    {
-    public:
-        AnalyseConsumer(clang::CompilerInstance& compiler, std::string const& source, PluginAction const& plugin);
-        void Initialize(clang::ASTContext& context);
-        bool HandleTopLevelDecl(clang::DeclGroupRef DG);
-        void HandleTranslationUnit(clang::ASTContext&);
 
-    private:
-        csabase::Analyser  analyser_;
-        std::string const        source_;
-    };
+class AnalyseConsumer : public ASTConsumer
+{
+  public:
+    AnalyseConsumer(CompilerInstance&   compiler,
+                    std::string const&  source,
+                    PluginAction const& plugin);
+    void Initialize(ASTContext& context);
+    bool HandleTopLevelDecl(DeclGroupRef DG);
+    void HandleTranslationUnit(ASTContext&);
+
+  private:
+    Analyser analyser_;
+    std::string const source_;
+};
 }
 
 // -----------------------------------------------------------------------------
 
-AnalyseConsumer::AnalyseConsumer(clang::CompilerInstance& compiler,
-                                 std::string const& source,
+AnalyseConsumer::AnalyseConsumer(CompilerInstance&   compiler,
+                                 std::string const&  source,
                                  PluginAction const& plugin)
 : analyser_(compiler,
             plugin.debug(),
@@ -59,7 +62,7 @@ AnalyseConsumer::AnalyseConsumer(clang::CompilerInstance& compiler,
 {
     analyser_.toplevel(source);
 
-    compiler.getDiagnostics().setClient(new csabase::DiagnosticFilter(
+    compiler.getDiagnostics().setClient(new DiagnosticFilter(
         analyser_, plugin.toplevel_only(), compiler.getDiagnosticOpts()));
     compiler.getDiagnostics().getClient()->BeginSourceFile(
         compiler.getLangOpts(),
@@ -69,7 +72,7 @@ AnalyseConsumer::AnalyseConsumer(clang::CompilerInstance& compiler,
 // -----------------------------------------------------------------------------
 
 void
-AnalyseConsumer::Initialize(clang::ASTContext& context)
+AnalyseConsumer::Initialize(ASTContext& context)
 {
     analyser_.context(&context);
 }
@@ -77,7 +80,7 @@ AnalyseConsumer::Initialize(clang::ASTContext& context)
 // -----------------------------------------------------------------------------
 
 bool
-AnalyseConsumer::HandleTopLevelDecl(clang::DeclGroupRef DG)
+AnalyseConsumer::HandleTopLevelDecl(DeclGroupRef DG)
 {
     analyser_.process_decls(DG.begin(), DG.end());
     return true;
@@ -86,32 +89,32 @@ AnalyseConsumer::HandleTopLevelDecl(clang::DeclGroupRef DG)
 // -----------------------------------------------------------------------------
 
 void
-AnalyseConsumer::HandleTranslationUnit(clang::ASTContext&)
+AnalyseConsumer::HandleTranslationUnit(ASTContext&)
 {
     analyser_.process_translation_unit_done();
 
     std::string rd = analyser_.rewrite_dir();
     if (!rd.empty()) {
-        for (clang::Rewriter::buffer_iterator
-                 b = analyser_.rewriter().buffer_begin(),
-                 e = analyser_.rewriter().buffer_end();
+        for (Rewriter::buffer_iterator b = analyser_.rewriter().buffer_begin(),
+                                       e = analyser_.rewriter().buffer_end();
              b != e;
              b++) {
-            const clang::FileEntry *fe =
-                analyser_.manager().getFileEntryForID(b->first);
-            llvm::SmallVector<char, 512> path(rd.begin(), rd.end());
-            llvm::sys::path::append(
-                path, llvm::sys::path::filename(fe->getName()));
-            std::string rewritten_file =
-                std::string(path.begin(), path.end()) + "-rewritten";
-            std::string file_error;
-            llvm::raw_fd_ostream rfdo(
+            if (const FileEntry* fe =
+                    analyser_.manager().getFileEntryForID(b->first)) {
+                llvm::SmallVector<char, 512> path(rd.begin(), rd.end());
+                llvm::sys::path::append(
+                    path, llvm::sys::path::filename(fe->getName()));
+                std::string rewritten_file =
+                    std::string(path.begin(), path.end()) + "-rewritten";
+                std::string file_error;
+                llvm::raw_fd_ostream rfdo(
                     rewritten_file.c_str(), file_error, llvm::sys::fs::F_None);
-            if (file_error.empty()) {
-                b->second.write(rfdo);
-            } else {
-                ERRS() << file_error << ": cannot open " << rewritten_file
-                       << " for rewriting\n";
+                if (file_error.empty()) {
+                    b->second.write(rfdo);
+                } else {
+                    ERRS() << file_error << ": cannot open " << rewritten_file
+                           << " for rewriting\n";
+                }
             }
         }
     }
@@ -129,27 +132,27 @@ PluginAction::PluginAction()
 
 // -----------------------------------------------------------------------------
 
-clang::ASTConsumer*
-PluginAction::CreateASTConsumer(clang::CompilerInstance& compiler, llvm::StringRef source)
+ASTConsumer*
+PluginAction::CreateASTConsumer(CompilerInstance& compiler, llvm::StringRef source)
 {
     return new AnalyseConsumer(compiler, source, *this);
 }
 
 // -----------------------------------------------------------------------------
 
-bool PluginAction::ParseArgs(clang::CompilerInstance const& compiler,
+bool PluginAction::ParseArgs(CompilerInstance const& compiler,
                              std::vector<std::string> const& args)
 {
     for (size_t i = 0; i < args.size(); ++i) {
         llvm::StringRef arg = args[i];
         if (arg == "debug-on")
         {
-            csabase::Debug::set_debug(true);
+            Debug::set_debug(true);
             debug_ = true;
         }
         else if (arg == "debug-off")
         {
-            csabase::Debug::set_debug(false);
+            Debug::set_debug(false);
             debug_ = false;
         }
         else if (arg == "toplevel-only-on")

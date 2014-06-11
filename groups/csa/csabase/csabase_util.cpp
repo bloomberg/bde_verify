@@ -18,6 +18,7 @@ mid_mismatch(const std::string &have, const std::string &want)
     while (   result.second < have.size()
            && result.second < want.size()
            && have.size() > result.first + result.second
+           && want.size() > result.first + result.second
            && have[have.size() - result.second - 1] ==
               want[want.size() - result.second - 1]) {
         ++result.second;

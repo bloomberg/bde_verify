@@ -94,14 +94,12 @@ open_file(csabase::Analyser& analyser,
                             "Correct format is\n%0",
                             true, clang::DiagnosticsEngine::Note)
                 << expect;
-            if (buf.size() > 0) {
-                analyser.rewriter().ReplaceText(
-                    where.getLocWithOffset(m.first),
-                    buf.size() - m.first - m.second + 1,
-                    llvm::StringRef(expect).
-                        drop_front(m.first).
-                        drop_back(m.second - 1));
-            }
+            analyser.rewriter().ReplaceText(
+                where.getLocWithOffset(m.first),
+                buf.size() - m.first - m.second,
+                llvm::StringRef(expect)
+                    .drop_front(m.first)
+                    .drop_back(m.second));
         }
     }
 }
