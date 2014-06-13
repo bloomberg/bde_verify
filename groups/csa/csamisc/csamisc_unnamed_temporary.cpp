@@ -64,7 +64,7 @@ unnamed_temporary_matcher()
             hasParent(stmt(unless(expr()))),
             anyOf(
                 has(functionalCastExpr()),
-                has(bindTemporaryExpr())
+                has(bindTemporaryExpr(has(temporaryObjectExpr())))
             )
         ).bind("ut")
     ));
