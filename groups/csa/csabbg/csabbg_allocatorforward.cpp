@@ -65,7 +65,7 @@ struct data
     QualType bslma_allocator_;
         // The type of 'BloombergLP::bslma::Allocator'.
 
-    typedef std::set<const CXXConstructorDecl*> Ctors;
+    typedef std::vector<const CXXConstructorDecl*> Ctors;
     Ctors ctors_;
         // The set of constructor declarations seen.
 
@@ -952,7 +952,7 @@ gather_ctor_decls(Analyser& analyser, CXXConstructorDecl const* decl)
     // Accumulate the specified 'decl' within the specified 'analyser'.
 {
     if (analyser.is_component(decl)) {
-        analyser.attachment<data>().ctors_.insert(decl);
+        analyser.attachment<data>().ctors_.push_back(decl);
     }
 }
 
