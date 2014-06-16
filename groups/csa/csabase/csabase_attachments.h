@@ -9,7 +9,6 @@
 #define INCLUDED_CSABASE_ATTACHMENTS 1
 #ident "$Id$"
 
-#include <utils/shared_ptr.hpp>
 #include <vector>
 #include <stddef.h>
 
