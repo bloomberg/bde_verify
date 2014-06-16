@@ -13,6 +13,9 @@
 #include <functional>
 #ident "$Id$"
 
+using namespace csabase;
+using namespace clang;
+
 // -----------------------------------------------------------------------------
 
 csabase::AbstractVisitor::~AbstractVisitor()
@@ -22,73 +25,55 @@ csabase::AbstractVisitor::~AbstractVisitor()
 // -----------------------------------------------------------------------------
 // Entry points to visit the AST.
 
-void
-csabase::AbstractVisitor::visit_decl(clang::Decl const* decl)
+void csabase::AbstractVisitor::visit_decl(Decl const* decl)
 {
-    clang::DeclVisitor<csabase::AbstractVisitor>::Visit(const_cast<clang::Decl*>(decl));
+    DeclVisitor<csabase::AbstractVisitor>::Visit(const_cast<Decl*>(decl));
 }
 
-void
-csabase::AbstractVisitor::visit(clang::Decl const* decl)
+void csabase::AbstractVisitor::visit(Decl const* decl)
 {
     visit_decl(decl);
 }
 
-void
-csabase::AbstractVisitor::visit_stmt(clang::Stmt const* stmt)
+void csabase::AbstractVisitor::visit_stmt(Stmt const* stmt)
 {
-    if (stmt)
-    {
-        clang::StmtVisitor<csabase::AbstractVisitor>::Visit(const_cast<clang::Stmt*>(stmt));
+    if (stmt) {
+        StmtVisitor<csabase::AbstractVisitor>::Visit(const_cast<Stmt*>(stmt));
     }
 }
 
-void
-csabase::AbstractVisitor::visit(clang::Stmt const* stmt)
+void csabase::AbstractVisitor::visit(Stmt const* stmt)
 {
     visit_stmt(stmt);
 }
 
 // -----------------------------------------------------------------------------
 
-void
-csabase::AbstractVisitor::visit_context(void const*)
+void csabase::AbstractVisitor::visit_context(void const*)
 {
 }
 
-void
-csabase::AbstractVisitor::visit_context(clang::DeclContext const* context)
+void csabase::AbstractVisitor::visit_context(DeclContext const* context)
 {
     csabase::Debug d1("process DeclContext");
-    std::for_each(context->decls_begin(), context->decls_end(),
-                  std::bind1st(std::mem_fun(&csabase::AbstractVisitor::visit_decl), this));
+    std::for_each(
+        context->decls_begin(),
+        context->decls_end(),
+        std::bind1st(
+            std::mem_fun(&csabase::AbstractVisitor::visit_decl), this));
 }
 
 // -----------------------------------------------------------------------------
 
-static void
-process_decl(csabase::AbstractVisitor* visitor, clang::TranslationUnitDecl* decl)
+template <typename DECL>
+static void process_decl(csabase::AbstractVisitor* visitor, DECL *decl)
 {
 }
 
 // -----------------------------------------------------------------------------
 
 static void
-process_decl(csabase::AbstractVisitor* visitor, clang::NamedDecl* decl)
-{
-}
-
-// -----------------------------------------------------------------------------
-
-static void
-process_decl(csabase::AbstractVisitor* visitor, clang::LabelDecl* decl)
-{
-}
-
-// -----------------------------------------------------------------------------
-
-static void
-process_decl(csabase::AbstractVisitor* visitor, clang::NamespaceDecl* decl)
+process_decl(csabase::AbstractVisitor* visitor, NamespaceDecl* decl)
 {
     visitor->visit_context(decl);
 }
@@ -96,23 +81,9 @@ process_decl(csabase::AbstractVisitor* visitor, clang::NamespaceDecl* decl)
 // -----------------------------------------------------------------------------
 
 static void
-process_decl(csabase::AbstractVisitor* visitor, clang::ValueDecl* decl)
+process_decl(csabase::AbstractVisitor* visitor, VarDecl* decl)
 {
-}
-
-// -----------------------------------------------------------------------------
-
-static void
-process_decl(csabase::AbstractVisitor* visitor, clang::DeclaratorDecl* decl)
-{
-}
-
-// -----------------------------------------------------------------------------
-
-static void
-process_decl(csabase::AbstractVisitor* visitor, clang::VarDecl* decl)
-{
-    if (clang::Expr* init = decl->getInit())
+    if (Expr* init = decl->getInit())
     {
         visitor->visit(init);
     }
@@ -121,24 +92,8 @@ process_decl(csabase::AbstractVisitor* visitor, clang::VarDecl* decl)
 // -----------------------------------------------------------------------------
 
 static void
-process_decl(csabase::AbstractVisitor* visitor, clang::ImplicitParamDecl* decl)
+process_decl(csabase::AbstractVisitor* visitor, FunctionDecl* decl)
 {
-}
-
-// -----------------------------------------------------------------------------
-
-static void
-process_decl(csabase::AbstractVisitor* visitor, clang::ParmVarDecl* decl)
-{
-}
-
-// -----------------------------------------------------------------------------
-
-static void
-process_decl(csabase::AbstractVisitor* visitor, clang::FunctionDecl* decl)
-{
-    //-dk:TODO deal with parameter
-    //-dk:TODO deal context
     csabase::Debug d1("process definition FunctionDecl");
     if (decl->getDescribedFunctionTemplate()) {
         visitor->visit(decl->getDescribedFunctionTemplate());
@@ -156,87 +111,7 @@ process_decl(csabase::AbstractVisitor* visitor, clang::FunctionDecl* decl)
 // -----------------------------------------------------------------------------
 
 static void
-process_decl(csabase::AbstractVisitor* visitor, clang::FieldDecl* decl)
-{
-}
-
-// -----------------------------------------------------------------------------
-
-static void
-process_decl(csabase::AbstractVisitor* visitor, clang::EnumConstantDecl* decl)
-{
-}
-
-// -----------------------------------------------------------------------------
-
-static void
-process_decl(csabase::AbstractVisitor* visitor, clang::IndirectFieldDecl* decl)
-{
-}
-
-// -----------------------------------------------------------------------------
-
-static void
-process_decl(csabase::AbstractVisitor* visitor, clang::TypeDecl* decl)
-{
-}
-
-// -----------------------------------------------------------------------------
-
-static void
-process_decl(csabase::AbstractVisitor* visitor, clang::TypedefDecl* decl)
-{
-}
-
-// -----------------------------------------------------------------------------
-
-static void
-process_decl(csabase::AbstractVisitor* visitor, clang::TagDecl* decl)
-{
-#if 0
-    csabase::Debug d("process_decl(..., TagDecl*)");
-    d << "name=" << decl->getNameAsString() << " "
-      << "is-def=" << decl->isThisDeclarationADefinition() << " "
-      << "is-comp-def=" << decl->isCompleteDefinition() << " "
-      << "is-being-def=" << decl->isBeingDefined() << " "
-      << "is-embedded=" << decl->isEmbeddedInDeclarator() << " "
-      << "is-freestanding=" << decl->isFreeStanding() << " "
-      << "is-dependent=" << decl->isDependentType() << " "
-      << "\n";
-#endif
-#if 0 //-dk:TODO
-    if (decl->isCompleteDefinition())
-#endif
-    {
-        visitor->visit_context(decl);
-    }
-}
-
-// -----------------------------------------------------------------------------
-
-static void
-process_decl(csabase::AbstractVisitor* visitor, clang::EnumDecl* decl)
-{
-}
-
-// -----------------------------------------------------------------------------
-
-static void
-process_decl(csabase::AbstractVisitor* visitor, clang::RecordDecl* decl)
-{
-}
-
-// -----------------------------------------------------------------------------
-
-static void
-process_decl(csabase::AbstractVisitor* visitor, clang::FileScopeAsmDecl* decl)
-{
-}
-
-// -----------------------------------------------------------------------------
-
-static void
-process_decl(csabase::AbstractVisitor* visitor, clang::BlockDecl* decl)
+process_decl(csabase::AbstractVisitor* visitor, TagDecl* decl)
 {
     visitor->visit_context(decl);
 }
@@ -244,14 +119,15 @@ process_decl(csabase::AbstractVisitor* visitor, clang::BlockDecl* decl)
 // -----------------------------------------------------------------------------
 
 static void
-process_decl(csabase::AbstractVisitor* visitor, clang::AccessSpecDecl* decl)
+process_decl(csabase::AbstractVisitor* visitor, BlockDecl* decl)
 {
+    visitor->visit_context(decl);
 }
 
 // -----------------------------------------------------------------------------
 
 static void
-process_decl(csabase::AbstractVisitor* visitor, clang::CXXRecordDecl* decl)
+process_decl(csabase::AbstractVisitor* visitor, CXXRecordDecl* decl)
 {
     csabase::Debug d("process_decl(..., CXXRecordDecl)");
 }
@@ -259,190 +135,41 @@ process_decl(csabase::AbstractVisitor* visitor, clang::CXXRecordDecl* decl)
 // -----------------------------------------------------------------------------
 
 static void
-process_decl(csabase::AbstractVisitor* visitor, clang::CXXMethodDecl* decl)
-{
-}
-
-// -----------------------------------------------------------------------------
-
-static void
-process_decl(csabase::AbstractVisitor* visitor, clang::CXXConstructorDecl* decl)
-{
-}
-
-// -----------------------------------------------------------------------------
-
-static void
-process_decl(csabase::AbstractVisitor* visitor, clang::CXXDestructorDecl* decl)
-{
-}
-
-// -----------------------------------------------------------------------------
-
-static void
-process_decl(csabase::AbstractVisitor* visitor, clang::CXXConversionDecl* decl)
-{
-}
-
-// -----------------------------------------------------------------------------
-
-static void
-process_decl(csabase::AbstractVisitor* visitor, clang::LinkageSpecDecl* decl)
+process_decl(csabase::AbstractVisitor* visitor, LinkageSpecDecl* decl)
 {
     if (decl->hasBraces())
     {
         visitor->visit_context(decl);
     }
-    else
-    {
-        //-dk:TODO visitor->Visit(*decl->decls_begin());
-    }
-}
-
-// -----------------------------------------------------------------------------
-
-static void
-process_decl(csabase::AbstractVisitor* visitor, clang::NamespaceAliasDecl* decl)
-{
-}
-
-// -----------------------------------------------------------------------------
-
-static void
-process_decl(csabase::AbstractVisitor* visitor, clang::UsingShadowDecl* decl)
-{
-}
-
-// -----------------------------------------------------------------------------
-
-static void
-process_decl(csabase::AbstractVisitor* visitor, clang::UsingDecl* decl)
-{
-}
-
-// -----------------------------------------------------------------------------
-
-static void
-process_decl(csabase::AbstractVisitor* visitor, clang::UnresolvedUsingTypenameDecl* decl)
-{
-}
-
-// -----------------------------------------------------------------------------
-
-static void
-process_decl(csabase::AbstractVisitor* visitor, clang::StaticAssertDecl* decl)
-{
-}
-
-// -----------------------------------------------------------------------------
-
-static void
-process_decl(csabase::AbstractVisitor*, clang::ObjCPropertyImplDecl*)
-{
-    csabase::Debug d("TODO ObjCPropertyImplDecl");
-}
-
-#if 0
-static void
-process_decl(csabase::AbstractVisitor*, clang::ObjCForwardProtocolDecl*)
-{
-    csabase::Debug d("TODO ObjCForwardProtocolDecl");
-}
-#endif
-
-#if 0
-static void
-process_decl(csabase::AbstractVisitor*, clang::ObjCClassDecl*)
-{
-    csabase::Debug d("TODO ObjCClassDecl");
-}
-#endif
-
-#if 0
-static void
-process_decl(csabase::AbstractVisitor*, clang::ImportDecl*)
-{
-    csabase::Debug d("TODO ImportDecl");
-}
-#endif
-
-static void
-process_decl(csabase::AbstractVisitor*, clang::FriendTemplateDecl*)
-{
-    csabase::Debug d("TODO FriendTemplateDecl");
 }
 
 static void
-process_decl(csabase::AbstractVisitor*, clang::FriendDecl*)
-{
-    csabase::Debug d("TODO FriendDecl");
-}
-
-#if 0
-static void
-process_decl(csabase::AbstractVisitor*, clang::ClassScopeFunctionSpecializationDecl*)
-{
-    csabase::Debug d("TODO ClassScopeFunctionSpecializationDecl");
-}
-#endif
-
-static void
-process_decl(csabase::AbstractVisitor* visitor,
-             clang::ClassTemplateDecl* decl)
+process_decl(csabase::AbstractVisitor* visitor, ClassTemplateDecl* decl)
 {
     csabase::Debug d("ClassTemplateDecl");
     visitor->visit(decl->getTemplatedDecl());
 }
 
-static void
-process_decl(csabase::AbstractVisitor*, clang::Decl* decl)
-{
-    csabase::Debug d("TODO process_decl(..., Decl)");
-    d << "kind: " << csabase::format(decl->getKind()) << "\n";
-}
-
-// -----------------------------------------------------------------------------
-
-#if 0
-template <typename Declaration>
-static void
-process_decl(csabase::AbstractVisitor* visitor, Declaration* decl)
-{
-    csabase::Debug d("process_decl(..., Declaration)");
-#if 0
-    if (decl->hasBody() && decl->getBody())
-    {
-        visitor->visit(decl->getBody());
-    }
-    visitor->visit_context(decl);
-#endif
-}
-#endif
-
 // -----------------------------------------------------------------------------
 
 void
-csabase::AbstractVisitor::visit_children(clang::StmtRange const& range)
+csabase::AbstractVisitor::visit_children(StmtRange const& range)
 {
-    std::for_each(range.first, range.second,
-                  std::bind1st(std::mem_fun(&csabase::AbstractVisitor::visit_stmt), this));
+    std::for_each(
+        range.first,
+        range.second,
+        std::bind1st(
+            std::mem_fun(&csabase::AbstractVisitor::visit_stmt), this));
 }
 
 template <typename Children>
-void
-csabase::AbstractVisitor::visit_children(Children const& children)
+void csabase::AbstractVisitor::visit_children(Children const& children)
 {
-    std::for_each(children.begin(), children.end(),
-                  std::bind1st(std::mem_fun(&csabase::AbstractVisitor::visit_stmt), this));
-}
-
-// -----------------------------------------------------------------------------
-
-static void
-process_stmt(csabase::AbstractVisitor* visitor, clang::DeclStmt* stmt)
-{
-    std::for_each(stmt->decl_begin(), stmt->decl_end(),
-                  std::bind1st(std::mem_fun(&csabase::AbstractVisitor::visit_decl), visitor));
+    std::for_each(
+        children.begin(),
+        children.end(),
+        std::bind1st(
+            std::mem_fun(&csabase::AbstractVisitor::visit_stmt), this));
 }
 
 // -----------------------------------------------------------------------------
@@ -451,26 +178,33 @@ template <typename Statement>
 static void
 process_stmt(csabase::AbstractVisitor* visitor, Statement* stmt)
 {
-    // visitor->visit_children(stmt->children());
 }
 
 // -----------------------------------------------------------------------------
 
-void
-csabase::AbstractVisitor::do_visit(clang::Decl const*)
+static void process_stmt(csabase::AbstractVisitor* visitor, DeclStmt* stmt)
+{
+    std::for_each(
+        stmt->decl_begin(),
+        stmt->decl_end(),
+        std::bind1st(
+            std::mem_fun(&csabase::AbstractVisitor::visit_decl), visitor));
+}
+
+// -----------------------------------------------------------------------------
+
+void csabase::AbstractVisitor::do_visit(Decl const*)
 {
 }
 
-void
-csabase::AbstractVisitor::process_decl(clang::Decl* decl, bool nest)
+void csabase::AbstractVisitor::process_decl(Decl* decl, bool nest)
 {
     csabase::Debug d("Decl", nest);
     do_visit(decl);
     ::process_decl(this, decl);
 }
 
-void
-csabase::AbstractVisitor::VisitDecl (clang::Decl* decl)
+void csabase::AbstractVisitor::VisitDecl(Decl* decl)
 {
     process_decl(decl, true);
 }
@@ -478,66 +212,58 @@ csabase::AbstractVisitor::VisitDecl (clang::Decl* decl)
 // -----------------------------------------------------------------------------
 
 #define DECL(CLASS, BASE)                                                     \
-void                                                                          \
-csabase::AbstractVisitor::do_visit(clang::CLASS##Decl const*)           \
-{                                                                             \
-}                                                                             \
-void                                                                          \
-csabase::AbstractVisitor::process_decl(clang::CLASS##Decl* decl,        \
-                                             bool nest)                       \
-{                                                                             \
-    csabase::Debug d(#CLASS "Decl (gen)", nest);                        \
-    do_visit(decl);                                                           \
-    ::process_decl(this, decl);                                               \
-    process_decl(static_cast<clang::BASE *>(decl), false);                    \
-}                                                                             \
-void                                                                          \
-csabase::AbstractVisitor::Visit##CLASS##Decl (clang::CLASS##Decl* decl) \
-{                                                                             \
-    process_decl(decl, true);                                                 \
-}
+    void csabase::AbstractVisitor::do_visit(CLASS##Decl const*)               \
+    {                                                                         \
+    }                                                                         \
+    void csabase::AbstractVisitor::process_decl(CLASS##Decl* decl, bool nest) \
+    {                                                                         \
+        csabase::Debug d(#CLASS "Decl (gen)", nest);                          \
+        do_visit(decl);                                                       \
+        ::process_decl(this, decl);                                           \
+        process_decl(static_cast<BASE*>(decl), false);                        \
+    }                                                                         \
+    void csabase::AbstractVisitor::Visit##CLASS##Decl(CLASS##Decl* decl)      \
+    {                                                                         \
+        process_decl(decl, true);                                             \
+    }
 #include "clang/AST/DeclNodes.inc"
 
 // -----------------------------------------------------------------------------
 
-void
-csabase::AbstractVisitor::do_visit(clang::Stmt const*)
+void csabase::AbstractVisitor::do_visit(Stmt const*)
 {
 }
 
-void
-csabase::AbstractVisitor::process_stmt(clang::Stmt* stmt, bool nest)
+void csabase::AbstractVisitor::process_stmt(Stmt* stmt, bool nest)
 {
     csabase::Debug d("Stmt", nest);
     do_visit(stmt);
     ::process_stmt(this, stmt);
 }
 
-void
-csabase::AbstractVisitor::VisitStmt(clang::Stmt* stmt)
+void csabase::AbstractVisitor::VisitStmt(Stmt* stmt)
 {
     process_stmt(stmt, true);
 }
 
 // -----------------------------------------------------------------------------
 
-#define STMT(CLASS, BASE)                                                     \
-void                                                                          \
-csabase::AbstractVisitor::do_visit(clang::CLASS const*)                 \
-{                                                                             \
-}                                                                             \
-void                                                                          \
-csabase::AbstractVisitor::process_stmt(clang::CLASS* stmt, bool nest)   \
-{                                                                             \
-    csabase::Debug d(#CLASS " (stmt)", nest);                           \
-    do_visit(stmt);                                                           \
-    if (nest) { visit_children(stmt->children()); }                           \
-    ::process_stmt(this, stmt);                                               \
-    process_stmt(static_cast<clang::BASE*>(stmt), false);                     \
-}                                                                             \
-void                                                                          \
-csabase::AbstractVisitor::Visit##CLASS(clang::CLASS* stmt)              \
-{                                                                             \
-    process_stmt(stmt, true);                                                 \
-}
+#define STMT(CLASS, BASE)                                               \
+    void csabase::AbstractVisitor::do_visit(CLASS const*)               \
+    {                                                                   \
+    }                                                                   \
+    void csabase::AbstractVisitor::process_stmt(CLASS* stmt, bool nest) \
+    {                                                                   \
+        csabase::Debug d(#CLASS " (stmt)", nest);                       \
+        do_visit(stmt);                                                 \
+        if (nest) {                                                     \
+            visit_children(stmt->children());                           \
+        }                                                               \
+        ::process_stmt(this, stmt);                                     \
+        process_stmt(static_cast<BASE*>(stmt), false);                  \
+    }                                                                   \
+    void csabase::AbstractVisitor::Visit##CLASS(CLASS* stmt)            \
+    {                                                                   \
+        process_stmt(stmt, true);                                       \
+    }
 #include "clang/AST/StmtNodes.inc"
