@@ -6,11 +6,11 @@
 // ----------------------------------------------------------------------------
 
 #include <csabase_analyser.h>
+#include <csabase_binder.h>
 #include <csabase_filenames.h>
 #include <csabase_registercheck.h>
 #include <csabase_ppobserver.h>
 #include <csabase_location.h>
-#include <csabase_binder.h>
 #include <cctype>
 #include <algorithm>
 #include <functional>
@@ -54,19 +54,6 @@ onOpenFile(csabase::Analyser* analyser,
 
 // ----------------------------------------------------------------------------
 
-static char
-to_upper(unsigned char c)
-{
-    return std::toupper(c);
-}
-
-static std::string
-toUpper(std::string value)
-{
-    std::transform(value.begin(), value.end(), value.begin(), &to_upper);
-    return value;
-}
-
 static void
 onCloseFile(csabase::Analyser* analyser,
             clang::SourceLocation    location,
@@ -74,30 +61,23 @@ onCloseFile(csabase::Analyser* analyser,
             std::string const&       closed)
 {
     csabase::FileName fn(closed);
-    std::string component = fn.component();
-    std::transform(component.begin(), component.end(),
-                   component.begin(),
-                   &to_upper);
+    std::string component = llvm::StringRef(fn.component()).upper();
 
     leaking_macro& context(analyser->attachment<leaking_macro>());
-    typedef leaking_macro::map_type map_type;
-    map_type const& macros(context.d_macros.top());
-    for (map_type::const_iterator it(macros.begin()), end(macros.end());
-         it != end; ++it) {
-        csabase::Location where(analyser->get_location(it->second));
-        if (where.file() != "<built-in>"
+    for (const auto& macro : context.d_macros.top()) {
+        csabase::Location where(analyser->get_location(macro.second));
+        if (   where.file() != "<built-in>"
             && where.file() != "<command line>"
-            && it->first.find("INCLUDED_") != 0
-            && toUpper(it->first).find(component) != 0
-            && (analyser->is_component_header(it->second)
-                ? true
-                : it->first.size() < 4)
+            && macro.first.find("INCLUDED_") != 0
+            && (   analyser->is_component_header(macro.second)
+                || macro.first.size() < 4)
+            && llvm::StringRef(macro.first).upper().find(component) != 0
             )
         {
-            analyser->report(it->second, check_name, "SLM01",
+            analyser->report(macro.second, check_name, "SLM01",
                              "Macro definition '%0' leaks from header",
                              true)
-                << it->first;
+                << macro.first;
         }
     }
     context.d_macros.pop();

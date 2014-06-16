@@ -25,14 +25,14 @@ namespace csabase {
 
 class csabase::RegisterCheck
 {
-public:
+  public:
     template <typename T>
     RegisterCheck(std::string const& name,
                   void (*check)(csabase::Analyser&, T const*));
     RegisterCheck(std::string const& name,
                   utils::function<void(csabase::Analyser&,
-                                      csabase::Visitor&,
-                                      csabase::PPObserver&)>);
+                                       csabase::Visitor&,
+                                       csabase::PPObserver&)>);
 };
 
 // -----------------------------------------------------------------------------

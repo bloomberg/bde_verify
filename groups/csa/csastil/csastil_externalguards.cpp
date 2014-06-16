@@ -182,7 +182,6 @@ static void
 subscribe(Analyser& analyser, Visitor&, PPObserver& observer)
 {
     observer.onInclude  += bind(&analyser, &onInclude);
-    // observer.onSkipFile += binder(&analyser);
     observer.onIfdef    += bind(&analyser, &onIfdef);
     observer.onIfndef   += bind(&analyser, &onIfndef);
     observer.onIf       += bind(&analyser, &onIf);

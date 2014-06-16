@@ -14,25 +14,29 @@
 #include <map>
 #ident "$Id$"
 
+using namespace csabase;
+
 // -----------------------------------------------------------------------------
 
 namespace
 {
-    typedef std::multimap<std::string, csabase::CheckRegistry::Subscriber> map_type;
 
-    map_type&
-    checks()
-    {
-        static map_type rc;
-        return rc;
-    }
+typedef std::multimap<std::string, csabase::CheckRegistry::Subscriber>
+map_type;
+
+map_type& checks()
+{
+    static map_type rc;
+    return rc;
+}
+
 }
 
 // -----------------------------------------------------------------------------
 
 void
 csabase::CheckRegistry::add_check(std::string const& name,
-                                        csabase::CheckRegistry::Subscriber check)
+                                  CheckRegistry::Subscriber check)
 {
     checks().insert(std::make_pair(name, check));
 }
@@ -40,17 +44,16 @@ csabase::CheckRegistry::add_check(std::string const& name,
 // -----------------------------------------------------------------------------
 
 void
-csabase::CheckRegistry::attach(csabase::Analyser& analyser,
-                                     csabase::Visitor& visitor,
-                                     csabase::PPObserver& observer)
+csabase::CheckRegistry::attach(Analyser& analyser,
+                               Visitor& visitor,
+                               PPObserver& observer)
 {
     typedef map_type::const_iterator const_iterator;
-    typedef std::map<std::string, csabase::Config::Status> checks_type;
+    typedef std::map<std::string, Config::Status> checks_type;
     checks_type const& config(analyser.config()->checks());
-    for (checks_type::const_iterator it(config.begin()), end(config.end());
-         it != end; ++it) {
-        if (checks().find(it->first) == checks().end()) {
-            llvm::errs() << "unknown check '" << it->first << "'; "
+    for (const auto &cfg : config) {
+        if (checks().find(cfg.first) == checks().end()) {
+            llvm::errs() << "unknown check '" << cfg.first << "'; "
                          << "existing checks:\n";
             for (const_iterator cit(checks().begin()), cend(checks().end());
                  cit != cend; cit = checks().equal_range(cit->first).second) {
@@ -60,15 +63,11 @@ csabase::CheckRegistry::attach(csabase::Analyser& analyser,
         }
     }
 
-    typedef map_type::const_iterator const_iterator;
-    for (const_iterator it(checks().begin()), end(checks().end());
-         it != end; ++it)
-    {
-        checks_type::const_iterator cit(config.find(it->first));
-        if ((config.end() == cit && analyser.config()->all()) ||
-            cit->second == csabase::Config::on)
-        {
-            it->second(analyser, visitor, observer);
+    for (const auto& check : checks()) {
+        checks_type::const_iterator cit(config.find(check.first));
+        if ((config.end() != cit && cit->second == csabase::Config::on) ||
+            (config.end() == cit && analyser.config()->all())) {
+            check.second(analyser, visitor, observer);
         }
     }
 }

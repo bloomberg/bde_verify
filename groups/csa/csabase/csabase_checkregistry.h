@@ -22,21 +22,21 @@ namespace csabase {
 } // close package namespace
 
 // -----------------------------------------------------------------------------
-// This class maintains a list of all the registered checks. Essentially, it
+// This class maintains a list of all the registered checks.  Essentially, it
 // is a map of (name, function) pairs where the function does the necessary
-// operations to subscribe to the suitable events on the visitor object its
-// gets passed.
+// operations to subscribe to the suitable events on the visitor object it gets
+// passed.
 
 class csabase::CheckRegistry
 {
-public:
-    typedef utils::function<void(csabase::Analyser&,
-                                csabase::Visitor&,
-                                csabase::PPObserver&)> Subscriber;
-    static void add_check(std::string const&, Subscriber);
-    static void attach(csabase::Analyser&,
-                       csabase::Visitor&,
-                       csabase::PPObserver&);
+  public:
+    typedef utils::function<
+        void(csabase::Analyser&, csabase::Visitor&, csabase::PPObserver&)
+    > Subscriber;
+    static void
+        add_check(std::string const&, Subscriber);
+    static void
+        attach(csabase::Analyser&, csabase::Visitor&, csabase::PPObserver&);
 };
 
 // -----------------------------------------------------------------------------

@@ -11,113 +11,43 @@
 // ----------------------------------------------------------------------------
 
 namespace csabase {
-    class Analyser;
+    template <typename Object, typename Function> class Binder;
 
-    template <typename Function> class Binder;
-    template <>
-    class Binder<void(*)(Analyser*)>;
-    template <typename T0>
-    class Binder<void(*)(Analyser*, T0)>;
-    template <typename T0, typename T1>
-    class Binder<void(*)(Analyser*, T0, T1)>;
-    template <typename T0, typename T1, typename T2>
-    class Binder<void(*)(Analyser*, T0, T1, T2)>;
+    template <typename Object, typename... T>
+    class Binder<Object, void(*)(Object, T...)>;
 
-    template <typename Function>
-    Binder<Function> bind(Analyser*, Function);
+    template <typename Object, typename Function>
+    Binder<Object, Function> bind(Object, Function);
 } // close package namespace
 
 // ----------------------------------------------------------------------------
 
-template <>
-class csabase::Binder<void(*)(csabase::Analyser*)>
+template <typename Object, typename...T>
+class csabase::Binder<Object, void(*)(Object, T...)>
 {
 private:
-    Analyser* d_analyser;
-    void      (*d_function)(Analyser*);
+    Object d_object;
+    void (*d_function)(Object, T...);
 
 public:
-    Binder(Analyser* analyser, void (*function)(Analyser*))
-        : d_analyser(analyser)
+    Binder(Object object, void (*function)(Object, T...))
+        : d_object(object)
         , d_function(function)
     {
     }
-    void operator()() const
+    void operator()(T...a) const
     {
-        (d_function)(d_analyser);
+        d_function(d_object, a...);
     }
 };
 
 // ----------------------------------------------------------------------------
 
-template <typename T0>
-class csabase::Binder<void(*)(csabase::Analyser*, T0)>
+template <typename Object, typename Function>
+csabase::Binder<Object, Function>
+csabase::bind(Object object, Function function)
 {
-private:
-    Analyser* d_analyser;
-    void      (*d_function)(Analyser*, T0);
-
-public:
-    Binder(Analyser* analyser, void (*function)(Analyser*, T0))
-        : d_analyser(analyser)
-        , d_function(function)
-    {
-    }
-    void operator()(T0 a0) const
-    {
-        (d_function)(d_analyser, a0);
-    }
-};
-
-// ----------------------------------------------------------------------------
-
-template <typename T0, typename T1>
-class csabase::Binder<void(*)(csabase::Analyser*, T0, T1)>
-{
-private:
-    Analyser* d_analyser;
-    void      (*d_function)(Analyser*, T0, T1);
-
-public:
-    Binder(Analyser* analyser, void (*function)(Analyser*, T0, T1))
-        : d_analyser(analyser)
-        , d_function(function)
-    {
-    }
-    void operator()(T0 a0, T1 a1) const
-    {
-        (d_function)(d_analyser, a0, a1);
-    }
-};
-
-// ----------------------------------------------------------------------------
-
-template <typename T0, typename T1, typename T2>
-class csabase::Binder<void(*)(csabase::Analyser*, T0, T1, T2)>
-{
-private:
-    Analyser* d_analyser;
-    void      (*d_function)(Analyser*, T0, T1, T2);
-
-public:
-    Binder(Analyser* analyser, void (*function)(Analyser*, T0, T1, T2))
-        : d_analyser(analyser)
-        , d_function(function)
-    {
-    }
-    void operator()(T0 a0, T1 a1, T2 a2) const
-    {
-        (d_function)(d_analyser, a0, a1, a2);
-    }
-};
-
-// ----------------------------------------------------------------------------
-
-template <typename Function>
-csabase::Binder<Function>
-csabase::bind(csabase::Analyser* analyser, Function function)
-{
-    return csabase::Binder<Function>(analyser, function);
+    return csabase::Binder<Object, Function>(object, function);
 }
 
 // ----------------------------------------------------------------------------
