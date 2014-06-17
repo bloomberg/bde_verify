@@ -7,6 +7,8 @@
 #include <csabase_registercheck.h>
 #include <csabase_util.h>
 #include <llvm/Support/Regex.h>
+#include <clang/ASTMatchers/ASTMatchers.h>
+#include <clang/ASTMatchers/ASTMatchFinder.h>
 #include <string>
 
 #ident "$Id$"
@@ -19,6 +21,7 @@ static std::string const check_name("spell-check");
 
 using namespace clang;
 using namespace csabase;
+using namespace clang::ast_matchers;
 
 #if SPELL_CHECK
 
@@ -27,7 +30,7 @@ using namespace csabase;
 namespace
 {
 
-struct comments
+struct data
     // Data holding seen comments.
 {
     typedef std::vector<SourceRange> Ranges;
@@ -37,10 +40,10 @@ struct comments
     void append(Analyser& analyser, SourceRange range);
 };
 
-void comments::append(Analyser& analyser, SourceRange range)
+void data::append(Analyser& analyser, SourceRange range)
 {
     SourceManager& m = analyser.manager();
-    comments::Ranges& c = d_comments[m.getFilename(range.getBegin())];
+    data::Ranges& c = d_comments[m.getFilename(range.getBegin())];
     if (c.size() != 0 &&
         csabase::areConsecutive(m, c.back(), range)) {
         c.back().setEnd(range.getEnd());
@@ -49,13 +52,13 @@ void comments::append(Analyser& analyser, SourceRange range)
     }
 }
 
-struct files
+struct report
     // Callback object for inspecting files.
 {
     Analyser& d_analyser;                   // Analyser object.
 
-    files(Analyser& analyser);
-        // Create a 'files' object, accessing the specified 'analyser'.
+    report(Analyser& analyser);
+        // Create a 'report' object, accessing the specified 'analyser'.
 
     void operator()(SourceRange range);
         // The specified comment 'range' is added to the stored data.
@@ -63,7 +66,7 @@ struct files
     void operator()();
         // Inspect all comments.
 
-    void check_spelling(AspellSpeller *spell_checker, SourceRange range);
+    void check_spelling(SourceRange range);
         // Spell check the comment.
 
     void break_for_spelling(std::vector<SourceRange>* words,
@@ -71,21 +74,30 @@ struct files
         // Break the comment at the specified 'range' into words suitable for
         // spell checking and load them into the specified 'words' vector.
 
+    void check_parameters();
+        // Check that function parameters consist of real words.
+
+    void match_parameter(const BoundNodes &nodes);
+        // Callback for named function parameters.
+
     typedef std::map<std::string, std::vector<SourceRange> > Errors;
     Errors d_errors;
+
+    AspellSpeller *spell_checker;
 };
 
-files::files(Analyser& analyser)
+report::report(Analyser& analyser)
 : d_analyser(analyser)
+, spell_checker(0)
 {
 }
 
-void files::operator()(SourceRange range)
+void report::operator()(SourceRange range)
 {
-    d_analyser.attachment<comments>().append(d_analyser, range);
+    d_analyser.attachment<data>().append(d_analyser, range);
 }
 
-void files::operator()()
+void report::operator()()
 {
     AspellConfig *spell_config = new_aspell_config();
     aspell_config_replace(spell_config, "lang", "en_US");
@@ -95,7 +107,6 @@ void files::operator()()
     aspell_config_replace(spell_config, "add-extra-dicts", "en_GB");
     aspell_config_replace(spell_config, "guess", "true");
     AspellCanHaveError *possible_err = new_aspell_speller(spell_config);
-    AspellSpeller *spell_checker = 0;
     if (aspell_error_number(possible_err) != 0) {
         clang::SourceManager& m = d_analyser.manager();
         d_analyser.report(m.getLocForStartOfFile(m.getMainFileID()),
@@ -113,25 +124,12 @@ void files::operator()()
             spell_checker, good_words[i].data(), good_words[i].size());
     }
 
-    comments::Comments& file_comments =
-        d_analyser.attachment<comments>().d_comments;
-
-    for (comments::Comments::iterator file_begin = file_comments.begin(),
-                                      file_end   = file_comments.end(),
-                                      file_itr   = file_begin;
-         file_itr != file_end;
-         ++file_itr) {
-        const std::string &file_name = file_itr->first;
-        if (!d_analyser.is_component(file_name)) {
-            continue;
-        }
-        comments::Ranges& comments = file_itr->second;
-        for (comments::Ranges::iterator comments_begin = comments.begin(),
-                                        comments_end   = comments.end(),
-                                        comments_itr   = comments_begin;
-             comments_itr != comments_end;
-             ++comments_itr) {
-            check_spelling(spell_checker, *comments_itr);
+    for (const auto& file_comment : d_analyser.attachment<data>().d_comments) {
+        const std::string &file_name = file_comment.first;
+        if (d_analyser.is_component(file_comment.first)) {
+            for (const auto& comment : file_comment.second) {
+                check_spelling(comment);
+            }
         }
     }
 
@@ -153,11 +151,13 @@ void files::operator()()
         }
     }
 
+    check_parameters();
+
     delete_aspell_config(spell_config);
 }
 
 void
-files::break_for_spelling(std::vector<SourceRange>* words, SourceRange range)
+report::break_for_spelling(std::vector<SourceRange>* words, SourceRange range)
 {
     llvm::StringRef comment = d_analyser.get_source(range, true);
     words->clear();
@@ -260,7 +260,7 @@ files::break_for_spelling(std::vector<SourceRange>* words, SourceRange range)
     }
 }
 
-void files::check_spelling(AspellSpeller *spell_checker, SourceRange comment)
+void report::check_spelling(SourceRange comment)
 {
     std::vector<SourceRange> words;
     break_for_spelling(&words, comment);
@@ -273,11 +273,54 @@ void files::check_spelling(AspellSpeller *spell_checker, SourceRange comment)
     }
 }
 
+const internal::DynTypedMatcher &
+parameter_matcher()
+    // Return an AST matcher which looks for named parameters.
+{
+    static const internal::DynTypedMatcher matcher = decl(forEachDescendant(
+        parmVarDecl(matchesName(".")).bind("parm")
+    ));
+    return matcher;
+}
+
+void report::match_parameter(const BoundNodes &nodes)
+{
+    const ParmVarDecl *parm = nodes.getNodeAs<ParmVarDecl>("parm");
+    if (d_analyser.is_component(parm)) {
+        llvm::StringRef name = parm->getName();
+        static llvm::Regex words("[[:digit:]_]*([[:alpha:]][[:lower:]]*)");
+        llvm::SmallVector<llvm::StringRef, 7> matches;
+        size_t pos = 0;
+        while (words.match(name.substr(pos), &matches)) {
+            llvm::StringRef word = matches[1];
+            pos = name.find(word, pos);
+            if (!aspell_speller_check(
+                spell_checker, word.data(), word.size())) {
+                d_analyser.report(
+                        parm->getLocation().getLocWithOffset(pos),
+                        check_name, "SP03",
+                        "Parameter name contains misspelled word '%0'")
+                    << word;
+            }
+            pos += word.size();
+        }
+    }
+}
+
+void report::check_parameters()
+{
+    MatchFinder mf;
+    OnMatch<report, &report::match_parameter> m1(this);
+    mf.addDynamicMatcher(parameter_matcher(), &m1);
+    mf.match(*d_analyser.context()->getTranslationUnitDecl(),
+             *d_analyser.context());
+}
+
 void subscribe(Analyser& analyser, Visitor&, PPObserver& observer)
     // Hook up the callback functions.
 {
-    analyser.onTranslationUnitDone += files(analyser);
-    observer.onComment             += files(analyser);
+    analyser.onTranslationUnitDone += report(analyser);
+    observer.onComment             += report(analyser);
 }
 
 }  // close anonymous namespace
