@@ -111,7 +111,7 @@ void report::operator()()
         clang::SourceManager& m = d_analyser.manager();
         d_analyser.report(m.getLocForStartOfFile(m.getMainFileID()),
                           check_name, "SP02",
-                          "Cannot start spell checker")
+                          "Cannot start spell checker: %0")
             << aspell_error_message(possible_err);
             return;                                                   // RETURN
     }
