@@ -64,6 +64,9 @@ struct data
     std::map<std::string, DoneMap> d_done;
 
     std::map<std::string, bool> d_in_dotdot;
+
+    typedef std::pair<Decl *, Range> Consecutive;
+    std::vector<Consecutive> d_consecutive;
 };
 
 struct report : public RecursiveASTVisitor<report>
@@ -102,6 +105,19 @@ struct report : public RecursiveASTVisitor<report>
     bool WalkUpFromParenListExpr(ParenListExpr *list);
     bool WalkUpFromSwitchStmt(SwitchStmt *stmt);
     bool WalkUpFromSwitchCase(SwitchCase *sc);
+
+    bool VisitDeclStmt(DeclStmt *ds);
+    bool VisitFieldDecl(FieldDecl *fd);
+
+    void do_consecutive();
+        // Issue warnings for misaligned declarators and clear the existing
+        // declarator set.
+
+    void add_consecutive(Decl *decl, SourceRange sr);
+        // Add the specified 'decl' and 'sr' to the accumulating set of
+        // consecutive declarators if 'decl' is not null.  If 'decl' is null or
+        // not consecutive with the existing set, call 'do_consecutive' to
+        // process that set first.
 };
 
 report::report(Analyser& analyser)
@@ -370,6 +386,66 @@ bool report::WalkUpFromSwitchCase(SwitchCase *stmt)
     return RecursiveASTVisitor<report>::WalkUpFromSwitchCase(stmt);
 }
 
+void report::do_consecutive()
+{
+    if (d_data.d_consecutive.size() > 1) {
+        SourceLocation sl = d_data.d_consecutive.front().first->getLocation();
+        Location loc(d_analyser.manager(), sl);
+        for (size_t i = 1; i < d_data.d_consecutive.size(); ++i) {
+            SourceLocation sli = d_data.d_consecutive[i].first->getLocation();
+            Location loci(d_analyser.manager(), sli);
+            if (loci.column() > loc.column()) {
+                sl = sli;
+                loc = loci;
+            }
+        }
+        for (size_t i = 0; i < d_data.d_consecutive.size(); ++i) {
+            SourceLocation sli = d_data.d_consecutive[i].first->getLocation();
+            Location loci(d_analyser.manager(), sli);
+            if (loc.column() != loci.column()) {
+                d_analyser.report(sli, check_name, "IND04",
+                                  "Declarators on consecutive lines must be "
+                                  "aligned");
+                d_analyser.report(sl, check_name, "IND04",
+                                  "Rightmost declarator is here",
+                                  false, DiagnosticsEngine::Note);
+            }
+        }
+    }
+    d_data.d_consecutive.clear();
+}
+
+void report::add_consecutive(Decl *decl, SourceRange sr)
+{
+    Range r(d_analyser.manager(), sr);
+    if (   !decl
+        || !r
+        || (   d_data.d_consecutive.size() > 0
+            && d_data.d_consecutive.back().second.to().line() + 1 !=
+                                                  r.from().line())) {
+        do_consecutive();
+    }
+    if (decl && r) {
+        d_data.d_consecutive.push_back(std::make_pair(decl, r));
+    }
+}
+
+bool report::VisitDeclStmt(DeclStmt *ds)
+{
+    if (ds->isSingleDecl()) {
+        add_consecutive(ds->getSingleDecl(), ds->getSourceRange());
+    }
+
+    return true;
+}
+
+bool report::VisitFieldDecl(FieldDecl *fd)
+{
+    add_consecutive(fd, fd->getSourceRange());
+
+    return true;
+}
+
 void report::operator()(const Token &token,
                         const MacroDirective *md,
                         SourceRange range,
@@ -460,6 +536,9 @@ void report::process(Range r, bool greater)
 void report::operator()()
 {
     TraverseDecl(d_analyser.context()->getTranslationUnitDecl());
+
+    // Process remnant declarators.
+    add_consecutive(0, SourceRange());
 }
 
 void subscribe(Analyser& analyser, Visitor& visitor, PPObserver& observer)
