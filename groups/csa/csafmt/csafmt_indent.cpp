@@ -103,7 +103,6 @@ struct report : public RecursiveASTVisitor<report>
     bool WalkUpFromAccessSpecDecl(AccessSpecDecl *as);
     bool WalkUpFromCallExpr(CallExpr *call);
     bool WalkUpFromParenListExpr(ParenListExpr *list);
-    bool WalkUpFromSwitchStmt(SwitchStmt *stmt);
     bool WalkUpFromSwitchCase(SwitchCase *sc);
 
     bool VisitDeclStmt(DeclStmt *ds);
@@ -364,15 +363,6 @@ bool report::WalkUpFromParenListExpr(ParenListExpr *list)
     return RecursiveASTVisitor<report>::WalkUpFromParenListExpr(list);
 }
 
-bool report::WalkUpFromSwitchStmt(SwitchStmt *stmt)
-{
-    if (!stmt->getLocStart().isMacroID()) {
-        //add_indent(stmt->getBody()->getLocStart(), -4);
-        //add_indent(stmt->getBody()->getLocEnd(), +4);
-    }
-    return RecursiveASTVisitor<report>::WalkUpFromSwitchStmt(stmt);
-}
-
 bool report::WalkUpFromSwitchCase(SwitchCase *stmt)
 {
     if (!stmt->getLocStart().isMacroID()) {
@@ -420,9 +410,9 @@ void report::add_consecutive(Decl *decl, SourceRange sr)
     Range r(d_analyser.manager(), sr);
     if (   !decl
         || !r
-        || (   d_data.d_consecutive.size() > 0
-            && d_data.d_consecutive.back().second.to().line() + 1 !=
-                                                  r.from().line())) {
+        || d_data.d_consecutive.size() == 0
+        || d_data.d_consecutive.back().second.to().line() + 1 !=
+                                                             r.from().line()) {
         do_consecutive();
     }
     if (decl && r) {
@@ -432,7 +422,9 @@ void report::add_consecutive(Decl *decl, SourceRange sr)
 
 bool report::VisitDeclStmt(DeclStmt *ds)
 {
-    if (ds->isSingleDecl()) {
+    if (ds->isSingleDecl() &&
+        d_analyser.get_parent<Stmt>(ds) ==
+        d_analyser.get_parent<CompoundStmt>(ds)) {
         add_consecutive(ds->getSingleDecl(), ds->getSourceRange());
     }
 
