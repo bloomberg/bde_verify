@@ -65,7 +65,7 @@ struct data
 
     std::map<std::string, bool> d_in_dotdot;
 
-    typedef std::pair<Decl *, Range> Consecutive;
+    typedef std::pair<NamedDecl *, Range> Consecutive;
     std::vector<Consecutive> d_consecutive;
 };
 
@@ -113,7 +113,7 @@ struct report : public RecursiveASTVisitor<report>
         // Issue warnings for misaligned declarators and clear the existing
         // declarator set.
 
-    void add_consecutive(Decl *decl, SourceRange sr);
+    void add_consecutive(NamedDecl *decl, SourceRange sr);
         // Add the specified 'decl' and 'sr' to the accumulating set of
         // consecutive declarators if 'decl' is not null.  If 'decl' is null or
         // not consecutive with the existing set, call 'do_consecutive' to
@@ -380,20 +380,26 @@ bool report::WalkUpFromSwitchCase(SwitchCase *stmt)
 void report::do_consecutive()
 {
     if (d_data.d_consecutive.size() > 1) {
-        SourceLocation sl = d_data.d_consecutive.front().first->getLocation();
+        NamedDecl *decl = d_data.d_consecutive.front().first;
+        SourceLocation sl = decl->getLocation();
         Location loc(d_analyser.manager(), sl);
         for (size_t i = 1; i < d_data.d_consecutive.size(); ++i) {
-            SourceLocation sli = d_data.d_consecutive[i].first->getLocation();
+            NamedDecl *decli = d_data.d_consecutive[i].first;
+            SourceLocation sli = decli->getLocation();
             Location loci(d_analyser.manager(), sli);
             if (loci.column() > loc.column()) {
+                decl = decli;
                 sl = sli;
                 loc = loci;
             }
         }
         for (size_t i = 0; i < d_data.d_consecutive.size(); ++i) {
-            SourceLocation sli = d_data.d_consecutive[i].first->getLocation();
+            NamedDecl *decli = d_data.d_consecutive[i].first;
+            SourceLocation sli = decli->getLocation();
             Location loci(d_analyser.manager(), sli);
-            if (loc.column() != loci.column()) {
+            if (loc.column() != loci.column() &&
+                loc.column() + decl->getNameAsString().length() !=
+                loci.column() + decli->getNameAsString().length()) {
                 d_analyser.report(sli, check_name, "IND04",
                                   "Declarators on consecutive lines must be "
                                   "aligned");
@@ -406,7 +412,7 @@ void report::do_consecutive()
     d_data.d_consecutive.clear();
 }
 
-void report::add_consecutive(Decl *decl, SourceRange sr)
+void report::add_consecutive(NamedDecl *decl, SourceRange sr)
 {
     Range r(d_analyser.manager(), sr);
     if (   !decl
