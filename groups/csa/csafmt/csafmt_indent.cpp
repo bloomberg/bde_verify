@@ -107,6 +107,7 @@ struct report : public RecursiveASTVisitor<report>
 
     bool VisitDeclStmt(DeclStmt *ds);
     bool VisitFieldDecl(FieldDecl *fd);
+    bool VisitVarDecl(VarDecl *vd);
 
     void do_consecutive();
         // Issue warnings for misaligned declarators and clear the existing
@@ -422,10 +423,16 @@ void report::add_consecutive(Decl *decl, SourceRange sr)
 
 bool report::VisitDeclStmt(DeclStmt *ds)
 {
-    if (ds->isSingleDecl() &&
-        d_analyser.get_parent<Stmt>(ds) ==
+    if (d_analyser.get_parent<Stmt>(ds) ==
         d_analyser.get_parent<CompoundStmt>(ds)) {
-        add_consecutive(ds->getSingleDecl(), ds->getSourceRange());
+        DeclStmt::decl_iterator b = ds->decl_begin();
+        DeclStmt::decl_iterator e = ds->decl_end();
+        while (b != e) {
+            if (VarDecl *var = llvm::dyn_cast<VarDecl>(*b++)) {
+                add_consecutive(var, ds->getSourceRange());
+                break;
+            }
+        }
     }
 
     return true;
@@ -434,6 +441,17 @@ bool report::VisitDeclStmt(DeclStmt *ds)
 bool report::VisitFieldDecl(FieldDecl *fd)
 {
     add_consecutive(fd, fd->getSourceRange());
+
+    return true;
+}
+
+bool report::VisitVarDecl(VarDecl *vd)
+{
+    if (llvm::dyn_cast<NamespaceDecl>(vd->getDeclContext()) ||
+        llvm::dyn_cast<LinkageSpecDecl>(vd->getDeclContext()) ||
+        llvm::dyn_cast<TranslationUnitDecl>(vd->getDeclContext())) {
+        add_consecutive(vd, vd->getSourceRange());
+    }
 
     return true;
 }
