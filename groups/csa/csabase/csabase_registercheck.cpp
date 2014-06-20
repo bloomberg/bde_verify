@@ -1,15 +1,14 @@
 // csabase_registercheck.cpp                                          -*-C++-*-
-// -----------------------------------------------------------------------------
-// Copyright 2012 Dietmar Kuehl http://www.dietmar-kuehl.de              
-// Distributed under the Boost Software License, Version 1.0. (See file  
-// LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt).     
-// -----------------------------------------------------------------------------
 
 #include <csabase_registercheck.h>
 #include <csabase_binder.h>
 #include <csabase_checkregistry.h>
 #include <csabase_visitor.h>
-#ident "$Id$"
+
+namespace clang { class Decl; }
+namespace clang { class Expr; }
+namespace clang { class Stmt; }
+namespace utils { template <typename Signature> class event; }
 
 using namespace csabase;
 using namespace clang;
@@ -45,11 +44,11 @@ void add_to_event<T>::operator()(Analyser& a, Visitor& v, PPObserver&)
 
 // -----------------------------------------------------------------------------
 
-namespace csabase {
-
+namespace csabase
+{
 #define REGISTER(D)                                                  \
     template <>                                                      \
-    RegisterCheck::RegisterCheck<D>(                                 \
+    RegisterCheck::RegisterCheck(                                    \
         std::string const& name, void (*check)(Analyser&, D const*)) \
     {                                                                \
         CheckRegistry::add_check(                                    \
@@ -67,11 +66,32 @@ STMT(Stmt, )
 #include "clang/AST/StmtNodes.inc"
 REGISTER(Expr)
 
-csabase::RegisterCheck::RegisterCheck(
-    std::string const& name,
-    CheckRegistry::Subscriber subscriber)
+RegisterCheck::RegisterCheck(
+    std::string const & name, CheckRegistry::Subscriber subscriber)
 {
     CheckRegistry::add_check(name, subscriber);
 }
 
 }
+
+// ----------------------------------------------------------------------------
+// Copyright (C) 2014 Bloomberg Finance L.P.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to
+// deal in the Software without restriction, including without limitation the
+// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+// sell copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+// IN THE SOFTWARE.
+// ----------------------------- END-OF-FILE ----------------------------------

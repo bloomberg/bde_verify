@@ -1,35 +1,38 @@
 // csafmt_banner.cpp                                                  -*-C++-*-
-// ----------------------------------------------------------------------------
 
+#include <clang/Basic/Diagnostic.h>
+#include <clang/Basic/SourceLocation.h>
+#include <clang/Basic/SourceManager.h>
+#include <clang/Rewrite/Core/Rewriter.h>
 #include <csabase_analyser.h>
-#include <csabase_location.h>
+#include <csabase_config.h>
+#include <csabase_diagnostic_builder.h>
 #include <csabase_ppobserver.h>
 #include <csabase_registercheck.h>
 #include <csabase_util.h>
+#include <ext/alloc_traits.h>
+#include <llvm/ADT/SmallVector.h>
+#include <llvm/ADT/StringRef.h>
 #include <llvm/Support/Regex.h>
-#include <clang/Rewrite/Core/Rewriter.h>
+#include <stddef.h>
+#include <stdlib.h>
+#include <utils/event.hpp>
+#include <utils/function.hpp>
+#include <map>
 #include <string>
-#include <set>
+#include <utility>
 #include <vector>
 
-#ident "$Id$"
+namespace csabase { class Visitor; }
+
+using namespace csabase;
+using namespace clang;
 
 // ----------------------------------------------------------------------------
 
 static std::string const check_name("banner");
 
 // ----------------------------------------------------------------------------
-
-using clang::FileID;
-using clang::FixItHint;
-using clang::SourceLocation;
-using clang::SourceManager;
-using clang::SourceRange;
-using csabase::Analyser;
-using csabase::Location;
-using csabase::PPObserver;
-using csabase::Range;
-using csabase::Visitor;
 
 namespace
 {
@@ -48,7 +51,7 @@ void comments::append(Analyser& analyser, SourceRange range)
 {
     SourceManager& m = analyser.manager();
     comments::Ranges& c = d_comments[m.getFilename(range.getBegin())];
-    if (c.size() != 0 && csabase::areConsecutive(m, c.back(), range)) {
+    if (c.size() != 0 && areConsecutive(m, c.back(), range)) {
         c.back().setEnd(range.getEnd());
     } else {
         c.push_back(range);
@@ -178,7 +181,7 @@ void files::check_comment(SourceRange comment_range)
             d_analyser.report(sl, check_name, "BAN03", error);
             d_analyser.report(sl, check_name, "BAN03",
                               "Correct text is\n%0",
-                              false, clang::DiagnosticsEngine::Note)
+                              false, DiagnosticsEngine::Note)
                 << expected_text;
             SourceRange line_range = d_analyser.get_line_range(sl);
             if (line_range.isValid()) {
@@ -202,7 +205,7 @@ void files::check_comment(SourceRange comment_range)
             d_analyser.report(bottom_loc,
                               check_name, "BAN04",
                               "Correct version is\n%0",
-                              false, clang::DiagnosticsEngine::Note)
+                              false, DiagnosticsEngine::Note)
                 << expected_text;
             SourceRange line_range = d_analyser.get_line_range(bottom_loc);
             if (line_range.isValid()) {
@@ -246,4 +249,26 @@ void subscribe(Analyser& analyser, Visitor&, PPObserver& observer)
 
 // ----------------------------------------------------------------------------
 
-static csabase::RegisterCheck c1(check_name, &subscribe);
+static RegisterCheck c1(check_name, &subscribe);
+
+// ----------------------------------------------------------------------------
+// Copyright (C) 2014 Bloomberg Finance L.P.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to
+// deal in the Software without restriction, including without limitation the
+// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+// sell copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+// IN THE SOFTWARE.
+// ----------------------------- END-OF-FILE ----------------------------------

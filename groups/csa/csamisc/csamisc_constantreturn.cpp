@@ -1,17 +1,23 @@
-// csamisc_constantreturn.t.cpp                                       -*-C++-*-
-// -----------------------------------------------------------------------------
-// Copyright 2011 Dietmar Kuehl http://www.dietmar-kuehl.de              
-// Distributed under the Boost Software License, Version 1.0. (See file  
-// LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt).     
-// -----------------------------------------------------------------------------
+// csamisc_constantreturn.cpp                                         -*-C++-*-
 
-#include <csabase_analyser.h>
-#include <csabase_registercheck.h>
-#include <csabase_abstractvisitor.h>
 #include <clang/AST/Decl.h>
+#include <clang/AST/DeclarationName.h>
+#include <clang/AST/Expr.h>
+#include <clang/AST/Redeclarable.h>
 #include <clang/AST/Stmt.h>
-#include <algorithm>
-#ident "$Id$"
+#include <clang/AST/StmtIterator.h>
+#include <clang/Basic/Diagnostic.h>
+#include <clang/Basic/SourceLocation.h>
+#include <csabase_analyser.h>
+#include <csabase_diagnostic_builder.h>
+#include <csabase_registercheck.h>
+#include <llvm/ADT/APSInt.h>
+#include <llvm/Support/Casting.h>
+#include <iterator>
+#include <string>
+
+using namespace csabase;
+using namespace clang;
 
 // -----------------------------------------------------------------------------
 
@@ -19,25 +25,24 @@ static std::string const check_name("constant-return");
 
 // -----------------------------------------------------------------------------
 
-static void
-check(csabase::Analyser& analyser, clang::FunctionDecl const* decl)
+static void check(Analyser& analyser, FunctionDecl const* decl)
 {
     if (analyser.is_component(decl)
         && decl->hasBody()
         && decl->getBody()
         && decl->getIdentifier())
     {
-        clang::Stmt* stmt(decl->getBody());
-        while (llvm::dyn_cast<clang::CompoundStmt>(stmt) && std::distance(stmt->child_begin(), stmt->child_end()) == 1)
-        {
+        Stmt* stmt(decl->getBody());
+        while (llvm::dyn_cast<CompoundStmt>(stmt) &&
+               std::distance(stmt->child_begin(), stmt->child_end()) == 1) {
             stmt = *stmt->child_begin();
         }
 
-        if (llvm::dyn_cast<clang::ReturnStmt>(stmt)
-            && llvm::dyn_cast<clang::ReturnStmt>(stmt)->getRetValue())
+        if (llvm::dyn_cast<ReturnStmt>(stmt)
+            && llvm::dyn_cast<ReturnStmt>(stmt)->getRetValue())
         {
-            clang::ReturnStmt* ret(llvm::dyn_cast<clang::ReturnStmt>(stmt));
-            clang::Expr* expr(ret->getRetValue());
+            ReturnStmt* ret(llvm::dyn_cast<ReturnStmt>(stmt));
+            Expr* expr(ret->getRetValue());
             llvm::APSInt result;
             if (!expr->isValueDependent() &&
                 expr->isIntegerConstantExpr(result, *analyser.context()))
@@ -48,12 +53,14 @@ check(csabase::Analyser& analyser, clang::FunctionDecl const* decl)
                     << decl->getNameAsString()
                     << result.toString(10)
                     << decl->getNameInfo().getSourceRange();
-                for (clang::FunctionDecl::redecl_iterator it(decl->redecls_begin()), end(decl->redecls_end()); it != end; ++it)
-                {
+                for (FunctionDecl::redecl_iterator it(decl->redecls_begin()),
+                     end(decl->redecls_end());
+                     it != end;
+                     ++it) {
                     analyser.report(*it, check_name, "CR01",
                                     "Declaration of '%0' (which always "
                                     "returns the constant %1)", false,
-                                    clang::DiagnosticsEngine::Note)
+                                    DiagnosticsEngine::Note)
                         << decl->getNameAsString()
                         << result.toString(10)
                         << decl->getNameInfo().getSourceRange();
@@ -65,4 +72,26 @@ check(csabase::Analyser& analyser, clang::FunctionDecl const* decl)
 
 // -----------------------------------------------------------------------------
 
-static csabase::RegisterCheck register_check(check_name, &check);
+static RegisterCheck register_check(check_name, &check);
+
+// ----------------------------------------------------------------------------
+// Copyright (C) 2014 Bloomberg Finance L.P.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to
+// deal in the Software without restriction, including without limitation the
+// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+// sell copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+// IN THE SOFTWARE.
+// ----------------------------- END-OF-FILE ----------------------------------

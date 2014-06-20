@@ -1,26 +1,41 @@
-// -*-c++-*- checks/allocator_forward.cpp
-// -----------------------------------------------------------------------------
-// Copyright 2011 Dietmar Kuehl http://www.dietmar-kuehl.de
-// Distributed under the Boost Software License, Version 1.0. (See file
-// LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt).
-// -----------------------------------------------------------------------------
+// csabbg_allocatorforward.cpp                                        -*-C++-*-
 
-#include <csabase_abstractvisitor.h>
+#include <clang/AST/ASTContext.h>
+#include <clang/AST/Decl.h>
+#include <clang/AST/DeclBase.h>
+#include <clang/AST/DeclCXX.h>
+#include <clang/AST/DeclTemplate.h>
+#include <clang/AST/Expr.h>
+#include <clang/AST/ExprCXX.h>
+#include <clang/AST/Stmt.h>
+#include <clang/AST/TemplateBase.h>
+#include <clang/AST/TemplateName.h>
+#include <clang/AST/Type.h>
+#include <clang/ASTMatchers/ASTMatchFinder.h>
+#include <clang/ASTMatchers/ASTMatchers.h>
+#include <clang/ASTMatchers/ASTMatchersInternal.h>
+#include <clang/ASTMatchers/ASTMatchersMacros.h>
+#include <clang/Basic/SourceLocation.h>
+#include <clang/Basic/Specifiers.h>
 #include <csabase_analyser.h>
-#include <csabase_debug.h>
-#include <csabase_format.h>
+#include <csabase_diagnostic_builder.h>
 #include <csabase_registercheck.h>
 #include <csabase_util.h>
-#include <llvm/Support/raw_ostream.h>
-#include <clang/ASTMatchers/ASTMatchers.h>
-#include <clang/AST/ExprCXX.h>
-#include <clang/Lex/Lexer.h>
-#include <clang/Sema/Sema.h>
+#include <llvm/ADT/APSInt.h>
+#include <llvm/ADT/Optional.h>
+#include <llvm/ADT/VariadicFunction.h>
+#include <llvm/Support/Casting.h>
+#include <utils/event.hpp>
+#include <utils/function.hpp>
 #include <map>
 #include <set>
 #include <sstream>
+#include <string>
+#include <utility>
+#include <vector>
 
-#ident "$Id$"
+namespace csabase { class PPObserver; }
+namespace csabase { class Visitor; }
 
 using namespace clang;
 using namespace clang::ast_matchers;
@@ -271,7 +286,7 @@ bool report::last_arg_is_explicit(const CXXConstructExpr* call)
 {
     unsigned n = call ? call->getNumArgs() : 0;
 
-    return n == 0 || !call->getArg(n - 1)->isDefaultArgument();   // RETURN
+    return n == 0 || !call->getArg(n - 1)->isDefaultArgument();
 }
 
 bool report::takes_allocator(QualType type)
@@ -294,26 +309,26 @@ bool report::takes_allocator(CXXConstructorDecl const* constructor)
     unsigned n = constructor->getNumParams();
 
     if (n == 0) {
-        return false;                                             // RETURN
+        return false;                                                 // RETURN
     }
 
     QualType type = constructor->getParamDecl(n - 1)->getType();
 
     if (is_allocator(type)) {
-        return data_.ctor_takes_allocator_[constructor] = true;   // RETURN
+        return data_.ctor_takes_allocator_[constructor] = true;       // RETURN
     }
 
     const ReferenceType *ref =
         llvm::dyn_cast<ReferenceType>(type.getTypePtr());
 
     if (!ref) {
-        return false;                                             // RETURN
+        return false;                                                 // RETURN
     }
 
     type = ref->getPointeeType();
 
     if (!type.isConstQualified()) {
-        return false;                                             // RETURN
+        return false;                                                 // RETURN
     }
 
     return data_.ctor_takes_allocator_[constructor] = takes_allocator(type);
@@ -976,3 +991,25 @@ static RegisterCheck c3(check_name, &gather_ctor_exprs);
 static RegisterCheck c4(check_name, &subscribe);
 static RegisterCheck c8(check_name, &gather_return_stmts);
 static RegisterCheck c1(check_name, &gather_var_decls);
+
+// ----------------------------------------------------------------------------
+// Copyright (C) 2014 Bloomberg Finance L.P.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to
+// deal in the Software without restriction, including without limitation the
+// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+// sell copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+// IN THE SOFTWARE.
+// ----------------------------- END-OF-FILE ----------------------------------

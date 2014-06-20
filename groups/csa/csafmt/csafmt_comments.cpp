@@ -1,31 +1,40 @@
 // csafmt_comments.cpp                                                -*-C++-*-
-// ----------------------------------------------------------------------------
 
+#include <clang/Basic/Diagnostic.h>
+#include <clang/Basic/SourceLocation.h>
+#include <clang/Basic/SourceManager.h>
 #include <csabase_analyser.h>
-#include <csabase_debug.h>
+#include <csabase_config.h>
+#include <csabase_diagnostic_builder.h>
 #include <csabase_location.h>
 #include <csabase_ppobserver.h>
 #include <csabase_registercheck.h>
 #include <csabase_util.h>
+#include <ext/alloc_traits.h>
+#include <llvm/ADT/SmallVector.h>
+#include <llvm/ADT/StringRef.h>
+#include <llvm/ADT/Twine.h>
 #include <llvm/Support/Regex.h>
+#include <stddef.h>
+#include <stdlib.h>
+#include <utils/event.hpp>
+#include <utils/function.hpp>
+#include <map>
+#include <set>
 #include <string>
+#include <utility>
+#include <vector>
 
-#ident "$Id$"
+namespace csabase { class Visitor; }
+
+using namespace csabase;
+using namespace clang;
 
 // ----------------------------------------------------------------------------
 
 static std::string const check_name("comments");
 
 // ----------------------------------------------------------------------------
-
-using clang::SourceLocation;
-using clang::SourceManager;
-using clang::SourceRange;
-using csabase::Analyser;
-using csabase::Location;
-using csabase::PPObserver;
-using csabase::Range;
-using csabase::Visitor;
 
 namespace
 {
@@ -47,8 +56,7 @@ void comments::append(Analyser& analyser, SourceRange range)
 {
     SourceManager& m = analyser.manager();
     comments::Ranges& c = d_comments[m.getFilename(range.getBegin())];
-    if (c.size() != 0 &&
-        csabase::areConsecutive(m, c.back(), range)) {
+    if (c.size() != 0 && areConsecutive(m, c.back(), range)) {
         c.back().setEnd(range.getEnd());
     } else {
         c.push_back(range);
@@ -149,7 +157,7 @@ void files::check_fvs(SourceRange range)
     llvm::StringRef s;
     while (fvs.match(s = comment.drop_front(offset), &matches)) {
         llvm::StringRef text = matches[0];
-        std::pair<size_t, size_t> m = csabase::mid_match(s, text);
+        std::pair<size_t, size_t> m = mid_match(s, text);
         size_t matchpos = offset + m.first;
         offset = matchpos + text.size();
         d_analyser.report(range.getBegin().getLocWithOffset(matchpos),
@@ -175,7 +183,7 @@ void files::check_pp(SourceRange range)
     llvm::StringRef s;
     while (pp.match(s = comment.drop_front(offset), &matches)) {
         llvm::StringRef text = matches[0];
-        std::pair<size_t, size_t> m = csabase::mid_match(s, text);
+        std::pair<size_t, size_t> m = mid_match(s, text);
         size_t matchpos = offset + m.first;
         offset = matchpos + text.size();
         d_analyser.report(range.getBegin().getLocWithOffset(matchpos),
@@ -201,7 +209,7 @@ void files::check_mr(SourceRange range)
     llvm::StringRef s;
     while (mr.match(s = comment.drop_front(offset), &matches)) {
         llvm::StringRef text = matches[0];
-        std::pair<size_t, size_t> m = csabase::mid_match(s, text);
+        std::pair<size_t, size_t> m = mid_match(s, text);
         size_t matchpos = offset + m.first;
         offset = matchpos + text.size();
         d_analyser.report(range.getBegin().getLocWithOffset(matchpos),
@@ -255,7 +263,7 @@ void files::report_bubble(const Range &r, llvm::StringRef text)
             << SourceRange(r.from().location(), r.to().location());
         d_analyser.report(r.from().location(), check_name, "BADB01",
                           "Correct format is%0",
-                          false, clang::DiagnosticsEngine::Note)
+                          false, DiagnosticsEngine::Note)
             << bubble(text, r.from().column());
     }
 }
@@ -272,7 +280,7 @@ void files::check_bubble(SourceRange range)
 
     while (good_bubble.match(s = comment.drop_front(offset), &matches)) {
         llvm::StringRef text = matches[0];
-        std::pair<size_t, size_t> m = csabase::mid_match(s, text);
+        std::pair<size_t, size_t> m = mid_match(s, text);
         size_t matchpos = offset + m.first;
         offset = matchpos + text.size();
         if (matches[1].size() < left_offset) {
@@ -291,7 +299,7 @@ void files::check_bubble(SourceRange range)
     offset = 0;
     while (bad_bubble.match(s = comment.drop_front(offset), &matches)) {
         llvm::StringRef text = matches[0];
-        std::pair<size_t, size_t> m = csabase::mid_match(s, text);
+        std::pair<size_t, size_t> m = mid_match(s, text);
         size_t matchpos = offset + m.first;
         offset = matchpos + matches[1].size();
 
@@ -382,7 +390,7 @@ void get_displays(llvm::StringRef text,
     displays->clear();
     while (display.match(s = text.drop_front(offset), &matches)) {
         llvm::StringRef d = matches[0];
-        std::pair<size_t, size_t> m = csabase::mid_match(s, d);
+        std::pair<size_t, size_t> m = mid_match(s, d);
         size_t matchpos = offset + m.first;
         offset = matchpos + d.size();
 
@@ -420,7 +428,7 @@ void files::check_wrapped(SourceRange range)
                      0, 10);
     while (block_comment.match(s = comment.drop_front(offset), &matches)) {
         llvm::StringRef text = matches[0];
-        std::pair<size_t, size_t> m = csabase::mid_match(s, text);
+        std::pair<size_t, size_t> m = mid_match(s, text);
         size_t matchpos = offset + m.first;
         offset = matchpos + text.size();
 
@@ -480,14 +488,13 @@ void files::check_purpose(SourceRange range)
     llvm::StringRef s;
     while (loose_purpose.match(s = comment.drop_front(offset), &matches)) {
         llvm::StringRef text = matches[0];
-        std::pair<size_t, size_t> m = csabase::mid_match(s, text);
+        std::pair<size_t, size_t> m = mid_match(s, text);
         size_t matchpos = offset + m.first;
         offset = matchpos + text.size();
 
         if (!strict_purpose.match(text)) {
             std::string expected = "//@PURPOSE: " + matches[1].str() + ".";
-            std::pair<size_t, size_t> m =
-                csabase::mid_mismatch(text, expected);
+            std::pair<size_t, size_t> m = mid_mismatch(text, expected);
             d_analyser.report(
                     range.getBegin().getLocWithOffset(matchpos + m.first),
                     check_name, "PRP01",
@@ -501,7 +508,7 @@ void files::check_purpose(SourceRange range)
                 range.getBegin().getLocWithOffset(matchpos + m.first),
                     check_name, "PRP01",
                     "Correct format is\n%0",
-                    false, clang::DiagnosticsEngine::Note)
+                    false, DiagnosticsEngine::Note)
                 << expected;
         }
     }
@@ -582,4 +589,26 @@ void subscribe(Analyser& analyser, Visitor&, PPObserver& observer)
 
 // ----------------------------------------------------------------------------
 
-static csabase::RegisterCheck c1(check_name, &subscribe);
+static RegisterCheck c1(check_name, &subscribe);
+
+// ----------------------------------------------------------------------------
+// Copyright (C) 2014 Bloomberg Finance L.P.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to
+// deal in the Software without restriction, including without limitation the
+// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+// sell copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+// IN THE SOFTWARE.
+// ----------------------------- END-OF-FILE ----------------------------------

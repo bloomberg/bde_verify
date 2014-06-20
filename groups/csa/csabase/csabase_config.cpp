@@ -1,45 +1,44 @@
 // csabase_config.cpp                                                 -*-C++-*-
-// ----------------------------------------------------------------------------
-// Copyright 2012 Dietmar Kuehl http://www.dietmar-kuehl.de              
-// Distributed under the Boost Software License, Version 1.0. (See file  
-// LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt).     
-// ----------------------------------------------------------------------------
 
-#include "csabase_analyser.h"
-#include "csabase_config.h"
-#include "csabase_debug.h"
-#include "csabase_diagnostic_builder.h"
-#include "csabase_filenames.h"
-#include "csabase_location.h"
+#include <csabase_config.h>
+#include <clang/Basic/SourceManager.h>
+#include <ext/alloc_traits.h>
+#include <llvm/ADT/StringRef.h>
 #include <llvm/Support/raw_ostream.h>
+#include <stddef.h>
+#include <stdlib.h>
 #include <algorithm>
-#include <fstream>
-#include <iostream>
-#include <istream>
-#include <set>
-#include <sstream>
+#include <fstream>   // IWYU pragma: keep
+#include <iostream>  // IWYU pragma: keep
 #include <iterator>
+#include <set>
+#include <sstream>   // IWYU pragma: keep
 #include <vector>
-#ident "$Id$"
+#include <csabase_analyser.h>
+#include <csabase_filenames.h>
+#include <csabase_location.h>
+
+using namespace csabase;
+using namespace clang;
+
+// ----------------------------------------------------------------------------
 
 static std::string const check_name("base");
 
 // ----------------------------------------------------------------------------
 
-std::istream&
-csabase::operator>> (std::istream&                  in,
-                           csabase::Config::Status& value)
+std::istream& csabase::operator>>(std::istream& in, Config::Status& value)
 {
     std::string string;
     if (in >> string)
     {
         if (string == "on")
         {
-            value = csabase::Config::on;
+            value = Config::on;
         }
         else if (string == "off")
         {
-            value = csabase::Config::off;
+            value = Config::off;
         }
         else
         {
@@ -49,27 +48,26 @@ csabase::operator>> (std::istream&                  in,
     return in;
 }
 
-std::ostream&
-csabase::operator<< (std::ostream& out,
-                           csabase::Config::Status value)
+std::ostream& csabase::operator<<(std::ostream& out, Config::Status value)
 {
     switch (value) {
-    default:                         out << "<unknown>"; break;
-    case csabase::Config::on:  out << "on";        break;
-    case csabase::Config::off: out << "off";       break;
+    default:          out << "<unknown>"; break;
+    case Config::on:  out << "on";        break;
+    case Config::off: out << "off";       break;
     }
     return out;
 }
 
 // ----------------------------------------------------------------------------
+
 static void
-set_status(std::map<std::string, csabase::Config::Status>&   checks,
-           std::map<std::string, std::vector<std::string> > const& groups,
-           std::string const&                                      check,
-           csabase::Config::Status                           status,
-           std::vector<std::string>&                               path)
+set_status(std::map<std::string, Config::Status>& checks,
+           std::map<std::string, std::vector<std::string>> const& groups,
+           std::string const& check,
+           Config::Status status,
+           std::vector<std::string>& path)
 {
-    std::map<std::string, std::vector<std::string> >::const_iterator it =
+    std::map<std::string, std::vector<std::string>>::const_iterator it =
         groups.find(check);
     if (it == groups.end()) {
         checks[check] = status;
@@ -88,7 +86,7 @@ set_status(std::map<std::string, csabase::Config::Status>&   checks,
 // ----------------------------------------------------------------------------
 
 csabase::Config::Config(std::vector<std::string> const& config,
-                              clang::SourceManager& manager)
+                              SourceManager& manager)
 : d_toplevel_namespace("BloombergLP")
 , d_all(on)
 , d_manager(manager)
@@ -118,7 +116,7 @@ csabase::Config::process(std::string const& line)
         }
     }
     else if ("all" == command) {
-        csabase::Config::Status status;
+        Config::Status status;
         if (args >> status) {
             d_all = status;
         }
@@ -129,8 +127,8 @@ csabase::Config::process(std::string const& line)
         }
     }
     else if ("check" == command) {
-        std::string             check;
-        csabase::Config::Status status;
+        std::string    check;
+        Config::Status status;
         if (args >> check >> status) {
             std::vector<std::string> path;
             set_status(d_checks, d_groups, check, status, path);
@@ -193,7 +191,7 @@ csabase::Config::process(std::string const& line)
         if (args >> tag) {
             std::string file;
             while (args >> file) {
-                csabase::FileName fn(file);
+                FileName fn(file);
                 if (d_suppressions.insert(std::make_pair(tag, fn.name()))
                         .second &&
                     d_groups.find(tag) != d_groups.end()) {
@@ -261,8 +259,7 @@ csabase::Config::load(std::string const& original)
 
 // ----------------------------------------------------------------------------
 
-std::string const&
-csabase::Config::toplevel_namespace() const
+std::string const& csabase::Config::toplevel_namespace() const
 {
     return d_toplevel_namespace;
 }
@@ -274,17 +271,17 @@ csabase::Config::checks() const
 }
 
 void csabase::Config::set_value(const std::string& key,
-                                      const std::string& value)
+                                const std::string& value)
 {
     d_values[key] = value;
 }
 
 void csabase::Config::bv_stack_level(
-    std::vector<clang::SourceLocation>* stack,
-    clang::SourceLocation where) const
+    std::vector<SourceLocation>* stack,
+    SourceLocation where) const
 {
-    csabase::Location location(d_manager, where);
-    csabase::FileName fn(location.file());
+    Location location(d_manager, where);
+    FileName fn(location.file());
     stack->clear();
     stack->push_back(where);
     if (d_local_bv_pragmas.find(fn.name()) != d_local_bv_pragmas.end()) {
@@ -303,23 +300,22 @@ void csabase::Config::bv_stack_level(
     }
 }
 
-const std::string&
-csabase::Config::value(const std::string& key,
-                             clang::SourceLocation where) const
+const std::string& csabase::Config::value(const std::string& key,
+                                          SourceLocation where) const
 {
     if (where.isValid()) {
-        csabase::Location location(d_manager, where);
-        csabase::FileName fn(location.file());
+        Location location(d_manager, where);
+        FileName fn(location.file());
         if (d_local_bv_pragmas.find(fn.name()) != d_local_bv_pragmas.end()) {
             const std::vector<BVData>& ls =
                 d_local_bv_pragmas.find(fn.name())->second;
             // Find the pragma stack of the diagnostic location.
-            std::vector<clang::SourceLocation> stack;
+            std::vector<SourceLocation> stack;
             bv_stack_level(&stack, where);
             const std::string *found = 0;
             // Look for a set pragma before the diagnostic location, only
             // within the pragma stack for that location.
-            std::vector<clang::SourceLocation> pragma_stack(1, where);
+            std::vector<SourceLocation> pragma_stack(1, where);
             for (size_t i = 0; i < ls.size(); ++i) {
                 if (d_manager.isBeforeInTranslationUnit(where, ls[i].where)) {
                     break;
@@ -355,22 +351,21 @@ bool csabase::Config::all() const
     return d_all;
 }
 
-bool
-csabase::Config::suppressed(const std::string& tag,
-                                  clang::SourceLocation where) const
+bool csabase::Config::suppressed(const std::string& tag,
+                                 SourceLocation where) const
 {
-    csabase::Location location(d_manager, where);
-    csabase::FileName fn(location.file());
+    Location location(d_manager, where);
+    FileName fn(location.file());
 
     if (d_local_bv_pragmas.find(fn.name()) != d_local_bv_pragmas.end()) {
         const std::vector<BVData>& ls =
             d_local_bv_pragmas.find(fn.name())->second;
-        std::vector<clang::SourceLocation> stack;
+        std::vector<SourceLocation> stack;
         bv_stack_level(&stack, where);
         char found = 0;
         // Look for a tag pragma before the diagnostic location, only within
         // the pragma stack for that location.
-        std::vector<clang::SourceLocation> pragma_stack(1, where);
+        std::vector<SourceLocation> pragma_stack(1, where);
         for (size_t i = 0; i < ls.size(); ++i) {
             if (d_manager.isBeforeInTranslationUnit(where, ls[i].where)) {
                 break;
@@ -397,30 +392,28 @@ csabase::Config::suppressed(const std::string& tag,
            d_suppressions.count(std::make_pair(tag, "*"));
 }
 
-void
-csabase::Config::push_suppress(clang::SourceLocation where)
+void csabase::Config::push_suppress(SourceLocation where)
 {
-    csabase::Location location(d_manager, where);
-    csabase::FileName fn(location.file());
+    Location location(d_manager, where);
+    FileName fn(location.file());
     d_local_bv_pragmas[fn.name()].push_back(BVData(where, '>'));
 }
 
-void
-csabase::Config::pop_suppress(clang::SourceLocation where)
+void csabase::Config::pop_suppress(SourceLocation where)
 {
-    csabase::Location location(d_manager, where);
-    csabase::FileName fn(location.file());
+    Location location(d_manager, where);
+    FileName fn(location.file());
     d_local_bv_pragmas[fn.name()].push_back(BVData(where, '<'));
 }
 
 void csabase::Config::suppress(const std::string& tag,
-                                     clang::SourceLocation where,
-                                     bool on,
-                                     std::set<std::string> in_progress)
+                               SourceLocation where,
+                               bool on,
+                               std::set<std::string> in_progress)
 {
     if (!in_progress.count(tag)) {
-        csabase::Location location(d_manager, where);
-        csabase::FileName fn(location.file());
+        Location location(d_manager, where);
+        FileName fn(location.file());
         d_local_bv_pragmas[fn.name()]
             .push_back(BVData(where, on ? '-' : '+', tag));
         if (d_groups.find(tag) != d_groups.end()) {
@@ -434,18 +427,17 @@ void csabase::Config::suppress(const std::string& tag,
     }
 }
 
-void csabase::Config::set_bv_value(clang::SourceLocation where,
-                                         const std::string& variable,
-                                         const std::string& value)
+void csabase::Config::set_bv_value(SourceLocation where,
+                                   const std::string& variable,
+                                   const std::string& value)
 {
-    csabase::Location location(d_manager, where);
-    csabase::FileName fn(location.file());
+    Location location(d_manager, where);
+    FileName fn(location.file());
     d_local_bv_pragmas[fn.name()]
         .push_back(BVData(where, '=', variable, value));
 }
 
-void csabase::Config::check_bv_stack(
-    csabase::Analyser& analyser) const
+void csabase::Config::check_bv_stack(Analyser& analyser) const
 {
     for (std::map<std::string, std::vector<BVData> >::const_iterator
              b = d_local_bv_pragmas.begin(),
@@ -473,3 +465,25 @@ void csabase::Config::check_bv_stack(
         }
     }
 }
+
+// ----------------------------------------------------------------------------
+// Copyright (C) 2014 Bloomberg Finance L.P.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to
+// deal in the Software without restriction, including without limitation the
+// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+// sell copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+// IN THE SOFTWARE.
+// ----------------------------- END-OF-FILE ----------------------------------

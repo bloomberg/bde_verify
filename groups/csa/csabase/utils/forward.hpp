@@ -1,45 +1,47 @@
-// -*-c++-*- utils/forward.hpp 
-// -----------------------------------------------------------------------------
-// Copyright 2010 Dietmar Kuehl http://www.dietmar-kuehl.de              
-// Distributed under the Boost Software License, Version 1.0. (See file  
-// LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt).     
-// -----------------------------------------------------------------------------
+// forward.hpp                                                        -*-C++-*-
 
-#if !defined(UTILS_FORWARD_HPP)
-#define UTILS_FORWARD_HPP 1
-#ident "$Id: forward.hpp 141 2011-09-29 18:59:08Z kuehl $"
+#ifndef INCLUDED_UTILS_FORWARD_HPP
+#define INCLUDED_UTILS_FORWARD_HPP
 
-#include "utils/remove_reference.hpp"
+#include <utils/remove_reference.hpp>
 
 // -----------------------------------------------------------------------------
 
 namespace utils
 {
-    template <typename T>
-    T&&
-    forward(typename utils::remove_reference<T>::type& arg);
-
-    template <typename T>
-    T&&
-    forward(typename utils::remove_reference<T>::type&& arg);
-}
-
-// -----------------------------------------------------------------------------
-
 template <typename T>
-T&&
-utils::forward(typename utils::remove_reference<T>::type& arg)
+T&& forward(typename utils::remove_reference<T>::type& arg)
 {
     return static_cast<T&&>(arg);
 }
 
 template <typename T>
-T&&
-utils::forward(typename utils::remove_reference<T>::type&& arg) 
+T&& forward(typename utils::remove_reference<T>::type&& arg)
 {
     return static_cast<T&&>(arg);
 }
+}
 
-// -----------------------------------------------------------------------------
+#endif
 
-#endif /* UTILS_FORWARD_HPP */
+// ----------------------------------------------------------------------------
+// Copyright (C) 2014 Bloomberg Finance L.P.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to
+// deal in the Software without restriction, including without limitation the
+// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+// sell copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+// IN THE SOFTWARE.
+// ----------------------------- END-OF-FILE ----------------------------------

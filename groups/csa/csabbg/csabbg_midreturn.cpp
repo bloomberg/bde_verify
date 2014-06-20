@@ -1,28 +1,45 @@
 // csabbg_midreturn.cpp                                               -*-C++-*-
-// ----------------------------------------------------------------------------
 
+#include <clang/AST/ASTContext.h>
+#include <clang/AST/Decl.h>
+#include <clang/AST/DeclBase.h>
+#include <clang/AST/Stmt.h>
+#include <clang/AST/StmtIterator.h>
+#include <clang/ASTMatchers/ASTMatchFinder.h>
+#include <clang/ASTMatchers/ASTMatchers.h>
+#include <clang/ASTMatchers/ASTMatchersInternal.h>
+#include <clang/Basic/Diagnostic.h>
+#include <clang/Basic/SourceLocation.h>
+#include <clang/Basic/SourceManager.h>
+#include <clang/Rewrite/Core/Rewriter.h>
 #include <csabase_analyser.h>
-#include <csabase_debug.h>
+#include <csabase_diagnostic_builder.h>
 #include <csabase_location.h>
 #include <csabase_ppobserver.h>
 #include <csabase_registercheck.h>
 #include <csabase_util.h>
-#include <clang/Rewrite/Core/Rewriter.h>
+#include <llvm/ADT/Optional.h>
+#include <llvm/ADT/StringRef.h>
+#include <llvm/ADT/VariadicFunction.h>
+#include <llvm/Support/Casting.h>
+#include <stddef.h>
+#include <utils/event.hpp>
+#include <utils/function.hpp>
 #include <set>
-#include <string>
 #include <sstream>
+#include <string>
 
-#ident "$Id$"
+namespace csabase { class Visitor; }
+
+using namespace clang;
+using namespace clang::ast_matchers;
+using namespace csabase;
 
 // ----------------------------------------------------------------------------
 
 static std::string const check_name("mid-return");
 
 // ----------------------------------------------------------------------------
-
-using namespace clang;
-using namespace clang::ast_matchers;
-using namespace csabase;
 
 namespace
 {
@@ -145,7 +162,7 @@ struct report
                                       ) + "// RETURN";
                     d_analyser.report(*it, check_name, "MR01",
                                       "Correct text is\n%0",
-                                      false, clang::DiagnosticsEngine::Note)
+                                      false, DiagnosticsEngine::Note)
                         << line.str() + tag;
                     d_analyser.rewriter().InsertTextAfter(
                         line_range.getEnd(), tag);
@@ -192,7 +209,7 @@ struct report
                                       ) + "// RETURN";
                     d_analyser.report(*it, check_name, "MR01",
                             "Correct text is\n%0",
-                            false, clang::DiagnosticsEngine::Note)
+                            false, DiagnosticsEngine::Note)
                         << line.str() + tag;
                     line_range.setBegin(
                         line_range.getBegin().getLocWithOffset(line.size()));
@@ -216,3 +233,25 @@ void subscribe(Analyser& analyser, Visitor&, PPObserver& observer)
 // ----------------------------------------------------------------------------
 
 static RegisterCheck c3(check_name, &subscribe);
+
+// ----------------------------------------------------------------------------
+// Copyright (C) 2014 Bloomberg Finance L.P.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to
+// deal in the Software without restriction, including without limitation the
+// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+// sell copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+// IN THE SOFTWARE.
+// ----------------------------- END-OF-FILE ----------------------------------

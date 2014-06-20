@@ -1,61 +1,63 @@
 // csabase_analyser.cpp                                               -*-C++-*-
-// -----------------------------------------------------------------------------
-// Copyright 2012 Dietmar Kuehl http://www.dietmar-kuehl.de              
-// Distributed under the Boost Software License, Version 1.0. (See file  
-// LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt).     
-// -----------------------------------------------------------------------------
 
 #include <csabase_analyser.h>
-#include <csabase_config.h>
-#include <csabase_checkregistry.h>
-#include <csabase_debug.h>
-#include <csabase_filenames.h>
-#include <csabase_location.h>
-#include <csabase_ppobserver.h>
-#include <csabase_util.h>
-#include <csabase_visitor.h>
-#include <utils/array.hpp>
-#include <clang/AST/AST.h>
-#include <clang/AST/DeclVisitor.h>
+#include <clang/AST/Decl.h>
+#include <clang/AST/DeclBase.h>
+#include <clang/AST/DeclCXX.h>
+#include <clang/AST/DeclTemplate.h>
+#include <clang/AST/DeclarationName.h>
+#include <clang/AST/Expr.h>
+#include <clang/AST/Stmt.h>
+#include <clang/AST/Type.h>
+#include <clang/AST/UnresolvedSet.h>
+#include <clang/Basic/IdentifierTable.h>
 #include <clang/Basic/SourceManager.h>
 #include <clang/Frontend/CompilerInstance.h>
 #include <clang/Lex/Lexer.h>
 #include <clang/Lex/Preprocessor.h>
 #include <clang/Rewrite/Core/Rewriter.h>
-#include <clang/Sema/Sema.h>
 #include <clang/Sema/Lookup.h>
-#include <llvm/Support/Path.h>
+#include <clang/Sema/Sema.h>
+#include <csabase_checkregistry.h>
+#include <csabase_config.h>
+#include <csabase_filenames.h>
+#include <csabase_location.h>
+#include <csabase_ppobserver.h>
+#include <csabase_visitor.h>
+#include <llvm/ADT/ArrayRef.h>
+#include <llvm/ADT/SmallPtrSet.h>
 #include <llvm/Support/Regex.h>
-#include <llvm/Support/raw_ostream.h>
+#include <stddef.h>
 #include <algorithm>
-#include <functional>
 #include <map>
-#ident "$Id: analyser.cpp 167 2012-04-14 19:38:03Z kuehl $"
+#include <utility>
+#include <csabase_diagnostic_builder.h>
+#include <utils/event.hpp>
+
+using namespace csabase;
+using namespace clang;
 
 // -----------------------------------------------------------------------------
 
-csabase::Analyser::Analyser(clang::CompilerInstance& compiler,
-                                  bool debug,
-                                  std::vector<std::string> const& config,
-                                  std::string const& name,
-                                  std::string const& rewrite_dir)
-: d_config(new csabase::Config(
-               config.size() == 0 ?
-                   std::vector<std::string>(1, "load .bdeverify") :
-                   config,
-           compiler.getSourceManager()))
+csabase::Analyser::Analyser(CompilerInstance& compiler,
+                            bool debug,
+                            std::vector<std::string> const& config,
+                            std::string const& name,
+                            std::string const& rewrite_dir)
+: d_config(new Config(
+      config.size() == 0 ? std::vector<std::string>(1, "load .bdeverify") :
+                           config,
+      compiler.getSourceManager()))
 , tool_name_(name)
 , compiler_(compiler)
 , d_source_manager(compiler.getSourceManager())
-, visitor_(new csabase::Visitor())
-, pp_observer_(new csabase::PPObserver(&d_source_manager,
-                                                   d_config.get()))
+, visitor_(new Visitor())
+, pp_observer_(new PPObserver(&d_source_manager, d_config.get()))
 , context_(0)
-, rewriter_(new clang::Rewriter(compiler.getSourceManager(),
-                                compiler.getLangOpts()))
+, rewriter_(new Rewriter(compiler.getSourceManager(), compiler.getLangOpts()))
 , rewrite_dir_(rewrite_dir)
 {
-    csabase::CheckRegistry::attach(*this, *visitor_, *pp_observer_);
+    CheckRegistry::attach(*this, *visitor_, *pp_observer_);
     compiler_.getPreprocessor().addCommentHandler(
         pp_observer_->get_comment_handler());
     compiler_.getPreprocessor().addPPCallbacks(pp_observer_);
@@ -71,63 +73,54 @@ csabase::Analyser::~Analyser()
 
 // -----------------------------------------------------------------------------
 
-csabase::Config const*
-csabase::Analyser::config() const
+csabase::Config const* csabase::Analyser::config() const
 {
     return d_config.get();
 }
 
 // -----------------------------------------------------------------------------
 
-std::string const&
-csabase::Analyser::tool_name() const
+std::string const& csabase::Analyser::tool_name() const
 {
     return tool_name_;
 }
 
 // -----------------------------------------------------------------------------
 
-clang::ASTContext const*
-csabase::Analyser::context() const
+ASTContext const* csabase::Analyser::context() const
 {
     return context_;
 }
 
-clang::ASTContext*
-csabase::Analyser::context()
+ASTContext* csabase::Analyser::context()
 {
     return context_;
 }
 
-void
-csabase::Analyser::context(clang::ASTContext* context)
+void csabase::Analyser::context(ASTContext* context)
 {
     context_ = context;
     pp_observer_->Context();
 }
 
-clang::CompilerInstance&
-csabase::Analyser::compiler()
+CompilerInstance& csabase::Analyser::compiler()
 {
     return compiler_;
 }
 
-clang::Rewriter&
-csabase::Analyser::rewriter()
+Rewriter& csabase::Analyser::rewriter()
 {
     return *rewriter_;
 }
 
-std::string const&
-csabase::Analyser::rewrite_dir() const
+std::string const& csabase::Analyser::rewrite_dir() const
 {
     return rewrite_dir_;
 }
 
 // -----------------------------------------------------------------------------
 
-clang::Sema&
-csabase::Analyser::sema()
+Sema& csabase::Analyser::sema()
 {
     return compiler_.getSema();
 }
@@ -150,44 +143,37 @@ namespace
 
 }
 
-std::string const&
-csabase::Analyser::toplevel() const
+std::string const& csabase::Analyser::toplevel() const
 {
     return toplevel_;
 }
 
-std::string const&
-csabase::Analyser::directory() const
+std::string const& csabase::Analyser::directory() const
 {
     return directory_;
 }
 
-std::string const&
-csabase::Analyser::prefix() const
+std::string const& csabase::Analyser::prefix() const
 {
     return prefix_;
 }
 
-std::string const&
-csabase::Analyser::package() const
+std::string const& csabase::Analyser::package() const
 {
     return package_;
 }
 
-std::string const&
-csabase::Analyser::group() const
+std::string const& csabase::Analyser::group() const
 {
     return group_;
 }
 
-std::string const&
-csabase::Analyser::component() const
+std::string const& csabase::Analyser::component() const
 {
     return component_;
 }
 
-void
-csabase::Analyser::toplevel(std::string const& path)
+void csabase::Analyser::toplevel(std::string const& path)
 {
     FileName fn(path);
     toplevel_ = fn.full();
@@ -204,8 +190,7 @@ csabase::Analyser::toplevel(std::string const& path)
     component_ = fn.component();
 }
 
-bool
-csabase::Analyser::is_component_header(std::string const& name) const
+bool csabase::Analyser::is_component_header(std::string const& name) const
 {
     IsComponentHeader::iterator in = is_component_header_.find(name);
     if (in != is_component_header_.end()) {
@@ -225,14 +210,12 @@ csabase::Analyser::is_component_header(std::string const& name) const
     return is_component_header_[name] = false;
 }
 
-bool
-csabase::Analyser::is_component_header(clang::SourceLocation loc) const
+bool csabase::Analyser::is_component_header(SourceLocation loc) const
 {
     return is_component_header(get_location(loc).file());
 }
 
-bool
-csabase::Analyser::is_global_package(std::string const& pkg) const
+bool csabase::Analyser::is_global_package(std::string const& pkg) const
 {
     IsGlobalPackage::iterator in = is_global_package_.find(pkg);
     if (in == is_global_package_.end()) {
@@ -246,14 +229,12 @@ csabase::Analyser::is_global_package(std::string const& pkg) const
     return in->second;
 }
 
-bool
-csabase::Analyser::is_global_package() const
+bool csabase::Analyser::is_global_package() const
 {
     return is_global_package(package());
 }
 
-bool
-csabase::Analyser::is_standard_namespace(std::string const& ns) const
+bool csabase::Analyser::is_standard_namespace(std::string const& ns) const
 {
     IsGlobalPackage::iterator in = is_standard_namespace_.find(ns);
     if (in == is_standard_namespace_.end()) {
@@ -268,90 +249,83 @@ csabase::Analyser::is_standard_namespace(std::string const& ns) const
     return in->second;
 }
 
-bool
-csabase::Analyser::is_component_source(std::string const& file) const
+bool csabase::Analyser::is_component_source(std::string const& file) const
 {
     std::string::size_type pos(file.find(toplevel()));
     return pos != file.npos && pos + toplevel().size() == file.size();
 }
 
-bool
-csabase::Analyser::is_component_source(clang::SourceLocation loc) const
+bool csabase::Analyser::is_component_source(SourceLocation loc) const
 {
     return is_component_source(get_location(loc).file());
 }
 
-bool
-csabase::Analyser::is_component(std::string const& file) const
+bool csabase::Analyser::is_component(std::string const& file) const
 {
     return is_component_source(file)
         || is_component_header(file);
 }
 
-bool
-csabase::Analyser::is_component(clang::SourceLocation loc) const
+bool csabase::Analyser::is_component(SourceLocation loc) const
 {
     return is_component(get_location(loc).file());
 }
 
-bool
-csabase::Analyser::is_test_driver() const
+bool csabase::Analyser::is_test_driver() const
 {
     //-dk:TODO this should be configurable, e.g. using regexp
     return 6 < toplevel().size()
         && toplevel().substr(toplevel().size() - 6) == ".t.cpp";
 }
 
-bool
-csabase::Analyser::is_main() const
+bool csabase::Analyser::is_main() const
 {
     std::string::size_type size(toplevel().size());
-    std::string suffix(toplevel().substr(size - std::min(size, std::string::size_type(6))));
+    std::string suffix(
+        toplevel().substr(size - std::min(size, std::string::size_type(6))));
     return suffix == ".m.cpp" || suffix == ".t.cpp";
 }
 
 // -----------------------------------------------------------------------------
 
 csabase::diagnostic_builder
-csabase::Analyser::report(clang::SourceLocation where,
-                                std::string const& check,
-                                std::string const& tag,
-                                std::string const& message,
-                                bool always,
-                                clang::DiagnosticsEngine::Level level)
+csabase::Analyser::report(SourceLocation where,
+                          std::string const& check,
+                          std::string const& tag,
+                          std::string const& message,
+                          bool always,
+                          DiagnosticsEngine::Level level)
 {
-    csabase::Location location(get_location(where));
+    Location location(get_location(where));
     if (   (always || is_component(location.file()))
         && !config()->suppressed(tag, where))
     {
         unsigned int id(compiler_.getDiagnostics().
             getCustomDiagID(level, tool_name() + tag + ": " + message));
-        return csabase::diagnostic_builder(
+        return diagnostic_builder(
             compiler_.getDiagnostics().Report(where, id));
     }
-    return csabase::diagnostic_builder();
+    return diagnostic_builder();
 }
 
 // -----------------------------------------------------------------------------
 
-clang::SourceManager&
-csabase::Analyser::manager() const
+SourceManager& csabase::Analyser::manager() const
 {
     return compiler_.getSourceManager();
 }
 
-llvm::StringRef
-csabase::Analyser::get_source(clang::SourceRange range, bool exact)
+llvm::StringRef csabase::Analyser::get_source(SourceRange range, bool exact)
 {
     const char *pb = "";
     const char *pe = pb + 1;
 
     if (range.isValid()) {
-        clang::SourceManager& sm(manager());
-        clang::SourceLocation b = sm.getFileLoc(range.getBegin());
-        clang::SourceLocation e = sm.getFileLoc(range.getEnd());
-        clang::SourceLocation t = exact ? e : sm.getFileLoc(
-                clang::Lexer::getLocForEndOfToken(
+        SourceManager& sm(manager());
+        SourceLocation b = sm.getFileLoc(range.getBegin());
+        SourceLocation e = sm.getFileLoc(range.getEnd());
+        SourceLocation t = exact ? e : sm.getFileLoc(
+                Lexer::getLocForEndOfToken(
                     e.getLocWithOffset(-1), 0, sm, context()->getLangOpts()));
         if (!t.isValid()) {
             t = e;
@@ -367,15 +341,14 @@ csabase::Analyser::get_source(clang::SourceRange range, bool exact)
     return llvm::StringRef(pb, pe - pb);
 }
 
-clang::SourceRange
-csabase::Analyser::get_line_range(clang::SourceLocation loc)
+SourceRange csabase::Analyser::get_line_range(SourceLocation loc)
 {
-    clang::SourceRange range(loc, loc);
+    SourceRange range(loc, loc);
 
     if (loc.isValid()) {
-        clang::SourceManager& sm(manager());
+        SourceManager& sm(manager());
         loc = sm.getFileLoc(loc);
-        clang::FileID fid = sm.getFileID(loc);
+        FileID fid = sm.getFileID(loc);
         size_t line_num = sm.getPresumedLineNumber(loc);
         range.setBegin(sm.translateLineCol(fid, line_num, 1u));
         range.setEnd(sm.translateLineCol(fid, line_num, ~0u));
@@ -384,10 +357,9 @@ csabase::Analyser::get_line_range(clang::SourceLocation loc)
     return range;
 }
 
-clang::SourceRange
-csabase::Analyser::get_trim_line_range(clang::SourceLocation loc)
+SourceRange csabase::Analyser::get_trim_line_range(SourceLocation loc)
 {
-    clang::SourceRange range(get_line_range(loc));
+    SourceRange range(get_line_range(loc));
     llvm::StringRef line = get_source(range);
     range.setBegin(
         range.getBegin().getLocWithOffset(line.size() - line.ltrim().size()));
@@ -396,54 +368,47 @@ csabase::Analyser::get_trim_line_range(clang::SourceLocation loc)
     return range;
 }
 
-llvm::StringRef
-csabase::Analyser::get_source_line(clang::SourceLocation loc)
+llvm::StringRef csabase::Analyser::get_source_line(SourceLocation loc)
 {
     return get_source(get_line_range(loc), true);
 }
 
 // -----------------------------------------------------------------------------
 
-csabase::Location
-csabase::Analyser::get_location(clang::SourceLocation sl) const
+csabase::Location csabase::Analyser::get_location(SourceLocation sl) const
 {
-    return csabase::Location(d_source_manager, sl);
+    return Location(d_source_manager, sl);
 }
 
-csabase::Location
-csabase::Analyser::get_location(clang::Decl const* decl) const
+csabase::Location csabase::Analyser::get_location(Decl const* decl) const
 {
     return decl
         ? get_location(decl->getLocation())
-        : csabase::Location();
+        : Location();
 }
 
-csabase::Location
-csabase::Analyser::get_location(clang::Expr const* expr) const
+csabase::Location csabase::Analyser::get_location(Expr const* expr) const
 {
     return expr
         ? get_location(expr->getLocStart())
-        : csabase::Location();
+        : Location();
 }
 
-csabase::Location
-csabase::Analyser::get_location(clang::Stmt const* stmt) const
+csabase::Location csabase::Analyser::get_location(Stmt const* stmt) const
 {
     return stmt
         ? get_location(stmt->getLocStart())
-        : csabase::Location();
+        : Location();
 }
 
 // -----------------------------------------------------------------------------
 
-void
-csabase::Analyser::process_decl(clang::Decl const* decl)
+void csabase::Analyser::process_decl(Decl const* decl)
 {
     visitor_->visit(decl);
 }
 
-void
-csabase::Analyser::process_translation_unit_done()
+void csabase::Analyser::process_translation_unit_done()
 {
     config()->check_bv_stack(*this);
     onTranslationUnitDone();
@@ -453,59 +418,61 @@ csabase::Analyser::process_translation_unit_done()
 
 namespace
 {
-    clang::NamedDecl*
-    lookup_name(clang::Sema& sema, clang::DeclContext* context, std::string const& name)
+    NamedDecl*
+    lookup_name(Sema& sema, DeclContext* context, std::string const& name)
     {
         std::string::size_type colons(name.find("::"));
-        clang::IdentifierInfo const* info(&sema.getASTContext().Idents.get(name.substr(0, colons)));
-        clang::DeclarationName declName(info);
-        clang::DeclarationNameInfo const nameInfo(declName, clang::SourceLocation());
-        clang::LookupResult result(sema, nameInfo,
+        IdentifierInfo const* info(
+            &sema.getASTContext().Idents.get(name.substr(0, colons)));
+        DeclarationName declName(info);
+        DeclarationNameInfo const nameInfo(declName, SourceLocation());
+        LookupResult result(sema, nameInfo,
                                    colons == name.npos
-                                   ? clang::Sema::LookupTagName
-                                   : clang::Sema::LookupNestedNameSpecifierName);
+                                   ? Sema::LookupTagName
+                                   : Sema::LookupNestedNameSpecifierName);
 
-        if (sema.LookupQualifiedName(result, context) && result.begin() != result.end())
-        {
+        if (sema.LookupQualifiedName(result, context) &&
+            result.begin() != result.end()) {
             if (colons == name.npos)
             {
                 return *result.begin();
             }
-            if (clang::NamespaceDecl* decl = llvm::dyn_cast<clang::NamespaceDecl>(*result.begin()))
-            {
+            if (NamespaceDecl* decl =
+                    llvm::dyn_cast<NamespaceDecl>(*result.begin())) {
                 return lookup_name(sema, decl, name.substr(colons + 2));
             }
         }
         return 0;
     }
 
-    clang::NamedDecl*
-    lookup_name(clang::Sema& sema, std::string const& name)
+    NamedDecl*
+    lookup_name(Sema& sema, std::string const& name)
     {
         std::string::size_type colons(name.find("::"));
-        return 0 == colons
-            ? lookup_name(sema, name.substr(2))
-            : lookup_name(sema, sema.getASTContext().getTranslationUnitDecl(), name);
+        return 0 == colons ?
+                   lookup_name(sema, name.substr(2)) :
+                   lookup_name(sema,
+                               sema.getASTContext().getTranslationUnitDecl(),
+                               name);
     }
 }
 
-clang::NamedDecl*
+NamedDecl*
 csabase::Analyser::lookup_name(std::string const& name)
 {
     return ::lookup_name(sema(), name);
 }
 
-clang::TypeDecl*
+TypeDecl*
 csabase::Analyser::lookup_type(std::string const& name)
 {
-    clang::NamedDecl* decl(lookup_name(name));
-    return decl? llvm::dyn_cast<clang::TypeDecl>(decl): 0;
+    NamedDecl* decl = lookup_name(name);
+    return decl ? llvm::dyn_cast<TypeDecl>(decl): 0;
 }
 
 // ----------------------------------------------------------------------------
 
-bool
-csabase::Analyser::is_ADL_candidate(clang::Decl const* decl)
+bool csabase::Analyser::is_ADL_candidate(Decl const* decl)
     // Return true iff the specified 'decl' is a function or function template
     // with a parameter whose type is declared inside the package namespace.
     // This check is used to determine whether to complain about a "mis-scoped"
@@ -519,39 +486,39 @@ csabase::Analyser::is_ADL_candidate(clang::Decl const* decl)
     // the component name.
 {
     bool adl = false;
-    clang::NamespaceDecl *pspace = lookup_name_as<clang::NamespaceDecl>(
+    NamespaceDecl *pspace = lookup_name_as<NamespaceDecl>(
         "::" + config()->toplevel_namespace() + "::" + package()
     );
-    const clang::FunctionDecl *fd =
-        llvm::dyn_cast<clang::FunctionDecl>(decl);
-    if (const clang::FunctionTemplateDecl *ftd =
-            llvm::dyn_cast<clang::FunctionTemplateDecl>(decl)) {
+    const FunctionDecl *fd =
+        llvm::dyn_cast<FunctionDecl>(decl);
+    if (const FunctionTemplateDecl *ftd =
+            llvm::dyn_cast<FunctionTemplateDecl>(decl)) {
         fd = ftd->getTemplatedDecl();
     }
     if (fd) {
         unsigned n = fd->getNumParams();
         for (unsigned i = 0; !adl && i < n; ++i) {
-            const clang::ParmVarDecl *pd = fd->getParamDecl(i);
+            const ParmVarDecl *pd = fd->getParamDecl(i);
             // Gain access to the protected constructors of Expr.
-            struct MyExpr : public clang::Expr {
-                MyExpr(clang::QualType t) :
-                    clang::Expr(clang::Stmt::NoStmtClass,
-                            clang::Stmt::EmptyShell()) {
+            struct MyExpr : public Expr {
+                MyExpr(QualType t) :
+                    Expr(Stmt::NoStmtClass,
+                            Stmt::EmptyShell()) {
                         setType(t);
                     }
             } e(pd->getOriginalType().getNonReferenceType());
-            llvm::ArrayRef<clang::Expr *> ar(&e);
-            clang::Sema::AssociatedNamespaceSet ns;
-            clang::Sema::AssociatedClassSet cs;
+            llvm::ArrayRef<Expr *> ar(&e);
+            Sema::AssociatedNamespaceSet ns;
+            Sema::AssociatedClassSet cs;
             sema().FindAssociatedClassesAndNamespaces(
                     fd->getLocation(), ar, ns, cs);
-            adl = ns.count(const_cast<clang::NamespaceDecl *>(pspace));
+            adl = ns.count(const_cast<NamespaceDecl *>(pspace));
 
-            clang::Sema::AssociatedClassSet::iterator csb = cs.begin();
-            clang::Sema::AssociatedClassSet::iterator cse = cs.end();
+            Sema::AssociatedClassSet::iterator csb = cs.begin();
+            Sema::AssociatedClassSet::iterator cse = cs.end();
             while (!adl && csb != cse) {
                 std::string s =
-                    csabase::to_lower((*csb++)->getNameAsString());
+                    llvm::StringRef((*csb++)->getNameAsString()).lower();
                 adl = s == component() || 0 == s.find(component() + "_");
             }
         }
@@ -563,13 +530,12 @@ csabase::Analyser::is_ADL_candidate(clang::Decl const* decl)
 
 static llvm::Regex generated("GENERATED FILE -+ DO NOT EDIT");
 
-bool
-csabase::Analyser::is_generated(clang::SourceLocation loc) const
+bool csabase::Analyser::is_generated(SourceLocation loc) const
     // Return true if this is an automatically generated file.  The criterion
     // is a first line containing "GENERATED FILE -- DO NOT EDIT".
 {
     loc = d_source_manager.getFileLoc(loc);
-    clang::FileID fid = d_source_manager.getFileID(loc);
+    FileID fid = d_source_manager.getFileID(loc);
     llvm::StringRef buf = d_source_manager.getBufferData(fid);
     if (generated.match(buf.split('\n').first)) {
         return true;                                                  // RETURN
@@ -594,3 +560,25 @@ csabase::Analyser::is_generated(clang::SourceLocation loc) const
     }
     return bpos != buf.npos && pos < buf.find(eg, bpos);
 }
+
+// ----------------------------------------------------------------------------
+// Copyright (C) 2014 Bloomberg Finance L.P.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to
+// deal in the Software without restriction, including without limitation the
+// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+// sell copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+// IN THE SOFTWARE.
+// ----------------------------- END-OF-FILE ----------------------------------

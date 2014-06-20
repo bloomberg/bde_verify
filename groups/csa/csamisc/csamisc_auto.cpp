@@ -1,43 +1,64 @@
-// csamisc_auto.cpp                                         -*-C++-*-
-// ----------------------------------------------------------------------------
-// Copyright 2012 Dietmar Kuehl http://www.dietmar-kuehl.de              
-// Distributed under the Boost Software License, Version 1.0. (See file  
-// LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt).     
-// -----------------------------------------------------------------------------
+// csamisc_auto.cpp                                                   -*-C++-*-
 
 #include <csabase_analyser.h>
 #include <csabase_registercheck.h>
-#ident "$Id$"
+
+using namespace csabase;
+using namespace clang;
 
 // ----------------------------------------------------------------------------
 
 static std::string const check_name("auto");
 
+// ----------------------------------------------------------------------------
+
 static void
-check(csabase::Analyser& analyser, clang::VarDecl const* decl)
+check(Analyser& analyser, VarDecl const* decl)
 {
-    if (decl->hasDefinition() == clang::VarDecl::Definition) {
-        clang::TypeSourceInfo const* tsinfo(decl->getTypeSourceInfo());
-        clang::Type const* type(tsinfo->getTypeLoc().getTypePtr());
-        if (clang::ReferenceType const* ref
-            = llvm::dyn_cast<clang::ReferenceType>(type)) {
+    if (decl->hasDefinition() == VarDecl::Definition) {
+        TypeSourceInfo const* tsinfo(decl->getTypeSourceInfo());
+        Type const* type(tsinfo->getTypeLoc().getTypePtr());
+        if (ReferenceType const* ref
+            = llvm::dyn_cast<ReferenceType>(type)) {
             type = ref->getPointeeType().getTypePtr();
         }
-        if (clang::AutoType const* at = llvm::dyn_cast<clang::AutoType>(type)){
-            clang::Expr const* expr = decl->getInit();
+        if (AutoType const* at = llvm::dyn_cast<AutoType>(type)){
+            Expr const* expr = decl->getInit();
             expr = expr? expr->IgnoreParenCasts(): expr;
-            std::string exprType(expr? expr->getType().getAsString(): "<none>");
-            clang::QualType deduced(at->getDeducedType());
+            std::string exprType(
+                expr ? expr->getType().getAsString() : "<none>");
+            QualType deduced(at->getDeducedType());
             analyser.report(decl, check_name, "AU01", "VarDecl: %0 %1 %2")
                 << (expr? expr->getSourceRange(): decl->getSourceRange())
                 << deduced.getAsString()
                 << tsinfo->getType().getAsString()
-                << exprType
-                ;
+                << exprType;
         }
     }
 }
 
 // ----------------------------------------------------------------------------
 
-static csabase::RegisterCheck register_check(check_name, &check);
+static RegisterCheck register_check(check_name, &check);
+
+// ----------------------------------------------------------------------------
+// Copyright (C) 2014 Bloomberg Finance L.P.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to
+// deal in the Software without restriction, including without limitation the
+// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+// sell copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+// IN THE SOFTWARE.
+// ----------------------------- END-OF-FILE ----------------------------------

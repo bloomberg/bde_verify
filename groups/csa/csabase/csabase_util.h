@@ -1,24 +1,20 @@
 // csabase_util.h                                                     -*-C++-*-
-// -----------------------------------------------------------------------------
-// Copyright 2013 Hyman Rosen (hrosen4@bloomberg.net)
-// Distributed under the Boost Software License, Version 1.0. (See file  
-// LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt).     
-// -----------------------------------------------------------------------------
 
-#if !defined(INCLUDED_CSABASE_UTIL)
-#define INCLUDED_CSABASE_UTIL 1
-#ident "$Id$"
+#ifndef INCLUDED_CSABASE_UTIL
+#define INCLUDED_CSABASE_UTIL
 
 #include <clang/ASTMatchers/ASTMatchFinder.h>
-#include <clang/Basic/SourceManager.h>
-
+#include <clang/ASTMatchers/ASTMatchers.h>
+#include <clang/Basic/SourceLocation.h>
 #include <stddef.h>
+#include <functional>
 #include <string>
 #include <utility>
-#include <functional>
 
-namespace csabase {
+namespace clang { class SourceManager; }
 
+namespace csabase
+{
 std::pair<size_t, size_t>
 mid_mismatch(const std::string &have, const std::string &want);
     // Return a pair of values '(a,b)' such that 'a' is the maximum length of a
@@ -47,9 +43,10 @@ std::string to_lower(std::string s);
 struct UseLambda {
     void NotFunction(const clang::ast_matchers::BoundNodes &);
 };
-    
+
 template <class Class = UseLambda,
-          void (Class::*Method)(const clang::ast_matchers::BoundNodes &) = &UseLambda::NotFunction>
+          void (Class::*Method)(const clang::ast_matchers::BoundNodes &) =
+              &UseLambda::NotFunction>
 class OnMatch : public clang::ast_matchers::MatchFinder::MatchCallback
     // This class template acts as an intermediary to forward AST match
     // callbacks to the specified 'Method' of the specified 'Class'.
@@ -70,7 +67,7 @@ class OnMatch : public clang::ast_matchers::MatchFinder::MatchCallback
 template <class Class,
           void (Class::*Method)(const clang::ast_matchers::BoundNodes &)>
 OnMatch<Class, Method>::OnMatch(Class *object)
-    : object_(object)
+: object_(object)
 {
 }
 
@@ -83,20 +80,45 @@ void OnMatch<Class, Method>::run(
 }
 
 template <>
-class OnMatch<UseLambda, &UseLambda::NotFunction> : public clang::ast_matchers::MatchFinder::MatchCallback
-    // This class template acts as an intermediary to forward AST match callbacks to the specified lambda.
+class OnMatch<UseLambda, &UseLambda::NotFunction> :
+    public clang::ast_matchers::MatchFinder::MatchCallback
+    // This class template acts as an intermediary to forward AST match
+    // callbacks to the specified lambda.
 {
   public:
-    OnMatch(const std::function<void(const clang::ast_matchers::BoundNodes &)> &fun);
+    OnMatch(const std::function<
+        void(const clang::ast_matchers::BoundNodes &)> &fun);
         // Create an 'OnMatch' object, storing the specified 'function'
 
     void run(const clang::ast_matchers::MatchFinder::MatchResult &result);
-        // Invoke the 'function_', passing the 'BoundNodes' from the specified 'result' as an argument.
+        // Invoke the 'function_', passing the 'BoundNodes' from the specified
+        // 'result' as an argument.
 
   private:
     std::function<void(const clang::ast_matchers::BoundNodes &)> function_;
 };
-
-} // close package namespace
+}
 
 #endif
+
+// ----------------------------------------------------------------------------
+// Copyright (C) 2014 Bloomberg Finance L.P.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to
+// deal in the Software without restriction, including without limitation the
+// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+// sell copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+// IN THE SOFTWARE.
+// ----------------------------- END-OF-FILE ----------------------------------

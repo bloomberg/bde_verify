@@ -1,51 +1,41 @@
 // csabase_analyser.h                                                 -*-C++-*-
-// -----------------------------------------------------------------------------
-// Copyright 2012 Dietmar Kuehl http://www.dietmar-kuehl.de              
-// Distributed under the Boost Software License, Version 1.0. (See file  
-// LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt).     
-// -----------------------------------------------------------------------------
 
-#if !defined(INCLUDED_CSABASE_ANALYSER)
-#define INCLUDED_CSABASE_ANALYSER 1
-#ident "$Id$"
+#ifndef INCLUDED_CSABASE_ANALYSER
+#define INCLUDED_CSABASE_ANALYSER
 
-#include <csabase_location.h>
-#include <csabase_diagnostic_builder.h>
-#include <csabase_attachments.h>
-#include <utils/function.hpp>
-#include <utils/event.hpp>
 #include <clang/AST/ASTContext.h>
-#include <clang/AST/AST.h>
-#include <clang/AST/Decl.h>
-#include <clang/AST/Expr.h>
-#include <clang/AST/Stmt.h>
-#include <llvm/Support/raw_ostream.h>
+#include <clang/Basic/Diagnostic.h>
+#include <clang/Basic/SourceLocation.h>
+#include <csabase_attachments.h>
+#include <csabase_diagnostic_builder.h>
+#include <csabase_location.h>
+#include <llvm/ADT/SmallVector.h>
+#include <llvm/ADT/StringRef.h>
+#include <llvm/Support/Casting.h>
+#include <map>
 #include <memory>
 #include <string>
-#include <map>
+#include <utils/event.hpp>
+#include <vector>
+
+namespace clang { class CompilerInstance; }
+namespace clang { class Decl; }
+namespace clang { class Expr; }
+namespace clang { class NamedDecl; }
+namespace clang { class Rewriter; }
+namespace clang { class Sema; }
+namespace clang { class SourceManager; }
+namespace clang { class Stmt; }
+namespace clang { class TypeDecl; }
+namespace csabase { class Config; }
+namespace csabase { class PPObserver; }
+namespace csabase { class Visitor; }
 
 // -----------------------------------------------------------------------------
 
-namespace clang
+namespace csabase
 {
-    class CompilerInstance;
-    class Rewriter;
-    class Sema;
-    class SourceManager;
-}
-
-namespace csabase {
-    class Analyser;
-    class Config;
-    class Location;
-    class PPObserver;
-    class Visitor;
-} // close package namespace
-
-// -----------------------------------------------------------------------------
-
-class csabase::Analyser:
-    public csabase::Attachments
+class Analyser : public Attachments
 {
   public:
     Analyser(clang::CompilerInstance& compiler,
@@ -90,7 +80,7 @@ class csabase::Analyser:
     bool               is_ADL_candidate(clang::Decl const*);
     bool               is_generated(clang::SourceLocation) const;
 
-    csabase::diagnostic_builder report(clang::SourceLocation where,
+    diagnostic_builder report(clang::SourceLocation where,
                                     std::string const& check,
                                     std::string const& tag,
                                     std::string const& message,
@@ -99,23 +89,23 @@ class csabase::Analyser:
                                         clang::DiagnosticsEngine::Warning);
 
     template <typename T>
-    csabase::diagnostic_builder report(T where,
-                                    std::string const& check,
-                                    std::string const& tag,
-                                    std::string const& message,
-                                    bool always = false,
-                                    clang::DiagnosticsEngine::Level level =
-                                        clang::DiagnosticsEngine::Warning);
+    diagnostic_builder report(T where,
+                              std::string const& check,
+                              std::string const& tag,
+                              std::string const& message,
+                              bool always = false,
+                              clang::DiagnosticsEngine::Level level =
+                                  clang::DiagnosticsEngine::Warning);
 
     clang::SourceManager& manager() const;
     llvm::StringRef         get_source(clang::SourceRange, bool exact = false);
     clang::SourceRange      get_line_range(clang::SourceLocation);
     clang::SourceRange      get_trim_line_range(clang::SourceLocation);
     llvm::StringRef         get_source_line(clang::SourceLocation);
-    csabase::Location get_location(clang::SourceLocation) const;
-    csabase::Location get_location(clang::Decl const*) const;
-    csabase::Location get_location(clang::Expr const*) const;
-    csabase::Location get_location(clang::Stmt const*) const;
+    Location get_location(clang::SourceLocation) const;
+    Location get_location(clang::Decl const*) const;
+    Location get_location(clang::Expr const*) const;
+    Location get_location(clang::Stmt const*) const;
 
     template <typename InIt> void process_decls(InIt, InIt);
     void process_decl(clang::Decl const*);
@@ -135,15 +125,15 @@ class csabase::Analyser:
         // 0 if there is no such object.
 
 private:
-    Analyser(csabase::Analyser const&);
-    void operator= (csabase::Analyser const&);
+    Analyser(Analyser const&);
+    void operator= (Analyser const&);
         
-    std::auto_ptr<csabase::Config>  d_config;
+    std::auto_ptr<Config>                 d_config;
     std::string                           tool_name_;
     clang::CompilerInstance&              compiler_;
     clang::SourceManager const&           d_source_manager;
-    std::auto_ptr<csabase::Visitor> visitor_;
-    csabase::PPObserver*      pp_observer_;
+    std::auto_ptr<Visitor>                visitor_;
+    PPObserver*                           pp_observer_;
     clang::ASTContext*                    context_;
     clang::Rewriter*                      rewriter_;
     std::string                           toplevel_;
@@ -164,72 +154,94 @@ private:
 // -----------------------------------------------------------------------------
 
 template <typename InIt>
-void
-csabase::Analyser::process_decls(InIt it, InIt end)
+inline
+void Analyser::process_decls(InIt it, InIt end)
 {
-    for (; it != end; ++it)
-    {
-        process_decl(*it);
+    while (it != end) {
+        process_decl(*it++);
     }
 }
 
 template <typename T>
-csabase::diagnostic_builder
-csabase::Analyser::report(T where,
-                                std::string const& check,
-                                std::string const& tag,
-                                std::string const& message,
-                                bool always,
-                                clang::DiagnosticsEngine::Level level)
+inline
+diagnostic_builder Analyser::report(
+    T where,
+    std::string const & check,
+    std::string const & tag,
+    std::string const & message,
+    bool always,
+    clang::DiagnosticsEngine::Level level)
 {
-    return report(get_location(where).location(),
-                  check, tag, message, always, level);
+    return report(
+        get_location(where).location(), check, tag, message, always, level);
 }
 
 // -----------------------------------------------------------------------------
 
 template <typename T>
-bool
-csabase::Analyser::is_component(T const* value)
+inline
+bool Analyser::is_component(T const* value)
 {
     return is_component(get_location(value).file());
 }
 
 template <typename T>
-bool
-csabase::Analyser::is_component_header(T const* value)
+inline
+bool Analyser::is_component_header(T const* value)
 {
     return is_component_header(get_location(value).file());
 }
 
 template <typename T>
-bool
-csabase::Analyser::is_component_source(T const* value)
+inline
+bool Analyser::is_component_source(T const* value)
 {
     return is_component_source(get_location(value).file());
 }
 
 template <typename T>
-T*
-csabase::Analyser::lookup_name_as(const std::string& name)
+inline
+T* Analyser::lookup_name_as(const std::string& name)
 {
     clang::NamedDecl* nd = lookup_name(name);
     return nd ? llvm::dyn_cast<T>(nd) : 0;
 }
 
 template <typename Parent, typename Node>
-const Parent *csabase::Analyser::get_parent(const Node *node)
+inline
+const Parent* Analyser::get_parent(const Node* node)
 {
     for (clang::ASTContext::ParentVector pv = context()->getParents(*node);
          pv.size() >= 1;
          pv = context()->getParents(pv[0])) {
-        if (const Parent *p = pv[0].get<Parent>()) {
+        if (const Parent* p = pv[0].get<Parent>()) {
             return p;                                                 // RETURN
         }
     }
     return 0;
 }
+}
 
-// -----------------------------------------------------------------------------
+#endif
 
-#endif /* UTILS_ANALYSER_HPP */
+// ----------------------------------------------------------------------------
+// Copyright (C) 2014 Bloomberg Finance L.P.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to
+// deal in the Software without restriction, including without limitation the
+// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+// sell copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+// IN THE SOFTWARE.
+// ----------------------------- END-OF-FILE ----------------------------------
