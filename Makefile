@@ -1,6 +1,4 @@
 # Makefile                                                       -*-makefile-*-
-#   Makefile                                                     -*-makefile-*-
-
 TARGET   = bde_verify
 CSABASE  = csabase
 LIBCSABASE = libcsabase.a
