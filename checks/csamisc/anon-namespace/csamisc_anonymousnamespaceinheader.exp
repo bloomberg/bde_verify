@@ -1,5 +1,5 @@
-In file included from csamisc_anonymousnamespaceinheader.t.cpp:8:
-./csamisc_anonymousnamespaceinheader.t.hpp:21:19: warning: ANS01: Anonymous namespace in header
+In file included from csamisc_anonymousnamespaceinheader.t.cpp:3:
+./csamisc_anonymousnamespaceinheader.t.hpp:17:19: warning: ANS01: Anonymous namespace in header
         namespace { struct anonymousnamespaceinheader_in_header; }
                   ^
 1 warning generated.

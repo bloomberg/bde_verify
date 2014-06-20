@@ -1,11 +1,5 @@
+# Makefile                                                       -*-makefile-*-
 #   Makefile                                                     -*-makefile-*-
-#  ----------------------------------------------------------------------------
-#  Copyright 2012 Dietmar Kuehl http://www.dietmar-kuehl.de              
-#  Modified  2013 Hyman Rosen (hrosen4@bloomberg.net)
-#  Distributed under the Boost Software License, Version 1.0. (See file  
-#  LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt).     
-#  ----------------------------------------------------------------------------
-# $Id$
 
 CSABASE  = csabase
 LIBCSABASE = libcsabase.a
@@ -35,7 +29,7 @@ AR       = /usr/bin/ar
 CXXFLAGS += -Wno-unused-local-typedefs
     endif
     ifeq ($(COMPILER),clang)
-VERSION  = 3.4
+VERSION  = 3.4.1
 CCDIR    = /home/hrosen4/mbig/llvm-$(VERSION)/install-$(SYSTEM)
 CXX      = $(CCDIR)/bin/clang++
         ifeq    ($(STD),CXX2011)
@@ -65,11 +59,10 @@ endif
 
 OBJ      = $(SYSTEM)-$(COMPILER)-$(VERSION)
 
-LLVM     = /home/hrosen4/mbig/llvm-3.4/install-$(SYSTEM)
+LLVM     = /home/hrosen4/mbig/llvm-3.4.1/install-$(SYSTEM)
 INCFLAGS += -I$(LLVM)/include
 
-#VERBOSE  =
-VERBOSE  = @
+export VERBOSE ?= @
 
 #  ----------------------------------------------------------------------------
 
@@ -93,11 +86,6 @@ CXXFILES =                                                 \
 
 # -----------------------------------------------------------------------------
 
-#DEBUG    = on
-DEBUG    = off
-
-REDIRECT = $(VERBOSE:@=>/dev/null 2>&1)
-
 #DEFFLAGS += -D_DEBUG
 #DEFFLAGS += -D_GNU_SOURCE
 DEFFLAGS += -D__STDC_LIMIT_MACROS
@@ -119,14 +107,36 @@ $(OBJ)/%.o: %.cpp
 	$(VERBOSE) $(CXX) $(INCFLAGS) $(DEFFLAGS) $(CXXFLAGS) $(WARNFLAGS) \
                           -o $@ -c $(@:$(OBJ)/%.o=%.cpp)
 
+.PHONY: clean
+
 clean:
-	$(RM) $(OFILES)
-	$(RM) $(OBJ)/$(LIBCSABASE)
-	$(RM) $(OBJ)/make.depend
-	$(RM) -r $(OBJ)
-	$(RM) mkerr olderr *~
+	@echo cleaning files
+	$(VERBOSE) $(RM) $(OFILES)
+	$(VERBOSE) $(RM) $(OBJ)/$(LIBCSABASE)
+	$(VERBOSE) $(RM) $(OBJ)/make.depend
+	$(VERBOSE) $(RM) -r $(OBJ)
+	$(VERBOSE) $(RM) mkerr olderr *~
 
 # -----------------------------------------------------------------------------
+
+IWYUFILES = $(CXXFILES:%.cpp=%.iwyu)
+
+LCSYSTEM = $(shell echo $(SYSTEM) | tr '[A-Z]' '[a-z]')
+LLVMBUILDDIR = /home/hrosen4/mbig/llvm-3.4.1/build-$(LCSYSTEM)/Release+Asserts/
+IWYU = $(LLVMBUILDDIR)bin/include-what-you-use
+
+%.iwyu: %.cpp
+	-$(VERBOSE) $(IWYU) $(INCFLAGS) $(DEFFLAGS) \
+                        $(filter-out -Wno-unused-local-typedefs, $(CXXFLAGS)) \
+                        $(@:%.iwyu=%.cpp)
+
+.PHONY: iwyu
+
+iwyu: $(IWYUFILES)
+
+# -----------------------------------------------------------------------------
+
+.PHONY: depend
 
 depend $(OBJ)/make.depend:
 	@if [ ! -d $(OBJ) ]; then mkdir $(OBJ); fi
@@ -134,4 +144,28 @@ depend $(OBJ)/make.depend:
 	$(VERBOSE) $(CXX) $(INCFLAGS) $(DEFFLAGS) -M $(CXXFILES) \
 		| perl -pe 's[^(?! )][$(OBJ)/]' > $(OBJ)/make.depend
 
-           include $(OBJ)/make.depend
+ifneq "$(MAKECMDGOALS)" "clean"
+    include $(OBJ)/make.depend
+endif
+
+## ----------------------------------------------------------------------------
+## Copyright (C) 2014 Bloomberg Finance L.P.
+##
+## Permission is hereby granted, free of charge, to any person obtaining a copy
+## of this software and associated documentation files (the "Software"), to
+## deal in the Software without restriction, including without limitation the
+## rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+## sell copies of the Software, and to permit persons to whom the Software is
+## furnished to do so, subject to the following conditions:
+##
+## The above copyright notice and this permission notice shall be included in
+## all copies or substantial portions of the Software.
+##
+## THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+## IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+## FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+## AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+## LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+## FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+## IN THE SOFTWARE.
+## ----------------------------- END-OF-FILE ----------------------------------

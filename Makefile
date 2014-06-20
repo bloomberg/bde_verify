@@ -1,11 +1,5 @@
+# Makefile                                                       -*-makefile-*-
 #   Makefile                                                     -*-makefile-*-
-#  ----------------------------------------------------------------------------
-#  Copyright 2012 Dietmar Kuehl http://www.dietmar-kuehl.de              
-#  Modified  2013 Hyman Rosen (hrosen4@bloomberg.net)
-#  Distributed under the Boost Software License, Version 1.0. (See file  
-#  LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt).     
-#  ----------------------------------------------------------------------------
-# $Id$
 
 TARGET   = bde_verify
 CSABASE  = csabase
@@ -36,7 +30,7 @@ LDFLAGS  += -Wl,-rpath,$(CCDIR)/lib64
 CXXFLAGS += -Wno-unused-local-typedefs
     endif
     ifeq ($(COMPILER),clang)
-VERSION  = 3.4
+VERSION  = 3.4.1
 CCDIR    = /home/hrosen4/mbig/llvm-$(VERSION)/install-$(SYSTEM)
 CXX      = $(CCDIR)/bin/clang++
         ifeq    ($(STD),CXX2011)
@@ -78,16 +72,15 @@ endif
 
 OBJ      = $(SYSTEM)-$(COMPILER)-$(VERSION)
 
-LLVM     = /home/hrosen4/mbig/llvm-3.4/install-$(SYSTEM)
+LLVM     = /home/hrosen4/mbig/llvm-3.4.1/install-$(SYSTEM)
 INCFLAGS += -I$(LLVM)/include
 LDFLAGS  += -L$(LLVM)/lib -L$(CSABASEDIR)/$(OBJ)
 
-#export VERBOSE =
 export VERBOSE ?= @
 
 #  ----------------------------------------------------------------------------
 
-TSTCXXFILES =                                                                 \
+CXXFILES =                                                                 \
         groups/csa/csabde/csabde_tool.cpp                                     \
         groups/csa/csabbg/csabbg_allocatorforward.cpp                         \
         groups/csa/csabbg/csabbg_allocatornewwithpointer.cpp                  \
@@ -160,7 +153,7 @@ INCFLAGS += -Igroups/csa/csadep
 CXXFLAGS += -g -fno-common -fno-strict-aliasing -fno-exceptions -fno-rtti
 LDFLAGS += -g
 
-TSTOFILES = $(TSTCXXFILES:%.cpp=$(OBJ)/%.o)
+OFILES = $(CXXFILES:%.cpp=$(OBJ)/%.o)
 
 LIBS     =    -lcsabase                                                       \
               -lLLVMX86AsmParser                                              \
@@ -236,9 +229,9 @@ default: $(OBJ)/$(TARGET)
 $(CSABASEDIR)/$(OBJ)/$(LIBCSABASE): csabase
 	$(VERBOSE) $(MAKE) -s -C $(CSABASEDIR)
 
-$(OBJ)/$(TARGET): $(CSABASEDIR)/$(OBJ)/$(LIBCSABASE) $(TSTOFILES)
+$(OBJ)/$(TARGET): $(CSABASEDIR)/$(OBJ)/$(LIBCSABASE) $(OFILES)
 	@echo linking executable
-	$(VERBOSE) $(LINK) $(LDFLAGS) -o $@ $(TSTOFILES) $(LIBS)
+	$(VERBOSE) $(LINK) $(LDFLAGS) -o $@ $(OFILES) $(LIBS)
 
 $(OBJ)/%.o: %.cpp
 	@if [ ! -d $(@D) ]; then scripts/mkdirhier $(@D); fi
@@ -249,12 +242,13 @@ $(OBJ)/%.o: %.cpp
 .PHONY: clean
 
 clean:
-	$(RM) $(TSTOFILES)
-	$(RM) $(OBJ)/$(TARGET)
-	$(RM) $(OBJ)/make.depend
-	$(RM) -r $(OBJ)
-	$(RM) mkerr olderr *~
-	$(MAKE) -C $(CSABASEDIR) clean
+	@echo cleaning files
+	$(VERBOSE) $(RM) $(OFILES)
+	$(VERBOSE) $(RM) $(OBJ)/$(TARGET)
+	$(VERBOSE) $(RM) $(OBJ)/make.depend
+	$(VERBOSE) $(RM) -r $(OBJ)
+	$(VERBOSE) $(RM) mkerr olderr *~
+	$(VERBOSE) $(MAKE) -C $(CSABASEDIR) clean
 
 # -----------------------------------------------------------------------------
 
@@ -290,13 +284,56 @@ run-current: $(OBJ)/$(TARGET) $(RCURNAME)
 $(RNAMES):
 	$(VERBOSE) $(MAKE) -s -C $(@D) run
 
+# -----------------------------------------------------------------------------
+
+IWYUFILES = $(CXXFILES:%.cpp=%.iwyu)
+
+LCSYSTEM = $(shell echo $(SYSTEM) | tr '[A-Z]' '[a-z]')
+LLVMBUILDDIR = /home/hrosen4/mbig/llvm-3.4.1/build-$(LCSYSTEM)/Release+Asserts/
+IWYU = $(LLVMBUILDDIR)bin/include-what-you-use
+
+%.iwyu: %.cpp
+	-$(VERBOSE) $(IWYU) $(INCFLAGS) $(DEFFLAGS) \
+                       $(filter-out -Wno-unused-local-typedefs, $(CXXFLAGS)) \
+                       $(@:%.iwyu=%.cpp)
+
+.PHONY: iwyu
+
+iwyu: $(IWYUFILES)
+	$(VERBOSE) $(MAKE) -C $(CSABASEDIR) iwyu
 
 # -----------------------------------------------------------------------------
+
+.PHONY: depend
 
 depend $(OBJ)/make.depend:
 	@if [ ! -d $(OBJ) ]; then mkdir $(OBJ); fi
 	@echo analysing dependencies
-	$(VERBOSE) $(CXX) $(INCFLAGS) $(DEFFLAGS) -M $(TSTCXXFILES) \
+	$(VERBOSE) $(CXX) $(INCFLAGS) $(DEFFLAGS) -M $(CXXFILES) \
            | scripts/fixdepend $(OBJ) > $(OBJ)/make.depend
 
-           include $(OBJ)/make.depend
+ifneq "$(MAKECMDGOALS)" "clean"
+    include $(OBJ)/make.depend
+endif
+
+## ----------------------------------------------------------------------------
+## Copyright (C) 2014 Bloomberg Finance L.P.
+##
+## Permission is hereby granted, free of charge, to any person obtaining a copy
+## of this software and associated documentation files (the "Software"), to
+## deal in the Software without restriction, including without limitation the
+## rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+## sell copies of the Software, and to permit persons to whom the Software is
+## furnished to do so, subject to the following conditions:
+##
+## The above copyright notice and this permission notice shall be included in
+## all copies or substantial portions of the Software.
+##
+## THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+## IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+## FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+## AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+## LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+## FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+## IN THE SOFTWARE.
+## ----------------------------- END-OF-FILE ----------------------------------

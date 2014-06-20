@@ -1,41 +1,38 @@
-// csabbg_funcalpha.cpp                                               -*-C++-*-
-// ----------------------------------------------------------------------------
+// csamisc_funcalpha.cpp                                              -*-C++-*-
 
+#include <clang/AST/Decl.h>
+#include <clang/AST/DeclBase.h>
+#include <clang/AST/DeclTemplate.h>
+#include <clang/AST/DeclarationName.h>
+#include <clang/Basic/Diagnostic.h>
+#include <clang/Basic/SourceLocation.h>
 #include <csabase_analyser.h>
-#include <csabase_debug.h>
+#include <csabase_diagnostic_builder.h>
 #include <csabase_location.h>
 #include <csabase_ppobserver.h>
 #include <csabase_registercheck.h>
-#include <csabase_util.h>
 #include <csabase_visitor.h>
+#include <llvm/ADT/StringRef.h>
+#include <llvm/Support/Casting.h>
 #include <llvm/Support/Regex.h>
-#include <clang/AST/TypeLoc.h>
+#include <utils/event.hpp>
+#include <utils/function.hpp>
 #include <map>
+#include <set>
 #include <string>
-#include <sstream>
+#include <utility>
 #include <vector>
-#include <ctype.h>
 
-#ident "$Id$"
+namespace clang { class SourceManager; }
+
+using namespace csabase;
+using namespace clang;
 
 // ----------------------------------------------------------------------------
 
 static std::string const check_name("alphabetical-functions");
 
 // ----------------------------------------------------------------------------
-
-using clang::Decl;
-using clang::DeclarationName;
-using clang::FunctionDecl;
-using clang::FunctionTemplateDecl;
-using clang::FunctionTypeLoc;
-using clang::SourceManager;
-using clang::SourceRange;
-using clang::TypeLoc;
-using csabase::Analyser;
-using csabase::Location;
-using csabase::PPObserver;
-using csabase::Visitor;
 
 namespace
 {
@@ -217,7 +214,7 @@ void report::check_order(std::pair<const FunctionDecl *, const Decl *> p)
                     d_analyser.report(nextf->getLocation(),
                                       check_name, "FABC01",
                                       "Next function is '%0'",
-                                      false, clang::DiagnosticsEngine::Note)
+                                      false, DiagnosticsEngine::Note)
                         << next_name.getAsString()
                         << nextf->getNameInfo().getSourceRange();
                 }
@@ -239,4 +236,26 @@ void subscribe(Analyser& analyser, Visitor& visitor, PPObserver& observer)
 
 // ----------------------------------------------------------------------------
 
-static csabase::RegisterCheck c3(check_name, &subscribe);
+static RegisterCheck c3(check_name, &subscribe);
+
+// ----------------------------------------------------------------------------
+// Copyright (C) 2014 Bloomberg Finance L.P.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to
+// deal in the Software without restriction, including without limitation the
+// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+// sell copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+// IN THE SOFTWARE.
+// ----------------------------- END-OF-FILE ----------------------------------

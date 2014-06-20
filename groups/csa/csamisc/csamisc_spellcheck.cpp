@@ -1,27 +1,46 @@
-// csafmt_comments.cpp                                                -*-C++-*-
+// csamisc_spellcheck.cpp                                             -*-C++-*-
 
+#include <clang/AST/ASTContext.h>
+#include <clang/AST/Decl.h>
+#include <clang/AST/DeclBase.h>
+#include <clang/ASTMatchers/ASTMatchFinder.h>
+#include <clang/ASTMatchers/ASTMatchers.h>
+#include <clang/ASTMatchers/ASTMatchersInternal.h>
+#include <clang/Basic/SourceLocation.h>
+#include <clang/Basic/SourceManager.h>
 #include <csabase_analyser.h>
-#include <csabase_debug.h>
-#include <csabase_location.h>
+#include <csabase_config.h>
+#include <csabase_diagnostic_builder.h>
 #include <csabase_ppobserver.h>
 #include <csabase_registercheck.h>
 #include <csabase_util.h>
+#include <ctype.h>
+#include <ext/alloc_traits.h>
+#include <llvm/ADT/Optional.h>
+#include <llvm/ADT/SmallVector.h>
+#include <llvm/ADT/StringRef.h>
+#include <llvm/ADT/VariadicFunction.h>
 #include <llvm/Support/Regex.h>
-#include <clang/ASTMatchers/ASTMatchers.h>
-#include <clang/ASTMatchers/ASTMatchFinder.h>
+#include <stddef.h>
+#include <stdlib.h>
+#include <utils/event.hpp>
+#include <utils/function.hpp>
+#include <map>
 #include <string>
+#include <utility>
+#include <vector>
 
-#ident "$Id$"
+namespace csabase { class Visitor; }
+
+using namespace clang;
+using namespace csabase;
+using namespace clang::ast_matchers;
 
 // ----------------------------------------------------------------------------
 
 static std::string const check_name("spell-check");
 
 // ----------------------------------------------------------------------------
-
-using namespace clang;
-using namespace csabase;
-using namespace clang::ast_matchers;
 
 #if SPELL_CHECK
 
@@ -44,8 +63,7 @@ void data::append(Analyser& analyser, SourceRange range)
 {
     SourceManager& m = analyser.manager();
     data::Ranges& c = d_comments[m.getFilename(range.getBegin())];
-    if (c.size() != 0 &&
-        csabase::areConsecutive(m, c.back(), range)) {
+    if (c.size() != 0 && areConsecutive(m, c.back(), range)) {
         c.back().setEnd(range.getEnd());
     } else {
         c.push_back(range);
@@ -108,7 +126,7 @@ void report::operator()()
     aspell_config_replace(spell_config, "guess", "true");
     AspellCanHaveError *possible_err = new_aspell_speller(spell_config);
     if (aspell_error_number(possible_err) != 0) {
-        clang::SourceManager& m = d_analyser.manager();
+        SourceManager& m = d_analyser.manager();
         d_analyser.report(m.getLocForStartOfFile(m.getMainFileID()),
                           check_name, "SP02",
                           "Cannot start spell checker")
@@ -334,4 +352,26 @@ void subscribe(Analyser&, Visitor&, PPObserver&)
 
 #endif  // SPELL_CHECK
 
-static csabase::RegisterCheck c1(check_name, &subscribe);
+static RegisterCheck c1(check_name, &subscribe);
+
+// ----------------------------------------------------------------------------
+// Copyright (C) 2014 Bloomberg Finance L.P.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to
+// deal in the Software without restriction, including without limitation the
+// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+// sell copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+// IN THE SOFTWARE.
+// ----------------------------- END-OF-FILE ----------------------------------

@@ -1,8 +1,18 @@
 // csatr_entityrestrictions.cpp                                       -*-C++-*-
 
-#include <csabase_registercheck.h>
+#include <clang/AST/Decl.h>
+#include <clang/AST/DeclarationName.h>
+#include <clang/AST/Type.h>
+#include <clang/Basic/SourceLocation.h>
 #include <csabase_analyser.h>
-#include <llvm/Support/raw_ostream.h>
+#include <csabase_diagnostic_builder.h>
+#include <csabase_registercheck.h>
+#include <llvm/ADT/StringRef.h>
+#include <llvm/Support/Casting.h>
+#include <string>
+
+using namespace csabase;
+using namespace clang;
 
 // ----------------------------------------------------------------------------
 
@@ -10,11 +20,9 @@ static std::string const check_name("entity-restrictions");
 
 // ----------------------------------------------------------------------------
 
-static void
-enum_declaration(csabase::Analyser&  analyser,
-                 clang::EnumDecl const    *decl)
+static void enum_declaration(Analyser& analyser, EnumDecl const* decl)
 {
-    if (llvm::dyn_cast<clang::NamespaceDecl>(decl->getDeclContext())
+    if (llvm::dyn_cast<NamespaceDecl>(decl->getDeclContext())
         && !decl->getLocation().isMacroID()
         && analyser.is_component_header(decl)
         && !analyser.is_standard_namespace(decl->getQualifiedNameAsString())) {
@@ -26,11 +34,9 @@ enum_declaration(csabase::Analyser&  analyser,
 
 // ----------------------------------------------------------------------------
 
-static void
-var_declaration(csabase::Analyser&  analyser,
-                clang::VarDecl const     *decl)
+static void var_declaration(Analyser& analyser, VarDecl const* decl)
 {
-    if (llvm::dyn_cast<clang::NamespaceDecl>(decl->getDeclContext())
+    if (llvm::dyn_cast<NamespaceDecl>(decl->getDeclContext())
         && !decl->getLocation().isMacroID()
         && analyser.is_component_header(decl)
         && !analyser.is_standard_namespace(decl->getQualifiedNameAsString())) {
@@ -43,7 +49,7 @@ var_declaration(csabase::Analyser&  analyser,
 // ----------------------------------------------------------------------------
 
 static bool
-is_swap(clang::FunctionDecl const* decl)
+is_swap(FunctionDecl const* decl)
 {
     return decl->getNameAsString() == "swap"
         && decl->getNumParams() == 2
@@ -54,11 +60,9 @@ is_swap(clang::FunctionDecl const* decl)
                 .isConstQualified();
 }
 
-static void
-function_declaration(csabase::Analyser&   analyser,
-                     clang::FunctionDecl const *decl)
+static void function_declaration(Analyser& analyser, FunctionDecl const* decl)
 {
-    if (llvm::dyn_cast<clang::NamespaceDecl>(decl->getDeclContext())
+    if (llvm::dyn_cast<NamespaceDecl>(decl->getDeclContext())
         && !decl->getLocation().isMacroID()
         && analyser.is_component_header(decl)
         && !decl->isOverloadedOperator()
@@ -77,9 +81,7 @@ function_declaration(csabase::Analyser&   analyser,
 
 // -----------------------------------------------------------------------------
 
-static void
-typedef_declaration(csabase::Analyser&  analyser,
-                    clang::TypedefDecl const *decl)
+static void typedef_declaration(Analyser& analyser, TypedefDecl const* decl)
 {
     // Allow global scope typedef to a name that begins with "package_" for
     // legacy support of "typedef package::name package_name;".
@@ -87,7 +89,7 @@ typedef_declaration(csabase::Analyser&  analyser,
     if (package.find("bslfwd_") == 0) {
         package = package.substr(7);
     }
-    if (llvm::dyn_cast<clang::NamespaceDecl>(decl->getDeclContext())
+    if (llvm::dyn_cast<NamespaceDecl>(decl->getDeclContext())
         && !decl->getLocation().isMacroID()
         && analyser.is_component_header(decl)
         && decl->getNameAsString().find(package) != 0
@@ -101,7 +103,29 @@ typedef_declaration(csabase::Analyser&  analyser,
 
 // -----------------------------------------------------------------------------
 
-static csabase::RegisterCheck c0(check_name, &enum_declaration);
-static csabase::RegisterCheck c1(check_name, &var_declaration);
-static csabase::RegisterCheck c2(check_name, &function_declaration);
-static csabase::RegisterCheck c3(check_name, &typedef_declaration);
+static RegisterCheck c0(check_name, &enum_declaration);
+static RegisterCheck c1(check_name, &var_declaration);
+static RegisterCheck c2(check_name, &function_declaration);
+static RegisterCheck c3(check_name, &typedef_declaration);
+
+// ----------------------------------------------------------------------------
+// Copyright (C) 2014 Bloomberg Finance L.P.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to
+// deal in the Software without restriction, including without limitation the
+// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+// sell copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+// IN THE SOFTWARE.
+// ----------------------------- END-OF-FILE ----------------------------------

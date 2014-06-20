@@ -1,26 +1,28 @@
-// csabase_analyser.cpp                                               -*-C++-*-
-// -----------------------------------------------------------------------------
-// Copyright 2012 Dietmar Kuehl http://www.dietmar-kuehl.de              
-// Distributed under the Boost Software License, Version 1.0. (See file  
-// LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt).     
-// -----------------------------------------------------------------------------
+// csabase_analyse.cpp                                                -*-C++-*-
 
 #include <csabase_analyse.h>
+#include <clang/AST/ASTConsumer.h>
+#include <clang/AST/DeclBase.h>
+#include <clang/AST/DeclGroup.h>
+#include <clang/Basic/Diagnostic.h>
+#include <clang/Basic/FileManager.h>
+#include <clang/Basic/SourceManager.h>
+#include <clang/Frontend/CompilerInstance.h>
+#include <clang/Rewrite/Core/Rewriter.h>
 #include <csabase_analyser.h>
 #include <csabase_debug.h>
 #include <csabase_diagnosticfilter.h>
-#include <clang/AST/ASTConsumer.h>
-#include <clang/Rewrite/Core/Rewriter.h>
-#include <clang/Sema/SemaConsumer.h>
-#include <clang/AST/AST.h>
-#include <clang/Frontend/CompilerInstance.h>
-#include <clang/Lex/Preprocessor.h>
+#include <llvm/ADT/SmallVector.h>
 #include <llvm/Support/FileSystem.h>
 #include <llvm/Support/Path.h>
 #include <llvm/Support/raw_ostream.h>
+#include <stddef.h>
+#include <map>
 #include <string>
+#include <utility>
 #include <vector>
-#ident "$Id: csabase_analyse.cpp 167 2012-04-14 19:38:03Z kuehl $"
+
+namespace clang { class ASTContext; }
 
 // -----------------------------------------------------------------------------
 
@@ -123,17 +125,17 @@ AnalyseConsumer::HandleTranslationUnit(ASTContext&)
 // -----------------------------------------------------------------------------
 
 PluginAction::PluginAction()
-    : debug_()
-    , config_(1, "load .bdeverify")
-    , tool_name_()
-    , toplevel_only_(false)
+: debug_()
+, config_(1, "load .bdeverify")
+, tool_name_()
+, toplevel_only_(false)
 {
 }
 
 // -----------------------------------------------------------------------------
 
-ASTConsumer*
-PluginAction::CreateASTConsumer(CompilerInstance& compiler, llvm::StringRef source)
+ASTConsumer* PluginAction::CreateASTConsumer(CompilerInstance& compiler,
+                                             llvm::StringRef source)
 {
     return new AnalyseConsumer(compiler, source, *this);
 }
@@ -183,32 +185,49 @@ bool PluginAction::ParseArgs(CompilerInstance const& compiler,
     return true;
 }
 
-bool
-PluginAction::debug() const
+bool PluginAction::debug() const
 {
     return debug_;
 }
 
-const std::vector<std::string>&
-PluginAction::config() const
+const std::vector<std::string>& PluginAction::config() const
 {
     return config_;
 }
 
-std::string
-PluginAction::tool_name() const
+std::string PluginAction::tool_name() const
 {
     return tool_name_;
 }
 
-bool
-PluginAction::toplevel_only() const
+bool PluginAction::toplevel_only() const
 {
     return toplevel_only_;
 }
 
-std::string
-PluginAction::rewrite_dir() const
+std::string PluginAction::rewrite_dir() const
 {
     return rewrite_dir_;
 }
+
+// ----------------------------------------------------------------------------
+// Copyright (C) 2014 Bloomberg Finance L.P.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to
+// deal in the Software without restriction, including without limitation the
+// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+// sell copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+// IN THE SOFTWARE.
+// ----------------------------- END-OF-FILE ----------------------------------

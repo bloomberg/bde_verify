@@ -1,103 +1,103 @@
-decls.cpp:4:9: warning: IND04: Declarators on consecutive lines must be aligned
+decls.cpp:5:9: warning: IND04: Declarators on consecutive lines must be aligned
     int bb;
         ^
-decls.cpp:3:10: note: IND04: Rightmost declarator is here
+decls.cpp:4:10: note: IND04: Rightmost declarator is here
     char aaaa;
          ^
-decls.cpp:6:12: warning: IND04: Declarators on consecutive lines must be aligned
+decls.cpp:7:12: warning: IND04: Declarators on consecutive lines must be aligned
     double ddddd;
            ^
-decls.cpp:8:14: note: IND04: Rightmost declarator is here
+decls.cpp:9:14: note: IND04: Rightmost declarator is here
     unsigned gggggg;
              ^
-decls.cpp:7:11: warning: IND04: Declarators on consecutive lines must be aligned
+decls.cpp:8:11: warning: IND04: Declarators on consecutive lines must be aligned
     float ee;
           ^
-decls.cpp:8:14: note: IND04: Rightmost declarator is here
+decls.cpp:9:14: note: IND04: Rightmost declarator is here
     unsigned gggggg;
              ^
-decls.cpp:15:11: warning: IND04: Declarators on consecutive lines must be aligned
+decls.cpp:16:11: warning: IND04: Declarators on consecutive lines must be aligned
     char *mmmm;
           ^
-decls.cpp:17:13: note: IND04: Rightmost declarator is here
+decls.cpp:18:13: note: IND04: Rightmost declarator is here
     double& ooooooooo = ddddd;
             ^
-decls.cpp:16:9: warning: IND04: Declarators on consecutive lines must be aligned
+decls.cpp:17:9: warning: IND04: Declarators on consecutive lines must be aligned
     int nnnnnn;
         ^
-decls.cpp:17:13: note: IND04: Rightmost declarator is here
+decls.cpp:18:13: note: IND04: Rightmost declarator is here
     double& ooooooooo = ddddd;
             ^
-decls.cpp:27:9: warning: IND04: Declarators on consecutive lines must be aligned
+decls.cpp:28:9: warning: IND04: Declarators on consecutive lines must be aligned
     int bb;
         ^
-decls.cpp:26:10: note: IND04: Rightmost declarator is here
+decls.cpp:27:10: note: IND04: Rightmost declarator is here
     char aaaa;
          ^
-decls.cpp:29:12: warning: IND04: Declarators on consecutive lines must be aligned
+decls.cpp:30:12: warning: IND04: Declarators on consecutive lines must be aligned
     double ddddd;
            ^
-decls.cpp:31:14: note: IND04: Rightmost declarator is here
+decls.cpp:32:14: note: IND04: Rightmost declarator is here
     unsigned gggggg;
              ^
-decls.cpp:30:11: warning: IND04: Declarators on consecutive lines must be aligned
+decls.cpp:31:11: warning: IND04: Declarators on consecutive lines must be aligned
     float ee;
           ^
-decls.cpp:31:14: note: IND04: Rightmost declarator is here
+decls.cpp:32:14: note: IND04: Rightmost declarator is here
     unsigned gggggg;
              ^
-decls.cpp:38:11: warning: IND04: Declarators on consecutive lines must be aligned
+decls.cpp:39:11: warning: IND04: Declarators on consecutive lines must be aligned
     char *mmmm;
           ^
-decls.cpp:40:13: note: IND04: Rightmost declarator is here
+decls.cpp:41:13: note: IND04: Rightmost declarator is here
     double& ooooooooo = ddddd;
             ^
-decls.cpp:39:9: warning: IND04: Declarators on consecutive lines must be aligned
+decls.cpp:40:9: warning: IND04: Declarators on consecutive lines must be aligned
     int nnnnnn;
         ^
-decls.cpp:40:13: note: IND04: Rightmost declarator is here
+decls.cpp:41:13: note: IND04: Rightmost declarator is here
     double& ooooooooo = ddddd;
             ^
-decls.cpp:48:5: warning: IND04: Declarators on consecutive lines must be aligned
+decls.cpp:49:5: warning: IND04: Declarators on consecutive lines must be aligned
 int bb;
     ^
-decls.cpp:47:6: note: IND04: Rightmost declarator is here
+decls.cpp:48:6: note: IND04: Rightmost declarator is here
 char aaaa;
      ^
-decls.cpp:50:8: warning: IND04: Declarators on consecutive lines must be aligned
+decls.cpp:51:8: warning: IND04: Declarators on consecutive lines must be aligned
 double ddddd;
        ^
-decls.cpp:52:10: note: IND04: Rightmost declarator is here
+decls.cpp:53:10: note: IND04: Rightmost declarator is here
 unsigned gggggg;
          ^
-decls.cpp:51:7: warning: IND04: Declarators on consecutive lines must be aligned
+decls.cpp:52:7: warning: IND04: Declarators on consecutive lines must be aligned
 float ee;
       ^
-decls.cpp:52:10: note: IND04: Rightmost declarator is here
+decls.cpp:53:10: note: IND04: Rightmost declarator is here
 unsigned gggggg;
          ^
-decls.cpp:59:7: warning: IND04: Declarators on consecutive lines must be aligned
+decls.cpp:60:7: warning: IND04: Declarators on consecutive lines must be aligned
 char *mmmm;
       ^
-decls.cpp:61:9: note: IND04: Rightmost declarator is here
+decls.cpp:62:9: note: IND04: Rightmost declarator is here
 double& ooooooooo = ddddd;
         ^
-decls.cpp:60:5: warning: IND04: Declarators on consecutive lines must be aligned
+decls.cpp:61:5: warning: IND04: Declarators on consecutive lines must be aligned
 int nnnnnn;
     ^
-decls.cpp:61:9: note: IND04: Rightmost declarator is here
+decls.cpp:62:9: note: IND04: Rightmost declarator is here
 double& ooooooooo = ddddd;
         ^
-decls.cpp:74:12: warning: IND04: Declarators on consecutive lines must be aligned
+decls.cpp:75:12: warning: IND04: Declarators on consecutive lines must be aligned
     double d;
            ^
-decls.cpp:75:17: note: IND04: Rightmost declarator is here
+decls.cpp:76:17: note: IND04: Rightmost declarator is here
     class z { } a;
                 ^
-decls.cpp:76:9: warning: IND04: Declarators on consecutive lines must be aligned
+decls.cpp:77:9: warning: IND04: Declarators on consecutive lines must be aligned
     int y;
         ^
-decls.cpp:75:17: note: IND04: Rightmost declarator is here
+decls.cpp:76:17: note: IND04: Rightmost declarator is here
     class z { } a;
                 ^
 17 warnings generated.

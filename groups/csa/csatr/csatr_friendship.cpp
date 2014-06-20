@@ -1,17 +1,23 @@
 // csatr_friendship.cpp                                               -*-C++-*-
-// ----------------------------------------------------------------------------
-// Copyright 2012 Dietmar Kuehl http://www.dietmar-kuehl.de              
-// Distributed under the Boost Software License, Version 1.0. (See file  
-// LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt).     
-// ----------------------------------------------------------------------------
 
+#include <clang/AST/Decl.h>
+#include <clang/AST/DeclBase.h>
+#include <clang/AST/DeclCXX.h>
+#include <clang/AST/DeclFriend.h>
+#include <clang/AST/DeclTemplate.h>
+#include <clang/AST/TemplateName.h>
+#include <clang/AST/Type.h>
+#include <clang/AST/TypeLoc.h>
+#include <clang/Basic/SourceLocation.h>
 #include <csabase_analyser.h>
+#include <csabase_diagnostic_builder.h>
+#include <csabase_format.h>
 #include <csabase_location.h>
 #include <csabase_registercheck.h>
-#include <csabase_format.h>
-#include <clang/AST/DeclFriend.h>
-#ident "$Id$"
+#include <llvm/Support/Casting.h>
+#include <string>
 
+using namespace csabase;
 using namespace clang;
 
 // ----------------------------------------------------------------------------
@@ -20,12 +26,10 @@ static std::string const check_name("local-friendship-only");
 
 // ----------------------------------------------------------------------------
 
-static bool
-is_extern_type(csabase::Analyser&  analyser,
-              Type const         *type)
+static bool is_extern_type(Analyser& analyser, Type const* type)
 {
     CXXRecordDecl const* record(type->getAsCXXRecordDecl());
-    csabase::Location cloc(analyser.get_location(record));
+    Location cloc(analyser.get_location(record));
     return (type->isIncompleteType()
             && record->getLexicalDeclContext()->isFileContext())
         || !analyser.is_component(cloc.file());
@@ -33,9 +37,7 @@ is_extern_type(csabase::Analyser&  analyser,
 
 // ----------------------------------------------------------------------------
 
-static void
-local_friendship_only(csabase::Analyser&  analyser,
-                      FriendDecl const  *decl)
+static void local_friendship_only(Analyser& analyser, FriendDecl const* decl)
 {
     const NamedDecl *named = decl->getFriendDecl();
     const TypeSourceInfo *tsi = decl->getFriendType();
@@ -89,7 +91,7 @@ local_friendship_only(csabase::Analyser&  analyser,
             analyser.report(decl, check_name,  "TR19",
                             "Unknonwn kind of friendship (%0)")
                 << decl->getSourceRange()
-                << csabase::format(named->getKind());
+                << format(named->getKind());
         }
     }
     else {
@@ -108,5 +110,26 @@ local_friendship_only(csabase::Analyser&  analyser,
 
 // ----------------------------------------------------------------------------
 
-static csabase::RegisterCheck check(check_name,
-                                          &local_friendship_only);
+static RegisterCheck check(check_name, &local_friendship_only);
+
+// ----------------------------------------------------------------------------
+// Copyright (C) 2014 Bloomberg Finance L.P.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to
+// deal in the Software without restriction, including without limitation the
+// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+// sell copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+// IN THE SOFTWARE.
+// ----------------------------- END-OF-FILE ----------------------------------

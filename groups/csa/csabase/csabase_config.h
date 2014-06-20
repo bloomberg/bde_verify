@@ -1,31 +1,24 @@
-// -*-c++-*- groups/csa/csabase/csabase_config.h 
-// -----------------------------------------------------------------------------
-// Copyright 2012 Dietmar Kuehl http://www.dietmar-kuehl.de              
-// Distributed under the Boost Software License, Version 1.0. (See file  
-// LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt).     
-// -----------------------------------------------------------------------------
+// csabase_config.h                                                   -*-C++-*-
 
-#if !defined(INCLUDED_GROUPS_CSA_CSABASE_CSABASE_CONFIG_H)
-#define INCLUDED_GROUPS_CSA_CSABASE_CSABASE_CONFIG_H 1
-#ident "$Id$"
+#ifndef INCLUDED_CSABASE_CONFIG
+#define INCLUDED_CSABASE_CONFIG
 
-#include <clang/Basic/SourceManager.h>
+#include <clang/Basic/SourceLocation.h>
 #include <iosfwd>
 #include <map>
 #include <set>
 #include <string>
+#include <utility>
 #include <vector>
 
-// -----------------------------------------------------------------------------
-
-namespace csabase {
-    class Analyser;
-    class Config;
-} // close package namespace
+namespace clang { class SourceManager; }
 
 // -----------------------------------------------------------------------------
 
-class csabase::Config
+namespace csabase { class Analyser; }
+namespace csabase
+{
+class Config
 {
 public:
     enum Status
@@ -36,9 +29,8 @@ public:
 
     Config(std::vector<std::string> const& config,
            clang::SourceManager& manager);
-        // Create a 'csabase::Config' object initialized with the
-        // set of specified 'config' lines, and holding the specified
-        // 'manager'.
+        // Create a 'Config' object initialized with the set of specified
+        // 'config' lines, and holding the specified 'manager'.
 
     void load(std::string const& file);
         // Read a set of configuration lines from the specified 'file'.
@@ -123,13 +115,32 @@ private:
     clang::SourceManager&                            d_manager;
 };
 
-// -----------------------------------------------------------------------------
-
-namespace csabase {
-    std::istream& operator>> (std::istream&, csabase::Config::Status&);
-    std::ostream& operator<< (std::ostream&, csabase::Config::Status);
-} // close package namespace
+std::istream& operator>>(std::istream&, Config::Status&);
+std::ostream& operator<<(std::ostream&, Config::Status);
+}
 
 // -----------------------------------------------------------------------------
 
-#endif /* INCLUDED_GROUPS_CSA_CSABASE_CSABASE_CONFIG_H */
+#endif
+
+// ----------------------------------------------------------------------------
+// Copyright (C) 2014 Bloomberg Finance L.P.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to
+// deal in the Software without restriction, including without limitation the
+// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+// sell copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+// IN THE SOFTWARE.
+// ----------------------------- END-OF-FILE ----------------------------------

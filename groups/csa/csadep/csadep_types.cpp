@@ -1,11 +1,5 @@
 // csadep_types.cpp                                                   -*-C++-*-
-// ----------------------------------------------------------------------------
-// Copyright 2012 Dietmar Kuehl http://www.dietmar-kuehl.de              
-// Distributed under the Boost Software License, Version 1.0. (See file  
-// LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt).     
-// ----------------------------------------------------------------------------
 
-#include <csadep_types.h>
 #include <csadep_dependencies.h>
 
 #include <csabase_analyser.h>
@@ -19,7 +13,8 @@
 #include <set>
 #include <sstream>
 
-using csabase::cast_ptr;
+using namespace csabase;
+using namespace clang;
 
 // ----------------------------------------------------------------------------
 
@@ -27,16 +22,15 @@ static std::string const check_name("include_files");
 
 // ----------------------------------------------------------------------------
 
-static void
-record_needed_declaration(csabase::Analyser& analyser,
-                          clang::Decl const*       decl,
-                          clang::NamedDecl const*  named,
-                          bool                     need_definition,
-                          bool                     print = true)
+static void record_needed_declaration(Analyser& analyser,
+                                      Decl const* decl,
+                                      NamedDecl const* named,
+                                      bool need_definition,
+                                      bool print = true)
 {
     // print = true;
     if (print) {
-        clang::SourceLocation location(decl->getLocStart());
+        SourceLocation location(decl->getLocStart());
         analyser.report(location, check_name, "??IF01",
                 "In file %2 need %0 for %1")
             << (need_definition? "definition": "declaration")
@@ -59,81 +53,79 @@ record_needed_declaration(csabase::Analyser& analyser,
 // inDefinition flag indicates whether the type is used in a
 // definition.
 
-static void
-check_type(csabase::Analyser& analyser,
-           clang::Decl const*       decl,
-           clang::Type const*       type,
-           bool                     inDefinition,
-           bool                     print = false
-           )
+static void check_type(Analyser& analyser,
+                       Decl const* decl,
+                       Type const* type,
+                       bool inDefinition,
+                       bool print = false)
 {
     switch (type->getTypeClass())
     {
-    case clang::Type::Builtin:           // Built-in types are alwyas there.
-    case clang::Type::Complex:           // C-style complex not in C++.
-    case clang::Type::BlockPointer:      // don't know what these are...
-    case clang::Type::ObjCObject:        // don't care about Objective C
-    case clang::Type::ObjCInterface:     // don't care about Objective C
-    case clang::Type::ObjCObjectPointer: // don't care about Objective C
-    case clang::Type::TypeOfExpr:        // gcc extension
-    case clang::Type::TypeOf:            // gcc extension
+    case Type::Builtin:           // Built-in types are alwyas there.
+    case Type::Complex:           // C-style complex not in C++.
+    case Type::BlockPointer:      // don't know what these are...
+    case Type::ObjCObject:        // don't care about Objective C
+    case Type::ObjCInterface:     // don't care about Objective C
+    case Type::ObjCObjectPointer: // don't care about Objective C
+    case Type::TypeOfExpr:        // gcc extension
+    case Type::TypeOf:            // gcc extension
         break;
-    case clang::Type::Pointer:
+    case Type::Pointer:
         {
-            cast_ptr<clang::PointerType> const pointer(type);
+            cast_ptr<PointerType> const pointer(type);
             check_type(analyser, decl, pointer->getPointeeType().getTypePtr(), false, print);
         }
         break;
-    case clang::Type::LValueReference:
-    case clang::Type::RValueReference:
+    case Type::LValueReference:
+    case Type::RValueReference:
         {
-            cast_ptr<clang::ReferenceType> const reference(type);
+            cast_ptr<ReferenceType> const reference(type);
             check_type(analyser, decl, reference->getPointeeType().getTypePtr(), false, print);
         }
         break;
-    case clang::Type::MemberPointer:
+    case Type::MemberPointer:
         {
-            cast_ptr<clang::MemberPointerType> const member(type);
+            cast_ptr<MemberPointerType> const member(type);
             check_type(analyser, decl, member->getPointeeType().getTypePtr(), false, print);
             check_type(analyser, decl, member->getClass(), false, print);
         }
         break;
-    case clang::Type::ConstantArray:
+    case Type::ConstantArray:
         {
-            cast_ptr<clang::ConstantArrayType> const array(type);
+            cast_ptr<ConstantArrayType> const array(type);
             check_type(analyser, decl, array->getElementType().getTypePtr(), inDefinition, print);
             //-dk:TODO check where the size is coming from!
         }
         break;
-    case clang::Type::IncompleteArray:
+    case Type::IncompleteArray:
         {
-            cast_ptr<clang::IncompleteArrayType> const array(type);
+            cast_ptr<IncompleteArrayType> const array(type);
             check_type(analyser, decl, array->getElementType().getTypePtr(), inDefinition, print);
         }
         break;
-    case clang::Type::VariableArray:
+    case Type::VariableArray:
         break; // variable sized arrays are not part of C++
-    case clang::Type::DependentSizedArray:
+    case Type::DependentSizedArray:
         break; // these need to be checked during instantiation
-    case clang::Type::DependentSizedExtVector:
-    case clang::Type::Vector:
-    case clang::Type::ExtVector:
+    case Type::DependentSizedExtVector:
+    case Type::Vector:
+    case Type::ExtVector:
         break; // SIMD vectors are not part of standard C++
-    case clang::Type::FunctionProto: // fall through
-    case clang::Type::FunctionNoProto:
+    case Type::FunctionProto: // fall through
+    case Type::FunctionNoProto:
         analyser.report(decl, check_name, "??FP01", "TODO: function proto");
         break;
-    case clang::Type::UnresolvedUsing:
+    case Type::UnresolvedUsing:
         break; // these need to be checked during instantiation
-    case clang::Type::Paren:
+    case Type::Paren:
         {
-            cast_ptr<clang::ParenType> const paren(type);
+            cast_ptr<ParenType> const paren(type);
             check_type(analyser, decl, paren->getInnerType().getTypePtr(), inDefinition, print);
         }
         break;
-    case clang::Type::Typedef:
+    case Type::Typedef:
         {
-            cast_ptr<clang::TypedefType> const typeDef(type);
+            cast_ptr<TypedefType> const typeDef(type);
             if (inDefinition) {
                 check_type(analyser, decl,
                            typeDef->getDecl()->getUnderlyingType().getTypePtr(), true, print);
@@ -141,69 +133,69 @@ check_type(csabase::Analyser& analyser,
             record_needed_declaration(analyser, decl, typeDef->getDecl(), true, print);
         }
         break;
-    case clang::Type::Decltype:
+    case Type::Decltype:
         break; // these become available with C++2011 only
-    case clang::Type::Record:
+    case Type::Record:
         {
-            cast_ptr<clang::RecordType> const record(type);
+            cast_ptr<RecordType> const record(type);
             record_needed_declaration(analyser, decl, record->getDecl(), inDefinition, print);
         }
         break;
-    case clang::Type::Enum:
+    case Type::Enum:
         {
-            cast_ptr<clang::EnumType> const enumType(type);
+            cast_ptr<EnumType> const enumType(type);
             record_needed_declaration(analyser, decl, enumType->getDecl(), true, print);
         }
         break;
-    case clang::Type::Elaborated:
+    case Type::Elaborated:
         {
-            cast_ptr<clang::ElaboratedType> const elaborated(type);
+            cast_ptr<ElaboratedType> const elaborated(type);
             check_type(analyser, decl, elaborated->getNamedType().getTypePtr(), inDefinition, print);
         }
         break;
-    case clang::Type::SubstTemplateTypeParm:
+    case Type::SubstTemplateTypeParm:
         {
-            cast_ptr<clang::SubstTemplateTypeParmType> const subst(type);
+            cast_ptr<SubstTemplateTypeParmType> const subst(type);
             check_type(analyser, decl, subst->getReplacementType().getTypePtr(), inDefinition, print);
         }
         break;
-    case clang::Type::Attributed:
+    case Type::Attributed:
         break; // attributed types are not part of standard C++
-    case clang::Type::TemplateTypeParm:
+    case Type::TemplateTypeParm:
         break; // these need to be checked during instantiation
-    case clang::Type::SubstTemplateTypeParmPack:
+    case Type::SubstTemplateTypeParmPack:
         break; // these become available with C++2011 only
-    case clang::Type::TemplateSpecialization:
+    case Type::TemplateSpecialization:
         {
-            cast_ptr<clang::TemplateSpecializationType> templ(type);
+            cast_ptr<TemplateSpecializationType> templ(type);
             record_needed_declaration(analyser, decl, templ->getTemplateName().getAsTemplateDecl(), inDefinition, print);
-            for (clang::TemplateSpecializationType::iterator it(templ->begin()), end(templ->end()); it != end; ++it)
+            for (TemplateSpecializationType::iterator it(templ->begin()), end(templ->end()); it != end; ++it)
             {
-                if (it->getKind() == clang::TemplateArgument::Type)
+                if (it->getKind() == TemplateArgument::Type)
                 {
                     check_type(analyser, decl, it->getAsType().getTypePtr(), inDefinition, print);
                 }
             }
         }
         break;
-    case clang::Type::Auto:
+    case Type::Auto:
         break; // these become available with C++2011 only
-    case clang::Type::InjectedClassName:
+    case Type::InjectedClassName:
         {
-            cast_ptr<clang::InjectedClassNameType> injected(type);
+            cast_ptr<InjectedClassNameType> injected(type);
             check_type(analyser, decl, injected->getInjectedSpecializationType().getTypePtr(), inDefinition, print);
         }
         break;
-    case clang::Type::DependentName:
+    case Type::DependentName:
         break; // these need to be checked during instantiation
-    case clang::Type::DependentTemplateSpecialization:
+    case Type::DependentTemplateSpecialization:
         break; // these need to be checked during instantiation
-    case clang::Type::PackExpansion:
+    case Type::PackExpansion:
         break; // these become available with C++2011 only
     default:
         analyser.report(decl, check_name, "??UT01",
                 "Unknown type class: %0")
-            << csabase::format(type->getTypeClass());
+            << format(type->getTypeClass());
         break;
     }
 }
@@ -223,7 +215,7 @@ namespace
 // -----------------------------------------------------------------------------
 
 static void
-on_include(csabase::Analyser& analyser, std::string const& from, std::string const& file)
+on_include(Analyser& analyser, std::string const& from, std::string const& file)
 {
     include_files& context(analyser.attachment<include_files>());
     context.includes_[from].insert(file);
@@ -237,13 +229,13 @@ on_include(csabase::Analyser& analyser, std::string const& from, std::string con
 // -----------------------------------------------------------------------------
 
 static void
-on_open(csabase::Analyser& analyser, clang::SourceLocation, std::string const& from, std::string const& file)
+on_open(Analyser& analyser, SourceLocation, std::string const& from, std::string const& file)
 {
     on_include(analyser, from, file);
 }
 
 static void
-on_skip(csabase::Analyser& analyser, std::string const& from, std::string const& file)
+on_skip(Analyser& analyser, std::string const& from, std::string const& file)
 {
     on_include(analyser, from, file);
 }
@@ -251,7 +243,7 @@ on_skip(csabase::Analyser& analyser, std::string const& from, std::string const&
 // -----------------------------------------------------------------------------
 
 static void
-check_declref(csabase::Analyser& analyser, clang::Decl const* decl, clang::Decl const* declref)
+check_declref(Analyser& analyser, Decl const* decl, Decl const* declref)
 {
     std::string const& file(analyser.get_location(decl).file());
     include_files& context(analyser.attachment<include_files>());
@@ -275,13 +267,13 @@ check_declref(csabase::Analyser& analyser, clang::Decl const* decl, clang::Decl 
 // -----------------------------------------------------------------------------
 
 static void
-on_cxxrecorddecl(csabase::Analyser& analyser, clang::CXXRecordDecl const* decl)
+on_cxxrecorddecl(Analyser& analyser, CXXRecordDecl const* decl)
 {
     if (decl->hasDefinition())
     {
-        for (clang::CXXRecordDecl::base_class_const_iterator it(decl->bases_begin()), end(decl->bases_end()); it != end; ++it)
+        for (CXXRecordDecl::base_class_const_iterator it(decl->bases_begin()), end(decl->bases_end()); it != end; ++it)
         {
-            clang::CXXRecordDecl* record(it->getType()->getAsCXXRecordDecl());
+            CXXRecordDecl* record(it->getType()->getAsCXXRecordDecl());
             if (record)
             {
                 check_declref(analyser, decl, record);
@@ -293,7 +285,7 @@ on_cxxrecorddecl(csabase::Analyser& analyser, clang::CXXRecordDecl const* decl)
 // -----------------------------------------------------------------------------
 
 static void
-check_expr(csabase::Analyser& analyser, clang::Decl const* decl, clang::Expr const* expr)
+check_expr(Analyser& analyser, Decl const* decl, Expr const* expr)
 {
     //-dk:TODO
 }
@@ -301,12 +293,12 @@ check_expr(csabase::Analyser& analyser, clang::Decl const* decl, clang::Expr con
 // -----------------------------------------------------------------------------
 
 static void
-check_type(csabase::Analyser& analyser, clang::Decl const* decl, clang::Type const* type);
+check_type(Analyser& analyser, Decl const* decl, Type const* type);
 
 static void
-check_type(csabase::Analyser& analyser, clang::Decl const* decl, clang::QualType qual_type)
+check_type(Analyser& analyser, Decl const* decl, QualType qual_type)
 {
-    if (clang::Type const* type = qual_type.getTypePtrOrNull())
+    if (Type const* type = qual_type.getTypePtrOrNull())
     {
         check_type(analyser, decl, type);
     }
@@ -315,11 +307,11 @@ check_type(csabase::Analyser& analyser, clang::Decl const* decl, clang::QualType
 // -----------------------------------------------------------------------------
 
 static void
-on_functiondecl(csabase::Analyser& analyser, clang::FunctionDecl const* decl)
+on_functiondecl(Analyser& analyser, FunctionDecl const* decl)
 {
-    for (clang::FunctionDecl::param_const_iterator it(decl->param_begin()), end(decl->param_end()); it != end; ++it)
+    for (FunctionDecl::param_const_iterator it(decl->param_begin()), end(decl->param_end()); it != end; ++it)
     {
-        clang::ParmVarDecl const* parameter(*it);
+        ParmVarDecl const* parameter(*it);
         check_type(analyser, parameter, parameter->getType());
         if (parameter->getDefaultArg())
         {
@@ -331,10 +323,10 @@ on_functiondecl(csabase::Analyser& analyser, clang::FunctionDecl const* decl)
 // -----------------------------------------------------------------------------
 
 static void
-on_decl(csabase::Analyser& analyser, clang::Decl const* decl)
+on_decl(Analyser& analyser, Decl const* decl)
 {
 #if 0
-    clang::NamedDecl const* named(llvm::dyn_cast<clang::NamedDecl>(decl));
+    NamedDecl const* named(llvm::dyn_cast<NamedDecl>(decl));
     llvm::errs() << "on_decl " << (named? named->getNameAsString(): "") << " "
                  << "loc=" << analyser.get_location(decl) << " "
                  << "\n";
@@ -344,7 +336,7 @@ on_decl(csabase::Analyser& analyser, clang::Decl const* decl)
 // -----------------------------------------------------------------------------
 
 static void
-on_expr(csabase::Analyser& analyser, clang::Expr const* expr)
+on_expr(Analyser& analyser, Expr const* expr)
 {
     //-dk:TODO analyser.report(expr, check_name, "expr");
 }
@@ -355,19 +347,19 @@ namespace
 {
     struct binder
     {
-        binder(void (*function)(csabase::Analyser&, clang::SourceLocation, std::string const&, std::string const&),
-               csabase::Analyser& analyser):
+        binder(void (*function)(Analyser&, SourceLocation, std::string const&, std::string const&),
+               Analyser& analyser):
             function_(function),
             analyser_(&analyser)
         {
         }
         void
-        operator()(clang::SourceLocation location, std::string const& from, std::string const& file) const
+        operator()(SourceLocation location, std::string const& from, std::string const& file) const
         {
             (*function_)(*analyser_, location, from, file);
         }
-        void          (*function_)(csabase::Analyser&, clang::SourceLocation, std::string const&, std::string const&);
-        csabase::Analyser* analyser_;
+        void          (*function_)(Analyser&, SourceLocation, std::string const&, std::string const&);
+        Analyser* analyser_;
     };
 }
 
@@ -375,7 +367,7 @@ namespace
 {
     struct skip_binder
     {
-        skip_binder(void (*function)(csabase::Analyser&, std::string const&, std::string const&), csabase::Analyser& analyser):
+        skip_binder(void (*function)(Analyser&, std::string const&, std::string const&), Analyser& analyser):
             function_(function),
             analyser_(&analyser)
         {
@@ -385,13 +377,13 @@ namespace
         {
             (*function_)(*analyser_, from, file);
         }
-        void          (*function_)(csabase::Analyser&, std::string const&, std::string const&);
-        csabase::Analyser* analyser_;
+        void          (*function_)(Analyser&, std::string const&, std::string const&);
+        Analyser* analyser_;
     };
 }
 
 static void
-subscribe(csabase::Analyser& analyser, csabase::Visitor&, csabase::PPObserver& observer)
+subscribe(Analyser& analyser, Visitor&, PPObserver& observer)
 {
     observer.onOpenFile += binder(on_open, analyser);
     observer.onSkipFile += skip_binder(on_skip, analyser);
@@ -399,15 +391,15 @@ subscribe(csabase::Analyser& analyser, csabase::Visitor&, csabase::PPObserver& o
 
 // -----------------------------------------------------------------------------
 
-static csabase::RegisterCheck register_check0(check_name, &on_decl);
-static csabase::RegisterCheck register_check1(check_name, &on_cxxrecorddecl);
-static csabase::RegisterCheck register_check3(check_name, &on_functiondecl);
-static csabase::RegisterCheck register_check4(check_name, &on_expr);
-static csabase::RegisterCheck register_observer(check_name, &subscribe);
+static RegisterCheck register_check0(check_name, &on_decl);
+static RegisterCheck register_check1(check_name, &on_cxxrecorddecl);
+static RegisterCheck register_check3(check_name, &on_functiondecl);
+static RegisterCheck register_check4(check_name, &on_expr);
+static RegisterCheck register_observer(check_name, &subscribe);
 static void
-on_declref(csabase::Analyser& analyser, clang::DeclRefExpr const* expr)
+on_declref(Analyser& analyser, DeclRefExpr const* expr)
 {
-    clang::ValueDecl const* decl(expr->getDecl());
+    ValueDecl const* decl(expr->getDecl());
     analyser.report(decl, check_name, "declaration")
         << decl->getSourceRange()
         ;
@@ -415,12 +407,11 @@ on_declref(csabase::Analyser& analyser, clang::DeclRefExpr const* expr)
         << expr->getSourceRange()
         ;
 }
-static csabase::RegisterCheck register_check0(check_name, &on_declref);
+static RegisterCheck register_check0(check_name, &on_declref);
 #else
 // -----------------------------------------------------------------------------
 
-static void
-on_valuedecl(csabase::Analyser& analyser, clang::VarDecl const* decl)
+static void on_valuedecl(Analyser& analyser, VarDecl const* decl)
 {
     check_type(analyser, decl, decl->getType().getTypePtr(),
                  !decl->hasExternalStorage());
@@ -428,14 +419,35 @@ on_valuedecl(csabase::Analyser& analyser, clang::VarDecl const* decl)
 
 // -----------------------------------------------------------------------------
 
-static void
-on_typedefdecl(csabase::Analyser& analyser, clang::TypedefDecl const* decl)
+static void on_typedefdecl(Analyser& analyser, TypedefDecl const* decl)
 {
     check_type(analyser, decl, decl->getUnderlyingType().getTypePtr(), false);
 }
 
 // -----------------------------------------------------------------------------
 
-static csabase::RegisterCheck register_check_typedefdecl(check_name, &on_typedefdecl);
-static csabase::RegisterCheck register_check_valuedecl(check_name, &on_valuedecl);
+static RegisterCheck register_check_typedefdecl(check_name, &on_typedefdecl);
+static RegisterCheck register_check_valuedecl(check_name, &on_valuedecl);
 #endif
+
+// ----------------------------------------------------------------------------
+// Copyright (C) 2014 Bloomberg Finance L.P.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to
+// deal in the Software without restriction, including without limitation the
+// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+// sell copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+// IN THE SOFTWARE.
+// ----------------------------- END-OF-FILE ----------------------------------

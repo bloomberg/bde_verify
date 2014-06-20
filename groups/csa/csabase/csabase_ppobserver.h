@@ -1,44 +1,53 @@
 // csabase_ppobserver.h                                               -*-C++-*-
+
+#ifndef INCLUDED_CSABASE_PPOSERVER
+#define INCLUDED_CSABASE_PPOSERVER
+
+#include <clang/Basic/DiagnosticIDs.h>  // for Mapping
+#include <clang/Basic/SourceLocation.h>  // for SourceLocation (ptr only), etc
+#include <clang/Basic/SourceManager.h>  // for CharacteristicKind, etc
+#include <clang/Lex/ModuleLoader.h>     // for ModuleIdPath
+#include <clang/Lex/PPCallbacks.h>      // for PPCallbacks, etc
+#include <clang/Lex/Pragma.h>           // for PragmaIntroducerKind
+#include <llvm/ADT/ArrayRef.h>          // for ArrayRef
+#include <llvm/ADT/StringRef.h>         // for StringRef
+#include <stack>                        // for stack
+#include <string>                       // for string
+#include <utils/event.hpp>              // for event
+
+namespace clang { class CommentHandler; }
+namespace clang { class FileEntry; }
+namespace clang { class IdentifierInfo; }
+namespace clang { class MacroArgs; }
+namespace clang { class MacroDirective; }
+namespace clang { class Module; }
+namespace clang { class Token; }
+namespace csabase { class Config; }
+namespace llvm { template <typename T> class SmallVectorImpl; }
+
 // -----------------------------------------------------------------------------
-// Copyright 2012 Dietmar Kuehl http://www.dietmar-kuehl.de
-// Distributed under the Boost Software License, Version 1.0. (See file
-// LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt).
-// -----------------------------------------------------------------------------
 
-#if !defined(INCLUDED_CSABASE_PPOSERVER)
-#define INCLUDED_CSABASE_PPOSERVER 1
-#ident "$Id$"
-
-#include <utils/event.hpp>
-#include <csabase_config.h>
-#include <clang/Basic/SourceManager.h>
-#include <clang/Lex/Preprocessor.h>
-#include <string>
-#include <stack>
-
-// -----------------------------------------------------------------------------
-
-namespace csabase {
-    class PPObserver;
-} // close package namespace
-
-// -----------------------------------------------------------------------------
-
-class csabase::PPObserver
-    : public clang::PPCallbacks
+namespace csabase
+{
+class PPObserver : public clang::PPCallbacks
 {
 public:
-    PPObserver(clang::SourceManager const*, csabase::Config*);
+    PPObserver(clang::SourceManager const*, Config*);
     ~PPObserver();
     void detach();
     clang::CommentHandler* get_comment_handler();
 
     utils::event<void(clang::SourceLocation, bool, std::string const&)>               onInclude;
-    utils::event<void(clang::SourceLocation, std::string const&, std::string const&)> onOpenFile;
-    utils::event<void(clang::SourceLocation, std::string const&, std::string const&)> onCloseFile;
+    utils::event<
+        void(clang::SourceLocation, std::string const &, std::string const &)>
+    onOpenFile;
+    utils::event<
+        void(clang::SourceLocation, std::string const &, std::string const &)>
+    onCloseFile;
     utils::event<void(std::string const&, std::string const&)>                        onSkipFile;
     utils::event<void(std::string const&)>                                            onFileNotFound;
-    utils::event<void(std::string const&, clang::PPCallbacks::FileChangeReason)>      onOtherFile;
+    utils::event<void(std::string const &,
+                      clang::PPCallbacks::FileChangeReason)> onOtherFile;
     utils::event<void(clang::SourceLocation, std::string const&)>                     onIdent;
     utils::event<void(clang::SourceLocation, std::string const&)>                     onPragma;
     utils::event<void(clang::Token const &,
@@ -208,11 +217,16 @@ private:
     void operator=(PPObserver const&);
 
     void do_include_file(clang::SourceLocation, bool, std::string const&);
-    void do_open_file(clang::SourceLocation, std::string const&, std::string const&);
-    void do_close_file(clang::SourceLocation, std::string const&, std::string const&);
+    void do_open_file(clang::SourceLocation,
+                      std::string const &,
+                      std::string const &);
+    void do_close_file(clang::SourceLocation,
+                       std::string const &,
+                       std::string const &);
     void do_skip_file(std::string const&, std::string const&);
     void do_file_not_found(std::string const&);
-    void do_other_file(std::string const&, clang::PPCallbacks::FileChangeReason);
+    void
+    do_other_file(std::string const &, clang::PPCallbacks::FileChangeReason);
     void do_ident(clang::SourceLocation, std::string const&);
     void do_pragma(clang::SourceLocation, std::string const&);
     void do_macro_expands(clang::Token const &,
@@ -232,11 +246,32 @@ private:
 
     std::string get_file(clang::SourceLocation) const;
     clang::SourceManager const* source_manager_;
-    std::stack<std::string>     files_;
-    bool                        connected_;
-    csabase::Config*      config_;
+    std::stack<std::string> files_;
+    bool                    connected_;
+    Config*                 config_;
 };
-
-// -----------------------------------------------------------------------------
+}
 
 #endif
+
+// ----------------------------------------------------------------------------
+// Copyright (C) 2014 Bloomberg Finance L.P.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to
+// deal in the Software without restriction, including without limitation the
+// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+// sell copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+// IN THE SOFTWARE.
+// ----------------------------- END-OF-FILE ----------------------------------

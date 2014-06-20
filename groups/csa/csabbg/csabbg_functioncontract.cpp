@@ -1,31 +1,46 @@
 // csabbg_functioncontract.cpp                                        -*-C++-*-
-// ----------------------------------------------------------------------------
 
+#include <clang/AST/Decl.h>
+#include <clang/AST/DeclBase.h>
+#include <clang/AST/DeclCXX.h>
+#include <clang/AST/DeclTemplate.h>
+#include <clang/AST/DeclarationName.h>
+#include <clang/AST/Stmt.h>
+#include <clang/Basic/SourceLocation.h>
+#include <clang/Basic/SourceManager.h>
+#include <clang/Basic/Specifiers.h>
 #include <csabase_analyser.h>
-#include <csabase_debug.h>
+#include <csabase_config.h>
+#include <csabase_diagnostic_builder.h>
 #include <csabase_location.h>
 #include <csabase_ppobserver.h>
 #include <csabase_registercheck.h>
 #include <csabase_util.h>
+#include <ctype.h>
+#include <ext/alloc_traits.h>
+#include <llvm/ADT/SmallVector.h>
+#include <llvm/ADT/StringRef.h>
+#include <llvm/Support/Casting.h>
 #include <llvm/Support/Regex.h>
-#include <clang/AST/Comment.h>
-#include <clang/Frontend/CompilerInstance.h>
+#include <stddef.h>
+#include <stdlib.h>
+#include <utils/event.hpp>
+#include <utils/function.hpp>
 #include <map>
 #include <string>
-#include <sstream>
+#include <utility>
 #include <vector>
-#include <ctype.h>
 
-#ident "$Id$"
+namespace csabase { class Visitor; }
+
+using namespace clang;
+using namespace csabase;
 
 // ----------------------------------------------------------------------------
 
 static std::string const check_name("function-contract");
 
 // ----------------------------------------------------------------------------
-
-using namespace clang;
-using namespace csabase;
 
 namespace
 {
@@ -449,21 +464,21 @@ void report::operator()()
     processAllFunDecls(d.d_fundecls);
 }
 
-bool report::hasCommentedCognate(const clang::FunctionDecl *func,
+bool report::hasCommentedCognate(const FunctionDecl *func,
                                  data::FunDecls& decls)
 {
-    const clang::DeclContext *parent = func->getLookupParent();
+    const DeclContext *parent = func->getLookupParent();
     std::string name = func->getNameAsString();
     fmap fm;
 
-    clang::DeclContext::decl_iterator declsb = parent->decls_begin();
-    clang::DeclContext::decl_iterator declse = parent->decls_end();
+    DeclContext::decl_iterator declsb = parent->decls_begin();
+    DeclContext::decl_iterator declse = parent->decls_end();
     while (declsb != declse) {
-        const clang::Decl *decl = *declsb++;
-        const clang::FunctionDecl* cfunc =
-            llvm::dyn_cast<clang::FunctionDecl>(decl);
-        const clang::FunctionTemplateDecl* ctplt =
-            llvm::dyn_cast<clang::FunctionTemplateDecl>(decl);
+        const Decl *decl = *declsb++;
+        const FunctionDecl* cfunc =
+            llvm::dyn_cast<FunctionDecl>(decl);
+        const FunctionTemplateDecl* ctplt =
+            llvm::dyn_cast<FunctionTemplateDecl>(decl);
         if (ctplt) {
             cfunc = ctplt->getTemplatedDecl();
         }
@@ -533,7 +548,7 @@ bool report::doesNotNeedContract(const FunctionDecl *func)
     const CXXMethodDecl *meth;
 
     return func != func->getCanonicalDecl()
-        || (   func->getAccess() == clang::AS_private
+        || (   func->getAccess() == AS_private
             && !func->hasBody()
             && (   (   (ctor = llvm::dyn_cast<CXXConstructorDecl>(func))
                     && ctor->isCopyConstructor())
@@ -866,6 +881,28 @@ void subscribe(Analyser& analyser, Visitor&, PPObserver& observer)
 
 // ----------------------------------------------------------------------------
 
-static csabase::RegisterCheck c1(check_name, &allFunDecls);
-static csabase::RegisterCheck c2(check_name, &allTpltFunDecls);
-static csabase::RegisterCheck c3(check_name, &subscribe);
+static RegisterCheck c1(check_name, &allFunDecls);
+static RegisterCheck c2(check_name, &allTpltFunDecls);
+static RegisterCheck c3(check_name, &subscribe);
+
+// ----------------------------------------------------------------------------
+// Copyright (C) 2014 Bloomberg Finance L.P.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to
+// deal in the Software without restriction, including without limitation the
+// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+// sell copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+// IN THE SOFTWARE.
+// ----------------------------- END-OF-FILE ----------------------------------

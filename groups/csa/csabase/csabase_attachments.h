@@ -1,21 +1,15 @@
 // csabase_attachments.h                                              -*-C++-*-
-// -----------------------------------------------------------------------------
-// Copyright 2012 Dietmar Kuehl http://www.dietmar-kuehl.de              
-// Distributed under the Boost Software License, Version 1.0. (See file  
-// LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt).     
-// -----------------------------------------------------------------------------
 
-#if !defined(INCLUDED_CSABASE_ATTACHMENTS)
-#define INCLUDED_CSABASE_ATTACHMENTS 1
-#ident "$Id$"
+#ifndef INCLUDED_CSABASE_ATTACHMENTS
+#define INCLUDED_CSABASE_ATTACHMENTS
 
 #include <vector>
 #include <stddef.h>
 
 // -----------------------------------------------------------------------------
 
-namespace csabase {
-
+namespace csabase
+{
 struct AttachmentBase
     // The base class for attachment data.  The intent is that each csabase
     // module creates a private class to hold the data it needs, and creates an
@@ -91,6 +85,7 @@ class Attachments
 };
 
 template <class TYPE>
+inline
 TYPE& Attachments::attachment()
 {
     // The first time this is called (for the specified 'TYPE') a new
@@ -108,7 +103,28 @@ TYPE& Attachments::attachment()
     // correct.
     return static_cast<Attachment<TYPE>*>(d_attachments[index])->data();
 }
-
-} // close package namespace
+}
 
 #endif
+
+// ----------------------------------------------------------------------------
+// Copyright (C) 2014 Bloomberg Finance L.P.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to
+// deal in the Software without restriction, including without limitation the
+// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+// sell copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+// IN THE SOFTWARE.
+// ----------------------------- END-OF-FILE ----------------------------------

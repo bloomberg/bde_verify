@@ -1,29 +1,34 @@
-// csastil_longinline.cpp                                             -*-C++-*-
-// ----------------------------------------------------------------------------
+// csamisc_longinline.cpp                                             -*-C++-*-
 
+#include <clang/AST/Decl.h>
+#include <clang/AST/Expr.h>
+#include <clang/AST/Stmt.h>
+#include <clang/AST/StmtIterator.h>
+#include <clang/Basic/SourceLocation.h>
+#include <clang/Basic/SourceManager.h>
 #include <csabase_analyser.h>
 #include <csabase_config.h>
-#include <csabase_location.h>
 #include <csabase_registercheck.h>
+#include <llvm/Support/Casting.h>
+#include <string.h>
+#include <utils/event.hpp>
+#include <utils/function.hpp>
 #include <sstream>
+#include <string>
+#include <utility>
+#include <vector>
 
-#ident "$Id$"
+namespace csabase { class PPObserver; }
+namespace csabase { class Visitor; }
+
+using namespace csabase;
+using namespace clang;
 
 // ----------------------------------------------------------------------------
 
 static std::string const check_name("long-inline");
 
 // ----------------------------------------------------------------------------
-
-using clang::FunctionDecl;
-using clang::PresumedLoc;
-using clang::Stmt;
-using clang::SourceManager;
-
-using csabase::Analyser;
-using csabase::Location;
-using csabase::PPObserver;
-using csabase::Visitor;
 
 namespace
 {
@@ -51,20 +56,20 @@ unsigned count_statements(const Stmt *stmt)
     if (stmt) {
         // Don't penalize compound or labeled statements.
         // Don't double count statements and controlling expressions.
-        if (   !llvm::dyn_cast<clang::CompoundStmt>(stmt)
-            && !llvm::dyn_cast<clang::LabelStmt>(stmt)
-            && !llvm::dyn_cast<clang::IfStmt>(stmt)
-            && !llvm::dyn_cast<clang::DoStmt>(stmt)
-            && !llvm::dyn_cast<clang::ForStmt>(stmt)
-            && !llvm::dyn_cast<clang::WhileStmt>(stmt)
-            && !llvm::dyn_cast<clang::SwitchStmt>(stmt)) {
+        if (   !llvm::dyn_cast<CompoundStmt>(stmt)
+            && !llvm::dyn_cast<LabelStmt>(stmt)
+            && !llvm::dyn_cast<IfStmt>(stmt)
+            && !llvm::dyn_cast<DoStmt>(stmt)
+            && !llvm::dyn_cast<ForStmt>(stmt)
+            && !llvm::dyn_cast<WhileStmt>(stmt)
+            && !llvm::dyn_cast<SwitchStmt>(stmt)) {
             ++count;
         }
         // Don't count subexpressions.
-        if (   !llvm::dyn_cast<clang::Expr>(stmt)
-            && !llvm::dyn_cast<clang::ReturnStmt>(stmt)
-            && !llvm::dyn_cast<clang::DeclStmt>(stmt)) {
-            for (clang::ConstStmtRange kids = stmt->children(); kids; ++kids) {
+        if (   !llvm::dyn_cast<Expr>(stmt)
+            && !llvm::dyn_cast<ReturnStmt>(stmt)
+            && !llvm::dyn_cast<DeclStmt>(stmt)) {
+            for (ConstStmtRange kids = stmt->children(); kids; ++kids) {
                 count += count_statements(*kids);
             }
         }
@@ -153,5 +158,27 @@ void subscribe(Analyser& analyser, Visitor&, PPObserver& observer)
 
 // ----------------------------------------------------------------------------
 
-static csabase::RegisterCheck c1(check_name, &long_inlines);
-static csabase::RegisterCheck c2(check_name, &subscribe);
+static RegisterCheck c1(check_name, &long_inlines);
+static RegisterCheck c2(check_name, &subscribe);
+
+// ----------------------------------------------------------------------------
+// Copyright (C) 2014 Bloomberg Finance L.P.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to
+// deal in the Software without restriction, including without limitation the
+// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+// sell copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+// IN THE SOFTWARE.
+// ----------------------------- END-OF-FILE ----------------------------------

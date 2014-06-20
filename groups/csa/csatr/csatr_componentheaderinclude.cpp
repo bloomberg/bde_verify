@@ -1,20 +1,23 @@
-// csamisc_componentheaderinclude.cpp                                 -*-C++-*-
-// ----------------------------------------------------------------------------
-// Copyright 2012 Dietmar Kuehl http://www.dietmar-kuehl.de              
-// Distributed under the Boost Software License, Version 1.0. (See file  
-// LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt).     
-// ----------------------------------------------------------------------------
+// csatr_componentheaderinclude.cpp                                   -*-C++-*-
 
+#include <clang/AST/Decl.h>
+#include <clang/Basic/SourceLocation.h>
 #include <csabase_analyser.h>
-#include <csabase_debug.h>
+#include <csabase_binder.h>
+#include <csabase_location.h>
 #include <csabase_ppobserver.h>
 #include <csabase_registercheck.h>
-#include <csabase_location.h>
-#include <csabase_debug.h>
+#include <llvm/Support/Casting.h>
+#include <stddef.h>
 #include <utils/array.hpp>
-#include <llvm/Support/raw_ostream.h>
+#include <utils/event.hpp>
+#include <utils/function.hpp>
+#include <algorithm>
 #include <limits>
-#ident "$Id$"
+#include <string>
+
+namespace clang { class Decl; }
+namespace csabase { class Visitor; }
 
 using namespace clang;
 using namespace csabase;
@@ -29,10 +32,10 @@ namespace
 {
     struct status
     {
-        status():
-            check_(true),
-            header_seen_(false),
-            line_(std::numeric_limits<size_t>::max())
+        status()
+        : check_(true)
+        , header_seen_(false)
+        , line_(std::numeric_limits<size_t>::max())
         {
         }
         bool   check_;
@@ -49,11 +52,10 @@ static std::string const id_names[] = { "RCSId" };
 
 // ----------------------------------------------------------------------------
 
-static void 
-close_file(Analyser& analyser,
-           SourceLocation    where,
-           std::string const&       ,
-           std::string const&       name)
+static void close_file(Analyser& analyser,
+                       SourceLocation where,
+                       std::string const&,
+                       std::string const& name)
 {
     if (analyser.is_component_header(name))
     {
@@ -64,11 +66,10 @@ close_file(Analyser& analyser,
 
 // ----------------------------------------------------------------------------
 
-static void 
-include_file(Analyser& analyser,
-             SourceLocation where,
-             bool,
-             std::string const& name)
+static void include_file(Analyser& analyser,
+                         SourceLocation where,
+                         bool,
+                         std::string const& name)
 {
     ::status& status(analyser.attachment< ::status>());
     if (status.check_)
@@ -95,8 +96,7 @@ include_file(Analyser& analyser,
 
 // ----------------------------------------------------------------------------
 
-static void
-declaration(Analyser& analyser, Decl const* decl)
+static void declaration(Analyser& analyser, Decl const* decl)
 {
     status& status(analyser.attachment< ::status>());
     if (status.check_)
@@ -134,46 +134,37 @@ declaration(Analyser& analyser, Decl const* decl)
     }
 }
 
-// ----------------------------------------------------------------------------
-
-namespace
-{
-    template <typename T>
-    struct analyser_binder
-    {
-        analyser_binder(void (*function)(Analyser&,
-                                         SourceLocation,
-                                         T,
-                                         std::string const&),
-                        Analyser& analyser):
-            function_(function),
-            analyser_(analyser)
-        {
-        }
-        void operator()(SourceLocation     where,
-                        T                  arg,
-                        std::string const& name) const
-        {
-            function_(analyser_, where, arg, name);
-        }
-        void (*function_)(Analyser&,
-                          SourceLocation,
-                          T,
-                          std::string const&);
-        Analyser& analyser_;
-    };
-}
-
 // -----------------------------------------------------------------------------
 
 static void subscribe(Analyser& analyser, Visitor&, PPObserver& observer)
 {
-    observer.onInclude   += analyser_binder<bool>(include_file, analyser);
-    observer.onCloseFile += analyser_binder<std::string const&>(close_file,
-                                                                  analyser);
+    observer.onInclude   += bind<Analyser&>(analyser, include_file);
+    observer.onCloseFile += bind<Analyser&>(analyser, close_file);
 }
 
 // -----------------------------------------------------------------------------
 
 static RegisterCheck register_observer(check_name, &subscribe);
 static RegisterCheck register_check(check_name, &declaration);
+
+// ----------------------------------------------------------------------------
+// Copyright (C) 2014 Bloomberg Finance L.P.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to
+// deal in the Software without restriction, including without limitation the
+// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+// sell copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+// IN THE SOFTWARE.
+// ----------------------------- END-OF-FILE ----------------------------------

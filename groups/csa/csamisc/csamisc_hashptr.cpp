@@ -1,25 +1,36 @@
-// csastil_hashptr.cpp                                                -*-C++-*-
+// csamisc_hashptr.cpp                                                -*-C++-*-
 
+#include <clang/AST/ASTContext.h>
+#include <clang/AST/Decl.h>
+#include <clang/AST/DeclBase.h>
+#include <clang/AST/Expr.h>
+#include <clang/AST/Type.h>
+#include <clang/ASTMatchers/ASTMatchFinder.h>
+#include <clang/ASTMatchers/ASTMatchers.h>
+#include <clang/ASTMatchers/ASTMatchersInternal.h>
+#include <clang/ASTMatchers/ASTMatchersMacros.h>
 #include <csabase_analyser.h>
-#include <csabase_debug.h>
 #include <csabase_registercheck.h>
 #include <csabase_util.h>
-#include <clang/ASTMatchers/ASTMatchers.h>
-#include <clang/ASTMatchers/ASTMatchFinder.h>
-#include <functional>
+#include <llvm/ADT/Optional.h>
+#include <llvm/ADT/VariadicFunction.h>
+#include <utils/event.hpp>
+#include <utils/function.hpp>
+#include <string>
 
-#ident "$Id$"
+namespace csabase { class PPObserver; }
+namespace csabase { class Visitor; }
+
+using namespace csabase;
+using namespace clang;
+using namespace clang::ast_matchers;
+using namespace clang::ast_matchers::internal;
 
 // ----------------------------------------------------------------------------
 
 static std::string const check_name("hash-pointer");
 
 // ----------------------------------------------------------------------------
-
-using namespace clang;
-using namespace clang::ast_matchers;
-using namespace clang::ast_matchers::internal;
-using namespace csabase;
 
 namespace
 {
@@ -66,7 +77,7 @@ hash_char_ptr_matcher()
 
 void report::match_hash_char_ptr(const BoundNodes &nodes)
 {
-    const clang::CallExpr *hash = nodes.getNodeAs<CallExpr>("hash");
+    const CallExpr *hash = nodes.getNodeAs<CallExpr>("hash");
 
     d_analyser.report(hash, check_name, "HC01",
                       "Hash will depend only on the pointer value, not the "
@@ -92,4 +103,26 @@ void subscribe(Analyser& analyser, Visitor& visitor, PPObserver& observer)
 
 // ----------------------------------------------------------------------------
 
-static csabase::RegisterCheck c1(check_name, &subscribe);
+static RegisterCheck c1(check_name, &subscribe);
+
+// ----------------------------------------------------------------------------
+// Copyright (C) 2014 Bloomberg Finance L.P.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to
+// deal in the Software without restriction, including without limitation the
+// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+// sell copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+// IN THE SOFTWARE.
+// ----------------------------- END-OF-FILE ----------------------------------
