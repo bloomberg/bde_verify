@@ -14,7 +14,6 @@ COMPILER = gcc
 STD      = CXX2011
 
 ifeq ($(SYSTEM),Linux)
-BB = /bb/build/share/packages/refroot/amd64/unstable/bb
     ifeq    ($(COMPILER),gcc)
 VERSION  = 4.8.1
 CCDIR    = /opt/swt/install/gcc-$(VERSION)
@@ -44,7 +43,6 @@ INCFLAGS += -I$(ASPELL)/include
 LDFLAGS  += -L$(ASPELL)/lib64 -laspell
 endif
 ifeq ($(SYSTEM),SunOS)
-BB = /bb/build/share/packages/refroot/solaris10-sparc/unstable/bb
     ifeq    ($(COMPILER),gcc)
 VERSION  = 4.8.1
 CCDIR    = /opt/swt/install/gcc-$(VERSION)
@@ -232,7 +230,7 @@ $(OBJ)/$(TARGET): $(CSABASEDIR)/$(OBJ)/$(LIBCSABASE) $(OFILES)
 	$(VERBOSE) $(LINK) $(LDFLAGS) -o $@ $(OFILES) $(LIBS)
 
 $(OBJ)/%.o: %.cpp
-	@if [ ! -d $(@D) ]; then scripts/mkdirhier $(@D); fi
+	@if [ ! -d $(@D) ]; then mkdir -p $(@D); fi
 	@echo compiling $(@:$(OBJ)/%.o=%.cpp)
 	$(VERBOSE) $(CXX) $(INCFLAGS) $(DEFFLAGS) $(CXXFLAGS) $(WARNFLAGS) \
                           -o $@ -c $(@:$(OBJ)/%.o=%.cpp)
@@ -283,12 +281,13 @@ $(RNAMES):
 	$(VERBOSE) $(MAKE) -s -C $(@D) run
 
 # -----------------------------------------------------------------------------
+# run include-what-you-use on the bde_verify sources
 
 IWYUFILES = $(CXXFILES:%.cpp=%.iwyu)
 
 LCSYSTEM = $(shell echo $(SYSTEM) | tr '[A-Z]' '[a-z]')
-LLVMBUILDDIR = /home/hrosen4/mbig/llvm-3.4.1/build-$(LCSYSTEM)/Release+Asserts/
-IWYU = $(LLVMBUILDDIR)bin/include-what-you-use
+LLVMBUILDDIR = /home/hrosen4/mbig/llvm-3.4.1/build-$(LCSYSTEM)/Release+Asserts
+IWYU = $(LLVMBUILDDIR)/bin/include-what-you-use
 
 %.iwyu: %.cpp
 	-$(VERBOSE) $(IWYU) $(INCFLAGS) $(DEFFLAGS) \

@@ -102,7 +102,7 @@ $(OBJ)/$(LIBCSABASE): $(OFILES)
 	$(VERBOSE) $(AR) cr $@ $(OFILES)
 
 $(OBJ)/%.o: %.cpp
-	@if [ ! -d $(@D) ]; then scripts/mkdirhier $(@D); fi
+	@if [ ! -d $(@D) ]; then mkdir -p $(@D); fi
 	@echo compiling $(@:$(OBJ)/%.o=%.cpp)
 	$(VERBOSE) $(CXX) $(INCFLAGS) $(DEFFLAGS) $(CXXFLAGS) $(WARNFLAGS) \
                           -o $@ -c $(@:$(OBJ)/%.o=%.cpp)
