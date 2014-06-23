@@ -13,6 +13,7 @@ COMPILER = gcc
 
 STD      = CXX2011
 
+# Set up locations and flags for the compiler that will build bde_verify.
 ifeq ($(SYSTEM),Linux)
     ifeq    ($(COMPILER),gcc)
 VERSION  = 4.8.1
@@ -68,6 +69,7 @@ endif
 
 OBJ      = $(SYSTEM)-$(COMPILER)-$(VERSION)
 
+# Set up location of clang headers and libraries needed by bde_verify.
 LLVM     = /home/hrosen4/mbig/llvm-3.4.1/install-$(SYSTEM)
 INCFLAGS += -I$(LLVM)/include
 LDFLAGS  += -L$(LLVM)/lib -L$(CSABASEDIR)/$(OBJ)
@@ -139,8 +141,6 @@ TODO =                                                                        \
 
 # -----------------------------------------------------------------------------
 
-#DEFFLAGS += -D_DEBUG
-#DEFFLAGS += -D_GNU_SOURCE
 DEFFLAGS += -D__STDC_LIMIT_MACROS
 DEFFLAGS += -D__STDC_CONSTANT_MACROS
 INCFLAGS += -I.
@@ -307,7 +307,7 @@ depend $(OBJ)/make.depend:
 	@if [ ! -d $(OBJ) ]; then mkdir $(OBJ); fi
 	@echo analysing dependencies
 	$(VERBOSE) $(CXX) $(INCFLAGS) $(DEFFLAGS) -M $(CXXFILES) \
-           | scripts/fixdepend $(OBJ) > $(OBJ)/make.depend
+		| perl -pe 's[^(?! )][$(OBJ)/]' > $(OBJ)/make.depend
 
 ifneq "$(MAKECMDGOALS)" "clean"
     include $(OBJ)/make.depend
