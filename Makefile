@@ -13,8 +13,8 @@ COMPILER = gcc
 
 STD      = CXX2011
 
+# Set up locations and flags for the compiler that will build bde_verify.
 ifeq ($(SYSTEM),Linux)
-BB = /bb/build/share/packages/refroot/amd64/unstable/bb
     ifeq    ($(COMPILER),gcc)
 VERSION  = 4.8.1
 CCDIR    = /opt/swt/install/gcc-$(VERSION)
@@ -44,7 +44,6 @@ INCFLAGS += -I$(ASPELL)/include
 LDFLAGS  += -L$(ASPELL)/lib64 -laspell
 endif
 ifeq ($(SYSTEM),SunOS)
-BB = /bb/build/share/packages/refroot/solaris10-sparc/unstable/bb
     ifeq    ($(COMPILER),gcc)
 VERSION  = 4.8.1
 CCDIR    = /opt/swt/install/gcc-$(VERSION)
@@ -70,6 +69,7 @@ endif
 
 OBJ      = $(SYSTEM)-$(COMPILER)-$(VERSION)
 
+# Set up location of clang headers and libraries needed by bde_verify.
 LLVM     = /home/hrosen4/mbig/llvm-3.4.1/install-$(SYSTEM)
 INCFLAGS += -I$(LLVM)/include
 LDFLAGS  += -L$(LLVM)/lib -L$(CSABASEDIR)/$(OBJ)
@@ -141,8 +141,6 @@ TODO =                                                                        \
 
 # -----------------------------------------------------------------------------
 
-#DEFFLAGS += -D_DEBUG
-#DEFFLAGS += -D_GNU_SOURCE
 DEFFLAGS += -D__STDC_LIMIT_MACROS
 DEFFLAGS += -D__STDC_CONSTANT_MACROS
 INCFLAGS += -I.
@@ -232,7 +230,7 @@ $(OBJ)/$(TARGET): $(CSABASEDIR)/$(OBJ)/$(LIBCSABASE) $(OFILES)
 	$(VERBOSE) $(LINK) $(LDFLAGS) -o $@ $(OFILES) $(LIBS)
 
 $(OBJ)/%.o: %.cpp
-	@if [ ! -d $(@D) ]; then scripts/mkdirhier $(@D); fi
+	@if [ ! -d $(@D) ]; then mkdir -p $(@D); fi
 	@echo compiling $(@:$(OBJ)/%.o=%.cpp)
 	$(VERBOSE) $(CXX) $(INCFLAGS) $(DEFFLAGS) $(CXXFLAGS) $(WARNFLAGS) \
                           -o $@ -c $(@:$(OBJ)/%.o=%.cpp)
@@ -283,12 +281,13 @@ $(RNAMES):
 	$(VERBOSE) $(MAKE) -s -C $(@D) run
 
 # -----------------------------------------------------------------------------
+# run include-what-you-use on the bde_verify sources
 
 IWYUFILES = $(CXXFILES:%.cpp=%.iwyu)
 
 LCSYSTEM = $(shell echo $(SYSTEM) | tr '[A-Z]' '[a-z]')
-LLVMBUILDDIR = /home/hrosen4/mbig/llvm-3.4.1/build-$(LCSYSTEM)/Release+Asserts/
-IWYU = $(LLVMBUILDDIR)bin/include-what-you-use
+LLVMBUILDDIR = /home/hrosen4/mbig/llvm-3.4.1/build-$(LCSYSTEM)/Release+Asserts
+IWYU = $(LLVMBUILDDIR)/bin/include-what-you-use
 
 %.iwyu: %.cpp
 	-$(VERBOSE) $(IWYU) $(INCFLAGS) $(DEFFLAGS) \
@@ -308,7 +307,7 @@ depend $(OBJ)/make.depend:
 	@if [ ! -d $(OBJ) ]; then mkdir $(OBJ); fi
 	@echo analysing dependencies
 	$(VERBOSE) $(CXX) $(INCFLAGS) $(DEFFLAGS) -M $(CXXFILES) \
-           | scripts/fixdepend $(OBJ) > $(OBJ)/make.depend
+		| perl -pe 's[^(?! )][$(OBJ)/]' > $(OBJ)/make.depend
 
 ifneq "$(MAKECMDGOALS)" "clean"
     include $(OBJ)/make.depend

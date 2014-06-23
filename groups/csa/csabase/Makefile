@@ -1,5 +1,4 @@
 # Makefile                                                       -*-makefile-*-
-#   Makefile                                                     -*-makefile-*-
 
 CSABASE  = csabase
 LIBCSABASE = libcsabase.a
@@ -15,8 +14,8 @@ COMPILER = gcc
 
 STD      = CXX2011
 
+# Set up locations and flags for the compiler that will build bde_verify.
 ifeq ($(SYSTEM),Linux)
-BB = /bb/build/share/packages/refroot/amd64/unstable/bb
     ifeq    ($(COMPILER),gcc)
 VERSION  = 4.8.1
 CCDIR    = /opt/swt/install/gcc-$(VERSION)
@@ -41,7 +40,6 @@ LINK     = $(CXX)
     endif
 endif
 ifeq ($(SYSTEM),SunOS)
-BB = /bb/build/share/packages/refroot/solaris10-sparc/unstable/bb
     ifeq    ($(COMPILER),gcc)
 VERSION  = 4.8.1
 CCDIR    = /opt/swt/install/gcc-$(VERSION)
@@ -59,6 +57,7 @@ endif
 
 OBJ      = $(SYSTEM)-$(COMPILER)-$(VERSION)
 
+# Set up location of clang headers and libraries needed by bde_verify.
 LLVM     = /home/hrosen4/mbig/llvm-3.4.1/install-$(SYSTEM)
 INCFLAGS += -I$(LLVM)/include
 
@@ -86,8 +85,6 @@ CXXFILES =                                                 \
 
 # -----------------------------------------------------------------------------
 
-#DEFFLAGS += -D_DEBUG
-#DEFFLAGS += -D_GNU_SOURCE
 DEFFLAGS += -D__STDC_LIMIT_MACROS
 DEFFLAGS += -D__STDC_CONSTANT_MACROS
 INCFLAGS += -I.
@@ -102,7 +99,7 @@ $(OBJ)/$(LIBCSABASE): $(OFILES)
 	$(VERBOSE) $(AR) cr $@ $(OFILES)
 
 $(OBJ)/%.o: %.cpp
-	@if [ ! -d $(@D) ]; then scripts/mkdirhier $(@D); fi
+	@if [ ! -d $(@D) ]; then mkdir -p $(@D); fi
 	@echo compiling $(@:$(OBJ)/%.o=%.cpp)
 	$(VERBOSE) $(CXX) $(INCFLAGS) $(DEFFLAGS) $(CXXFLAGS) $(WARNFLAGS) \
                           -o $@ -c $(@:$(OBJ)/%.o=%.cpp)
@@ -118,12 +115,13 @@ clean:
 	$(VERBOSE) $(RM) mkerr olderr *~
 
 # -----------------------------------------------------------------------------
+# run include-what-you-use on the bde_verify sources
 
 IWYUFILES = $(CXXFILES:%.cpp=%.iwyu)
 
 LCSYSTEM = $(shell echo $(SYSTEM) | tr '[A-Z]' '[a-z]')
-LLVMBUILDDIR = /home/hrosen4/mbig/llvm-3.4.1/build-$(LCSYSTEM)/Release+Asserts/
-IWYU = $(LLVMBUILDDIR)bin/include-what-you-use
+LLVMBUILDDIR = /home/hrosen4/mbig/llvm-3.4.1/build-$(LCSYSTEM)/Release+Asserts
+IWYU = $(LLVMBUILDDIR)/bin/include-what-you-use
 
 %.iwyu: %.cpp
 	-$(VERBOSE) $(IWYU) $(INCFLAGS) $(DEFFLAGS) \
