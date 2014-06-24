@@ -483,7 +483,9 @@ void report::get_function_names()
             CXXRecordDecl::method_iterator b = record->method_begin();
             CXXRecordDecl::method_iterator e = record->method_end();
             for (; b != e; ++b) {
-                if ((*b)->getAccess() == AS_public && (*b)->isUserProvided()) {
+                if ((*b)->getAccess() == AS_public &&
+                    (*b)->isUserProvided() &&
+                    !(*b)->getLocation().isMacroID()) {
                     std::string method = (*b)->getNameAsString();
                     size_t lt = method.find('<');
                     if (lt != method.npos &&
@@ -546,7 +548,7 @@ void report::operator()()
     if (sep_offset > offset) {
         d_analyser.report(plan_range.getBegin(),
                           check_name, "TP02",
-                          "TEST PLAN section is missing '//---...---' "
+                          "TEST PLAN section is missing '// ---...---' "
                           "separator line");
     }
 
@@ -1203,10 +1205,10 @@ const char standard_bde_loop_assert_test_macros_new[] =
 ;
 
 const char standard_bde_loop_assert_test_macros_bsl[] =
-"//=================="
+"// ================="
 "==========================================================="                NL
 "//                      STANDARD BDE TEST DRIVER MACROS"                    NL
-"//------------------"
+"// -----------------"
 "-----------------------------------------------------------"                NL
 ""                                                                           NL
 "#define ASSERT       BSLS_BSLTESTUTIL_ASSERT"                               NL
@@ -1223,10 +1225,10 @@ const char standard_bde_loop_assert_test_macros_bsl[] =
 ;
 
 const char standard_bde_loop_assert_test_macros_bdl[] =
-"//=================="
+"// ================="
 "==========================================================="                NL
 "//                      STANDARD BDE TEST DRIVER MACROS"                    NL
-"//------------------"
+"// -----------------"
 "-----------------------------------------------------------"                NL
 ""                                                                           NL
 "#define ASSERT       BDLS_TESTUTIL_ASSERT"                                  NL

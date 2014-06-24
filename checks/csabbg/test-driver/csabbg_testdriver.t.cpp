@@ -282,6 +282,7 @@ int main(int argc, char *argv[])
 //    joe : just a class : stuff
 //    bsl::basic_nonesuch : not there::more stuff
 
+#define x() x()
 namespace BloombergLP
 {
     struct joe {
@@ -293,6 +294,7 @@ namespace BloombergLP
         joe();
         joe(int);
         ~joe();
+        void x();
     };
 }
 
