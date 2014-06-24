@@ -44,7 +44,7 @@ csafmt_comments.t.cpp:72:34: note: PRP01: Correct format is
 //@PURPOSE: None. Why even go on?.
 csafmt_comments.t.cpp:74:3: warning: PRP01: Invalid format for @PURPOSE line
 // @ Purpose :Too much space, too many dots...
-  ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  ^
 csafmt_comments.t.cpp:74:3: note: PRP01: Correct format is
 //@PURPOSE: Too much space, too many dots.
 csafmt_comments.t.cpp:76:4: warning: PP01: The term "Pure procedure" is deprecated; use 'function'

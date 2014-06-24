@@ -493,17 +493,14 @@ void files::check_purpose(SourceRange range)
         offset = matchpos + text.size();
 
         if (!strict_purpose.match(text)) {
-            std::string expected = "//@PURPOSE: " + matches[1].str() + ".";
+            std::string expected =
+                "//@PURPOSE: " + matches[1].trim().str() + ".";
             std::pair<size_t, size_t> m = mid_mismatch(text, expected);
             d_analyser.report(
                     range.getBegin().getLocWithOffset(matchpos + m.first),
                     check_name, "PRP01",
                     "Invalid format for @PURPOSE line")
-                << text
-                << SourceRange(
-                       range.getBegin().getLocWithOffset(matchpos + m.first),
-                       range.getBegin().getLocWithOffset(offset - 1 -
-                                                         m.second));
+                << text;
             d_analyser.report(
                 range.getBegin().getLocWithOffset(matchpos + m.first),
                     check_name, "PRP01",
@@ -546,7 +543,7 @@ void files::check_description(SourceRange range)
         cpos = comment.find('\n', cpos) + 1;
     }
 
-    for (; cpos < end; cpos = comment.find('\n', cpos) + 1) {
+    while (cpos < end) {
         llvm::SmallVector<llvm::StringRef, 7> matches;
         if (!classes.match(comment.slice(cpos, end), &matches)) {
             d_analyser.report(range.getBegin().getLocWithOffset(cpos),
@@ -574,6 +571,10 @@ void files::check_description(SourceRange range)
                                   "class name %0")
                     << qc;
             }
+        }
+        cpos = comment.find('\n', cpos);
+        if (cpos != comment.npos) {
+            ++cpos;
         }
     }
 }
