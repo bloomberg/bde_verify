@@ -765,15 +765,14 @@ void report::critiqueContract(const FunctionDecl* func, SourceRange comment)
 
                     // If we know that the parameter name appears both quoted
                     // and unquoted, and that this instance of the parameter
-                    // name is unquoted and doesn't have "specified", assume
-                    // that this is a Standard English use of the word rather
-                    // than a naming of the parameter, and so ignore it.  E.g.,
+                    // name is unquoted, assume that this is a Standard English
+                    // use of the word rather than a naming of the parameter,
+                    // and so ignore it.  E.g.,
                     //..
                     //  For the hash key, use the specified 'key' combined with
                     //  the specified 'salt'.
                     //..
-                    if (   !specify_found
-                        && parm_info[i].is_quoted
+                    if (   parm_info[i].is_quoted
                         && parm_info[i].is_not_quoted
                         && !words[j].is_quoted) {
                         continue;
@@ -781,15 +780,17 @@ void report::critiqueContract(const FunctionDecl* func, SourceRange comment)
 
                     // If we know that the parameter name appears exactly as
                     // spelled somewhere in the comment, and that this instance
-                    // of the parameter doesn't have 'specified' and isn't
-                    // spelled the same, ignore it.  E.g.,
+                    // of the parameter doesn't have 'specified', isn't quoted
+                    // here if it's quoted anywhere, and isn't spelled the
+                    // same, ignore it.  E.g.,
                     //..
                     //  ... if derived from 'bslma::Allocator',
                     //      the specified 'allocator' is ...
                     //..
                     if (!specify_found &&
                         parm_info[i].is_exact &&
-                        words[j].word != parms[i]) {
+                        words[j].word != parms[i] &&
+                        (words[j].is_quoted || !parm_info[i].is_quoted)) {
                         continue;
                     }
 
