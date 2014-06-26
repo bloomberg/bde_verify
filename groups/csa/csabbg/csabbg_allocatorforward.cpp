@@ -384,9 +384,10 @@ void report::match_nested_allocator_trait(const BoundNodes& nodes)
     CXXRecordDecl const* decl = nodes.getNodeAs<CXXRecordDecl>("class");
     std::string type = nodes.getNodeAs<QualType>("type")->getAsString();
 
-    if (type.find("bslalg::struct "
-                  "TypeTraitUsesBslmaAllocator::NestedTraitDeclaration<") ==
-            0 ||
+    if (type.find("bslalg::struct TypeTraitUsesBslmaAllocator::"
+                  "NestedTraitDeclaration<") == 0 ||
+        type.find("bslalg_TypeTraitUsesBslmaAllocator::"
+                  "NestedTraitDeclaration<") == 0 ||
         (type.find("BloombergLP::bslmf::NestedTraitDeclaration<") == 0 &&
          (type.find(", bslma::UsesBslmaAllocator, true>") != type.npos ||
           type.find(", bslma::UsesBslmaAllocator>") != type.npos))) {
