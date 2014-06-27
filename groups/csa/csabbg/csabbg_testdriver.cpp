@@ -1077,8 +1077,29 @@ void report::match_no_print(const BoundNodes& nodes)
         }
     }
 
-    d_analyser.report(quiet, check_name, "TP21",
-                      "Loops must contain very verbose action");
+    // Require that the loop contain a call to a tested method.
+    llvm::StringRef code = d_analyser.get_source(quiet->getSourceRange());
+    for (const auto& func_count : d_data.d_names_to_test) {
+        size_t pos = code.find(func_count.first);
+        if (pos != code.npos) {
+            if (pos > 0) {
+                unsigned char c = code[pos - 1];
+                if (c == '_' || std::isalnum(c)) {
+                    continue;
+                }
+            }
+            pos += func_count.first.size();
+            if (pos + 1 < code.size()) {
+                unsigned char c = code[pos];
+                if (c == '_' || std::isalnum(c)) {
+                    continue;
+                }
+            }
+            d_analyser.report(quiet, check_name, "TP21",
+                              "Loops must contain very verbose action");
+            break;
+        }
+    }
 }
 
 #undef  NL
