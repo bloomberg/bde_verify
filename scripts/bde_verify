@@ -145,15 +145,19 @@ push(@incs, (
     "$bb/include",
     "$bb/include/stlport",
 )) if $definc;
-push(@incs, map { chomp; $_; }
-            qx{ $cc -xc++ -E -v /dev/null 2>&1 |
-                sed -n '/^#include/,/^End of search list/p' |
-                sed -n '/^ [/]/s/ //p'});
 for (@incs) { warn "cannot find directory $_\n" unless -d; }
-@incs = map { ( "-I", $_, "-isystem", $_ ) }
+@incs = map { ( "-I", $_ ) }
         map { $_ eq Cwd::cwd() ? "." : $_ }
         map { Cwd::abs_path($_) }
         grep { -d } @incs;
+unshift(@incs,
+        map { ( "-isystem", $_ ) }
+        map { Cwd::abs_path($_) }
+        grep { -d }
+        map { chomp; $_; }
+        qx{ $cc -xc++ -E -v /dev/null 2>&1 |
+            sed -n '/^#include/,/^End of search list/p' |
+            sed -n '/^ [/]/s/ //p'});
 
 push(@std, "-std=$std") if $std;
 
