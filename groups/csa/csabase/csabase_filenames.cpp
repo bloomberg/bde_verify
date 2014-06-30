@@ -33,14 +33,14 @@ llvm::StringRef subdir(llvm::StringRef path, llvm::StringRef dir)
 void csabase::FileName::reset(llvm::StringRef sr)
 {
     full_ = sr;
-    extension_ = sr.slice(sr.rfind('.'), sr.npos);
-    prefix_ = sr.drop_back(extension_.size());
-    directory_ = prefix_;
+    directory_ = full_;
     while (directory_.size() > 0 &&
            !llvm::sys::path::is_separator(directory_.back())) {
         directory_ = directory_.drop_back(1);
     }
     name_ = sr.drop_front(directory_.size());
+    extension_ = name_.slice(name_.rfind('.'), name_.npos);
+    prefix_ = sr.drop_back(extension_.size());
     extra_ = name_.slice(name_.find('.'), name_.rfind('.'));
     component_ = name_.slice(0, name_.find('.'));
 
