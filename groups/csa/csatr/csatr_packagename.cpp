@@ -94,7 +94,7 @@ namespace
                 llvm::StringRef srpackage = fn.package();
                 llvm::StringRef srgroup = fn.group();
                 int pkgsize = srpackage.size() - srgroup.size();
-                if (pkgsize < 1 || pkgsize > 4) {
+                if (srpackage != srgroup && (pkgsize < 1 || pkgsize > 4)) {
                     analyser.report(where, check_name, "PN03",
                             "Package name %0 must consist of 1-4 characters "
                             "preceded by the group name: '%0'", true)

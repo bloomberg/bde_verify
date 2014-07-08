@@ -50,11 +50,7 @@ void csabase::FileName::reset(llvm::StringRef sr)
     if (under == 1) {
         under = component_.find('_', under + 1);
         package_ = component_.slice(0, under);
-        if (package_[0] != 'a') {
-            group_ = package_.slice(0, 5);
-        } else {
-            group_ = package_.slice(2, 5);
-        }
+        group_ = package_;
     }
     pkgdir_ = subdir(directory_, package_);
     grpdir_ = subdir(pkgdir_, group_);
