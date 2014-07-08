@@ -549,7 +549,7 @@ void report::operator()()
         d_analyser.report(plan_range.getBegin(),
                           check_name, "TP02",
                           "TEST PLAN section is missing '// ---...---' "
-                          "separator line");
+                          "separator line between preamble and methods list");
     }
 
     size_t plan_pos = offset;
