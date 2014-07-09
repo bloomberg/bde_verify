@@ -124,6 +124,7 @@ void report::operator()()
     aspell_config_replace(spell_config, "add-extra-dicts", "en_CA");
     aspell_config_replace(spell_config, "add-extra-dicts", "en_GB");
     aspell_config_replace(spell_config, "guess", "true");
+    aspell_config_replace(spell_config, "run-together", "true");
     AspellCanHaveError *possible_err = new_aspell_speller(spell_config);
     if (aspell_error_number(possible_err) != 0) {
         SourceManager& m = d_analyser.manager();
