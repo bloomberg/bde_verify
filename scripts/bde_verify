@@ -45,7 +45,7 @@ my $warnoff;
 my $tlonly;
 my $rwd;
 my $tag;
-my $ovr;
+my $ovr = -1;
 
 my $command = join " \\\n ", $0, map { join "\\ ", split(/ /, $_, -1) } @ARGV;
 

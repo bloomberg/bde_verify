@@ -193,7 +193,9 @@ check_order(Analyser*                       analyser,
         "bslscm_versiontag",
     };
 
-    std::string version = analyser->group() + "scm_version";
+    std::string version = analyser->group().size() ?
+                              analyser->group() + "scm_version" :
+                              analyser->package() + "_version";
     if (   (   analyser->package() == "bsls"
             || analyser->package() == "bdls")
         && header

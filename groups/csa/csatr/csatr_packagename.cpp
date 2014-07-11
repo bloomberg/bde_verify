@@ -61,14 +61,16 @@ namespace
                 attachment.d_done = true;
                 Analyser& analyser(*d_analyser);
 
-                bool standalone = fn.name().find("m_") == 0;
+                bool standalone = fn.tag().size() != 0;
 
-                if (standalone && fn.name().find('_', 2) == fn.name().npos) {
-                    analyser.report(where, check_name, "PN01",
+                if (standalone) {
+                    if (fn.name().find('_', 2) == fn.name().npos) {
+                        analyser.report(where, check_name, "PN01",
                                     "Component file name '%0' in standalone "
                                     "component contains only one underscore",
                                     true)
-                        << fn.name();
+                            << fn.name();
+                    }
                     return;                                           // RETURN
                 }
 

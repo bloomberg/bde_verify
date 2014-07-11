@@ -73,9 +73,7 @@ struct on_group_open
                                groupchar(group[0]) &&
                                groupchar(group[1]) &&
                                groupchar(group[2]);
-            bool standalone  = group.size() >= 2 &&
-                               groupchar(group[0]) &&
-                               group[1] == '_';
+            bool standalone  = fn.tag().size() != 0;
 
             if (traditional) {
                 llvm::SmallVector<char, 1024> vpath(fn.pkgdir().begin(),
