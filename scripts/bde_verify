@@ -45,6 +45,7 @@ my $warnoff;
 my $tlonly;
 my $rwd;
 my $tag;
+my $ovr;
 
 my $command = join " \\\n ", $0, map { join "\\ ", split(/ /, $_, -1) } @ARGV;
 
@@ -63,6 +64,7 @@ usage: $0 [options] [additional compiler options] file.cpp ...
     --exe=bde_verify         [$exe]
     --[no]definc             [$definc]
     --[no]defdef             [$defdef]
+    --[no]ovr                # whether to define BSL_OVERRIDES_STD
     --rewrite=dir
     --toplevel
     --std=type
@@ -92,6 +94,7 @@ GetOptions(
     'verbose|v'  => \$verbose,
     'definc!'    => \$definc,
     'defdef!'    => \$defdef,
+    'ovr!'       => \$ovr,
     'rewrite=s'  => \$rwd,
     'w'          => \$warnoff,
     "I=s"        => \@incs,
@@ -127,7 +130,7 @@ push(@defs, (
     "_SYS_SYSMACROS_H",
     "_THREAD_SAFE",
 )) if $defdef;
-if ($defdef && !grep(m{\bb[sd]l[^/]*$}, @ARGV)) {
+if ($ovr == 1 || $ovr != 0 && $defdef && !grep(m{\bb[sd]l[^/]*$}, @ARGV)) {
     push(@defs, "BSL_OVERRIDES_STD");
 }
 @defs = map { "-D$_" } @defs;
