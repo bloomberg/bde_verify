@@ -222,6 +222,8 @@ void csabase::PPObserver::FileChanged(SourceLocation location,
 {
     if (connected_)
     {
+        onPPFileChanged(location, reason, kind, prev);
+
         switch (reason)
         {
         case PPCallbacks::EnterFile:
@@ -253,6 +255,8 @@ void csabase::PPObserver::EndOfMainFile()
 {
     if (connected_)
     {
+        onPPEndOfMainFile();
+
         std::string file(files_.top());
         files_.pop();
         do_close_file(source_manager_->getLocForEndOfFile(
@@ -265,9 +269,11 @@ void csabase::PPObserver::EndOfMainFile()
 // -----------------------------------------------------------------------------
 
 void csabase::PPObserver::FileSkipped(FileEntry const& file,
-                                      Token const&,
+                                      Token const& token,
                                       SrcMgr::CharacteristicKind kind)
 {
+    onPPFileSkipped(file, token, kind);
+
     do_skip_file(files_.empty()? std::string(): files_.top(), file.getName());
 }
 
@@ -276,6 +282,8 @@ void csabase::PPObserver::FileSkipped(FileEntry const& file,
 bool csabase::PPObserver::FileNotFound(llvm::StringRef name,
                                        llvm::SmallVectorImpl<char>& path)
 {
+    onPPFileNotFound(name, path);
+
     do_file_not_found(name);
     return false;
 }
@@ -285,6 +293,8 @@ bool csabase::PPObserver::FileNotFound(llvm::StringRef name,
 void
 csabase::PPObserver::Ident(SourceLocation location, std::string const& ident)
 {
+    onPPIdent(location, ident);
+
     do_ident(location, ident);
 }
 
@@ -327,12 +337,16 @@ void csabase::PPObserver::PragmaDirective(SourceLocation location,
             config_->set_bv_value(location, matches[9], matches[10]);
         }
     }
+
+    onPPPragmaDirective(location, introducer);
 }
 
 void csabase::PPObserver::PragmaComment(SourceLocation location,
-                                        IdentifierInfo const*,
+                                        IdentifierInfo const *id,
                                         std::string const& value)
 {
+    onPPPragmaComment(location, id, value);
+
     do_pragma(location, value);
 }
 
@@ -340,21 +354,25 @@ void csabase::PPObserver::PragmaDetectMismatch(SourceLocation loc,
                                                const std::string& name,
                                                const std::string& value)
 {
+    onPPPragmaDetectMismatch(loc, name, value);
 }
 
 void
 csabase::PPObserver::PragmaDebug(SourceLocation loc, llvm::StringRef debugtype)
 {
+    onPPPragmaDebug(loc, debugtype);
 }
 
 void csabase::PPObserver::PragmaDiagnosticPush(SourceLocation loc,
                                                llvm::StringRef nmspc)
 {
+    onPPPragmaDiagnosticPush(loc, nmspc);
 }
 
 void csabase::PPObserver::PragmaDiagnosticPop(SourceLocation loc,
                                               llvm::StringRef nmspc)
 {
+    onPPPragmaDiagnosticPop(loc, nmspc);
 }
 
 void csabase::PPObserver::PragmaDiagnostic(SourceLocation loc,
@@ -362,6 +380,7 @@ void csabase::PPObserver::PragmaDiagnostic(SourceLocation loc,
                                            diag::Mapping mapping,
                                            llvm::StringRef str)
 {
+    onPPPragmaDiagnostic(loc, nmspc, mapping, str);
 }
 
 void csabase::PPObserver::PragmaOpenCLExtension(SourceLocation nameloc,
@@ -369,20 +388,24 @@ void csabase::PPObserver::PragmaOpenCLExtension(SourceLocation nameloc,
                                                 SourceLocation stateloc,
                                                 unsigned state)
 {
+    onPPPragmaOpenCLExtension(nameloc, name, stateloc, state);
 }
 
 void csabase::PPObserver::PragmaWarning(SourceLocation loc,
                                         llvm::StringRef warningspec,
                                         llvm::ArrayRef<int> ids)
 {
+    onPPPragmaWarning(loc, warningspec, ids);
 }
 
 void csabase::PPObserver::PragmaWarningPush(SourceLocation loc, int level)
 {
+    onPPPragmaWarningPush(loc, level);
 }
 
 void csabase::PPObserver::PragmaWarningPop(SourceLocation loc)
 {
+    onPPPragmaWarningPop(loc);
 }
 
 void csabase::PPObserver::PragmaMessage(SourceLocation location,
@@ -390,6 +413,8 @@ void csabase::PPObserver::PragmaMessage(SourceLocation location,
                                         PragmaMessageKind kind,
                                         llvm::StringRef value)
 {
+    onPPPragmaMessage(location, nmspc, kind, value);
+
     do_pragma(location, value);
 }
 
@@ -400,18 +425,24 @@ void csabase::PPObserver::MacroExpands(Token const& token,
                                        SourceRange range,
                                        const MacroArgs* args)
 {
+    onPPMacroExpands(token, macro, range, args);
+
     do_macro_expands(token, macro, range, args);
 }
 
 void csabase::PPObserver::MacroDefined(Token const& token,
                                        const MacroDirective* macro)
 {
+    onPPMacroDefined(token, macro);
+
     do_macro_defined(token, macro);
 }
 
 void csabase::PPObserver::MacroUndefined(Token const& token,
                                          const MacroDirective* macro)
 {
+    onPPMacroUndefined(token, macro);
+
     do_macro_undefined(token, macro);
 }
 
@@ -419,10 +450,12 @@ void csabase::PPObserver::Defined(const Token& token,
                                   const MacroDirective* macro,
                                   SourceRange range)
 {
+    onPPDefined(token, macro, range);
 }
 
 void csabase::PPObserver::SourceRangeSkipped(SourceRange range)
 {
+    onPPSourceRangeSkipped(range);
 }
 
 // ----------------------------------------------------------------------------
@@ -431,6 +464,8 @@ void csabase::PPObserver::If(SourceLocation loc,
                              SourceRange range,
                              bool conditionvalue)
 {
+    onPPIf(loc, range, conditionvalue);
+
     do_if(loc, range);
 }
 
@@ -439,6 +474,8 @@ void csabase::PPObserver::Elif(SourceLocation loc,
                                bool conditionvalue,
                                SourceLocation ifloc)
 {
+    onPPElif(loc, range, conditionvalue, ifloc);
+
     do_elif(loc, range);
 }
 
@@ -446,6 +483,8 @@ void csabase::PPObserver::Ifdef(SourceLocation loc,
                                 Token const& token,
                                 const MacroDirective* md)
 {
+    onPPIfdef(loc, token, md);
+
     do_ifdef(loc, token);
 }
 
@@ -453,16 +492,22 @@ void csabase::PPObserver::Ifndef(SourceLocation loc,
                                  Token const& token,
                                  const MacroDirective* md)
 {
+    onPPIfndef(loc, token, md);
+
     do_ifndef(loc, token);
 }
 
 void csabase::PPObserver::Else(SourceLocation loc, SourceLocation ifloc)
 {
+    onPPElse(loc, ifloc);
+
     do_else(loc, ifloc);
 }
 
 void csabase::PPObserver::Endif(SourceLocation loc, SourceLocation ifloc)
 {
+    onPPEndif(loc, ifloc);
+
     do_endif(loc, ifloc);
 }
 
@@ -488,6 +533,10 @@ void csabase::PPObserver::InclusionDirective(SourceLocation HashLoc,
                                              llvm::StringRef RelativePath,
                                              const Module* Imported)
 {
+    onPPInclusionDirective(HashLoc, IncludeTok, FileName, IsAngled,
+                           FilenameRange, File, SearchPath, RelativePath,
+                           Imported);
+
     do_include_file(HashLoc, IsAngled, FileName);
     //-dk:TODO make constructive use of this...
 }
@@ -496,6 +545,7 @@ void csabase::PPObserver::moduleImport(SourceLocation ImportLoc,
                                        ModuleIdPath Path,
                                        const Module* Imported)
 {
+    onPPmoduleImport(ImportLoc, Path, Imported);
 }
 
 // ----------------------------------------------------------------------------
