@@ -428,8 +428,9 @@ namespace
         DeclarationNameInfo const nameInfo(declName, SourceLocation());
         LookupResult result(sema, nameInfo,
                                    colons == name.npos
-                                   ? Sema::LookupTagName
+                                   ? Sema::LookupUsingDeclName
                                    : Sema::LookupNestedNameSpecifierName);
+        result.suppressDiagnostics();
 
         if (sema.LookupQualifiedName(result, context) &&
             result.begin() != result.end()) {
