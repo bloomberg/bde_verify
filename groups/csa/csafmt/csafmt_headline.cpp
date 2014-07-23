@@ -72,12 +72,18 @@ static void open_file(Analyser& analyser,
                             "Correct format is\n%0",
                             true, DiagnosticsEngine::Note)
                 << expect;
-            analyser.rewriter().ReplaceText(
-                where.getLocWithOffset(m.first),
-                buf.size() - m.first - m.second,
-                llvm::StringRef(expect)
-                    .drop_front(m.first)
-                    .drop_back(m.second));
+            if (m.first == 0) {
+                analyser.rewriter().InsertText(
+                    where.getLocWithOffset(m.first),
+                    expect + "\n");
+            } else {
+                analyser.rewriter().ReplaceText(
+                    where.getLocWithOffset(m.first),
+                    buf.size() - m.first - m.second,
+                    llvm::StringRef(expect)
+                        .drop_front(m.first)
+                        .drop_back(m.second));
+            }
         }
     }
 }
