@@ -62,6 +62,7 @@ usage: $0 [options] [additional compiler options] file.cpp ...
     --cl=config_line
     --bb=dir                 [$bb]
     --exe=bde_verify         [$exe]
+    --cc=/path/to/g++        [$cc]
     --[no]definc             [$definc]
     --[no]defdef             [$defdef]
     --[no]ovr                # whether to define BSL_OVERRIDES_STD
@@ -90,6 +91,7 @@ GetOptions(
     'cl=s'       => \@cl,
     'debug'      => \$debug,
     'help|?'     => \$help,
+    'cc=s'       => \$cc,
     'exe=s'      => \$exe,
     'verbose|v'  => \$verbose,
     'definc!'    => \$definc,
@@ -115,9 +117,9 @@ my @tlo    = ("-plugin-arg-bde_verify", "toplevel-only-on") if $tlonly;
 my @rwd    = ("-plugin-arg-bde_verify", "rewrite-dir=$rwd") if $rwd;
 print "No such directory $rwd\n" if $rwd and ! -d $rwd;
 my @tag    = ("-plugin-arg-bde_verify", "tool=$tag") if $tag;
-
-@lflags = map { "-f$_" if $_ ne "no-strict-aliasing" } @lflags;
-@wflags = map { "-W$_" } @wflags;
+my %uf     = ( "no-strict-aliasing" => 1, "PIC" => 1 );
+@lflags = map { "-f$_" } grep { not exists $uf{$_} } @lflags;
+@wflags = map { "-W$_" } grep { not /,/ } @wflags;
 unshift @wflags, "-w" if $warnoff;
 
 push(@defs, (

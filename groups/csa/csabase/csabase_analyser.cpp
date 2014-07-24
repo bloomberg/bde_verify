@@ -449,12 +449,10 @@ namespace
     NamedDecl*
     lookup_name(Sema& sema, std::string const& name)
     {
-        std::string::size_type colons(name.find("::"));
-        return 0 == colons ?
-                   lookup_name(sema, name.substr(2)) :
-                   lookup_name(sema,
-                               sema.getASTContext().getTranslationUnitDecl(),
-                               name);
+        return lookup_name(
+            sema,
+            sema.getASTContext().getTranslationUnitDecl(),
+            llvm::StringRef(name).startswith("::") ? name.substr(2) : name);
     }
 }
 
@@ -488,10 +486,9 @@ bool csabase::Analyser::is_ADL_candidate(Decl const* decl)
 {
     bool adl = false;
     NamespaceDecl *pspace = lookup_name_as<NamespaceDecl>(
-        "::" + config()->toplevel_namespace() + "::" + package()
+        config()->toplevel_namespace() + "::" + package()
     );
-    const FunctionDecl *fd =
-        llvm::dyn_cast<FunctionDecl>(decl);
+    const FunctionDecl *fd = llvm::dyn_cast<FunctionDecl>(decl);
     if (const FunctionTemplateDecl *ftd =
             llvm::dyn_cast<FunctionTemplateDecl>(decl)) {
         fd = ftd->getTemplatedDecl();
