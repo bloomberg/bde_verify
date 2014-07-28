@@ -72,7 +72,7 @@ struct data
     std::set<std::pair<llvm::StringRef, SourceLocation>> d_std_names;
     std::map<std::string, std::string>                   d_file_map;
     std::map<FileID, std::set<std::string>>              d_once;
-    std::map<FileID, std::set<std::pair<std::string, SourceLocation>>>
+    std::map<FileID, std::vector<std::pair<std::string, SourceLocation>>>
                                                          d_includes;
 };
 
@@ -433,14 +433,14 @@ void report::operator()(SourceLocation   where,
     }
 
     FileID fid = d_analyser.manager().getFileID(where);
-    d_data.d_includes[fid].insert(std::make_pair(
+    d_data.d_includes[fid].push_back(std::make_pair(
         name, d_data.d_guard_pos.isValid() ? d_data.d_guard_pos : where));
 
     const file_info *fi;
 
     if (   !d_data.d_in_bsl
         && !d_data.d_in_std
-        //&& d_analyser.is_component(where)
+        && d_analyser.is_component(where)
         && !d_analyser.manager().isInSystemHeader(where)
         && classify(name, &fi) == FileType::e_STD
         && fi) {
@@ -528,7 +528,7 @@ void report::operator()(Token const&          token,
     const MacroInfo *mi = md->getMacroInfo();
     if (!d_data.d_in_bsl &&
         !d_data.d_in_std &&
-        //d_analyser.is_component(range.getBegin()) &&
+        d_analyser.is_component(range.getBegin()) &&
         !d_analyser.manager().isInSystemHeader(range.getBegin()) &&
         is_named(token, "std") &&
         mi->isObjectLike() &&
@@ -599,7 +599,7 @@ void report::operator()(const Token&          token,
 void report::operator()(SourceRange range)
 {
     if (d_data.d_guard.size() > 0 &&
-        //d_analyser.is_component(range.getBegin()) &&
+        d_analyser.is_component(range.getBegin()) &&
         !d_analyser.manager().isInSystemHeader(range.getBegin())) {
         llvm::StringRef g = d_data.d_guard.str();
         llvm::Regex r ("ifndef +(" + g.str() + ")[[:space:]]+" +
@@ -675,25 +675,28 @@ void report::add_include(FileID fid, const std::string& name)
 {
     SourceLocation sl = d_analyser.manager().getLocForStartOfFile(fid);
     Location loc(d_analyser.manager(), sl);
-    const file_info *fi;
-    classify(name, &fi);
-    const char *guard = fi && d_analyser.is_component_header(loc.file()) ?
-        fi->bsl_guard : 0;
+    const file_info *fi_name;
+    classify(name, &fi_name);
+    ERRS() << name; ERNL();
+    const char *guard = fi_name && d_analyser.is_component_header(loc.file()) ?
+        fi_name->bsl_guard : 0;
     SourceLocation ip = sl;
     SourceLocation last_ip = sl;
     for (const auto& p : d_data.d_includes[fid]) {
-        classify(p.first, &fi);
-        llvm::StringRef inc = fi ? fi->bsl : p.first;
-        // ERRS() << inc << " " << name; ERNL();
-        last_ip = p.second;
+        const file_info *fi_inc;
+        classify(p.first, &fi_inc);
+        llvm::StringRef inc = fi_inc ? fi_inc->bsl : p.first;
+        ERRS() << inc << " " << name; ERNL();
         if (!inc.endswith("_version.h") && !inc.endswith("_ident.h") &&
-            inc > name) {
+            last_ip != sl &&
+            (fi_inc && fi_name ? fi_inc->bsl > fi_name->bsl : inc > name)) {
             ip = p.second;
             break;
         }
+        last_ip = p.second;
     }
     ip = d_analyser.get_line_range(ip == sl ? last_ip : ip).getBegin();
-    if (//d_analyser.is_component(ip) &&
+    if (d_analyser.is_component(ip) &&
         !d_analyser.manager().isInSystemHeader(ip)) {
         d_analyser.report(ip, check_name, "IS02",
                           "Inserting #include <%0>")
@@ -767,16 +770,19 @@ void report::operator()()
         SourceLocation sl = rp.second;
         FileID fid = d_analyser.manager().getFileID(sl);
 
-        if (//!d_analyser.is_component(sl) ||
+        if (!d_analyser.is_component(sl) ||
             d_analyser.manager().isInSystemHeader(sl)) {
             continue;
         }
 
         NamedDecl *ds = d_analyser.lookup_name(("std::" + r).str());
         NamedDecl *dg = d_analyser.lookup_name(r.str());
+        DeclContext *dgc = dg ? dg->getDeclContext() : nullptr;
         // ERRS() << (ds ? "Found " : "Did not find ") << "std::" << r; ERNL();
         // ERRS() << (dg ? "Found " : "Did not find ") << "   ::" << r; ERNL();
-        if (dg && dg->getDeclContext()->isTranslationUnit()) {
+        if (dgc && (dgc->isTranslationUnit() ||
+                    dgc->isExternCContext() ||
+                    dgc->isExternCXXContext())) {
             d_analyser.report(sl, check_name, "SB05",
                               "Removing namespace qualification");
             d_analyser.rewriter().ReplaceText(sl, 3, "   ");
