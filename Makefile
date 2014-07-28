@@ -15,7 +15,7 @@ ifeq ($(SYSTEM),Linux)
 VERSION  = 4.8.1
 CCDIR    = /opt/swt/install/gcc-$(VERSION)
 CXX      = $(CCDIR)/bin/g++
-CXXFLAGS += -std=c++0x
+CXXFLAGS += -std=c++11
 LINK     = $(CXX)
 AR       = /usr/bin/ar
 LDFLAGS  += -Wl,-rpath,$(CCDIR)/lib64
@@ -25,7 +25,7 @@ CXXFLAGS += -Wno-unused-local-typedefs
 VERSION  = 3.4.1
 CCDIR    = /home/hrosen4/mbig/llvm-$(VERSION)/install-$(SYSTEM)
 CXX      = $(CCDIR)/bin/clang++
-CXXFLAGS += -std=c++0x
+CXXFLAGS += -std=c++11
 LINK     = $(CXX)
 LDFLAGS += -Wl,-rpath,/opt/swt/install/gcc-4.8.1/lib64
     endif
@@ -43,7 +43,7 @@ CXX      = $(CCDIR)/bin/g++
 CXXFLAGS += -m64 -pthreads -mno-faster-structs
 CFLAGS   += -m64 -pthreads -mno-faster-structs
 LDFLAGS  += -m64 -pthreads -mno-faster-structs
-CXXFLAGS += -std=c++0x
+CXXFLAGS += -std=c++11
 LINK     = $(CXX)
 AR       = /usr/ccs/bin/ar
 LDFLAGS  += -Wl,-L,$(CCDIR)/lib/sparcv9 -Wl,-R,$(CCDIR)/lib/sparcv9
@@ -297,7 +297,8 @@ iwyu: $(IWYUFILES)
 depend $(OBJ)/make.depend:
 	@if [ ! -d $(OBJ) ]; then mkdir $(OBJ); fi
 	@echo analysing dependencies
-	$(VERBOSE) $(CXX) $(INCFLAGS) $(DEFFLAGS) -M $(CXXFILES) \
+	$(VERBOSE) $(CXX) $(INCFLAGS) $(DEFFLAGS) -M $(CXXFILES)                  \
+            $(filter-out -Wno-unused-local-typedefs, $(CXXFLAGS))             \
 		| perl -pe 's[^(?! )][$(OBJ)/]' > $(OBJ)/make.depend
 
 ifneq "$(MAKECMDGOALS)" "clean"

@@ -16,7 +16,7 @@ ifeq ($(SYSTEM),Linux)
 VERSION  = 4.8.1
 CCDIR    = /opt/swt/install/gcc-$(VERSION)
 CXX      = $(CCDIR)/bin/g++
-CXXFLAGS += -std=c++0x
+CXXFLAGS += -std=c++11
 LINK     = $(CXX)
 AR       = /usr/bin/ar
 CXXFLAGS += -Wno-unused-local-typedefs
@@ -25,7 +25,7 @@ CXXFLAGS += -Wno-unused-local-typedefs
 VERSION  = 3.4.1
 CCDIR    = /home/hrosen4/mbig/llvm-$(VERSION)/install-$(SYSTEM)
 CXX      = $(CCDIR)/bin/clang++
-CXXFLAGS += -std=c++0x
+CXXFLAGS += -std=c++11
 LINK     = $(CXX)
     endif
 endif
@@ -35,11 +35,9 @@ ifeq ($(SYSTEM),SunOS)
 VERSION  = 4.8.1
 CCDIR    = /opt/swt/install/gcc-$(VERSION)
 CXX      = $(CCDIR)/bin/g++
-         ifeq        ($(STD),CXX2011)
 CXXFLAGS += -m64 -pthreads -mno-faster-structs
 CFLAGS   += -m64 -pthreads -mno-faster-structs
-CXXFLAGS += -std=c++0x
-         endif
+CXXFLAGS += -std=c++11
 LINK     = $(CXX)
 AR       = /usr/ccs/bin/ar
 CXXFLAGS += -Wno-unused-local-typedefs
@@ -130,7 +128,8 @@ iwyu: $(IWYUFILES)
 depend $(OBJ)/make.depend:
 	@if [ ! -d $(OBJ) ]; then mkdir $(OBJ); fi
 	@echo analysing dependencies
-	$(VERBOSE) $(CXX) $(INCFLAGS) $(DEFFLAGS) -M $(CXXFILES) \
+	$(VERBOSE) $(CXX) $(INCFLAGS) $(DEFFLAGS) -M $(CXXFILES)                  \
+            $(filter-out -Wno-unused-local-typedefs, $(CXXFLAGS))             \
 		| perl -pe 's[^(?! )][$(OBJ)/]' > $(OBJ)/make.depend
 
 ifneq "$(MAKECMDGOALS)" "clean"
