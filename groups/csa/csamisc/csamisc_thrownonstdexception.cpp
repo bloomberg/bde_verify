@@ -24,7 +24,7 @@ static void check(Analyser& analyser, CXXThrowExpr const* expr)
 {
     static const TypeDecl *e = analyser.lookup_type("::std::exception");
     Expr *object(const_cast<Expr*>(expr->getSubExpr()));
-    if (e && object) // else it is a rethrow...
+    if (e && e->getTypeForDecl() && object) // else it is a rethrow...
     {
         QualType t =
             e->getTypeForDecl()->getCanonicalTypeInternal();
