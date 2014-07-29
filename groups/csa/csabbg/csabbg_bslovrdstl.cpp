@@ -67,6 +67,7 @@ struct data
     bool                                                 d_in_bsl;
     bool                                                 d_in_std;
     bool                                                 d_is_obsolete;
+    bool                                                 d_bsl_overrides_std;
     llvm::StringRef                                      d_guard;
     SourceLocation                                       d_guard_pos;
     std::set<std::pair<llvm::StringRef, SourceLocation>> d_std_names;
@@ -264,6 +265,10 @@ struct report
 
     bool is_named(Token const& token, llvm::StringRef name);
         // Return 'true' iff the specified 'token' is the specified 'name'.
+
+    void operator()(Token const&          token,
+                    MacroDirective const *md);
+        // Preprocessor callback for macro definition.
 
     void operator()(Token const&          token,
                     MacroDirective const *md,
@@ -519,6 +524,46 @@ bool report::is_named(Token const& token, llvm::StringRef name)
            token.getIdentifierInfo()->getName() == name;
 }
 
+// MacroDefined
+// MacroUndefined
+void report::operator()(Token const&          token,
+                        MacroDirective const *md)
+{
+    if (d_type == PPObserver::e_MacroUndefined) {
+        if (is_named(token, "std")) {
+            d_data.d_bsl_overrides_std = false;
+        }
+        return;                                                       // RETURN
+    }
+
+    if (md) {
+        if (const MacroInfo *mi = md->getMacroInfo()) {
+            int nt = mi->getNumTokens();
+            if (is_named(token, "std") &&
+                mi->isObjectLike() &&
+                nt == 1 &&
+                is_named(mi->getReplacementToken(0), "bsl")) {
+                d_data.d_bsl_overrides_std = true;
+            } else if (d_data.d_bsl_overrides_std) {
+                for (int i = 0; i < nt; ++i) {
+                    const Token &token = mi->getReplacementToken(i);
+                    if (is_named(token, "std")) {
+                        if (!d_analyser.rewriter().ReplaceText(
+                                 token.getLocation(),
+                                 token.getLength(),
+                                 "bsl")) {
+                            d_analyser.report(token.getLocation(),
+                                              check_name, "SB07",
+                                              "Replacing 'std' with 'bsl' in "
+                                              "macro definition");
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 // MacroExpands
 void report::operator()(Token const&          token,
                         MacroDirective const *md,
@@ -546,9 +591,6 @@ void report::operator()(Token const&          token,
         if (!d_analyser.rewriter().ReplaceText(range, "bsl")) {
             d_analyser.report(loc, check_name, "SB04",
                               "Replacing macro 'std' with 'bsl'");
-        } else {
-            d_analyser.report(loc, check_name, "SB06",
-                              "Failed to replace macro 'std' with 'bsl'");
         }
     }
 }
@@ -677,7 +719,7 @@ void report::add_include(FileID fid, const std::string& name)
     Location loc(d_analyser.manager(), sl);
     const file_info *fi_name;
     classify(name, &fi_name);
-    ERRS() << name; ERNL();
+    // ERRS() << name; ERNL();
     const char *guard = fi_name && d_analyser.is_component_header(loc.file()) ?
         fi_name->bsl_guard : 0;
     SourceLocation ip = sl;
@@ -686,7 +728,7 @@ void report::add_include(FileID fid, const std::string& name)
         const file_info *fi_inc;
         classify(p.first, &fi_inc);
         llvm::StringRef inc = fi_inc ? fi_inc->bsl : p.first;
-        ERRS() << inc << " " << name; ERNL();
+        // ERRS() << inc << " " << name; ERNL();
         if (!inc.endswith("_version.h") && !inc.endswith("_ident.h") &&
             last_ip != sl &&
             (fi_inc && fi_name ? fi_inc->bsl > fi_name->bsl : inc > name)) {
@@ -806,6 +848,10 @@ void subscribe(Analyser& analyser, Visitor&, PPObserver& observer)
 {
     observer.onPPInclusionDirective += report(analyser);
     observer.onPPFileChanged        += report(analyser);
+    observer.onPPMacroDefined       += report(analyser,
+                                                      observer.e_MacroDefined);
+    observer.onPPMacroUndefined     += report(analyser,
+                                                    observer.e_MacroUndefined);
     observer.onPPMacroExpands       += report(analyser);
     observer.onPPIfdef              += report(analyser, observer.e_Ifdef);
     observer.onPPIfndef             += report(analyser, observer.e_Ifndef);
