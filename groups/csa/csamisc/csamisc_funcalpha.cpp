@@ -80,12 +80,12 @@ bool comments::isReset(SourceRange range)
     llvm::StringRef comment = d_analyser.get_source(
         SourceRange(d_analyser.get_line_range(range.getBegin())
                         .getBegin()
-                        .getLocWithOffset(-2),
-                    range.getEnd().getLocWithOffset(2)),
+                        .getLocWithOffset(-1),
+                    range.getEnd().getLocWithOffset(1)),
         true);
-    return comment.startswith("\n\n") &&
-           comment.endswith("\n\n") &&
-           comment.count('\n') == 4;
+    return comment.startswith("\n") &&
+           comment.endswith("\n") &&
+           comment.count('\n') == 2;
 }
 
 void comments::operator()(SourceRange range)
