@@ -14,7 +14,6 @@
 #include <csabase_visitor.h>
 #include <llvm/ADT/StringRef.h>
 #include <llvm/Support/Casting.h>
-#include <llvm/Support/Regex.h>
 #include <utils/event.hpp>
 #include <utils/function.hpp>
 #include <map>
@@ -22,7 +21,6 @@
 #include <string>
 #include <utility>
 #include <vector>
-
 namespace clang { class SourceManager; }
 
 using namespace csabase;

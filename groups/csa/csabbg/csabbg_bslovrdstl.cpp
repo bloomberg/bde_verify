@@ -1,13 +1,9 @@
 // csabbg_bslovrdstl.cpp                                              -*-C++-*-
 
-#include <clang/AST/ASTContext.h>
 #include <clang/AST/Decl.h>
 #include <clang/AST/DeclBase.h>
-#include <clang/AST/PrettyPrinter.h>
-#include <clang/AST/RecursiveASTVisitor.h>
-#include <clang/ASTMatchers/ASTMatchFinder.h>
-#include <clang/ASTMatchers/ASTMatchers.h>
-#include <clang/ASTMatchers/ASTMatchersInternal.h>
+#include <clang/AST/DeclCXX.h>
+#include <clang/AST/Type.h>
 #include <clang/Basic/IdentifierTable.h>
 #include <clang/Basic/SourceLocation.h>
 #include <clang/Basic/SourceManager.h>
@@ -15,27 +11,27 @@
 #include <clang/Lex/PPCallbacks.h>
 #include <clang/Lex/Token.h>
 #include <clang/Rewrite/Core/Rewriter.h>
-#include <clang/Sema/Lookup.h>
-#include <clang/Sema/Sema.h>
 #include <csabase_analyser.h>
 #include <csabase_debug.h>
+#include <csabase_diagnostic_builder.h>
 #include <csabase_filenames.h>
 #include <csabase_location.h>
 #include <csabase_ppobserver.h>
 #include <csabase_registercheck.h>
 #include <csabase_util.h>
-#include <llvm/ADT/Optional.h>
 #include <llvm/ADT/SmallVector.h>
 #include <llvm/ADT/StringRef.h>
-#include <llvm/ADT/VariadicFunction.h>
+#include <llvm/ADT/Twine.h>
+#include <llvm/Support/Casting.h>
 #include <llvm/Support/Regex.h>
 #include <llvm/Support/raw_ostream.h>
 #include <stddef.h>
+#include <map>
+#include <set>
 #include <string>
 #include <utility>
 #include <utils/event.hpp>
 #include <utils/function.hpp>
-#include <set>
 #include <vector>
 namespace clang { class FileEntry; }
 namespace clang { class MacroArgs; }
