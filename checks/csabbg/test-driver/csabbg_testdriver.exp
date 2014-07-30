@@ -53,6 +53,30 @@ csabbg_testdriver.t.cpp:61:3: note: TP19: One correct form (of several possible)
 csabbg_testdriver.t.cpp:283:1: warning: TP25: Cannot find definition of class 'bsl::basic_nonesuch' from @CLASSES section.
 //    bsl::basic_nonesuch : not there::more stuff
 ^
+csabbg_testdriver.t.cpp:289:14: warning: TP27: Method not called in test driver
+        void setF();
+             ^
+csabbg_testdriver.t.cpp:290:14: warning: TP27: Method not called in test driver
+        void setG();
+             ^
+csabbg_testdriver.t.cpp:291:13: warning: TP27: Method not called in test driver
+        int F() const;
+            ^
+csabbg_testdriver.t.cpp:292:13: warning: TP27: Method not called in test driver
+        int F();
+            ^
+csabbg_testdriver.t.cpp:293:13: warning: TP27: Method not called in test driver
+        int G() const;
+            ^
+csabbg_testdriver.t.cpp:294:9: warning: TP27: Method not called in test driver
+        joe();
+        ^
+csabbg_testdriver.t.cpp:295:9: warning: TP27: Method not called in test driver
+        joe(int);
+        ^
+csabbg_testdriver.t.cpp:296:9: warning: TP27: Method not called in test driver
+        ~joe();
+        ^
 csabbg_testdriver.t.cpp:24:4: warning: TP03: Missing test number
 // [  ] void setF();
    ^~~~
@@ -202,4 +226,4 @@ csabbg_testdriver.t.cpp:120:9: warning: TP08: Test plan does not have case numbe
 csabbg_testdriver.t.cpp:30:6: note: TP08: Test plan item is
 // [  ] USAGE EXAMPLE
      ^
-48 warnings generated.
+56 warnings generated.
