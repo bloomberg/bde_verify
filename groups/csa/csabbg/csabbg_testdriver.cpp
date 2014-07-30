@@ -59,6 +59,19 @@ namespace ast_matchers {
                     internal::Matcher<Expr>, InnerMatcher) {
         return InnerMatcher.matches(*Node.getRetValue(), Finder, Builder);
     }
+    AST_MATCHER_P(Expr, callTo, CXXMethodDecl *, method) {
+        const Decl *callee = 0;
+        if (const CallExpr *call = llvm::dyn_cast<CallExpr>(&Node)) {
+            callee = call->getCalleeDecl();
+        } else if (const CXXConstructExpr *ctor =
+                       llvm::dyn_cast<CXXConstructExpr>(&Node)) {
+            callee = ctor->getConstructor();
+        }
+        if (callee) {
+            return callee->getCanonicalDecl() == method->getCanonicalDecl();
+        }
+        return false;
+    }
 }
 }
 
@@ -69,7 +82,7 @@ struct data
     // Data attached to analyser for this check.
 {
     data();
-        // Create an object of thi stype.
+        // Create an object of this type.
 
     typedef std::vector<SourceRange> Comments;
     Comments d_comments;  // Comment blocks per file.
@@ -94,9 +107,10 @@ struct data
 
     enum { NOT_YET, NOW, DONE };
     int d_collecting_classes;  // True for //@CLASSES: section.
-    std::map<llvm::StringRef, SourceRange> d_classes;  // The classes named.
-    std::map<std::string, unsigned> d_names_to_test;  // Public methods.
-    std::map<std::string, unsigned> d_names_in_plan;  // Methods tested.
+    std::map<llvm::StringRef, SourceRange> d_classes;  // classes named
+    std::map<std::string, unsigned> d_names_to_test;   // public method namess
+    std::map<std::string, unsigned> d_names_in_plan;   // method namess tested
+    std::set<const CXXMethodDecl *> d_methods;         // public methods
 };
 
 data::data()
@@ -450,30 +464,30 @@ void report::get_function_names()
             name = "::" + name;
         }
         bool is_bsl = llvm::StringRef(name).startswith("::bsl::");
-        NamedDecl *decl = d_analyser.lookup_name(name);
-        if (!decl && is_bsl) {
-            decl = d_analyser.lookup_name("::std::" + name.substr(7));
+        NamedDecl *nd = d_analyser.lookup_name(name);
+        if (!nd && is_bsl) {
+            nd = d_analyser.lookup_name("::std::" + name.substr(7));
         }
-        if (!decl) {
-            decl = d_analyser.lookup_name(
+        if (!nd) {
+            nd = d_analyser.lookup_name(
                 "::" + d_analyser.config()->toplevel_namespace() + name);
-            if (!decl && is_bsl) {
-                decl = d_analyser.lookup_name(
+            if (!nd && is_bsl) {
+                nd = d_analyser.lookup_name(
                     "::" + d_analyser.config()->toplevel_namespace() +
                     "::std::" + name.substr(7));
             }
         }
 
         CXXRecordDecl *record = 0;
-        if (decl) {
+        if (nd) {
             while (UsingShadowDecl *usd =
-                       llvm::dyn_cast<UsingShadowDecl>(decl)) {
-                decl = usd->getTargetDecl();
+                       llvm::dyn_cast<UsingShadowDecl>(nd)) {
+                nd = usd->getTargetDecl();
             }
-            record = llvm::dyn_cast<CXXRecordDecl>(decl);
+            record = llvm::dyn_cast<CXXRecordDecl>(nd);
             if (!record) {
                 ClassTemplateDecl *tplt =
-                    llvm::dyn_cast<ClassTemplateDecl>(decl);
+                    llvm::dyn_cast<ClassTemplateDecl>(nd);
                 if (tplt) {
                     record = tplt->getTemplatedDecl();
                 }
@@ -483,15 +497,35 @@ void report::get_function_names()
             CXXRecordDecl::method_iterator b = record->method_begin();
             CXXRecordDecl::method_iterator e = record->method_end();
             for (; b != e; ++b) {
-                if ((*b)->getAccess() == AS_public &&
-                    (*b)->isUserProvided() &&
-                    !(*b)->getLocation().isMacroID()) {
-                    std::string method = (*b)->getNameAsString();
+                const CXXMethodDecl *m = *b;
+                if (m->getAccess() == AS_public &&
+                    m->isUserProvided() &&
+                    !m->getLocation().isMacroID()) {
+                    MatchFinder mf;
+                    bool found = false;
+                    OnMatch<> m1([&](const BoundNodes &) { found = true; });
+                    mf.addDynamicMatcher(
+                        decl(hasDescendant(namedDecl(
+                            hasName("main"),
+                            eachOf(
+                                forEachDescendant(callExpr(callTo(m))),
+                                forEachDescendant(constructExpr(callTo(m)))
+                            )
+                        ))),
+                        &m1);
+                    mf.match(*m->getTranslationUnitDecl(),
+                             *d_analyser.context());
+                    if (!found) {
+                        d_analyser.report(m, check_name, "TP27",
+                                          "Method not called in test driver");
+                    }
+                    std::string method = m->getNameAsString();
                     size_t lt = method.find('<');
                     if (lt != method.npos &&
                         !llvm::StringRef(method).startswith("operator")) {
                         method = method.substr(0, lt);
                     }
+                    d_data.d_methods.insert(m);
                     ++d_data.d_names_to_test[method];
                 }
             }
