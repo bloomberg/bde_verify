@@ -4,6 +4,7 @@
 #include <clang/Basic/SourceManager.h>
 #include <llvm/ADT/StringRef.h>
 #include <llvm/Support/Regex.h>
+#include <cctype>
 
 using namespace csabase;
 
@@ -60,6 +61,27 @@ bool csabase::areConsecutive(clang::SourceManager &manager,
 std::string csabase::to_lower(std::string s)
 {
     return llvm::StringRef(s).lower();
+}
+
+bool csabase::contains_word(const std::string &have, const std::string &want)
+{
+    std::pair<size_t, size_t> m = mid_match(have, want);
+    if (m.first == have.npos) {
+        return false;
+    }
+    if (m.first > 0) {
+        char c = have[m.first - 1];
+        if (std::isalnum(c) || c == '_') {
+            return false;
+        }
+    }
+    if (m.second > 0) {
+        char c = have[have.size() - m.second];
+        if (std::isalnum(c) || c == '_') {
+            return false;
+        }
+    }
+    return true;
 }
 
 csabase::OnMatch<UseLambda, &UseLambda::NotFunction>::OnMatch(

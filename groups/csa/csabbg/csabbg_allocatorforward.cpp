@@ -374,7 +374,7 @@ nested_allocator_trait_matcher()
             matchesName("::operator NestedTraitDeclaration($|<)"),
             returns(qualType().bind("type")),
             ofClass(recordDecl().bind("class"))
-        )
+        ).bind("trait")
     ));
     return matcher;
 }
@@ -383,6 +383,13 @@ void report::match_nested_allocator_trait(const BoundNodes& nodes)
 {
     CXXRecordDecl const* decl = nodes.getNodeAs<CXXRecordDecl>("class");
     std::string type = nodes.getNodeAs<QualType>("type")->getAsString();
+
+    if (!contains_word(type, decl->getNameAsString())) {
+        analyser_.report(nodes.getNodeAs<CXXMethodDecl>("trait"),
+                         check_name, "BT01",
+                         "Trait declaration does not mention its class '%0'")
+            << decl->getNameAsString();
+    }
 
     if (type.find("bslalg::struct TypeTraitUsesBslmaAllocator::"
                   "NestedTraitDeclaration<") == 0 ||
@@ -408,7 +415,6 @@ class_using_allocator_matcher()
 {
     static const DynTypedMatcher matcher = decl(forEachDescendant(recordDecl(
         has(constructorDecl(
-            unless(isPrivate()),
             hasLastParameter(parmVarDecl(anyOf(
                 hasType(referenceType(
                     pointee(hasDeclaration(decl(has(constructorDecl(
