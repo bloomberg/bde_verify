@@ -550,7 +550,7 @@ void files::check_description(SourceRange range)
                               check_name,
                               "CLS03",
                               "Badly formatted class line; should be "
-                              "'//    class: description'");
+                              "'//  class: description'");
         } else {
             cpos += comment.slice(cpos, end).find(matches[2]) +
                     matches[2].size();
