@@ -155,7 +155,7 @@ void report::checkTemplateParameters(TemplateParameterList const* parms)
                  size_t to = s.find("typename");
                  if (to != s.npos) {
                      d_analyser.rewriter().ReplaceText(
-                        r.getBegin().getLocWithOffset(to), 8, "class");
+                         getOffsetRange(r, to, 8), "class");
                  }
             }
             if (parm->getIdentifier()) {

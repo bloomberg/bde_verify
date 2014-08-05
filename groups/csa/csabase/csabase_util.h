@@ -45,6 +45,13 @@ bool contains_word(const std::string &have, const std::string &want);
     // string 'want' as a word, that is, neither preceeded nor followed by
     // an underscore or alphanumeric character.
 
+clang::SourceRange
+getOffsetRange(clang::SourceLocation loc, int offset, int size);
+clang::SourceRange
+getOffsetRange(clang::SourceRange range, int offset, int size);
+    // Return the range of the specified 'size' beginning at the specified
+    // 'offset' from the start of the specified 'loc' or 'range'.
+
 struct UseLambda {
     void NotFunction(const clang::ast_matchers::BoundNodes &);
 };

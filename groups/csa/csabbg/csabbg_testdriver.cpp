@@ -604,8 +604,7 @@ void report::operator()()
         }
         size_t lb = matchpos + line.find('[');
         size_t rb = matchpos + line.find(']');
-        SourceRange bracket_range(plan_range.getBegin().getLocWithOffset(lb),
-                                  plan_range.getBegin().getLocWithOffset(rb));
+        SourceRange bracket_range(getOffsetRange(plan_range, lb, rb - lb));
 
         if (number.empty()) {
             d_analyser.report(bracket_range.getBegin(),

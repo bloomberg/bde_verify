@@ -6,6 +6,7 @@
 #include <llvm/Support/Regex.h>
 #include <cctype>
 
+using namespace clang;
 using namespace csabase;
 
 std::pair<size_t, size_t>
@@ -94,6 +95,18 @@ void csabase::OnMatch<UseLambda, &UseLambda::NotFunction>::run(
     const clang::ast_matchers::MatchFinder::MatchResult &result)
 {
     function_(result.Nodes);
+}
+
+SourceRange csabase::getOffsetRange(SourceLocation loc, int offset, int size)
+{
+    return SourceRange(loc.getLocWithOffset(offset),
+                       loc.getLocWithOffset(offset + size));
+}
+
+SourceRange csabase::getOffsetRange(SourceRange range, int offset, int size)
+{
+    return SourceRange(range.getBegin().getLocWithOffset(offset),
+                       range.getBegin().getLocWithOffset(offset + size));
 }
 
 // ----------------------------------------------------------------------------

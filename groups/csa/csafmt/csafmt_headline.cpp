@@ -78,11 +78,10 @@ static void open_file(Analyser& analyser,
                     expect + "\n");
             } else {
                 analyser.rewriter().ReplaceText(
-                    where.getLocWithOffset(m.first),
-                    buf.size() - m.first - m.second,
+                    getOffsetRange(
+                        where, m.first, buf.size() - m.first - m.second),
                     llvm::StringRef(expect)
-                        .drop_front(m.first)
-                        .drop_back(m.second));
+                        .drop_front(m.first).drop_back(m.second));
             }
         }
     }

@@ -464,8 +464,7 @@ void report::operator()(SourceLocation   where,
                     << fi->std_guard
                     << fi->bsl_guard;
                 d_analyser.rewriter().ReplaceText(
-                    r.getBegin().getLocWithOffset(pos),
-                    d_data.d_guard.size(),
+                    getOffsetRange(r, pos, d_data.d_guard.size()),
                     fi->bsl_guard);
             }
             r = d_analyser.get_line_range(r.getEnd().getLocWithOffset(1));
@@ -658,8 +657,7 @@ void report::operator()(SourceRange range)
                                   "Removing include guard definition of %0")
                     << d_data.d_guard;
                 d_analyser.rewriter().RemoveText(
-                    range.getBegin().getLocWithOffset(m.first),
-                    matches[3].size());
+                    getOffsetRange(range, m.first, matches[3].size()));
             }
             std::pair<size_t, size_t> m = mid_match(source, matches[2]);
             d_analyser.report(range.getBegin().getLocWithOffset(m.first),
@@ -668,9 +666,7 @@ void report::operator()(SourceRange range)
                 << matches[2]
                 << fi->bsl;
             d_analyser.rewriter().ReplaceText(
-                range.getBegin().getLocWithOffset(m.first),
-                matches[2].size(),
-                fi->bsl);
+                getOffsetRange(range, m.first, matches[2].size()), fi->bsl);
             m = mid_match(source, matches[1]);
             d_analyser.report(range.getBegin().getLocWithOffset(m.first),
                               check_name, "SB02",
@@ -678,8 +674,7 @@ void report::operator()(SourceRange range)
                 << fi->std_guard
                 << fi->bsl_guard;
             d_analyser.rewriter().ReplaceText(
-                range.getBegin().getLocWithOffset(m.first),
-                matches[1].size(),
+                getOffsetRange(range, m.first, matches[1].size()),
                 fi->bsl_guard);
         }
         clear_guard();

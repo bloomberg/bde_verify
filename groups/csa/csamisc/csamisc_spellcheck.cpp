@@ -264,10 +264,10 @@ report::break_for_spelling(std::vector<SourceRange>* words, SourceRange range)
                         }
                     }
                     if (found) {
-                        words->push_back(SourceRange(
-                            range.getBegin().getLocWithOffset(
-                                start_of_last_block),
-                            range.getBegin().getLocWithOffset(last)));
+                        words->push_back(
+                            getOffsetRange(range,
+                                           start_of_last_block,
+                                           last - start_of_last_block));
                     }
                     start_of_last_block = 0;
                 }
