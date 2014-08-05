@@ -60,7 +60,7 @@ void csabase::FileName::reset(llvm::StringRef sr)
             pkgdir_ = subdir(directory_, package_);
             tag_ = component_.slice(0, 1);
         }
-        else if (under != component_.npos && under2 == under) {
+        else if (under != component_.npos) {
             // Typical library component file, e.g.,
             // "/some/path/groups/GRP/GRPPKG/GRPPKG_COMP.cpp".
             package_ = component_.slice(0, under);
