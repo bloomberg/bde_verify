@@ -168,6 +168,10 @@ void files::check_comment(SourceRange comment_range)
             0, 10);
         size_t expected_last_space_pos =
             ((79 - 2 - text.size()) / 2 + 2) & ~3;
+        if (actual_last_space_pos == 19) {
+            // Banner text can start in column 20.
+            expected_last_space_pos = 19;
+        }
         if (actual_last_space_pos + banner_slack < expected_last_space_pos ||
             actual_last_space_pos > expected_last_space_pos + banner_slack) {
             std::string expected_text =
