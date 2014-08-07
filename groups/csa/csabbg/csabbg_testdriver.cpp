@@ -16,7 +16,6 @@
 #include <clang/Basic/Specifiers.h>
 #include <csabase_analyser.h>
 #include <csabase_config.h>
-#include <csabase_debug.h>
 #include <csabase_diagnostic_builder.h>
 #include <csabase_location.h>
 #include <csabase_ppobserver.h>
@@ -69,7 +68,15 @@ namespace ast_matchers {
             callee = ctor->getConstructor();
         }
         if (callee) {
-            return callee->getCanonicalDecl() == method->getCanonicalDecl();
+            const Decl *mc = method->getCanonicalDecl();
+            const FunctionDecl *fd = llvm::dyn_cast<FunctionDecl>(callee);
+            if (fd) {
+                fd = fd->getInstantiatedFromMemberFunction();
+                if (fd && fd->getCanonicalDecl() == mc) {
+                    return true;                                      // RETURN
+                }
+            }
+            return callee->getCanonicalDecl() == mc;                  // RETURN
         }
         return false;
     }
