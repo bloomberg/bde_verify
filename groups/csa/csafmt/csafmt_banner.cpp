@@ -118,6 +118,10 @@ static llvm::Regex generic_separator(   // things that look like separators
 
 void files::check_comment(SourceRange comment_range)
 {
+    if (!d_analyser.is_component(comment_range.getBegin())) {
+        return;                                                       // RETURN
+    }
+
     SourceManager& manager = d_analyser.manager();
     llvm::SmallVector<llvm::StringRef, 8> matches;
 

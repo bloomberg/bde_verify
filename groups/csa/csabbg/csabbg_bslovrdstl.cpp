@@ -539,7 +539,10 @@ void report::operator()(Token const&          token,
                 nt == 1 &&
                 is_named(mi->getReplacementToken(0), "bsl")) {
                 d_data.d_bsl_overrides_std = true;
-            } else if (d_data.d_bsl_overrides_std) {
+            } else if (d_data.d_bsl_overrides_std &&
+                       d_analyser.is_component(mi->getDefinitionLoc()) &&
+                       !d_analyser.manager().isInSystemHeader(
+                            mi->getDefinitionLoc())) {
                 for (int i = 0; i < nt; ++i) {
                     const Token &token = mi->getReplacementToken(i);
                     if (is_named(token, "std")) {

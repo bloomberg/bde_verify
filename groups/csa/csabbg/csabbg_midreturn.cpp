@@ -149,6 +149,7 @@ struct report
         for (std::set<const Stmt*>::iterator it = begin; it != end; ++it) {
             // Ignore final top-level return statements.
             if (!d.d_last_returns.count(*it) &&
+                d_analyser.is_component(*it) &&
                 !is_commented(*it, d.d_rcs.begin(), d.d_rcs.end())) {
                 d_analyser.report(*it, check_name, "MR01",
                         "Mid-function 'return' requires '// RETURN' comment");
@@ -176,6 +177,10 @@ struct report
                       std::set<SourceLocation>::iterator comments_begin,
                       std::set<SourceLocation>::iterator comments_end)
     {
+        if (!d_analyser.is_component(stmt)) {
+            return true;                                              // RETURN
+        }
+
         SourceManager& m = d_analyser.manager();
         SourceLocation loc = m.getFileLoc(stmt->getLocEnd());
         unsigned       sline = m.getPresumedLineNumber(loc);

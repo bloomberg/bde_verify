@@ -146,7 +146,9 @@ void report::checkTemplateParameters(TemplateParameterList const* parms)
     for (unsigned i = 0; i < n; ++i) {
         const TemplateTypeParmDecl *parm =
             llvm::dyn_cast<TemplateTypeParmDecl>(parms->getParam(i));
-        if (parm && !parm->getLocation().isMacroID()) {
+        if (parm &&
+            !parm->getLocation().isMacroID() &&
+            d_analyser.is_component(parm)) {
             if (parm->wasDeclaredWithTypename()) {
                  d_analyser.report(parm, check_name, "TY01",
                      "Template parameter uses 'typename' instead of 'class'");

@@ -78,10 +78,7 @@ static void open_file(Analyser& analyser,
                     expect + "\n");
             } else {
                 analyser.rewriter().ReplaceText(
-                    getOffsetRange(
-                        where, m.first, buf.size() - m.first - m.second),
-                    llvm::StringRef(expect)
-                        .drop_front(m.first).drop_back(m.second));
+                    analyser.get_line_range(where), expect);
             }
         }
     }
