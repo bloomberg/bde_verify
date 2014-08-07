@@ -108,9 +108,13 @@ static llvm::Regex generic_banner(      // things that look like banners
         "//" "(" SP ")" aba("[-=_]",        SP) SP "$",     // 6, 7, 8
     llvm::Regex::Newline);
 
-static llvm::Regex generic_separator(   // things that look like separators
-        "(//.*[[:alnum:]].*)?\n?"
-        "((//([[:space:]]*)[-=_](([[:space:]][-=_])*|[-=_]*))[[:space:]]*)$",
+static llvm::Regex generic_separator(  // things that look like separators
+    "(//.*[[:alnum:]].*)?\n?"
+    "((//([[:space:]]*)[-=_]"
+    "("
+     "([[:space:]][-=_]*( END-OF-FILE )?[[:space:]][-=_])*" "|"
+     "([-=_]*( END-OF-FILE )?[-=_]*)"
+    "))[[:space:]]*)$",
     llvm::Regex::Newline);
 
 #undef SP
