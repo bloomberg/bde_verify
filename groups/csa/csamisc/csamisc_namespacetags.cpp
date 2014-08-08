@@ -17,7 +17,10 @@ static std::string const check_name("namespace-tags");
 static void namespace_tags(Analyser& analyser, NamespaceDecl const *decl)
 {
     SourceLocation rbr = decl->getRBraceLoc();
-    if (analyser.is_component(decl) && rbr.isValid()) {
+    if (   analyser.is_component(decl)
+        && rbr.isValid()
+        && analyser.manager().getPresumedLineNumber(decl->getLocation()) !=
+           analyser.manager().getPresumedLineNumber(rbr)) {
         SourceRange line_range = analyser.get_line_range(rbr);
         line_range.setBegin(rbr);
         llvm::StringRef line = analyser.get_source(line_range, true);
