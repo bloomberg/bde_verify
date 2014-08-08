@@ -18,6 +18,7 @@
 #include <clang/Basic/SourceLocation.h>
 #include <clang/Basic/Specifiers.h>
 #include <csabase_analyser.h>
+#include <csabase_debug.h>
 #include <csabase_diagnostic_builder.h>
 #include <csabase_registercheck.h>
 #include <csabase_util.h>
@@ -173,6 +174,10 @@ struct report
     void match_dependent_allocator_trait(const BoundNodes& nodes);
         // Callback for discovered classes with dependent allocator traits
         // contained within the specifed 'nodes'.
+
+    void match_should_return_by_value(const BoundNodes& nodes);
+        // Callback for functions which could return by value instead of
+        // through a pointer.
 
     void operator()();
         // Invoke the checking procedures.
@@ -526,6 +531,54 @@ void report::match_dependent_allocator_trait(const BoundNodes& nodes)
         nodes);
 }
 
+static const DynTypedMatcher
+should_return_by_value_matcher()
+{
+    const DynTypedMatcher matcher = decl(forEachDescendant(
+        functionDecl(
+            returns(asString("void")),
+            hasParameter(0, hasType(pointerType(
+                unless(pointee(isConstQualified())),
+                unless(pointee(asString("void"))),
+                unless(pointee(functionType())),
+                unless(pointee(memberPointerType()))
+            ).bind("type"))),
+            anyOf(
+                parameterCountIs(1),
+                hasParameter(1, unless(anyOf(
+                    hasType(isInteger()),
+                    hasType(pointerType(
+                        unless(pointee(isConstQualified())),
+                        unless(pointee(asString("void"))),
+                        unless(pointee(functionType())),
+                        unless(pointee(memberPointerType()))
+                    ))
+                )))
+            )
+        ).bind("func")
+    ));
+    return matcher;
+}
+
+void report::match_should_return_by_value(const BoundNodes& nodes)
+{
+    const FunctionDecl *func = nodes.getNodeAs<FunctionDecl>("func");
+    const PointerType *p1 = nodes.getNodeAs<PointerType>("type");
+    if (analyser_.is_component(func) &&
+        func->getCanonicalDecl() == func &&
+        !func->isTemplateInstantiation() &&
+        !func->getLocation().isMacroID() &&
+        !func->getParamDecl(0)->hasDefaultArg() &&
+        !takes_allocator(p1->getPointeeType().getCanonicalType())) {
+        analyser_.report(func, check_name, "RV01",
+                         "Consider returning '%0' by value")
+            << p1->getPointeeType().getCanonicalType().getAsString();
+        analyser_.report(func->getParamDecl(0), check_name, "RV01",
+                         "instead of through pointer parameter",
+                         false, DiagnosticsEngine::Note);
+    }
+}
+
 void report::operator()()
 {
     MatchFinder mf;
@@ -547,6 +600,9 @@ void report::operator()()
 
     OnMatch<report, &report::match_class_using_allocator> m3(this);
     mf.addDynamicMatcher(class_using_allocator_matcher(), &m3);
+
+    OnMatch<report, &report::match_should_return_by_value> m7(this);
+    mf.addDynamicMatcher(should_return_by_value_matcher(), &m7);
 
     mf.match(*analyser_.context()->getTranslationUnitDecl(),
              *analyser_.context());
