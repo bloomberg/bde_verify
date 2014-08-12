@@ -569,6 +569,7 @@ void report::match_should_return_by_value(const BoundNodes& nodes)
         !func->isTemplateInstantiation() &&
         !func->getLocation().isMacroID() &&
         !func->getParamDecl(0)->hasDefaultArg() &&
+        !is_allocator(p1->desugar()) &&
         !takes_allocator(p1->getPointeeType().getCanonicalType())) {
         analyser_.report(func, check_name, "RV01",
                          "Consider returning '%0' by value")
