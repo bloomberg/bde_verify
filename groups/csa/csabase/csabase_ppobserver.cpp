@@ -201,12 +201,6 @@ void csabase::PPObserver::do_endif(SourceLocation where, SourceLocation what)
     onEndif(where, what);
 }
 
-void csabase::PPObserver::do_comment(SourceRange range)
-{
-    Debug d("do_comment");
-    onComment(range);
-}
-
 void csabase::PPObserver::do_context()
 {
     Debug d("do_context");
@@ -313,30 +307,60 @@ static llvm::Regex pragma_bdeverify(
     ")",
     llvm::Regex::NoFlags);
 
-void csabase::PPObserver::PragmaDirective(SourceLocation location,
-                                          PragmaIntroducerKind introducer)
+static llvm::Regex comment_bdeverify(
+    "^//[[:blank:]]*BDE_VERIFY[[:blank:]]+pragma[[:blank:]]*:[[:blank:]]*"
+    "("                                                     // 1
+        "(" "push"                                    ")|"  // 2
+        "(" "pop"                                     ")|"  // 3
+        "(" "[-]" "[[:blank:]]*" "([[:alnum:]]+|[*])" ")|"  // 4 5
+        "(" "[+]" "[[:blank:]]*" "([[:alnum:]]+|[*])" ")|"  // 6 7
+        "(" "set" "[[:blank:]]*" "([_[:alnum:]]+)"          // 8 9
+                  "[[:blank:]]*" "(.*[^[:blank:]])"   ")|"  // 10
+        "$"
+    ")",
+    llvm::Regex::NoFlags);
+
+static void handle_bv_pragma(const SourceManager&  m,
+                             Config               *c,
+                             SourceLocation        l,
+                             llvm::Regex&          r)
 {
-    const SourceManager& m = *source_manager_;
-    FileID fid = m.getFileID(location);
-    unsigned line = m.getPresumedLineNumber(location);
+    FileID fid = m.getFileID(l);
+    unsigned line = m.getPresumedLineNumber(l);
     llvm::StringRef directive = 
         m.getBufferData(fid).slice(
             m.getFileOffset(m.translateLineCol(fid, line, 1)),
             m.getFileOffset(m.translateLineCol(fid, line, 0)));
     llvm::SmallVector<llvm::StringRef, 8> matches;
-    if (pragma_bdeverify.match(directive, &matches)) {
+    if (r.match(directive, &matches)) {
         if (!matches[2].empty()) {
-            config_->push_suppress(location);
+            c->push_suppress(l);
         } else if (!matches[3].empty()) {
-            config_->pop_suppress(location);
+            c->pop_suppress(l);
         } else if (!matches[5].empty()) {
-            config_->suppress(matches[5], location, true);
+            c->suppress(matches[5], l, true);
         } else if (!matches[7].empty()) {
-            config_->suppress(matches[7], location, false);
+            c->suppress(matches[7], l, false);
         } else if (!matches[8].empty()) {
-            config_->set_bv_value(location, matches[9], matches[10]);
+            c->set_bv_value(l, matches[9], matches[10]);
         }
     }
+}
+
+void csabase::PPObserver::do_comment(SourceRange range)
+{
+    Debug d("do_comment");
+
+    handle_bv_pragma(
+        *source_manager_, config_, range.getBegin(), comment_bdeverify);
+
+    onComment(range);
+}
+
+void csabase::PPObserver::PragmaDirective(SourceLocation location,
+                                          PragmaIntroducerKind introducer)
+{
+    handle_bv_pragma(*source_manager_, config_, location, pragma_bdeverify);
 
     onPPPragmaDirective(location, introducer);
 }
