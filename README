@@ -1,12 +1,34 @@
 BDE Verify - A Static Checker for C++
 
+Bde_verify is a static analysis tool that verifies that source code adheres
+to the BDE coding standards.
+
+The online documentation for bde_verify can be found here:
+    <https://github.com/bloomberg/bde-tools/wiki/bde_verify>
+
+Currently there is no binary distribution for bde_verify.  Bde_verify can be
+built directly from source as described below.
+
+Build Instructions
+==================
+
+Supported Platforms:
+   o Linux x86
+   o SunOS sparc
+
+Prerequesites: 
+   o llvm/clang 3.4.1 (see below for instructions)
+   o gnu make
+   o aspell 0.60.6.1
+
 There is no autoconf support to create a Makefile.  Set up variables in the
 Makefiles in the top-level and in the csabase directories to configure.
 
-    COMPILER  = gcc, and should also work with clang
+    COMPILER  = gcc or clang
     VERSION   = compiler version, e.g., 4.8.1
     CCDIR     = path to compiler installation directory
     LLVM      = path to LLVM installation
+    ASPELL    = path to aspell installation
 
 Currently, bde_verify is built with llvm/clang 3.4.1.  You may choose to build
 a clang installation from sources.  To do so, download from here,
@@ -17,8 +39,10 @@ sources, and Clang extra tools:
     <http://llvm.org/releases/3.4/clang-tools-extra-3.4.src.tar.gz>
 
 Follow these build instructions: <http://clang.llvm.org/get_started.html>.
+Eventually, you are asked to run "../llvm/configure".  A configuration for
+clang sufficient to build bde_verify on Linux can be specifed with the
+following arguments to configure:
 
-A configuration for clang sufficient to build bde_verify on Linux is
     --enable-optimized
     --enable-cxx11
     --prefix=<path to where you want clang installed>
@@ -32,6 +56,6 @@ A configuration for clang sufficient to build bde_verify on Linux is
 Once you have Clang installed and bde_verify Makefiles set up, build bde_verify
 as follows.
 
-    make               # build the code, then
-    make check         # run test cases and report differences, or
-    make run           # run test cases and show output
+    make -j            # build the code, then
+    make -k check      # run test cases and report differences, or
+    make -k run        # run test cases and show output
