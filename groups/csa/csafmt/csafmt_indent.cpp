@@ -444,7 +444,7 @@ void report::add_consecutive(NamedDecl *decl, SourceRange sr)
                                                              r.from().line()) {
         do_consecutive();
     }
-    if (decl && r) {
+    if (decl && r && !decl->getLocation().isMacroID()) {
         d_data.d_consecutive.push_back(std::make_pair(decl, r));
     }
 }
