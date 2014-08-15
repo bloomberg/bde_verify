@@ -445,6 +445,20 @@ void report::operator()(SourceLocation   where,
         && !d_analyser.manager().isInSystemHeader(where)
         && classify(name, &fi) == FileType::e_STD
         && fi) {
+        if (d_data.d_guard == fi->std_guard) {
+            SourceRange r = d_analyser.get_line_range(d_data.d_guard_pos);
+            llvm::StringRef s = d_analyser.get_source(r);
+            size_t pos = s.find(d_data.d_guard);
+            if (pos != s.npos) {
+                d_analyser.report(r.getBegin(), check_name, "SB02",
+                                  "Replacing include guard %0 with %1")
+                    << fi->std_guard
+                    << fi->bsl_guard;
+                d_analyser.rewriter().ReplaceText(
+                    getOffsetRange(r, pos, d_data.d_guard.size() - 1),
+                    fi->bsl_guard);
+            }
+        }
         d_analyser.report(where, check_name, "SB01",
                           "Replacing header %2%0%3 with <%1>")
             << fi->std
@@ -456,25 +470,17 @@ void report::operator()(SourceLocation   where,
             "<" + std::string(fi->bsl) + ">");
         if (d_data.d_guard == fi->std_guard) {
             SourceRange r = d_analyser.get_line_range(d_data.d_guard_pos);
-            llvm::StringRef s = d_analyser.get_source(r);
-            size_t pos = s.find(d_data.d_guard);
-            if (pos != s.npos) {
-                d_analyser.report(r.getBegin(), check_name, "SB02",
-                                  "Replacing include guard %0 with %1")
-                    << fi->std_guard
-                    << fi->bsl_guard;
-                d_analyser.rewriter().ReplaceText(
-                    getOffsetRange(r, pos, d_data.d_guard.size()),
-                    fi->bsl_guard);
-            }
             r = d_analyser.get_line_range(r.getEnd().getLocWithOffset(1));
-            s = d_analyser.get_source(r);
-            pos = s.find("#define " + d_data.d_guard.str());
+            r = d_analyser.get_line_range(r.getEnd().getLocWithOffset(1));
+            llvm::StringRef s = d_analyser.get_source(r, false);
+            size_t pos = s.find("#define " + d_data.d_guard.str());
             if (pos != s.npos) {
-                 d_analyser.report(r.getBegin(), check_name, "SB03",
-                                   "Removing include guard definition of %0")
+                d_analyser.report(r.getBegin(), check_name, "SB03",
+                                  "Removing include guard definition of %0")
                     << d_data.d_guard;
-                 d_analyser.rewriter().RemoveText(r);
+                Rewriter::RewriteOptions ro;
+                ro.RemoveLineIfEmpty = true;
+                d_analyser.rewriter().RemoveText(r, ro);
             }
         }
     }
@@ -653,32 +659,34 @@ void report::operator()(SourceRange range)
             classify(matches[2], &fi) == e_STD &&
             fi &&
             d_data.d_guard == fi->std_guard) {
-            if (matches[3].size() > 0) {
-                std::pair<size_t, size_t> m = mid_match(source, matches[3]);
-                d_analyser.report(range.getBegin().getLocWithOffset(m.first),
-                                  check_name, "SB03",
-                                  "Removing include guard definition of %0")
-                    << d_data.d_guard;
-                d_analyser.rewriter().RemoveText(
-                    getOffsetRange(range, m.first, matches[3].size()));
-            }
-            std::pair<size_t, size_t> m = mid_match(source, matches[2]);
-            d_analyser.report(range.getBegin().getLocWithOffset(m.first),
-                              check_name, "SB01",
-                              "Replacing header <%0> with <%1>")
-                << matches[2]
-                << fi->bsl;
-            d_analyser.rewriter().ReplaceText(
-                getOffsetRange(range, m.first, matches[2].size()), fi->bsl);
-            m = mid_match(source, matches[1]);
+            std::pair<size_t, size_t> m = mid_match(source, matches[1]);
             d_analyser.report(range.getBegin().getLocWithOffset(m.first),
                               check_name, "SB02",
                               "Replacing include guard %0 with %1")
                 << fi->std_guard
                 << fi->bsl_guard;
             d_analyser.rewriter().ReplaceText(
-                getOffsetRange(range, m.first, matches[1].size()),
+                getOffsetRange(range, m.first, matches[1].size() - 1),
                 fi->bsl_guard);
+            m = mid_match(source, matches[2]);
+            d_analyser.report(range.getBegin().getLocWithOffset(m.first),
+                              check_name, "SB01",
+                              "Replacing header <%0> with <%1>")
+                << matches[2]
+                << fi->bsl;
+            d_analyser.rewriter().ReplaceText(
+                getOffsetRange(range, m.first, matches[2].size() - 1), fi->bsl);
+            if (matches[3].size() > 0) {
+                m = mid_match(source, matches[3]);
+                d_analyser.report(range.getBegin().getLocWithOffset(m.first),
+                                  check_name, "SB03",
+                                  "Removing include guard definition of %0")
+                    << d_data.d_guard;
+                Rewriter::RewriteOptions ro;
+                ro.RemoveLineIfEmpty = true;
+                d_analyser.rewriter().RemoveText(
+                    getOffsetRange(range, m.first, matches[3].size() - 1), ro);
+            }
         }
         clear_guard();
     }
