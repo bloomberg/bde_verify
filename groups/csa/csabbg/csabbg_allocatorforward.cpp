@@ -567,7 +567,6 @@ should_return_by_value_matcher()
 
 bool report::hasRVCognate(const FunctionDecl *func)
 {
-    ERRS(); func->dump(); ERNL();
     const DeclContext *parent = func->getLookupParent();
     std::string name = func->getNameAsString();
 
@@ -586,7 +585,6 @@ bool report::hasRVCognate(const FunctionDecl *func)
             cfunc->getNumParams() == func->getNumParams() - 1 &&
             cfunc->getCallResultType() ==
                 func->getParamDecl(0)->getOriginalType()->getPointeeType()) {
-            ERRS(); cfunc->dump(); ERNL();
             return true;
         }
     }
