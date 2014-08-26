@@ -175,6 +175,11 @@ struct report
         // Callback for discovered classes with dependent allocator traits
         // contained within the specifed 'nodes'.
 
+    bool hasRVCognate(const FunctionDecl *func);
+        // Return 'true' iff the specified 'func' (which returns 'void' and
+        // returns a value through a pointer first parameter) has a cognate
+        // function that returns by value.
+
     void match_should_return_by_value(const BoundNodes& nodes);
         // Callback for functions which could return by value instead of
         // through a pointer.
@@ -560,6 +565,34 @@ should_return_by_value_matcher()
     return matcher;
 }
 
+bool report::hasRVCognate(const FunctionDecl *func)
+{
+    ERRS(); func->dump(); ERNL();
+    const DeclContext *parent = func->getLookupParent();
+    std::string name = func->getNameAsString();
+
+    DeclContext::decl_iterator declsb = parent->decls_begin();
+    DeclContext::decl_iterator declse = parent->decls_end();
+    while (declsb != declse) {
+        const Decl *decl = *declsb++;
+        const FunctionDecl* cfunc = llvm::dyn_cast<FunctionDecl>(decl);
+        const FunctionTemplateDecl* ctplt =
+            llvm::dyn_cast<FunctionTemplateDecl>(decl);
+        if (ctplt) {
+            cfunc = ctplt->getTemplatedDecl();
+        }
+        if (cfunc &&
+            cfunc->getNameAsString() == name &&
+            cfunc->getNumParams() == func->getNumParams() - 1 &&
+            cfunc->getCallResultType() ==
+                func->getParamDecl(0)->getOriginalType()->getPointeeType()) {
+            ERRS(); cfunc->dump(); ERNL();
+            return true;
+        }
+    }
+    return false;
+}
+
 void report::match_should_return_by_value(const BoundNodes& nodes)
 {
     const FunctionDecl *func = nodes.getNodeAs<FunctionDecl>("func");
@@ -568,9 +601,13 @@ void report::match_should_return_by_value(const BoundNodes& nodes)
         func->getCanonicalDecl() == func &&
         !func->isTemplateInstantiation() &&
         !func->getLocation().isMacroID() &&
+        !llvm::dyn_cast<CXXConstructorDecl>(func) &&
+        !p1->getPointeeType()->isDependentType() &&
+        !p1->getPointeeType()->isInstantiationDependentType() &&
         !func->getParamDecl(0)->hasDefaultArg() &&
         !is_allocator(p1->desugar()) &&
-        !takes_allocator(p1->getPointeeType().getCanonicalType())) {
+        !takes_allocator(p1->getPointeeType().getCanonicalType()) &&
+        !hasRVCognate(func)) {
         analyser_.report(func, check_name, "RV01",
                          "Consider returning '%0' by value")
             << p1->getPointeeType().getCanonicalType().getAsString();
