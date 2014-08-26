@@ -295,27 +295,23 @@ csabase::PPObserver::Ident(SourceLocation location, std::string const& ident)
 // -----------------------------------------------------------------------------
 
 static llvm::Regex pragma_bdeverify(
-    "^[[:blank:]]*" "#" "[[:blank:]]*" "pragma" "[[:blank:]]+"
-    "bde_?verify" "[[:blank:]]+" "("                        // 1
-        "(" "push"                                    ")|"  // 2
-        "(" "pop"                                     ")|"  // 3
-        "(" "[-]" "[[:blank:]]*" "([[:alnum:]]+|[*])" ")|"  // 4 5
-        "(" "[+]" "[[:blank:]]*" "([[:alnum:]]+|[*])" ")|"  // 6 7
-        "(" "set" "[[:blank:]]*" "([_[:alnum:]]+)"          // 8 9
-                  "[[:blank:]]*" "(.*[^[:blank:]])"   ")|"  // 10
+    "^ *# *pragma +bde_?verify +"             "("  // 1
+        "(" "push"                           ")|"  // 2
+        "(" "pop"                            ")|"  // 3
+        "(" "[-] *([[:alnum:]]+|[*])"        ")|"  // 4 5
+        "(" "[+] *([[:alnum:]]+|[*])"        ")|"  // 6 7
+        "(" "set *([_[:alnum:]]+) *(.*[^ ])" ")|"  // 8 9 10
         "$"
     ")",
     llvm::Regex::NoFlags);
 
 static llvm::Regex comment_bdeverify(
-    "^//[[:blank:]]*BDE_VERIFY[[:blank:]]+pragma[[:blank:]]*:[[:blank:]]*"
-    "("                                                     // 1
-        "(" "push"                                    ")|"  // 2
-        "(" "pop"                                     ")|"  // 3
-        "(" "[-]" "[[:blank:]]*" "([[:alnum:]]+|[*])" ")|"  // 4 5
-        "(" "[+]" "[[:blank:]]*" "([[:alnum:]]+|[*])" ")|"  // 6 7
-        "(" "set" "[[:blank:]]*" "([_[:alnum:]]+)"          // 8 9
-                  "[[:blank:]]*" "(.*[^[:blank:]])"   ")|"  // 10
+    "^ *// *BDE_VERIFY +pragma *: *"          "("  // 1
+        "(" "push"                           ")|"  // 2
+        "(" "pop"                            ")|"  // 3
+        "(" "[-] *([[:alnum:]]+|[*])" ")|"         // 4 5
+        "(" "[+] *([[:alnum:]]+|[*])" ")|"         // 6 7
+        "(" "set *([_[:alnum:]]+) *(.*[^ ])" ")|"  // 8 9 10
         "$"
     ")",
     llvm::Regex::NoFlags);
