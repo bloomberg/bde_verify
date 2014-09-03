@@ -656,7 +656,8 @@ void report::check_globals_use_allocator(data::Globals::const_iterator begin,
         const VarDecl *decl = *itr;
         const CXXConstructExpr *expr =
             llvm::dyn_cast<CXXConstructExpr>(decl->getInit());
-        if (takes_allocator(expr->getType())) {
+        if (takes_allocator(expr->getType()) &&
+            !is_allocator(expr->getType())) {
             unsigned n = expr->getNumArgs();
             bool bad = n == 0;
             if (n > 0) {
