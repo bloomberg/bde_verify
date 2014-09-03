@@ -278,7 +278,7 @@ void files::operator()()
 void files::operator()(const FunctionDecl *func)
 {
     // Process only function definition.
-    CXXMethodDecl *md = llvm::dyn_cast<CXXMethodDecl>(func);
+    const CXXMethodDecl *md = llvm::dyn_cast<CXXMethodDecl>(func);
     SourceLocation& id = d_analyser.attachment<comments>().d_inline_definition;
     if (!id.isValid() &&
         func->hasBody() &&
