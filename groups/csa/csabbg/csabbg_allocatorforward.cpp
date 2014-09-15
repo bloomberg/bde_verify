@@ -602,6 +602,7 @@ void report::match_should_return_by_value(const BoundNodes& nodes)
         !llvm::dyn_cast<CXXConstructorDecl>(func) &&
         !p1->getPointeeType()->isDependentType() &&
         !p1->getPointeeType()->isInstantiationDependentType() &&
+        !p1->getPointeeType()->isAnyCharacterType() &&
         !func->getParamDecl(0)->hasDefaultArg() &&
         !is_allocator(p1->desugar()) &&
         !takes_allocator(p1->getPointeeType().getCanonicalType()) &&
