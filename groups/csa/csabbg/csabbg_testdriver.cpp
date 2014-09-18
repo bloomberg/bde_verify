@@ -950,26 +950,21 @@ static bool is_all_cappish(llvm::StringRef s)
     bool in_single_quotes = false;
     bool in_double_quotes = false;
 
-    for (size_t i = 0; i < s.size(); ++i) {
-        switch (s[i]) {
-          case '\'': {
+    for (char c : s) {
+        if (c == '\'') {
             if (!in_double_quotes) {
                 in_single_quotes = !in_single_quotes;
             }
-          } break;
-          case '"': {
+        }
+        else if (c == '"') {
             if (!in_single_quotes) {
                 in_double_quotes = !in_double_quotes;
             }
-          } break;
-          case 'a': case 'b': case 'c': case 'd': case 'e': case 'f': case 'g':
-          case 'h': case 'i': case 'j': case 'k': case 'l': case 'm': case 'n':
-          case 'o': case 'p': case 'q': case 'r': case 's': case 't': case 'u':
-          case 'v': case 'w': case 'x': case 'y': case 'z': {
+        }
+        else if (std::islower(static_cast<unsigned char>(c))) {
             if (!in_single_quotes && !in_double_quotes) {
                 return false;                                         // RETURN
             }
-          } break;
         }
     }
     return true;
@@ -982,26 +977,21 @@ static std::string cappish(llvm::StringRef ref)
     bool in_single_quotes = false;
     bool in_double_quotes = false;
 
-    for (size_t i = 0; i < s.size(); ++i) {
-        switch (s[i]) {
-          case '\'': {
+    for (char& c : s) {
+        if (c == '\'') {
             if (!in_double_quotes) {
                 in_single_quotes = !in_single_quotes;
             }
-          } break;
-          case '"': {
+        }
+        else if (c == '"') {
             if (!in_single_quotes) {
                 in_double_quotes = !in_double_quotes;
             }
-          } break;
-          case 'a': case 'b': case 'c': case 'd': case 'e': case 'f': case 'g':
-          case 'h': case 'i': case 'j': case 'k': case 'l': case 'm': case 'n':
-          case 'o': case 'p': case 'q': case 'r': case 's': case 't': case 'u':
-          case 'v': case 'w': case 'x': case 'y': case 'z': {
+        }
+        else if (std::islower(static_cast<unsigned char>(c))) {
             if (!in_single_quotes && !in_double_quotes) {
-                s[i] = std::toupper(s[i]);
+                c = std::toupper(static_cast<unsigned char>(c));
             }
-          } break;
         }
     }
     return s;
