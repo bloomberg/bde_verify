@@ -434,7 +434,7 @@ namespace
 
         if (sema.LookupQualifiedName(result, context) &&
             result.begin() != result.end()) {
-            if (colons == name.npos)
+            if (colons == name.npos || colons == name.size() - 2)
             {
                 return *result.begin();
             }
