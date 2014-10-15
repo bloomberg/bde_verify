@@ -397,7 +397,7 @@ void csabase::PPObserver::PragmaDiagnosticPop(SourceLocation loc,
 
 void csabase::PPObserver::PragmaDiagnostic(SourceLocation loc,
                                            llvm::StringRef nmspc,
-                                           diag::Mapping mapping,
+                                           diag::Severity mapping,
                                            llvm::StringRef str)
 {
     onPPPragmaDiagnostic(loc, nmspc, mapping, str);
@@ -482,7 +482,7 @@ void csabase::PPObserver::SourceRangeSkipped(SourceRange range)
 
 void csabase::PPObserver::If(SourceLocation loc,
                              SourceRange range,
-                             bool conditionvalue)
+                             ConditionValueKind conditionvalue)
 {
     onPPIf(loc, range, conditionvalue);
 
@@ -491,7 +491,7 @@ void csabase::PPObserver::If(SourceLocation loc,
 
 void csabase::PPObserver::Elif(SourceLocation loc,
                                SourceRange range,
-                               bool conditionvalue,
+                               ConditionValueKind conditionvalue,
                                SourceLocation ifloc)
 {
     onPPElif(loc, range, conditionvalue, ifloc);

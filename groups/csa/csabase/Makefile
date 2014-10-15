@@ -11,7 +11,7 @@ SYSTEM   = $(shell uname -s)
 
 # Set up locations and flags for the compiler that will build bde_verify.
 ifeq ($(SYSTEM),Linux)
-    COMPILER ?= gcc
+    COMPILER ?= clang
     ifeq    ($(COMPILER),gcc)
 VERSION  = 4.8.1
 CCDIR    = /opt/swt/install/gcc-$(VERSION)
@@ -22,7 +22,7 @@ AR       = /usr/bin/ar
 CXXFLAGS += -Wno-unused-local-typedefs
     endif
     ifeq ($(COMPILER),clang)
-VERSION  = 3.4.1
+VERSION  = 3.5.0
 CCDIR    = /home/hrosen4/mbig/llvm-$(VERSION)/install-$(SYSTEM)
 CXX      = $(CCDIR)/bin/clang++
 CXXFLAGS += -std=c++11
@@ -47,7 +47,7 @@ endif
 OBJ      = $(SYSTEM)-$(COMPILER)-$(VERSION)
 
 # Set up location of clang headers and libraries needed by bde_verify.
-LLVM     = /home/hrosen4/mbig/llvm-3.4.1/install-$(SYSTEM)
+LLVM     = /home/hrosen4/mbig/llvm-3.5.0/install-$(SYSTEM)
 INCFLAGS += -I$(LLVM)/include
 
 export VERBOSE ?= @

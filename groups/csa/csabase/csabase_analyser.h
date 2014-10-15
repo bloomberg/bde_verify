@@ -6,6 +6,7 @@
 #include <clang/AST/ASTContext.h>
 #include <clang/Basic/Diagnostic.h>
 #include <clang/Basic/SourceLocation.h>
+#include <clang/Tooling/Refactoring.h>
 #include <csabase_attachments.h>
 #include <csabase_diagnostic_builder.h>
 #include <csabase_location.h>
@@ -43,7 +44,6 @@ class Analyser : public Attachments
              std::vector<std::string> const& config,
              std::string const& name,
              std::string const& rewrite_dir);
-    ~Analyser();
 
     Config const* config() const;
     std::string const& tool_name() const;
@@ -54,6 +54,7 @@ class Analyser : public Attachments
     clang::CompilerInstance& compiler();
     clang::Sema&             sema();
     clang::Rewriter&         rewriter();
+    csabase::PPObserver&     pp_observer();
 
     std::string const& toplevel() const;
     std::string const& directory() const;
@@ -63,8 +64,10 @@ class Analyser : public Attachments
     std::string const& component() const;
     std::string const& rewrite_dir() const;
     void               toplevel(std::string const&);
+    bool               is_header(std::string const&) const;
     bool               is_component_header(std::string const&) const;
     bool               is_component_header(clang::SourceLocation) const;
+    bool               is_source(std::string const&) const;
     bool               is_component_source(std::string const&) const;
     bool               is_component_source(clang::SourceLocation) const;
     bool               is_component(clang::SourceLocation) const;
@@ -80,22 +83,22 @@ class Analyser : public Attachments
     bool               is_ADL_candidate(clang::Decl const*);
     bool               is_generated(clang::SourceLocation) const;
 
-    diagnostic_builder report(clang::SourceLocation where,
-                                    std::string const& check,
-                                    std::string const& tag,
-                                    std::string const& message,
-                                    bool always = false,
-                                    clang::DiagnosticsEngine::Level level =
-                                        clang::DiagnosticsEngine::Warning);
+    diagnostic_builder report(clang::SourceLocation       where,
+                              std::string const&          check,
+                              std::string const&          tag,
+                              std::string const&          message,
+                              bool                        always = false,
+                              clang::DiagnosticIDs::Level level =
+                                                clang::DiagnosticIDs::Warning);
 
     template <typename T>
     diagnostic_builder report(T where,
-                              std::string const& check,
-                              std::string const& tag,
-                              std::string const& message,
-                              bool always = false,
-                              clang::DiagnosticsEngine::Level level =
-                                  clang::DiagnosticsEngine::Warning);
+                              std::string const&          check,
+                              std::string const&          tag,
+                              std::string const&          message,
+                              bool                        always = false,
+                              clang::DiagnosticIDs::Level level =
+                                                clang::DiagnosticIDs::Warning);
 
     clang::SourceManager& manager() const;
     llvm::StringRef         get_source(clang::SourceRange, bool exact = false);
@@ -124,6 +127,19 @@ class Analyser : public Attachments
         // is the nearest ancestor of the specified 'node' of 'Node' type, and
         // 0 if there is no such object.
 
+    std::string get_rewrite_file(std::string file);
+        // Return the name of the file to use for rewriting the specified
+        // 'file'.
+
+    int InsertTextAfter(clang::SourceLocation l, llvm::StringRef s);
+    int InsertTextBefore(clang::SourceLocation l, llvm::StringRef s);
+    int RemoveText(clang::SourceRange r);
+    int RemoveText(clang::SourceLocation l, unsigned n);
+    int ReplaceText(clang::SourceLocation l, unsigned n, llvm::StringRef s);
+    int ReplaceText(clang::SourceRange r, llvm::StringRef s);
+    int applyReplacements();
+        // Rewriting actions.
+
 private:
     Analyser(Analyser const&);
     void operator= (Analyser const&);
@@ -133,7 +149,6 @@ private:
     clang::CompilerInstance&              compiler_;
     clang::SourceManager const&           d_source_manager;
     std::auto_ptr<Visitor>                visitor_;
-    PPObserver*                           pp_observer_;
     clang::ASTContext*                    context_;
     clang::Rewriter*                      rewriter_;
     std::string                           toplevel_;
@@ -149,6 +164,7 @@ private:
     mutable IsGlobalPackage               is_global_package_;
     typedef std::map<std::string, bool>   IsStandardNamespace;
     mutable IsStandardNamespace           is_standard_namespace_;
+    clang::tooling::Replacements          replacements_;
 };
 
 // -----------------------------------------------------------------------------
@@ -166,11 +182,11 @@ template <typename T>
 inline
 diagnostic_builder Analyser::report(
     T where,
-    std::string const & check,
-    std::string const & tag,
-    std::string const & message,
-    bool always,
-    clang::DiagnosticsEngine::Level level)
+    std::string const&          check,
+    std::string const&          tag,
+    std::string const&          message,
+    bool                        always,
+    clang::DiagnosticIDs::Level level)
 {
     return report(
         get_location(where).location(), check, tag, message, always, level);

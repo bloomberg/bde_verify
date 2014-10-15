@@ -25,11 +25,12 @@ class PluginAction : public clang::PluginASTAction
     std::string rewrite_dir() const;
 
   protected:
-    clang::ASTConsumer* CreateASTConsumer(clang::CompilerInstance& compiler,
-                                          llvm::StringRef source);
+    std::unique_ptr<clang::ASTConsumer>
+    CreateASTConsumer(clang::CompilerInstance& compiler,
+                      llvm::StringRef source) override;
 
     bool ParseArgs(clang::CompilerInstance const& compiler,
-                   std::vector<std::string> const& args);
+                   std::vector<std::string> const& args) override;
 
   private:
     bool debug_;

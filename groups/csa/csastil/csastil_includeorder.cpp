@@ -231,7 +231,7 @@ check_order(Analyser*                       analyser,
                 << version;
             analyser->report(lost_it->second, check_name, "SHO07",
                              "Include for %0.h is here", true,
-                             DiagnosticsEngine::Note)
+                             DiagnosticIDs::Note)
                 << version;
         }
     }

@@ -63,9 +63,13 @@ namespace ast_matchers {
         const Decl *callee = 0;
         if (const CallExpr *call = llvm::dyn_cast<CallExpr>(&Node)) {
             callee = call->getCalleeDecl();
-        } else if (const CXXConstructExpr *ctor =
-                       llvm::dyn_cast<CXXConstructExpr>(&Node)) {
+        }
+        else if (const CXXConstructExpr *ctor =
+                                     llvm::dyn_cast<CXXConstructExpr>(&Node)) {
             callee = ctor->getConstructor();
+        }
+        else if (const DeclRefExpr *dr = llvm::dyn_cast<DeclRefExpr>(&Node)) {
+            callee = dr->getDecl();
         }
         if (callee) {
             const Decl *mc = method->getCanonicalDecl();
@@ -116,7 +120,7 @@ struct data
     enum { NOT_YET, NOW, DONE };
     int d_collecting_classes;  // True for //@CLASSES: section.
     std::map<llvm::StringRef, SourceRange> d_classes;  // classes named
-    std::map<std::string, unsigned> d_names_to_test;   // public method namess
+    std::map<std::string, unsigned> d_names_to_test;   // public method names
     std::map<std::string, unsigned> d_names_in_plan;   // method namess tested
     std::set<const CXXMethodDecl *> d_methods;         // public methods
 };
@@ -492,6 +496,10 @@ void report::get_function_names()
                        llvm::dyn_cast<UsingShadowDecl>(nd)) {
                 nd = usd->getTargetDecl();
             }
+            if (llvm::dyn_cast<TypedefDecl>(nd)) {
+                // @CLASSES sometimes contains typedefs.  Ignore them.
+                continue;
+            }
             record = llvm::dyn_cast<CXXRecordDecl>(nd);
             if (!record) {
                 ClassTemplateDecl *tplt =
@@ -505,20 +513,25 @@ void report::get_function_names()
             CXXRecordDecl::method_iterator b = record->method_begin();
             CXXRecordDecl::method_iterator e = record->method_end();
             for (; b != e; ++b) {
-                const CXXMethodDecl *m = *b;
+                CXXMethodDecl *m = *b;
                 if (m->getAccess() == AS_public &&
                     m->isUserProvided() &&
                     !m->getLocation().isMacroID()) {
                     MatchFinder mf;
                     bool found = false;
-                    OnMatch<> m1([&](const BoundNodes &) { found = true; });
+                    OnMatch<> m1([&](const BoundNodes &nodes) {
+                        if (d_analyser.manager().getFileID(
+                                d_analyser.manager().getExpansionLoc(
+                                    nodes.getNodeAs<Expr>("expr")
+                                        ->getExprLoc())) ==
+                            d_analyser.manager().getMainFileID()) {
+                            found = true;
+                        }
+                    });
                     mf.addDynamicMatcher(
                         decl(hasDescendant(namedDecl(
-                            hasName("main"),
-                            eachOf(
-                                forEachDescendant(callExpr(callTo(m))),
-                                forEachDescendant(constructExpr(callTo(m)))
-                            )
+                             hasName("main"),
+                             forEachDescendant(expr(callTo(m)).bind("expr"))
                         ))),
                         &m1);
                     mf.match(*m->getTranslationUnitDecl(),
@@ -784,7 +797,7 @@ void report::operator()()
                     d_analyser.report(banner_literal,
                                       check_name, "TP22",
                                       "Printed title is",
-                                      false, DiagnosticsEngine::Note);
+                                      false, DiagnosticIDs::Note);
                 }
             } else {
                 d_analyser.report(
@@ -844,7 +857,7 @@ void report::operator()()
                         plan_range.getBegin().getLocWithOffset(off),
                         check_name, "TP08",
                         "Test plan item is", false,
-                        DiagnosticsEngine::Note);
+                        DiagnosticIDs::Note);
             }
             else if (!negative && test_item.match(line)) {
                 d_analyser.report(cr.getBegin().getLocWithOffset(line_pos),
@@ -1034,7 +1047,7 @@ void report::match_print_banner(const BoundNodes& nodes)
                               "Incorrect test banner format");
             d_analyser.report(l1, check_name, "TP18",
                               "Correct format is\n%0",
-                              false, DiagnosticsEngine::Note)
+                              false, DiagnosticIDs::Note)
                 << indent
                  + "\"\\n"
                  + cappish(banner_text)
@@ -1061,7 +1074,7 @@ void report::match_print_banner(const BoundNodes& nodes)
                               "Incorrect test banner format");
             d_analyser.report(l2, check_name, "TP18",
                               "Correct format is\n%0",
-                              false, DiagnosticsEngine::Note)
+                              false, DiagnosticIDs::Note)
                 << indent
                  + "cout << endl\n"
                  + indent
@@ -1097,7 +1110,7 @@ void report::match_no_print(const BoundNodes& nodes)
     }
 
     // Don't warn about this in case 0, the usage example, or in negative cases
-    // (which are not regulare tests).
+    // (which are not regular tests).
     for (const Stmt *s = quiet;
          const CaseStmt *cs = d_analyser.get_parent<CaseStmt>(s);
          s = cs) {
@@ -1133,206 +1146,100 @@ void report::match_no_print(const BoundNodes& nodes)
     }
 }
 
-#undef  NL
-#define NL "\n"
+const char standard_bde_assert_test_function[] = R"BDE(
+// ============================================================================
+//                     STANDARD BDE ASSERT TEST FUNCTION
+// ----------------------------------------------------------------------------
 
-const char standard_bde_assert_test_macros[] =
-"// ==================="
-"========================================================="                  NL
-"//                      STANDARD BDE ASSERT TEST MACROS"                    NL
-"// -------------------"
-"---------------------------------------------------------"                  NL
-""                                                                           NL
-"static int testStatus = 0;"                                                 NL
-""                                                                           NL
-"static void aSsErT(int c, const char *s, int i)"                            NL
-"{"                                                                          NL
-"    if (c) {"                                                               NL
-"        cout << \"Error \" << __FILE__ << \"(\" << i << \"): \" << s"       NL
-"             << \"    (failed)\" << endl;"                                  NL
-"        if (testStatus >= 0 && testStatus <= 100) ++testStatus;"            NL
-"    }"                                                                      NL
-"}"                                                                          NL
-#if 0
-"#define ASSERT(X) { aSsErT(!(X), #X, __LINE__); }"                          NL
-#endif
-;
+namespace {
 
-const char standard_bde_assert_test_macros_bsl[] =
-"// ==================="
-"========================================================="                  NL
-"//                      STANDARD BDE ASSERT TEST MACRO"                     NL
-"// -------------------"
-"---------------------------------------------------------"                  NL
-"// NOTE: THIS IS A LOW-LEVEL COMPONENT AND MAY NOT USE ANY C++ LIBRARY"     NL
-"// FUNCTIONS, INCLUDING IOSTREAMS."                                         NL
-"static int testStatus = 0;"                                                 NL
-""                                                                           NL
-"static void aSsErT(bool b, const char *s, int i)"                           NL
-"{"                                                                          NL
-"    if (b) {"                                                               NL
-"        printf(\"Error \" __FILE__ \"(%d): %s    (failed)\\n\", i, s);"     NL
-"        if (testStatus >= 0 && testStatus <= 100) ++testStatus;"            NL
-"    }"                                                                      NL
-"}"                                                                          NL
-;
+int testStatus = 0;
 
-const char standard_bde_assert_test_macros_ns_bsl[] =
-"// ==================="
-"========================================================="                  NL
-"//                      STANDARD BDE ASSERT TEST MACROS"                    NL
-"// -------------------"
-"---------------------------------------------------------"                  NL
-"// NOTE: THIS IS A LOW-LEVEL COMPONENT AND MAY NOT USE ANY C++ LIBRARY"     NL
-"// FUNCTIONS, INCLUDING IOSTREAMS."                                         NL
-""                                                                           NL
-"namespace {"                                                                NL
-""                                                                           NL
-"int testStatus = 0;"                                                        NL
-""                                                                           NL
-"void aSsErT(bool b, const char *s, int i)"                                  NL
-"{"                                                                          NL
-"    if (b) {"                                                               NL
-"        printf(\"Error \" __FILE__ \"(%d): %s    (failed)\\n\", i, s);"     NL
-"        if (testStatus >= 0 && testStatus <= 100) ++testStatus;"            NL
-"    }"                                                                      NL
-"}"                                                                          NL
-""                                                                           NL
-"}  // close unnamed namespace"                                              NL
-;
+void aSsErT(bool condition, const char *message, int line)
+{
+    if (condition) {
+        cout << "Error " __FILE__ "(" << line << "): " << message
+             << "    (failed)" << endl;
 
-const char standard_bde_loop_assert_test_macros_old[] =
-"// ================="
-"==========================================================="                NL
-"//                  STANDARD BDE LOOP-ASSERT TEST MACROS"                   NL
-"// -----------------"
-"-----------------------------------------------------------"                NL
-""                                                                           NL
-"#define LOOP_ASSERT(I,X) { \\"                                              NL
-"    if (!(X)) { cout << #I << \": \" << I << \"\\n\"; "
-"aSsErT(1, #X, __LINE__); }}"                                                NL
-""                                                                           NL
-"#define LOOP2_ASSERT(I,J,X) { \\"                                           NL
-"    if (!(X)) { cout << #I << \": \" << I << \"\\t\" "
-"<< #J << \": \" \\"                                                         NL
-"              << J << \"\\n\"; "
-"aSsErT(1, #X, __LINE__); } }"                                               NL
-""                                                                           NL
-"#define LOOP3_ASSERT(I,J,K,X) { \\"                                         NL
-"    if (!(X)) { cout << #I << \": \" << I << \"\\t\" "
-"<< #J << \": \" << J << \"\\t\" \\"                                         NL
-"              << #K << \": \" << K << \"\\n\"; "
-"aSsErT(1, #X, __LINE__); } }"                                               NL
-""                                                                           NL
-"#define LOOP4_ASSERT(I,J,K,L,X) { \\"                                       NL
-"    if (!(X)) { cout << #I << \": \" << I << \"\\t\" "
-"<< #J << \": \" << J << \"\\t\" << \\"                                      NL
-"       #K << \": \" << K << \"\\t\" << #L << \": \" << L << \"\\n\"; \\"    NL
-"       aSsErT(1, #X, __LINE__); } }"                                        NL
-""                                                                           NL
-"#define LOOP5_ASSERT(I,J,K,L,M,X) { \\"                                     NL
-"    if (!(X)) { cout << #I << \": \" << I << \"\\t\" "
-"<< #J << \": \" << J << \"\\t\" << \\"                                      NL
-"       #K << \": \" << K << \"\\t\" << #L << \": \" << L << \"\\t\" << \\"  NL
-"       #M << \": \" << M << \"\\n\"; \\"                                    NL
-"       aSsErT(1, #X, __LINE__); } }"                                        NL
-;
+        if (0 <= testStatus && testStatus <= 100) {
+            ++testStatus;
+        }
+    }
+}
 
-const char standard_bde_loop_assert_test_macros_new[] =
-""                                                                           NL
-"// ================="
-"==========================================================="                NL
-"//                    STANDARD BDE LOOP-ASSERT TEST MACROS"                 NL
-"// -----------------"
-"-----------------------------------------------------------"                NL
-""                                                                           NL
-"#define C_(X)   << #X << \": \" << X << '\\t'"                              NL
-"#define A_(X,S) { if (!(X)) { cout S << endl; aSsErT(1, #X, __LINE__); } }" NL
-"#define LOOP_ASSERT(I,X)            A_(X,C_(I))"                            NL
-"#define LOOP2_ASSERT(I,J,X)         A_(X,C_(I)C_(J))"                       NL
-"#define LOOP3_ASSERT(I,J,K,X)       A_(X,C_(I)C_(J)C_(K))"                  NL
-"#define LOOP4_ASSERT(I,J,K,L,X)     A_(X,C_(I)C_(J)C_(K)C_(L))"             NL
-"#define LOOP5_ASSERT(I,J,K,L,M,X)   A_(X,C_(I)C_(J)C_(K)C_(L)C_(M))"        NL
-"#define LOOP6_ASSERT(I,J,K,L,M,N,X) A_(X,C_(I)C_(J)C_(K)C_(L)C_(M)C_(N))"   NL
-;
+}  // close unnamed namespace
+)BDE";
 
-const char standard_bde_loop_assert_test_macros_bsl[] =
-"// ================="
-"==========================================================="                NL
-"//                      STANDARD BDE TEST DRIVER MACROS"                    NL
-"// -----------------"
-"-----------------------------------------------------------"                NL
-""                                                                           NL
-"#define ASSERT       BSLS_BSLTESTUTIL_ASSERT"                               NL
-"#define LOOP_ASSERT  BSLS_BSLTESTUTIL_LOOP_ASSERT"                          NL
-"#define LOOP0_ASSERT BSLS_BSLTESTUTIL_LOOP0_ASSERT"                         NL
-"#define LOOP1_ASSERT BSLS_BSLTESTUTIL_LOOP1_ASSERT"                         NL
-"#define LOOP2_ASSERT BSLS_BSLTESTUTIL_LOOP2_ASSERT"                         NL
-"#define LOOP3_ASSERT BSLS_BSLTESTUTIL_LOOP3_ASSERT"                         NL
-"#define LOOP4_ASSERT BSLS_BSLTESTUTIL_LOOP4_ASSERT"                         NL
-"#define LOOP5_ASSERT BSLS_BSLTESTUTIL_LOOP5_ASSERT"                         NL
-"#define LOOP6_ASSERT BSLS_BSLTESTUTIL_LOOP6_ASSERT"                         NL
-"#define ASSERTV      BSLS_BSLTESTUTIL_ASSERTV"                              NL
-""                                                                           NL
-;
+const char standard_bde_assert_test_function_bsl[] = R"BDE(
+// ============================================================================
+//                     STANDARD BSL ASSERT TEST FUNCTION
+// ----------------------------------------------------------------------------
 
-const char standard_bde_loop_assert_test_macros_bdl[] =
-"// ================="
-"==========================================================="                NL
-"//                      STANDARD BDE TEST DRIVER MACROS"                    NL
-"// -----------------"
-"-----------------------------------------------------------"                NL
-""                                                                           NL
-"#define ASSERT       BDLS_TESTUTIL_ASSERT"                                  NL
-"#define LOOP_ASSERT  BDLS_TESTUTIL_LOOP_ASSERT"                             NL
-"#define LOOP0_ASSERT BDLS_TESTUTIL_LOOP0_ASSERT"                            NL
-"#define LOOP1_ASSERT BDLS_TESTUTIL_LOOP1_ASSERT"                            NL
-"#define LOOP2_ASSERT BDLS_TESTUTIL_LOOP2_ASSERT"                            NL
-"#define LOOP3_ASSERT BDLS_TESTUTIL_LOOP3_ASSERT"                            NL
-"#define LOOP4_ASSERT BDLS_TESTUTIL_LOOP4_ASSERT"                            NL
-"#define LOOP5_ASSERT BDLS_TESTUTIL_LOOP5_ASSERT"                            NL
-"#define LOOP6_ASSERT BDLS_TESTUTIL_LOOP6_ASSERT"                            NL
-"#define ASSERTV      BDLS_TESTUTIL_ASSERTV"                                 NL
-""                                                                           NL
-;
+namespace {
 
-const char semi_standard_test_output_macros[] =
-""                                                                           NL
-"// ================="
-"==========================================================="                NL
-"//                  SEMI-STANDARD TEST OUTPUT MACROS"                       NL
-"// -----------------"
-"-----------------------------------------------------------"                NL
-""                                                                           NL
-"#define P(X) cout << #X \" = \" << (X) << endl; "
-"// Print identifier and value."                                             NL
-"#define Q(X) cout << \"<| \" #X \" |>\" << endl;  "
-"// Quote identifier literally."                                             NL
-"#define P_(X) cout << #X \" = \" << (X) << \", \" << flush; "
-"// 'P(X)' without '\\n'"                                                    NL
-"#define T_ cout << \"\\t\" << flush;             // Print tab w/o newline." NL
-"#define L_ __LINE__                           // current Line number"       NL
-;
+int testStatus = 0;
 
-const char semi_standard_test_output_macros_bsl[] =
-""                                                                           NL
-"#define Q   BSLS_BSLTESTUTIL_Q   // Quote identifier literally."            NL
-"#define P   BSLS_BSLTESTUTIL_P   // Print identifier and value."            NL
-"#define P_  BSLS_BSLTESTUTIL_P_  // P(X) without '\\n'."                    NL
-"#define T_  BSLS_BSLTESTUTIL_T_  // Print a tab (w/o newline)."             NL
-"#define L_  BSLS_BSLTESTUTIL_L_  // current Line number"                    NL
-""                                                                           NL
-;
+void aSsErT(bool condition, const char *message, int line)
+{
+    if (condition) {
+        printf("Error " __FILE__ "(%d): %s    (failed)\n", line, message);
 
-const char semi_standard_test_output_macros_bdl[] =
-""                                                                           NL
-"#define Q   BDLS_TESTUTIL_Q   // Quote identifier literally."               NL
-"#define P   BDLS_TESTUTIL_P   // Print identifier and value."               NL
-"#define P_  BDLS_TESTUTIL_P_  // P(X) without '\\n'."                       NL
-"#define T_  BDLS_TESTUTIL_T_  // Print a tab (w/o newline)."                NL
-"#define L_  BDLS_TESTUTIL_L_  // current Line number"                       NL
-""                                                                           NL
-;
+        if (0 <= testStatus && testStatus <= 100) {
+            ++testStatus;
+        }
+    }
+}
+
+}  // close unnamed namespace
+)BDE";
+
+const char standard_bde_test_driver_macro_abbreviations[] = R"BDE(
+// ============================================================================
+//               STANDARD BDE TEST DRIVER MACRO ABBREVIATIONS
+// ----------------------------------------------------------------------------
+
+#define ASSERT       BDLS_TESTUTIL_ASSERT
+#define ASSERTV      BDLS_TESTUTIL_ASSERTV
+
+#define LOOP_ASSERT  BDLS_TESTUTIL_LOOP_ASSERT
+#define LOOP0_ASSERT BDLS_TESTUTIL_LOOP0_ASSERT
+#define LOOP1_ASSERT BDLS_TESTUTIL_LOOP1_ASSERT
+#define LOOP2_ASSERT BDLS_TESTUTIL_LOOP2_ASSERT
+#define LOOP3_ASSERT BDLS_TESTUTIL_LOOP3_ASSERT
+#define LOOP4_ASSERT BDLS_TESTUTIL_LOOP4_ASSERT
+#define LOOP5_ASSERT BDLS_TESTUTIL_LOOP5_ASSERT
+#define LOOP6_ASSERT BDLS_TESTUTIL_LOOP6_ASSERT
+
+#define Q            BDLS_TESTUTIL_Q   // Quote identifier literally.
+#define P            BDLS_TESTUTIL_P   // Print identifier and value.
+#define P_           BDLS_TESTUTIL_P_  // P(X) without '\n'.
+#define T_           BDLS_TESTUTIL_T_  // Print a tab (w/o newline).
+#define L_           BDLS_TESTUTIL_L_  // current Line number
+)BDE";
+
+const char standard_bde_test_driver_macro_abbreviations_bsl[] = R"BDE(
+// ============================================================================
+//               STANDARD BSL TEST DRIVER MACRO ABBREVIATIONS
+// ----------------------------------------------------------------------------
+
+#define ASSERT       BSLS_BSLTESTUTIL_ASSERT
+#define ASSERTV      BSLS_BSLTESTUTIL_ASSERTV
+
+#define LOOP_ASSERT  BSLS_BSLTESTUTIL_LOOP_ASSERT
+#define LOOP0_ASSERT BSLS_BSLTESTUTIL_LOOP0_ASSERT
+#define LOOP1_ASSERT BSLS_BSLTESTUTIL_LOOP1_ASSERT
+#define LOOP2_ASSERT BSLS_BSLTESTUTIL_LOOP2_ASSERT
+#define LOOP3_ASSERT BSLS_BSLTESTUTIL_LOOP3_ASSERT
+#define LOOP4_ASSERT BSLS_BSLTESTUTIL_LOOP4_ASSERT
+#define LOOP5_ASSERT BSLS_BSLTESTUTIL_LOOP5_ASSERT
+#define LOOP6_ASSERT BSLS_BSLTESTUTIL_LOOP6_ASSERT
+
+#define Q            BSLS_BSLTESTUTIL_Q   // Quote identifier literally.
+#define P            BSLS_BSLTESTUTIL_P   // Print identifier and value.
+#define P_           BSLS_BSLTESTUTIL_P_  // P(X) without '\n'.
+#define T_           BSLS_BSLTESTUTIL_T_  // Print a tab (w/o newline).
+#define L_           BSLS_BSLTESTUTIL_L_  // current Line number
+)BDE";
 
 static llvm::StringRef squash(std::string &out, llvm::StringRef in)
     // Copy the specified 'in' string to the specified 'out' string with all
@@ -1452,45 +1359,28 @@ void report::check_boilerplate()
     SourceLocation loc;
 
     needles.clear();
-    needles.push_back(standard_bde_assert_test_macros);
-    needles.push_back(standard_bde_assert_test_macros_bsl);
-    needles.push_back(standard_bde_assert_test_macros_ns_bsl);
+    needles.push_back(standard_bde_assert_test_function);
+    needles.push_back(standard_bde_assert_test_function_bsl);
     search(&loc, &needle, &distance, "(failed)", needles, fid);
     if (distance != 0) {
         d_analyser.report(loc, check_name, "TP19",
                           "Missing or malformed standard test driver section");
         d_analyser.report(loc, check_name, "TP19",
                           "One correct form (of several possible) is\n%0",
-                          false, DiagnosticsEngine::Note)
+                          false, DiagnosticIDs::Note)
             << needle;
     }
 
     needles.clear();
-    needles.push_back(standard_bde_loop_assert_test_macros_old);
-    needles.push_back(standard_bde_loop_assert_test_macros_new);
-    needles.push_back(standard_bde_loop_assert_test_macros_bsl);
-    needles.push_back(standard_bde_loop_assert_test_macros_bdl);
+    needles.push_back(standard_bde_test_driver_macro_abbreviations);
+    needles.push_back(standard_bde_test_driver_macro_abbreviations_bsl);
     search(&loc, &needle, &distance, "define LOOP_ASSERT", needles, fid);
     if (distance != 0) {
         d_analyser.report(loc, check_name, "TP19",
                           "Missing or malformed standard test driver section");
         d_analyser.report(loc, check_name, "TP19",
                           "One correct form (of several possible) is\n%0",
-                          false, DiagnosticsEngine::Note)
-            << needle;
-    }
-
-    needles.clear();
-    needles.push_back(semi_standard_test_output_macros);
-    needles.push_back(semi_standard_test_output_macros_bsl);
-    needles.push_back(semi_standard_test_output_macros_bdl);
-    search(&loc, &needle, &distance, "define P_", needles, fid);
-    if (distance != 0) {
-        d_analyser.report(loc, check_name, "TP19",
-                          "Missing or malformed standard test driver section");
-        d_analyser.report(loc, check_name, "TP19",
-                          "One correct form (of several possible) is\n%0",
-                          false, DiagnosticsEngine::Note)
+                          false, DiagnosticIDs::Note)
             << needle;
     }
 }

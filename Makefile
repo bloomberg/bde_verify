@@ -10,7 +10,7 @@ SYSTEM   = $(shell uname -s)
 
 # Set up locations and flags for the compiler that will build bde_verify.
 ifeq ($(SYSTEM),Linux)
-    COMPILER ?= gcc
+    COMPILER ?= clang
     ifeq    ($(COMPILER),gcc)
 VERSION  = 4.8.1
 CCDIR    = /opt/swt/install/gcc-$(VERSION)
@@ -22,7 +22,7 @@ LDFLAGS  += -Wl,-rpath,$(CCDIR)/lib64
 CXXFLAGS += -Wno-unused-local-typedefs
     endif
     ifeq ($(COMPILER),clang)
-VERSION  = 3.4.1
+VERSION  = 3.5.0
 CCDIR    = /home/hrosen4/mbig/llvm-$(VERSION)/install-$(SYSTEM)
 CXX      = $(CCDIR)/bin/clang++
 CXXFLAGS += -std=c++11
@@ -33,6 +33,7 @@ ASPELL   = /opt/swt/install/aspell-0.60.6.1-64
 CXXFLAGS += -DSPELL_CHECK=1
 INCFLAGS += -I$(ASPELL)/include
 LDFLAGS  += -L$(ASPELL)/lib64 -laspell
+EXTRALIBS += -lz
 endif
 ifeq ($(SYSTEM),SunOS)
     COMPILER ?= gcc
@@ -60,7 +61,7 @@ endif
 OBJ      = $(SYSTEM)-$(COMPILER)-$(VERSION)
 
 # Set up location of clang headers and libraries needed by bde_verify.
-LLVM     = /home/hrosen4/mbig/llvm-3.4.1/install-$(SYSTEM)
+LLVM     = /home/hrosen4/mbig/llvm-3.5.0/install-$(SYSTEM)
 INCFLAGS += -I$(LLVM)/include
 LDFLAGS  += -L$(LLVM)/lib -L$(CSABASEDIR)/$(OBJ)
 
@@ -154,7 +155,6 @@ LIBS     =    -lcsabase                                                       \
               -lLLVMSparcCodeGen                                              \
               -lLLVMSelectionDAG                                              \
               -lLLVMAsmPrinter                                                \
-              -lLLVMJIT                                                       \
               -lLLVMInterpreter                                               \
               -lLLVMCodeGen                                                   \
               -lLLVMScalarOpts                                                \
@@ -162,6 +162,7 @@ LIBS     =    -lcsabase                                                       \
               -lLLVMInstCombine                                               \
               -lLLVMVectorize                                                 \
               -lclangRewriteFrontend                                          \
+              -lclangRewrite                                                  \
               -lclangARCMigrate                                               \
               -lclangStaticAnalyzerFrontend                                   \
               -lclangIndex                                                    \
@@ -177,6 +178,7 @@ LIBS     =    -lcsabase                                                       \
               -lclangSerialization                                            \
               -lLLVMBitReader                                                 \
               -lLLVMBitWriter                                                 \
+              -lLLVMProfileData                                               \
               -lLLVMTarget                                                    \
               -lLLVMExecutionEngine                                           \
               -lLLVMCore                                                      \
@@ -189,6 +191,7 @@ LIBS     =    -lcsabase                                                       \
               -lLLVMSparcInfo                                                 \
               -lLLVMX86AsmPrinter                                             \
               -lLLVMX86Utils                                                  \
+              -lLLVMMCDisassembler                                            \
               -lclangSema                                                     \
               -lclangStaticAnalyzerCheckers                                   \
               -lclangStaticAnalyzerCore                                       \
@@ -196,7 +199,6 @@ LIBS     =    -lcsabase                                                       \
               -lclangASTMatchers                                              \
               -lclangEdit                                                     \
               -lclangAnalysis                                                 \
-              -lclangRewriteCore                                              \
               -lclangAST                                                      \
               -lclangLex                                                      \
               -lclangBasic                                                    \

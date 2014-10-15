@@ -1,7 +1,6 @@
 // csamisc_namespacetags.cpp                                          -*-C++-*-
 
 #include <clang/AST/Decl.h>
-#include <clang/Rewrite/Core/Rewriter.h>
 #include <csabase_analyser.h>
 #include <csabase_config.h>
 #include <csabase_registercheck.h>
@@ -43,7 +42,7 @@ static void namespace_tags(Analyser& analyser, NamespaceDecl const *decl)
             if (!tag.size()) {
                 tag = nsname;
             }
-            analyser.rewriter().ReplaceText(
+            analyser.ReplaceText(
                 line_range, "}  // close " + tag + " namespace");
         }
     }

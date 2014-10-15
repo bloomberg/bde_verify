@@ -9,6 +9,7 @@
 use strict;
 use Getopt::Long qw(:config no_ignore_case);
 use Cwd;
+use BSD::Resource;
 
 my @known_systems = ('AIX', 'HP-UX', 'Linux', 'SunOS');
 chomp(my $system   = `uname -s`);
@@ -18,16 +19,16 @@ my @known_hw = ('powerpc', 'ia64', 'x86_64', 'sparc', 'i386');
 chomp (my $hw = `uname -p`);
 $hw = 'x86_64' unless grep(/$hw/, @known_hw);
 
-my $clangver = "3.4";
+my $clangver = "3.5.0";
 my $gccver   = "4.8.1";
 my $home     = "/home/hrosen4/bde_verify";
 my $bb       = "/bb/build/$system-$hw-64" .
                "/release/robolibs/trunk/lib/dpkgroot/opt/bb";
 my $config   = "$home/bde_verify.cfg";
 my @cl;
-#my $exe      = "$home/$system-clang-$clangver/bde_verify";
+my $exe      = "$home/$system-clang-$clangver/bde_verify";
 #my $cc       = "/bb/mbigc/mbig816/llvm-$clangver/install-$system/bin/clang++";
-my $exe      = "$home/$system-gcc-$gccver/bde_verify";
+#my $exe      = "$home/$system-gcc-$gccver/bde_verify";
 my $cc       = "/opt/swt/install/gcc-$gccver/bin/g++";
 my $debug    = "";
 my $verbose  = "";
@@ -39,7 +40,6 @@ my @defs;
 my @wflags;
 my @lflags = (
     "cxx-exceptions",
-    "diagnostics-show-name",
     "diagnostics-show-option",
 );
 my $dummy;
@@ -194,6 +194,7 @@ my @command = (
 print join(" \\\n ", map { join "\\ ", split(/ /, $_, -1) } @command), "\n"
                                                                    if $verbose;
 
+setrlimit(RLIMIT_CORE, 0, 0);
 exec @command;
 
 ## ----------------------------------------------------------------------------

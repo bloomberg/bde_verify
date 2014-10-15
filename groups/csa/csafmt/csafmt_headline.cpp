@@ -3,7 +3,6 @@
 #include <clang/Basic/Diagnostic.h>
 #include <clang/Basic/SourceLocation.h>
 #include <clang/Basic/SourceManager.h>
-#include <clang/Rewrite/Core/Rewriter.h>
 #include <csabase_analyser.h>
 #include <csabase_binder.h>
 #include <csabase_diagnostic_builder.h>
@@ -70,15 +69,13 @@ static void open_file(Analyser& analyser,
             analyser.report(where.getLocWithOffset(m.first),
                             check_name, "HL01",
                             "Correct format is\n%0",
-                            true, DiagnosticsEngine::Note)
+                            true, DiagnosticIDs::Note)
                 << expect;
             if (m.first == 0) {
-                analyser.rewriter().InsertText(
-                    where.getLocWithOffset(m.first),
-                    expect + "\n");
+                analyser.InsertTextAfter(
+                    where.getLocWithOffset(m.first), expect + "\n");
             } else {
-                analyser.rewriter().ReplaceText(
-                    analyser.get_line_range(where), expect);
+                analyser.ReplaceText(analyser.get_line_range(where), expect);
             }
         }
     }

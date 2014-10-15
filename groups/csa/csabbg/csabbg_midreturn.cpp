@@ -12,7 +12,6 @@
 #include <clang/Basic/SourceLocation.h>
 #include <clang/Basic/SourceManager.h>
 #include <clang/Lex/Lexer.h>
-#include <clang/Rewrite/Core/Rewriter.h>
 #include <csabase_analyser.h>
 #include <csabase_diagnostic_builder.h>
 #include <csabase_location.h>
@@ -189,10 +188,9 @@ struct report
                                       ) + "// RETURN";
                     d_analyser.report(*it, check_name, "MR01",
                                       "Correct text is\n%0",
-                                      false, DiagnosticsEngine::Note)
+                                      false, DiagnosticIDs::Note)
                         << line.str() + tag;
-                    d_analyser.rewriter().InsertTextAfter(
-                        line_range.getEnd(), tag);
+                    d_analyser.InsertTextAfter(line_range.getEnd(), tag);
                 }
             }
         }
@@ -244,11 +242,11 @@ struct report
                                       ) + "// RETURN";
                     d_analyser.report(*it, check_name, "MR01",
                             "Correct text is\n%0",
-                            false, DiagnosticsEngine::Note)
+                            false, DiagnosticIDs::Note)
                         << line.str() + tag;
                     line_range.setBegin(
                         line_range.getBegin().getLocWithOffset(line.size()));
-                    d_analyser.rewriter().ReplaceText(line_range, tag);
+                    d_analyser.ReplaceText(line_range, tag);
                 }
                 return true;
             }

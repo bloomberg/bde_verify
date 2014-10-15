@@ -88,6 +88,9 @@ static void check(Analyser& analyser, Decl const* decl)
                 && !llvm::dyn_cast<ClassTemplatePartialSpecializationDecl>(decl)
                 && name.find("operator new") == std::string::npos
                 && name.find("operator delete") == std::string::npos
+                && (   analyser.is_component_header(location.file())
+                    || named->hasLinkage()
+                   )
                 ) {
                 analyser.report(decl, check_name, "TR04",
                                 "Declaration of '%0' at global scope", true)

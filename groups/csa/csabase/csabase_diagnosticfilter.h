@@ -17,19 +17,19 @@ namespace csabase
 {
 class DiagnosticFilter : public clang::DiagnosticConsumer
 {
-public:
+  public:
     DiagnosticFilter(Analyser const& analyser,
                      bool toplevel_only,
-                     clang::DiagnosticOptions & options);
+                     clang::DiagnosticOptions& options);
     ~DiagnosticFilter();
 
-    void BeginSourceFile(clang::LangOptions const&  opts,
-                         clang::Preprocessor const* pp);
-    void EndSourceFile();
-    bool IncludeInDiagnosticCount() const;
+    void BeginSourceFile(clang::LangOptions const& opts,
+                         clang::Preprocessor const* pp) override;
+    void EndSourceFile() override;
+    bool IncludeInDiagnosticCounts() const override;
     clang::DiagnosticConsumer* clone(clang::DiagnosticsEngine&) const;
     void HandleDiagnostic(clang::DiagnosticsEngine::Level level,
-                          clang::Diagnostic const&        info);
+                          clang::Diagnostic const& info) override;
 
 private:
     DiagnosticFilter(DiagnosticFilter const&);

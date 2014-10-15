@@ -603,6 +603,8 @@ void report::match_should_return_by_value(const BoundNodes& nodes)
         !p1->getPointeeType()->isDependentType() &&
         !p1->getPointeeType()->isInstantiationDependentType() &&
         !p1->getPointeeType()->isAnyCharacterType() &&
+        !p1->getPointeeType()->isFunctionType() &&
+        !p1->getPointeeType()->isMemberPointerType() &&
         !func->getParamDecl(0)->hasDefaultArg() &&
         !is_allocator(p1->desugar()) &&
         !takes_allocator(p1->getPointeeType().getCanonicalType()) &&
@@ -612,7 +614,7 @@ void report::match_should_return_by_value(const BoundNodes& nodes)
             << p1->getPointeeType().getCanonicalType().getAsString();
         analyser_.report(func->getParamDecl(0), check_name, "RV01",
                          "instead of through pointer parameter",
-                         false, DiagnosticsEngine::Note);
+                         false, DiagnosticIDs::Note);
     }
 }
 
@@ -1022,7 +1024,7 @@ void report::check_alloc_return(const ReturnStmt *stmt)
         && data_.decls_with_true_allocator_trait_.count(
             get_record_decl(stmt->getRetValue()->getType()))) {
         const FunctionDecl* func = analyser_.get_parent<FunctionDecl>(stmt);
-        if (!func || !func->getResultType()->isReferenceType()) {
+        if (!func || !func->getReturnType()->isReferenceType()) {
             analyser_.report(stmt, check_name, "AR01",
                              "Type using allocator is returned by value");
         }

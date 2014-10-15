@@ -97,25 +97,23 @@ AnalyseConsumer::HandleTranslationUnit(ASTContext&)
 
     std::string rd = analyser_.rewrite_dir();
     if (!rd.empty()) {
+        analyser_.applyReplacements();
         for (Rewriter::buffer_iterator b = analyser_.rewriter().buffer_begin(),
                                        e = analyser_.rewriter().buffer_end();
              b != e;
              b++) {
             if (const FileEntry* fe =
                     analyser_.manager().getFileEntryForID(b->first)) {
-                llvm::SmallVector<char, 512> path(rd.begin(), rd.end());
-                llvm::sys::path::append(
-                    path, llvm::sys::path::filename(fe->getName()));
                 std::string rewritten_file =
-                    std::string(path.begin(), path.end()) + "-rewritten";
-                std::string file_error;
+                    analyser_.get_rewrite_file(fe->getName());
+                std::error_code file_error;
                 llvm::raw_fd_ostream rfdo(
                     rewritten_file.c_str(), file_error, llvm::sys::fs::F_None);
-                if (file_error.empty()) {
+                if (!file_error) {
                     b->second.write(rfdo);
                 } else {
-                    ERRS() << file_error << ": cannot open " << rewritten_file
-                           << " for rewriting\n";
+                    ERRS() << file_error.message() << ": cannot open "
+                           << rewritten_file << " for rewriting\n";
                 }
             }
         }
@@ -134,10 +132,12 @@ PluginAction::PluginAction()
 
 // -----------------------------------------------------------------------------
 
-ASTConsumer* PluginAction::CreateASTConsumer(CompilerInstance& compiler,
-                                             llvm::StringRef source)
+std::unique_ptr<ASTConsumer>
+PluginAction::CreateASTConsumer(CompilerInstance& compiler,
+                                llvm::StringRef source)
 {
-    return new AnalyseConsumer(compiler, source, *this);
+    return std::unique_ptr<ASTConsumer>(
+        new AnalyseConsumer(compiler, source, *this));
 }
 
 // -----------------------------------------------------------------------------

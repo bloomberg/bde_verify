@@ -52,7 +52,7 @@ void csabase::DiagnosticFilter::EndSourceFile()
     d_client->EndSourceFile();
 }
 
-bool csabase::DiagnosticFilter::IncludeInDiagnosticCount() const
+bool csabase::DiagnosticFilter::IncludeInDiagnosticCounts() const
 {
     return true;
 }
@@ -70,7 +70,7 @@ static std::string get_filename(Diagnostic const& d)
 
 void
 csabase::DiagnosticFilter::HandleDiagnostic(DiagnosticsEngine::Level level,
-                                            Diagnostic const& info)
+                                            Diagnostic const&        info)
 {
     if (   DiagnosticsEngine::Warning < level
         || (   !info.getLocation().isFileID()

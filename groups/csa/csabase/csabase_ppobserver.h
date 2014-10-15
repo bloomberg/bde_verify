@@ -200,10 +200,10 @@ public:
 
     utils::event<decltype(&Base::PragmaDiagnosticPop)> onPPPragmaDiagnosticPop;
 
-    void PragmaDiagnostic(clang::SourceLocation Loc,
-                          llvm::StringRef       Namespace,
-                          clang::diag::Mapping  Mapping,
-                          llvm::StringRef       Str)
+    void PragmaDiagnostic(clang::SourceLocation  Loc,
+                          llvm::StringRef        Namespace,
+                          clang::diag::Severity  Mapping,
+                          llvm::StringRef        Str)
     override;
 
     utils::event<decltype(&Base::PragmaDiagnostic)> onPPPragmaDiagnostic;
@@ -269,14 +269,14 @@ public:
 
     void If(clang::SourceLocation Loc,
             clang::SourceRange    ConditionRange,
-            bool                  ConditionValue)
+            ConditionValueKind    ConditionValue)
     override;
 
     utils::event<decltype(&Base::If)> onPPIf;
 
     void Elif(clang::SourceLocation Loc,
               clang::SourceRange    ConditionRange,
-              bool                  ConditionValue,
+              ConditionValueKind    ConditionValue,
               clang::SourceLocation IfLoc)
     override;
 

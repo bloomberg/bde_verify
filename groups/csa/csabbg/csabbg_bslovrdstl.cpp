@@ -3,6 +3,7 @@
 #include <clang/AST/Decl.h>
 #include <clang/AST/DeclBase.h>
 #include <clang/AST/DeclCXX.h>
+#include <clang/AST/PrettyPrinter.h>
 #include <clang/AST/Type.h>
 #include <clang/Basic/IdentifierTable.h>
 #include <clang/Basic/SourceLocation.h>
@@ -10,7 +11,7 @@
 #include <clang/Lex/MacroInfo.h>
 #include <clang/Lex/PPCallbacks.h>
 #include <clang/Lex/Token.h>
-#include <clang/Rewrite/Core/Rewriter.h>
+#include <clang/Tooling/Refactoring.h>
 #include <csabase_analyser.h>
 #include <csabase_debug.h>
 #include <csabase_diagnostic_builder.h>
@@ -27,6 +28,7 @@
 #include <llvm/Support/Regex.h>
 #include <llvm/Support/raw_ostream.h>
 #include <stddef.h>
+#include <cctype>
 #include <map>
 #include <set>
 #include <string>
@@ -42,9 +44,8 @@ namespace csabase { class Visitor; }
 using namespace csabase;
 using namespace clang::ast_matchers;
 using namespace clang::ast_matchers::internal;
+using namespace clang::tooling;
 using namespace clang;
-
-#define L(x) Location(d_analyser.manager(), (x))
 
 // ----------------------------------------------------------------------------
 
@@ -94,9 +95,11 @@ struct data
     std::map<FileID, std::set<std::string>>              d_once;
     std::map<FileID, std::vector<std::pair<std::string, SourceLocation>>>
                                                          d_includes;
-    std::set<const Decl *>                               d_included;
+    std::map<FileID, std::set<const Decl *>>             d_included;
     std::map<std::string, std::vector<const file_info *>>
                                                          d_file_info;
+    std::map<FileID, SourceLocation>                     d_top_for_insert;
+    std::map<FileID, llvm::StringRef>                    d_guards;
 };
 
 data::data()
@@ -430,6 +433,14 @@ const file_info include_pairs[] = {
       "bsls_timeinterval.h",    "INCLUDED_BSLS_TIMEINTERVAL"     },
     { "bsl_cstddef.h",          "INCLUDED_BSL_CSTDDEF",
       "bsls_types.h",           "INCLUDED_BSLS_TYPES"            },
+    { "bslalg_typetraits.h",    "INCLUDED_BSLALG_TYPETRAITS",
+      "bsl_string.h",           "INCLUDED_BSL_STRING"            },
+    { "bsls_atomic.h",          "INCLUDED_BSLS_ATOMIC",
+      "bslma_sharedptrrep.h",   "INCLUDED_BSLMA_SHAREDPTRREP"    },
+    { "bslma_managedptr.h",     "INCLUDED_BSLMA_MANAGEDPTR",
+      "bslalg_swaputil.h",      "INCLUDED_BSLALG_SWAPUTIL"       },
+    { "bsls_types.h",           "INCLUDED_BSLS_TYPES",
+      "bdet_packedcalendar.h",  "INCLUDED_BDET_PACKEDCALENDAR"   },
 };
 
 const char * obsolete[] = {
@@ -448,16 +459,26 @@ const char * obsolete[] = {
     "typeinfo.h",
 };
 
+const char *deprecated[] = {
+    //"bslalg_typetraitpair.h",
+    //"bslalg_typetraits.h",
+    //"bslmf_metaint.h",
+};
+
 const char *good_bsl[] = {
-    "bsl_",
-    "bslalg_",
-    "bslfwd_",
-    "bslim_",
-    "bslma_",
-    "bslmf_",
-    "bsls_",
-    "bslscm_",
-    "bsltf_",
+    "baea_",   "baecs_",  "baedb_",  "baejsn_",  "bael_",   "baelu_",
+    "baem_",   "baenet_", "baescm_", "baesu_",   "baet_",   "baetzo_",
+    "baexml_", "bbedc_",  "bbescm_", "bcec_",    "bcecs_",  "bcef_",
+    "bcefi_",  "bcefr_",  "bcefu_",  "bcem_",    "bcema_",  "bcemt_",
+    "bcep_",   "bces_",   "bcesb_",  "bcescm_",  "bdea_",   "bdealg_",
+    "bdeat_",  "bdec_",   "bdec2_",  "bdeci_",   "bdecs_",  "bdede_",
+    "bdef_",   "bdefi_",  "bdefr_",  "bdefu_",   "bdeimp_", "bdem_",
+    "bdema_",  "bdemf_",  "bdempu_", "bdepcre_", "bdepu_",  "bdes_",
+    "bdesb_",  "bdescm_", "bdesu_",  "bdet_",    "bdetst_", "bdetu_",
+    "bdeu_",   "bdeut_",  "bdex_",   "bsl_",     "bslalg_", "bslfwd_",
+    "bslim_",  "bslma_",  "bslmf_",  "bsls_",    "bslscm_", "bsltf_",
+    "bsttst_", "btemt_",  "btes_",   "btes5_",   "btesc_",  "btescm_",
+    "bteso_",  "btesos_",
 };
 
 struct report
@@ -481,9 +502,6 @@ struct report
     void classify_stack();
         // Set the location flags in the associated data using the lowest
         // classifiable file on the include stack.
-
-    void dump_file_stack();
-        // Print the file stack, classifying each file.
 
     void clear_guard();
         // Clear the current include guard info.
@@ -565,12 +583,12 @@ struct report
         // Indicate that the specified file 'name' is needed at the specified
         // 'sl' in order to obtain the specified 'symbol'.
 
-    bool inc_for_std_decl(llvm::StringRef  r,
+    void inc_for_std_decl(llvm::StringRef  r,
                           SourceLocation   sl,
                           const Decl      *ds);
         // For the specified name 'r' at location 'sl' referenced by the
         // specified declaration 'ds', determine which header file, if any, is
-        // needed.  Return 'true' if a header is found.
+        // needed.
 
     const NamedDecl *look_through_typedef(const Decl *ds);
         // If the specified 'ds' is a typedef for a record, return the
@@ -578,6 +596,18 @@ struct report
 
     void operator()();
         // Callback for end of main file.
+
+    bool is_guard(llvm::StringRef guard);
+    bool is_guard(const Token& token);
+        // Return true if the specified 'guard' or 'token' looks like a header
+        // guard ("INCLUDED_...").
+
+    bool is_guard_for(llvm::StringRef guard, llvm::StringRef file);
+    bool is_guard_for(const Token& token, llvm::StringRef file);
+    bool is_guard_for(llvm::StringRef guard, SourceLocation sl);
+    bool is_guard_for(const Token& token, SourceLocation sl);
+        // Return true if the specified 'guard' or 'token' is a header guard
+        // for the specified 'file' or 'sl'.
 
     Analyser&                d_analyser;
     data&                    d_data;
@@ -607,6 +637,12 @@ FileType report::classify(llvm::StringRef name,
 
     if (name.startswith("bsl_stdhdrs_")) {
         return FileType::e_NIL;                                       // RETURN
+    }
+
+    for (const char *file : deprecated) {
+        if (name == file) {
+            return FileType::e_NIL;                                   // RETURN
+        }
     }
 
     for (const char *prefix : good_bsl) {
@@ -662,14 +698,6 @@ void report::classify_stack()
     }
 }
 
-void report::dump_file_stack()
-{
-    for (const auto &file : d_data.d_file_stack) {
-        ERRS() << filetype_tag(classify(file)) << " " << file; ERNL();
-    }
-    ERNL();
-}
-
 void report::clear_guard()
 {
     d_data.d_guard = "";
@@ -693,17 +721,25 @@ void report::operator()(SourceLocation   where,
                         llvm::StringRef  relpath,
                         const Module    *imported)
 {
+    SourceManager& m = d_analyser.manager();
+
+    if (name.endswith("_version.h") || name.endswith("_ident.h")) {
+        d_data.d_top_for_insert[m.getFileID(where)] =
+            d_analyser.get_line_range(d_analyser.get_line_range(where)
+                                          .getEnd()
+                                          .getLocWithOffset(1)).getBegin();
+    }
+
     if (!d_data.d_in_std && !d_data.d_in_bsl) {
         FileName fn(name);
         d_data.d_inc_files.insert(fn.name());
-        // ERRS() << "Toplevel " << name; ERNL();
-    } else {
-        // ERRS() << "Nested " << name; ERNL();
     }
 
-    FileID fid = d_analyser.manager().getFileID(where);
+    Location loc(m, where);
+    FileType ft = classify(loc.file());
+    FileID fid = m.getFileID(where);
     if (d_data.d_guard_pos.isValid() &&
-        fid != d_analyser.manager().getFileID(d_data.d_guard_pos)) {
+        fid != m.getFileID(d_data.d_guard_pos)) {
         clear_guard();
     }
 
@@ -714,9 +750,10 @@ void report::operator()(SourceLocation   where,
 
     if (!d_data.d_in_bsl &&
         !d_data.d_in_std &&
-        d_analyser.is_component(where) &&
-        !d_analyser.manager().isInSystemHeader(where) &&
-        classify(name, &pfvi) == FileType::e_STD) {
+        ft != e_BSL && ft != e_STD && // d_analyser.is_component(where) &&
+        !m.isInSystemHeader(where) &&
+        classify(name, &pfvi) == e_STD) {
+        SourceRange nr = namerange.getAsRange();
         for (const file_info *fi : *pfvi) {
             if (d_data.d_guard == fi->std_guard) {
                 SourceRange r = d_analyser.get_line_range(d_data.d_guard_pos);
@@ -727,8 +764,8 @@ void report::operator()(SourceLocation   where,
                                       "Replacing include guard %0 with %1")
                         << fi->std_guard
                         << fi->bsl_guard;
-                    d_analyser.rewriter().ReplaceText(
-                        getOffsetRange(r, pos, d_data.d_guard.size() - 1),
+                    d_analyser.ReplaceText(
+                        getOffsetRange(r, pos, d_data.d_guard.size()/* - 1*/),
                         fi->bsl_guard);
                 }
             }
@@ -738,9 +775,12 @@ void report::operator()(SourceLocation   where,
                 << fi->bsl
                 << (angled ? "<" : "\"")
                 << (angled ? ">" : "\"");
-            d_analyser.rewriter().ReplaceText(
-                namerange.getAsRange(),
-                "<" + std::string(fi->bsl) + ">");
+            SourceRange r = d_analyser.get_line_range(where);
+            std::string s = "#include <" + std::string(fi->bsl) + ">\n";
+            if (d_analyser.is_header(loc.file())) {
+                s = "extern \"C++\" {\n" + s + "}\n";
+            }
+            d_analyser.ReplaceText(r, s);
             d_data.d_includes[fid].back().first = fi->bsl;
             if (d_data.d_guard == fi->std_guard) {
                 SourceRange r =
@@ -749,15 +789,13 @@ void report::operator()(SourceLocation   where,
                     r.getEnd().getLocWithOffset(1));
                 r = d_analyser.get_line_range(
                     r.getEnd().getLocWithOffset(1));
-                llvm::StringRef s = d_analyser.get_source(r, false);
+                llvm::StringRef s = d_analyser.get_source(r);
                 size_t pos = s.find("#define " + d_data.d_guard.str());
                 if (pos != s.npos) {
                     d_analyser.report(r.getBegin(), check_name, "SB03",
                              "Removing include guard definition of %0")
                         << d_data.d_guard;
-                    Rewriter::RewriteOptions ro;
-                    ro.RemoveLineIfEmpty = true;
-                    d_analyser.rewriter().RemoveText(r, ro);
+                    d_analyser.RemoveText(r);
                 }
             }
         }
@@ -776,7 +814,6 @@ void report::map_file(std::string name)
                 file = s;
             }
         }
-        // ERRS() << "Mapping " << name << " to " << file; ERNL();
         d_data.d_file_map[name] = file;
     }
 }
@@ -787,7 +824,6 @@ void report::operator()(SourceLocation                now,
                         SrcMgr::CharacteristicKind    type,
                         FileID                        prev)
 {
-    // dump_file_stack();
     std::string name = d_analyser.manager().getPresumedLoc(now).getFilename();
     if (reason == PPCallbacks::EnterFile) {
         d_data.d_file_stack.push_back(name);
@@ -822,13 +858,24 @@ void report::operator()(Token const&          token,
         return;                                                       // RETURN
     }
 
+    SourceManager& m = d_analyser.manager();
+    SourceLocation sl = token.getLocation();
+    FileID fid = m.getFileID(sl);
+    if (is_guard(token) &&
+        d_data.d_guards.find(fid) != d_data.d_guards.end() &&
+        d_data.d_guards[fid] == token.getIdentifierInfo()->getName()) {
+        d_data.d_top_for_insert[m.getFileID(sl)] =
+            d_analyser.get_line_range(d_analyser.get_line_range(sl)
+                                          .getEnd()
+                                          .getLocWithOffset(1)).getBegin();
+    }
+
     if (md) {
         if (const MacroInfo *mi = md->getMacroInfo()) {
-            Location loc(d_analyser.manager(), mi->getDefinitionLoc());
+            Location loc(m, mi->getDefinitionLoc());
+            FileType ft = classify(loc.file());
             if (loc) {
                 map_file(loc.file());
-                // ERRS() << token.getIdentifierInfo()->getName(); ERNL();
-                // dump_file_stack();
             }
             int nt = mi->getNumTokens();
             if (is_named(token, "std") &&
@@ -837,16 +884,14 @@ void report::operator()(Token const&          token,
                 is_named(mi->getReplacementToken(0), "bsl")) {
                 d_data.d_bsl_overrides_std = true;
             } else if (d_data.d_bsl_overrides_std &&
-                       d_analyser.is_component(mi->getDefinitionLoc()) &&
-                       !d_analyser.manager().isInSystemHeader(
-                            mi->getDefinitionLoc())) {
+                       ft != e_STD && ft != e_BSL &&
+                       // d_analyser.is_component(mi->getDefinitionLoc()) &&
+                       !m.isInSystemHeader(mi->getDefinitionLoc())) {
                 for (int i = 0; i < nt; ++i) {
                     const Token &token = mi->getReplacementToken(i);
                     if (is_named(token, "std")) {
-                        if (!d_analyser.rewriter().ReplaceText(
-                                 token.getLocation(),
-                                 token.getLength(),
-                                 "bsl")) {
+                        if (!d_analyser.ReplaceText(
+                                 token.getLocation(), 3, "bsl")) {
                             d_analyser.report(token.getLocation(),
                                               check_name, "SB07",
                                               "Replacing 'std' with 'bsl' in "
@@ -874,20 +919,34 @@ void report::operator()(Token const&          token,
                         SourceRange           range,
                         MacroArgs const      *)
 {
+    llvm::StringRef macro = token.getIdentifierInfo()->getName();
     const MacroInfo *mi = md->getMacroInfo();
+    SourceManager& m = d_analyser.manager();
+    Location loc(m, range.getBegin());
+    FileType ft = classify(loc.file());
 
-    if (!d_data.d_in_bsl &&
-        !d_data.d_in_std &&
-        d_analyser.is_component(range.getBegin()) &&
-        !d_analyser.manager().isInSystemHeader(range.getBegin()) &&
-        is_named(token, "std") &&
+    if (macro == "SYSUTIL_IDENT_RCSID" || macro == "SYSUTIL_PRAGMA_ONCE") {
+        d_data.d_top_for_insert[m.getFileID(token.getLocation())] =
+            d_analyser.get_line_range(
+                           d_analyser.get_line_range(token.getLocation())
+                               .getEnd()
+                               .getLocWithOffset(1)).getBegin();
+    }
+
+    if (!d_data.d_in_bsl && !d_data.d_in_std &&
+        ft != e_BSL && ft != e_STD &&
+        !token.getLocation().isMacroID() &&
+        // d_analyser.is_component(range.getBegin()) &&
+        !m.isInSystemHeader(range.getBegin()) &&
+        (is_named(token, "std") ||
+         is_named(token, "BloombergLP_std")) &&
         mi->isObjectLike() &&
         mi->getNumTokens() == 1 &&
         is_named(mi->getReplacementToken(0), "bsl")) {
-        SourceLocation loc = d_analyser.manager().getFileLoc(range.getBegin());
-        FileID fid = d_analyser.manager().getFileID(loc);
-        llvm::StringRef buf = d_analyser.manager().getBufferData(fid);
-        unsigned offset = d_analyser.manager().getFileOffset(range.getBegin());
+        SourceLocation loc = m.getFileLoc(range.getBegin());
+        FileID fid = m.getFileID(loc);
+        llvm::StringRef buf = m.getBufferData(fid);
+        unsigned offset = m.getFileOffset(range.getBegin());
         static llvm::Regex qname("^std *:: *([_[:alpha:]][_[:alnum:]]*)");
         llvm::SmallVector<llvm::StringRef, 7> matches;
         if (qname.match(buf.substr(offset), &matches)) {
@@ -895,22 +954,62 @@ void report::operator()(Token const&          token,
         }
         inc_for_std_decl(
             "bsl", range.getBegin(), d_analyser.lookup_name("bsl::"));
-        if (!d_analyser.rewriter().ReplaceText(range, "bsl")) {
-            d_analyser.report(loc, check_name, "SB04",
-                              "Replacing macro 'std' with 'bsl'");
-        }
+        d_analyser.ReplaceText(range.getBegin(), token.getLength(), "bsl");
+        d_analyser.report(loc, check_name, "SB04",
+                          "Replacing macro '%0' with 'bsl'")
+            << macro;
     }
-    else if (d_analyser.is_component(range.getBegin()) &&
-             !token.getLocation().isMacroID()) {
-        Location loc(d_analyser.manager(), mi->getDefinitionLoc());
-        if (loc) {
-            // ERRS() << loc << " " << token.getIdentifierInfo()->getName();
-            // ERNL();
+    else /* if (d_analyser.is_component(range.getBegin())) */{
+        Location loc(m, mi->getDefinitionLoc());
+        if (loc && !token.getLocation().isMacroID()) {
             require_file(loc.file(),
                          range.getBegin(),
                          token.getIdentifierInfo()->getName());
         }
     }
+}
+
+bool report::is_guard(llvm::StringRef guard)
+{
+    return guard.startswith("INCLUDED_");
+}
+
+bool report::is_guard(const Token& token)
+{
+    return token.isAnyIdentifier() &&
+           is_guard(token.getIdentifierInfo()->getName());
+}
+
+bool report::is_guard_for(llvm::StringRef guard, llvm::StringRef file)
+{
+    if (!is_guard(guard)) {
+        return false;                                                 // RETURN
+    }
+
+    FileName fn(file);
+    std::string s = "INCLUDED_" + fn.component().upper();
+    for (char& c : s) {
+        if (!std::isalnum(c)) {
+            c = '_';
+        }
+    }
+    return s == guard || s + "_" + fn.extension().substr(1).upper() == guard;
+}
+
+bool report::is_guard_for(const Token& token, llvm::StringRef file)
+{
+    return token.isAnyIdentifier() &&
+           is_guard_for(token.getIdentifierInfo()->getName(), file);
+}
+
+bool report::is_guard_for(llvm::StringRef guard, SourceLocation sl)
+{
+    return is_guard_for(guard, d_analyser.manager().getFilename(sl));
+}
+
+bool report::is_guard_for(const Token& token, SourceLocation sl)
+{
+    return is_guard_for(token, d_analyser.manager().getFilename(sl));
 }
 
 // Ifdef
@@ -921,60 +1020,66 @@ void report::operator()(SourceLocation        where,
 {
     clear_guard();
 
+    SourceManager& m = d_analyser.manager();
+    FileID fid = m.getFileID(where);
+    llvm::StringRef tn = token.getIdentifierInfo()->getName();
+
+    if (is_guard(token) &&
+        d_data.d_guards.find(fid) == d_data.d_guards.end()) {
+        d_data.d_guards[fid] = tn;
+        d_data.d_top_for_insert[m.getFileID(where)] =
+            d_analyser.get_line_range(where).getBegin();
+    }
+
     if (!d_data.d_in_bsl &&
         !d_data.d_in_std &&
-        !d_analyser.manager().isInSystemHeader(where) &&
-        token.isAnyIdentifier() &&
-        token.getIdentifierInfo()->getName().startswith("INCLUDED_")) {
-        Location loc(d_analyser.manager(), where);
-        set_guard(token.getIdentifierInfo()->getName(), where);
+        !m.isInSystemHeader(where) &&
+        is_guard(token)) {
+        set_guard(tn, where);
     }
 }
 
 // Defined
 void report::operator()(const Token&          token,
-                        const MacroDirective *md,
+                        const MacroDirective *,
                         SourceRange           range)
 {
     clear_guard();
 
-    llvm::StringRef tn;
-
     if (!d_data.d_in_bsl &&
         !d_data.d_in_std &&
         !d_analyser.manager().isInSystemHeader(range.getBegin()) &&
-        md &&
-        token.isAnyIdentifier() &&
-        (tn = token.getIdentifierInfo()->getName()).startswith("INCLUDED_")) {
-        Location loc(d_analyser.manager(), range.getBegin());
-        FileName fn(loc.file());
-        std::string s = "INCLUDED_" + fn.component().upper();
-        if (tn != s && tn != s + "_H") {
-            set_guard(token.getIdentifierInfo()->getName(), range.getBegin());
-        }
+        is_guard(token)) {
+        set_guard(token.getIdentifierInfo()->getName(), range.getBegin());
     }
 }
 
 // SourceRangeSkipped
 void report::operator()(SourceRange range)
 {
+    SourceManager& m = d_analyser.manager();
+    Location loc(m, range.getBegin());
+    FileType ft = classify(loc.file());
     if (d_data.d_guard.size() > 0 &&
-        d_analyser.is_component(range.getBegin()) &&
-        !d_analyser.manager().isInSystemHeader(range.getBegin())) {
-        llvm::StringRef g = d_data.d_guard.str();
-        llvm::Regex r ("ifndef +(" + g.str() + ")[[:space:]]+" +
-                       "#include +<(" + g.drop_front(9).lower() +
+        ft != e_BSL && ft != e_STD &&
+        // d_analyser.is_component(range.getBegin()) &&
+        !m.isInSystemHeader(range.getBegin())) {
+        std::string gs = d_data.d_guard.str();
+        llvm::StringRef g = gs;
+        std::string rs("def +(" + g.str() + ")[[:space:]]+" +
+                       "# *include +<(" + g.drop_front(9).lower() +
                        "[.]?h?)>[[:space:]]+(# *define +" + g.str() +
                        "[[:space:]]*)?");
+        llvm::Regex r(rs);
         llvm::StringRef source = d_analyser.get_source(range);
         llvm::SmallVector<llvm::StringRef, 7> matches;
-        const std::vector<const file_info *> *pfvi;
         if (r.match(source, &matches)) {
-            FileID fid = d_analyser.manager().getFileID(range.getBegin());
+            FileID fid = m.getFileID(range.getBegin());
             d_data.d_includes[fid].push_back(std::make_pair(
                 matches[2],
                 d_data.d_guard_pos.isValid() ? d_data.d_guard_pos :
                                                range.getBegin()));
+            const std::vector<const file_info *> *pfvi;
             FileType ft = classify(matches[2], &pfvi);
             if (ft == e_STD) {
                 for (const file_info *fi : *pfvi) {
@@ -987,22 +1092,29 @@ void report::operator()(SourceRange range)
                             "Replacing include guard %0 with %1")
                             << fi->std_guard
                             << fi->bsl_guard;
-                        d_analyser.rewriter().ReplaceText(
+                        d_analyser.ReplaceText(
                             getOffsetRange(
-                                range, m.first, matches[1].size() - 1),
+                                range, m.first, matches[1].size()/* - 1*/),
                             fi->bsl_guard);
                     }
                     m = mid_match(source, matches[2]);
+                    SourceRange r = d_analyser.get_line_range(
+                        range.getBegin().getLocWithOffset(m.first));
                     d_analyser.report(
                         range.getBegin().getLocWithOffset(m.first),
                         check_name, "SB01",
                         "Replacing header <%0> with <%1>")
                         << matches[2]
                         << fi->bsl;
-                    d_analyser.rewriter().ReplaceText(
-                        getOffsetRange(
-                            range, m.first, matches[2].size() - 1),
-                        fi->bsl);
+                    std::string s =
+                                   "#include <" + std::string(fi->bsl) + ">\n";
+                    if (d_analyser.is_header(loc.file())) {
+                        s = "extern \"C++\" {\n" + s + "}\n";
+                    }
+                    d_analyser.ReplaceText(
+                        d_analyser.get_line_range(
+                            range.getBegin().getLocWithOffset(m.first)),
+                        s);
                     d_data.d_includes[fid].back().first = fi->bsl;
                     if (matches[3].size() > 0) {
                         m = mid_match(source, matches[3]);
@@ -1011,12 +1123,8 @@ void report::operator()(SourceRange range)
                             check_name, "SB03",
                             "Removing include guard definition of %0")
                             << d_data.d_guard;
-                        Rewriter::RewriteOptions ro;
-                        ro.RemoveLineIfEmpty = true;
-                        d_analyser.rewriter().RemoveText(
-                            getOffsetRange(
-                                range, m.first, matches[3].size() - 1),
-                            ro);
+                        d_analyser.RemoveText(getOffsetRange(
+                            range, m.first, matches[3].size()/* - 1*/));
                     }
                 }
             }
@@ -1076,21 +1184,31 @@ bool report::in_c_linkage_spec(SourceLocation sl)
 
 void report::add_include(FileID fid, const std::string& name)
 {
-    SourceLocation sl = d_analyser.manager().getLocForStartOfFile(fid);
-    Location loc(d_analyser.manager(), sl);
-    // ERRS() << loc << " " << name; ERNL();
+    SourceManager& m = d_analyser.manager();
+    SourceLocation sl = d_data.d_top_for_insert[fid];
+    if (!sl.isValid()) {
+        sl = d_analyser.get_line_range(m.getLocForStartOfFile(fid)).getEnd();
+    }
+
+    Location loc(m, sl);
     const std::vector<const file_info *> *pfvi_name;
     classify(name, &pfvi_name);
     std::string guard;
-    if (d_analyser.is_component_header(loc.file())) {
+    if (d_analyser.is_header(loc.file())) {
         for (const file_info *fi_name : *pfvi_name) {
-            guard = fi_name->bsl_guard;
+            if (name == fi_name->std) {
+                guard = fi_name->std_guard;
+                break;
+            }
+            if (name == fi_name->bsl) {
+                guard = fi_name->bsl_guard;
+                break;
+            }
         }
         if (!guard.size()) {
             guard = llvm::StringRef("INCLUDED_" +
                                     name.substr(0, name.rfind("."))).upper();
         }
-
     }
     SourceLocation ip = sl;
     SourceLocation last_ip = sl;
@@ -1118,27 +1236,34 @@ void report::add_include(FileID fid, const std::string& name)
         last_ip = p.second;
     }
     ip = d_analyser.get_line_range(ip == sl ? last_ip : ip).getBegin();
-    if (d_analyser.is_component(ip) &&
-        !d_analyser.manager().isInSystemHeader(ip)) {
+    SourceLocation pl = m.getExpansionLoc(ip).getLocWithOffset(-1);
+    Location p(m, pl);
+    if (p.line() != 0 && p.column() != 0) {
+        ip = pl;
+    }
+    Location li(m, ip);
+    FileType ft = classify(li.file());
+    if (// d_analyser.is_component(ip) &&
+        ip.isValid() &&
+        ft != e_BSL && ft != e_STD &&
+        !m.isInSystemHeader(ip)) {
+        std::string text;
         if (name == bsl_ns) {
             d_analyser.report(ip, check_name, "IS02", "Inserting %0")
                 << bsl_ns;
-            d_analyser.rewriter().InsertTextAfter(ip, name + "\n");
+            text = "\n" + name + "\n";
         }
         else {
             d_analyser.report(ip, check_name, "IS02",
                               "Inserting #include <%0>")
                 << name;
+            text = "\n#include <" + name + ">\n";
             if (guard.size()) {
-                d_analyser.rewriter().InsertTextAfter(
-                    ip, "#ifndef " + guard + "\n");
-            }
-            d_analyser.rewriter().InsertTextAfter(
-                ip, "#include <" + name + ">\n");
-            if (guard.size()) {
-                d_analyser.rewriter().InsertTextAfter(ip, "#endif\n");
+                text = "\n#ifndef " + guard + "\nextern \"C++\" {" + text +
+                       "}\n#endif\n";
             }
         }
+        d_analyser.InsertTextBefore(ip, text);
     }
 }
 
@@ -1158,24 +1283,17 @@ void report::require_file(std::string     name,
                           SourceLocation  sl,
                           llvm::StringRef symbol)
 {
-    // ERRS() << L(sl) << " " << symbol << " " << name; ERNL();
     sl = d_analyser.manager().getExpansionLoc(sl);
-    if (sl.isMacroID()) {
-        // ERRS() << L(sl) << " " << symbol << " " << name; ERNL();
-    //  return;                                                       // RETURN
-    }
 
     FileID fid = d_analyser.manager().getFileID(sl);
     FileName fn(name);
     name = fn.name();
-    // ERRS() << L(sl) << " " << symbol << " " << name; ERNL();
 
     const std::vector<const file_info *> *pfvi;
     FileType ft = classify(name, &pfvi);
     if (ft == e_STD) {
         for (const file_info *fi : *pfvi) {
             name = fi->bsl;
-            // ERRS() << L(sl) << " " << symbol << " " << name; ERNL();
         }
     }
 
@@ -1183,17 +1301,11 @@ void report::require_file(std::string     name,
         // Check if already included.
         for (const auto &p : d_data.d_includes[fid]) {
             if (p.first == name) {
-                // ERRS() << L(sl) << " " << symbol << " " << name; ERNL();
-                return;  // RETURN
+                return;                                               // RETURN
             }
         }
 
-        // ERRS() << ft << " " << loc << " " << symbol << " " << name; ERNL();
         if (ft == e_STD || ft == e_BSL) {
-            // ERRS() << ft << " " << L(sl) << " " << symbol << " " << name;
-            // ERNL();
-            // ERRS() << ft << " " << L(sl) << " " << symbol << " " << name;
-            // ERNL();
             d_data.d_once[fid].insert(name);
             d_analyser.report(sl, check_name, "IS01",
                               "Need #include <%0> for symbol %1")
@@ -1209,98 +1321,87 @@ void report::require_file(std::string     name,
     }
 }
 
-bool report::inc_for_std_decl(llvm::StringRef  r,
+void report::inc_for_std_decl(llvm::StringRef  r,
                               SourceLocation   sl,
                               const Decl      *ds)
 {
-    // ERRS() << r; ERNL();
-    if (const NamespaceDecl *nd = llvm::dyn_cast<NamespaceDecl>(ds)) {
-        //ds = nd->getOriginalNamespace();
-        ERRS() << r << " " << L(ds->getLocation()); ERNL();
-        // return false;                                              // RETURN
-    }
-
     sl = d_analyser.manager().getExpansionLoc(sl);
     FileID fid = d_analyser.manager().getFileID(sl);
-    // ERRS() << L(sl) << " " << r; ERNL();
 
-    auto &included = d_data.d_included;
-    bool result = false;
+    auto &included = d_data.d_included[fid];
 
     for (const Decl *d = ds; d; d = look_through_typedef(d)) {
         bool skip = false;
-        // ERRS() << r << " " << L(d->getLocation()); ERNL();
+#if 0
         for (const Decl *p = d; !skip && p; p = p->getPreviousDecl()) {
             Decl::redecl_iterator rb = p->redecls_begin();
             Decl::redecl_iterator re = p->redecls_end();
             for (; !skip && rb != re; ++rb) {
-                // ERRS() << r << " " << L(rb->getLocation()); ERNL();
                 if (included.count(*rb)) {
-                    // ERRS() << r << " " << L(rb->getLocation()); ERNL();
-                    skip = true;
+                    Location loc(d_analyser.manager(), rb->getLocation());
+                    FileType ft = classify(loc.file());
+                    if (ft == e_BSL) {
+                        // skip = true;
+                    }
                 }
+#if 1
                 const UsingDecl *ud = llvm::dyn_cast<UsingDecl>(*rb);
                 if (!skip && ud) {
-                    // ERRS() << r << " " << L(ud->getLocation()); ERNL();
                     auto sb = ud->shadow_begin();
                     auto se = ud->shadow_end();
                     for (; !skip && sb != se; ++sb) {
                         const UsingShadowDecl *usd = *sb;
-                        // ERRS() << r << " " << L(usd->getLocation()); ERNL();
                         for (auto u = usd; !skip && u;
                              u = u->getPreviousDecl()) {
-                            // ERRS() << r << " " << L(u->getLocation());
-                            // ERNL();
-                            if (included.count(u->getTargetDecl())) {
-                                // ERRS() << r << " " << L(u->getLocation());
-                                // ERNL();
-                                skip = true;
+                            if (included.count(u/*->getTargetDecl()*/)) {
+                                Location loc(d_analyser.manager(),
+                                             u->getLocation());
+                                FileType ft = classify(loc.file());
+                                if (ft == e_BSL) {
+                                    // skip = true;
+                                }
                             }
                         }
                     }
                 }
+#endif
             }
         }
-        if (skip) {
-            continue;
-        }
-        Location loc(d_analyser.manager(), d->getLocation());
-        // ERRS() << r << " " << loc; ERNL();
-        FileName fn(loc.file());
-        if (d_data.d_file_map.count(loc.file())) {
-            Decl::redecl_iterator rb = d->redecls_begin();
-            Decl::redecl_iterator re = d->redecls_end();
-            for (; !result && rb != re; ++rb) {
-                // ERRS() << L(rb->getLocation()); ERNL();
-                if (d_analyser.manager().isBeforeInTranslationUnit(
+#endif
+        for (const Decl *p = d; !skip && p; p = p->getPreviousDecl()) {
+            Location loc(d_analyser.manager(), p->getLocation());
+            FileName fn(loc.file());
+            Decl::redecl_iterator rb = p->redecls_begin();
+            Decl::redecl_iterator re = p->redecls_end();
+            for (; !skip && rb != re; ++rb) {
+                if (rb->getLocation().isValid() &&
+                    d_analyser.manager().isBeforeInTranslationUnit(
                         rb->getLocation(), sl)) {
                     Location loc(d_analyser.manager(), rb->getLocation());
-                    if (!result && loc) {
-                        // ERRS() << r << " " << fid.getHashValue() << " " <<
-                        // loc; ERNL();
+                    FileType ft = classify(loc.file());
+                    if (!skip && loc /*&& ft == e_BSL*/) {
                         require_file(loc.file(), sl, r);
                         included.insert(*rb);
-                        result = true;
+                        skip = true;
                     }
                 }
             }
-        }
-        const UsingDecl *ud = llvm::dyn_cast<UsingDecl>(d);
-        if (!result && ud) {
-            // ERRS() << r << " " << L(ud->getLocation()); ERNL();
-            auto sb = ud->shadow_begin();
-            auto se = ud->shadow_end();
-            for (; !result && sb != se; ++sb) {
-                const UsingShadowDecl *usd = *sb;
-                for (auto u = usd; !result && u; u = u->getPreviousDecl()) {
-                    // ERRS() << r << " " <<
-                    // L(u->getTargetDecl()->getLocation()); ERNL();
-                    result = inc_for_std_decl(r, sl, u->getTargetDecl());
+#if 1
+            const UsingDecl *ud = llvm::dyn_cast<UsingDecl>(p);
+            if (!skip && ud) {
+                auto sb = ud->shadow_begin();
+                auto se = ud->shadow_end();
+                for (; !skip && sb != se; ++sb) {
+                    const UsingShadowDecl *usd = *sb;
+                    for (auto u = usd; !skip && u;
+                         u = u->getPreviousDecl()) {
+                        inc_for_std_decl(r, sl, u/*->getTargetDecl()*/);
+                    }
                 }
             }
+#endif
         }
     }
-    return result;
 }
 
 bool isNamespace(const DeclContext *dc, llvm::StringRef ns)
@@ -1324,11 +1425,9 @@ bool isNamespace(const DeclContext *dc, llvm::StringRef ns)
 // TranslationUnitDone
 void report::operator()()
 {
-    // ERRS(); d_analyser.context()->getTranslationUnitDecl()->dump(); ERNL();
     MatchFinder mf;
     OnMatch<> m1([&](const BoundNodes &nodes) {
         const DeclRefExpr *expr = nodes.getNodeAs<DeclRefExpr>("dr");
-        // ERRS() << expr->getNameInfo().getName().getAsString(); ERNL();
         const NamedDecl *ds = expr->getFoundDecl();
         SourceLocation sl = expr->getExprLoc();
         if (/*expr->hasQualifier() &&*/
@@ -1337,28 +1436,20 @@ void report::operator()()
             !d_analyser.manager().isInSystemHeader(sl)) {
             const DeclContext *dc = ds->getDeclContext();
             std::string name = expr->getNameInfo().getName().getAsString();
-            // ERRS() << name; ERNL();
             while (dc->isRecord()) {
                 name = llvm::dyn_cast<NamedDecl>(dc)->getNameAsString();
                 dc = dc->getParent();
-                // ERRS() << name; ERNL();
             }
             if (dc->isTranslationUnit() ||
                 dc->isExternCContext() ||
                 dc->isExternCXXContext()) {
-                // ERRS() << " :: " << name; ERNL();
                 d_data.d_std_names.insert(std::make_pair(name, sl));
             }
             else if (isNamespace(dc, "std")) {
-                // ERRS() << "std " << name; ERNL();
                 d_data.d_std_names.insert(std::make_pair(name, sl));
             }
             else if (isNamespace(dc, "bsl")) {
-                // ERRS() << "bsl " << name; ERNL();
                 inc_for_std_decl(name, sl, ds);
-            }
-            else {
-                // ERRS() << "   " << name; ERNL();
             }
         }
     });
@@ -1373,39 +1464,47 @@ void report::operator()()
             const DeclContext *dc = ds->getDeclContext();
             std::string name =
                 expr->getConstructor()->getParent()->getNameAsString();
-            // ERRS() << "   " << name; ERNL();
             while (dc->isRecord()) {
                 name = llvm::dyn_cast<NamedDecl>(dc)->getNameAsString();
                 dc = dc->getParent();
-                // ERRS() << "   " << name; ERNL();
             }
             if (isNamespace(dc, "std")) {
-                // ERRS() << "std " << name; ERNL();
                 d_data.d_std_names.insert(std::make_pair(name, sl));
             }
             else if (isNamespace(dc, "bsl")) {
-                // ERRS() << "bsl " << name; ERNL();
                 inc_for_std_decl(name, sl, ds);
-            }
-            else {
-                // ERRS() << "   " << name; ERNL();
             }
         }
     });
     OnMatch<> m3([&](const BoundNodes &nodes) {
         TypeLoc tl = *nodes.getNodeAs<TypeLoc>("et");
-        SourceLocation sl = tl.getBeginLoc();
-        std::string r = QualType(tl.getTypePtr(), 0).getAsString();
-        // ERRS() << r; ERNL();
-        if (   sl.isValid()
-            && !d_analyser.manager().isInSystemHeader(sl)
-            /*&& d_analyser.is_component(sl)*/
-            /*&& llvm::StringRef(r).startswith("bsl::")*/) {
-            // ERRS() << r; ERNL();
-            r = r.substr(0, r.find("<"));
-            if (const Decl *ds = d_analyser.lookup_name(r)) {
-                // ERRS() << r; ERNL();
+        const Type *type = tl.getTypePtr();
+        if (type->getAs<TypedefType>() || !type->isBuiltinType()) {
+            SourceLocation sl =
+                d_analyser.manager().getExpansionLoc(tl.getBeginLoc());
+            PrintingPolicy pp(d_analyser.context()->getLangOpts());
+            pp.SuppressTagKeyword = true;
+            pp.SuppressInitializers = true;
+            pp.TerseOutput = true;
+            std::string r = QualType(type, 0).getAsString(pp);
+            NamedDecl *ds = d_analyser.lookup_name(r);
+            if (!ds) {
+                if (const TypedefType *tt = type->getAs<TypedefType>()) {
+                    ds = tt->getDecl();
+                }
+                else {
+                    tl.getTypePtr()->isIncompleteType(&ds);
+                }
+            }
+            if (ds &&
+                sl.isValid() &&
+                !d_analyser.manager().isInSystemHeader(sl)
+                 /*&& d_analyser.is_component(sl)*/
+                 /*&& llvm::StringRef(r).startswith("bsl::")*/) {
+                //r = llvm::StringRef(r.substr(0, r.find("<"))).rtrim().str();
+                //if (const Decl *ds = d_analyser.lookup_name(r)) {
                 inc_for_std_decl(r, sl, ds);
+                //}
             }
         }
     });
@@ -1422,7 +1521,6 @@ void report::operator()()
             nns->getAsNamespace()->getNameAsString() == "bsl") {
             std::string r = "bsl::" + expr->getName().getAsString();
             if (const Decl *ds = d_analyser.lookup_name(r)) {
-                // ERRS() << r; ERNL();
                 inc_for_std_decl(r, sl, ds);
             }
         }
@@ -1441,20 +1539,19 @@ void report::operator()()
     for (const auto& rp : d_data.d_std_names) {
         llvm::StringRef r = rp.first;
         SourceLocation sl = rp.second;
+        Location loc(d_analyser.manager(), sl);
+        FileType ft = classify(loc.file());
 
-        if (!d_analyser.is_component(sl) ||
+        if (// !d_analyser.is_component(sl) ||
+            ft == e_BSL || ft == e_STD ||
             d_analyser.manager().isInSystemHeader(sl)) {
             continue;
         }
 
         const Decl *ds = d_analyser.lookup_name(("std::" + r).str());
-        // ERRS() << (ds ? "Found " : "Did not find ") << "std::" << r;
-        // ERNL();
         if (ds) {
 #if 0
             const Decl *dg = d_analyser.lookup_name(r.str());
-            // ERRS() << (dg ? "Found " : "Did not find ") << "   ::" << r;
-            // ERNL();
             const DeclContext *dgc = dg ? dg->getDeclContext() : nullptr;
             if (dgc &&
                 (dgc->isTranslationUnit() ||
@@ -1466,10 +1563,9 @@ void report::operator()()
                                       false) == "std::") {
                 d_analyser.report(sl, check_name, "SB05",
                                   "Removing namespace qualification");
-                d_analyser.rewriter().ReplaceText(sl, 3, "   ");
+                d_analyser.ReplaceText(sl, 3, "   ");
             }
 #endif
-            // ERRS() << r; ERNL();
             inc_for_std_decl(r, sl, ds);
         }
     }
@@ -1490,17 +1586,21 @@ void subscribe(Analyser& analyser, Visitor&, PPObserver& observer)
         d.d_file_info[f.bsl].push_back(&f);
     }
 
-    observer.onPPInclusionDirective += report(analyser);
-    observer.onPPFileChanged        += report(analyser);
+    observer.onPPInclusionDirective += report(analyser,
+                                                observer.e_InclusionDirective);
+    observer.onPPFileChanged        += report(analyser,
+                                                       observer.e_FileChanged);
     observer.onPPMacroDefined       += report(analyser,
                                                       observer.e_MacroDefined);
     observer.onPPMacroUndefined     += report(analyser,
                                                     observer.e_MacroUndefined);
-    observer.onPPMacroExpands       += report(analyser);
+    observer.onPPMacroExpands       += report(analyser,
+                                                      observer.e_MacroExpands);
     observer.onPPIfdef              += report(analyser, observer.e_Ifdef);
     observer.onPPIfndef             += report(analyser, observer.e_Ifndef);
-    observer.onPPDefined            += report(analyser);
-    observer.onPPSourceRangeSkipped += report(analyser);
+    observer.onPPDefined            += report(analyser, observer.e_Defined);
+    observer.onPPSourceRangeSkipped += report(analyser,
+                                                observer.e_SourceRangeSkipped);
     observer.onPPIf                 += report(analyser,  observer.e_If);
     observer.onPPElif               += report(analyser, observer.e_Elif);
     observer.onPPElse               += report(analyser, observer.e_Else);

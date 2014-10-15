@@ -13,7 +13,6 @@
 #include <clang/Tooling/Tooling.h>              // IWYU pragma: keep
 #include <llvm/ADT/ArrayRef.h>
 #include <llvm/ADT/IntrusiveRefCntPtr.h>
-#include <llvm/ADT/OwningPtr.h>
 #include <llvm/ADT/SmallVector.h>
 #include <llvm/Support/Allocator.h>
 #include <llvm/Support/CommandLine.h>
@@ -44,7 +43,7 @@ static void LLVMErrorHandler(void *UserData, const std::string &Message,
 namespace {
     class StringSetSaver : public cl::StringSaver {
       public:
-        const char *SaveString(const char *Str) LLVM_OVERRIDE {
+        const char *SaveString(const char *Str) override {
             return Storage.insert(Str).first->c_str();
         }
       private:
@@ -72,7 +71,7 @@ int csabase::run(int argc_, const char **argv_)
     argv.insert(argv.begin() == argv.end() ? argv.begin() : argv.begin() + 1,
                 "-xc++");
 
-    OwningPtr<CompilerInstance> Clang(new CompilerInstance());
+    std::unique_ptr<CompilerInstance> Clang(new CompilerInstance());
     IntrusiveRefCntPtr<DiagnosticIDs> DiagID(new DiagnosticIDs());
 
     llvm::InitializeNativeTarget();
