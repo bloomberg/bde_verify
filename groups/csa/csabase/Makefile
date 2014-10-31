@@ -22,7 +22,7 @@ AR       = /usr/bin/ar
 CXXFLAGS += -Wno-unused-local-typedefs
     endif
     ifeq ($(COMPILER),clang)
-VERSION  = 3.5.0
+VERSION  = 3.6.0
 CCDIR    = /home/hrosen4/mbig/llvm-$(VERSION)/install-$(SYSTEM)
 CXX      = $(CCDIR)/bin/clang++
 CXXFLAGS += -std=c++11
@@ -35,8 +35,8 @@ ifeq ($(SYSTEM),SunOS)
 VERSION  = 4.8.1
 CCDIR    = /opt/swt/install/gcc-$(VERSION)
 CXX      = $(CCDIR)/bin/g++
-CXXFLAGS += -m64 -pthreads -mno-faster-structs
-CFLAGS   += -m64 -pthreads -mno-faster-structs
+CXXFLAGS += -m64 -pthreads -mno-faster-structs -DBYTE_ORDER=BIG_ENDIAN
+CFLAGS   += -m64 -pthreads -mno-faster-structs -DBYTE_ORDER=BIG_ENDIAN
 CXXFLAGS += -std=c++11
 LINK     = $(CXX)
 AR       = /usr/ccs/bin/ar
@@ -47,7 +47,7 @@ endif
 OBJ      = $(SYSTEM)-$(COMPILER)-$(VERSION)
 
 # Set up location of clang headers and libraries needed by bde_verify.
-LLVM     = /home/hrosen4/mbig/llvm-3.5.0/install-$(SYSTEM)
+LLVM     = /home/hrosen4/mbig/llvm-3.6.0/install-$(SYSTEM)
 INCFLAGS += -I$(LLVM)/include
 
 export VERBOSE ?= @

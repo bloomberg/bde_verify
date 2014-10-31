@@ -43,18 +43,20 @@ class Analyser : public Attachments
              bool debug,
              std::vector<std::string> const& config,
              std::string const& name,
-             std::string const& rewrite_dir);
+             std::string const& rewrite_dir,
+             std::string const& rewrite_file);
 
     Config const* config() const;
     std::string const& tool_name() const;
 
-    clang::ASTContext*       context();
-    clang::ASTContext const* context() const;
-    void                     context(clang::ASTContext*);
-    clang::CompilerInstance& compiler();
-    clang::Sema&             sema();
-    clang::Rewriter&         rewriter();
-    csabase::PPObserver&     pp_observer();
+    clang::ASTContext                   *context();
+    clang::ASTContext const             *context() const;
+    void                                 context(clang::ASTContext*);
+    clang::CompilerInstance&             compiler();
+    clang::Sema&                         sema();
+    clang::Rewriter&                     rewriter();
+    csabase::PPObserver&                 pp_observer();
+    clang::tooling::Replacements const&  replacements() const;
 
     std::string const& toplevel() const;
     std::string const& directory() const;
@@ -63,6 +65,7 @@ class Analyser : public Attachments
     std::string const& package() const;
     std::string const& component() const;
     std::string const& rewrite_dir() const;
+    std::string const& rewrite_file() const;
     void               toplevel(std::string const&);
     bool               is_header(std::string const&) const;
     bool               is_component_header(std::string const&) const;
@@ -137,7 +140,8 @@ class Analyser : public Attachments
     int RemoveText(clang::SourceLocation l, unsigned n);
     int ReplaceText(clang::SourceLocation l, unsigned n, llvm::StringRef s);
     int ReplaceText(clang::SourceRange r, llvm::StringRef s);
-    int applyReplacements();
+    int ReplaceText(
+         llvm::StringRef file, unsigned offset, unsigned n, llvm::StringRef s);
         // Rewriting actions.
 
 private:
@@ -158,6 +162,7 @@ private:
     std::string                           package_;
     std::string                           component_;
     std::string                           rewrite_dir_;
+    std::string                           rewrite_file_;
     typedef std::map<std::string, bool>   IsComponentHeader;
     mutable IsComponentHeader             is_component_header_;
     typedef std::map<std::string, bool>   IsGlobalPackage;

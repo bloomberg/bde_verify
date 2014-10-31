@@ -2,6 +2,7 @@
 
 #include <csabase_diagnosticfilter.h>
 #include <csabase_analyser.h>
+#include <csabase_debug.h>
 #include <csabase_registercheck.h>
 #include <clang/Basic/FileManager.h>
 #include <clang/Basic/SourceLocation.h>

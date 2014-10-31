@@ -32,18 +32,13 @@ static void namespace_tags(Analyser& analyser, NamespaceDecl const *decl)
         } else if (nsname == analyser.config()->toplevel_namespace()) {
             tag = "enterprise";
         }
-        if (!line.startswith("}  // close " + tag) ||
-            !line.endswith(" namespace")) {
+        std::string s = tag.size() ? "}  // close " + tag + " namespace" :
+                                     "}  // close namespace " + nsname;
+        if (line != s) {
             analyser.report(rbr, check_name, "NT01",
-                            "End of %0 namespace should be marked with "
-                            "\"}  // close %1 namespace\"")
-                << (nsname.size() ? nsname : "anonymous")
-                << (tag.size() ? tag : "...");
-            if (!tag.size()) {
-                tag = nsname;
-            }
-            analyser.ReplaceText(
-                line_range, "}  // close " + tag + " namespace");
+                            "End of %0 namespace should be marked with \"%1\"")
+                << (nsname.size() ? nsname : "anonymous") << s;
+            analyser.ReplaceText(line_range, s);
         }
     }
 }

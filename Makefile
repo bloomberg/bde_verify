@@ -22,7 +22,7 @@ LDFLAGS  += -Wl,-rpath,$(CCDIR)/lib64
 CXXFLAGS += -Wno-unused-local-typedefs
     endif
     ifeq ($(COMPILER),clang)
-VERSION  = 3.5.0
+VERSION  = 3.6.0
 CCDIR    = /home/hrosen4/mbig/llvm-$(VERSION)/install-$(SYSTEM)
 CXX      = $(CCDIR)/bin/clang++
 CXXFLAGS += -std=c++11
@@ -41,8 +41,8 @@ ifeq ($(SYSTEM),SunOS)
 VERSION  = 4.8.1
 CCDIR    = /opt/swt/install/gcc-$(VERSION)
 CXX      = $(CCDIR)/bin/g++
-CXXFLAGS += -m64 -pthreads -mno-faster-structs
-CFLAGS   += -m64 -pthreads -mno-faster-structs
+CXXFLAGS += -m64 -pthreads -mno-faster-structs -DBYTE_ORDER=BIG_ENDIAN
+CFLAGS   += -m64 -pthreads -mno-faster-structs -DBYTE_ORDER=BIG_ENDIAN
 LDFLAGS  += -m64 -pthreads -mno-faster-structs
 CXXFLAGS += -std=c++11
 LINK     = $(CXX)
@@ -56,12 +56,13 @@ INCFLAGS += -I$(ASPELL)/include
 LDFLAGS  += -Wl,-L,$(ASPELL)/lib64 -Wl,-R,$(ASPELL)/lib64 -laspell -L$(OBJ)
 EXTRALIBS += -lrt
 EXTRALIBS += -lmalloc
+EXTRALIBS += -lz
 endif
 
 OBJ      = $(SYSTEM)-$(COMPILER)-$(VERSION)
 
 # Set up location of clang headers and libraries needed by bde_verify.
-LLVM     = /home/hrosen4/mbig/llvm-3.5.0/install-$(SYSTEM)
+LLVM     = /home/hrosen4/mbig/llvm-3.6.0/install-$(SYSTEM)
 INCFLAGS += -I$(LLVM)/include
 LDFLAGS  += -L$(LLVM)/lib -L$(CSABASEDIR)/$(OBJ)
 
@@ -69,7 +70,8 @@ export VERBOSE ?= @
 
 #  ----------------------------------------------------------------------------
 
-CXXFILES =                                                                 \
+CXXFILES =                                                                    \
+        groups/csa/csaaq/csaaq_transitiveincludes.cpp                         \
         groups/csa/csabde/csabde_tool.cpp                                     \
         groups/csa/csabbg/csabbg_allocatorforward.cpp                         \
         groups/csa/csabbg/csabbg_allocatornewwithpointer.cpp                  \
@@ -146,6 +148,7 @@ OFILES = $(CXXFILES:%.cpp=$(OBJ)/%.o)
 
 LIBS     =    -lcsabase                                                       \
               -lLLVMX86AsmParser                                              \
+              -lLLVMSparcAsmParser                                            \
               -lclangFrontendTool                                             \
               -lclangCodeGen                                                  \
               -lLLVMIRReader                                                  \
@@ -190,6 +193,7 @@ LIBS     =    -lcsabase                                                       \
               -lLLVMX86Info                                                   \
               -lLLVMSparcInfo                                                 \
               -lLLVMX86AsmPrinter                                             \
+              -lLLVMSparcAsmPrinter                                           \
               -lLLVMX86Utils                                                  \
               -lLLVMMCDisassembler                                            \
               -lclangSema                                                     \

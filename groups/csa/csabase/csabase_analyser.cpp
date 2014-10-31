@@ -47,7 +47,8 @@ csabase::Analyser::Analyser(CompilerInstance& compiler,
                             bool debug,
                             std::vector<std::string> const& config,
                             std::string const& name,
-                            std::string const& rewrite_dir)
+                            std::string const& rewrite_dir,
+                            std::string const& rewrite_file)
 : d_config(new Config(
       config.size() == 0 ? std::vector<std::string>(1, "load .bdeverify") :
                            config,
@@ -59,6 +60,7 @@ csabase::Analyser::Analyser(CompilerInstance& compiler,
 , context_(0)
 , rewriter_(new Rewriter(compiler.getSourceManager(), compiler.getLangOpts()))
 , rewrite_dir_(rewrite_dir)
+, rewrite_file_(rewrite_file)
 {
     compiler_.getPreprocessor().addPPCallbacks(std::unique_ptr<PPCallbacks>(
         new PPObserver(&d_source_manager, d_config.get())));
@@ -118,6 +120,16 @@ Rewriter& csabase::Analyser::rewriter()
 std::string const& csabase::Analyser::rewrite_dir() const
 {
     return rewrite_dir_;
+}
+
+std::string const& csabase::Analyser::rewrite_file() const
+{
+    return rewrite_file_;
+}
+
+clang::tooling::Replacements const& csabase::Analyser::replacements() const
+{
+    return replacements_;
 }
 
 // -----------------------------------------------------------------------------
@@ -469,6 +481,10 @@ namespace
                 return lookup_name(sema, decl, name.substr(colons + 2));
             }
         }
+        std::string::size_type angle = name.find("<");
+        if (angle != name.npos) {
+            return lookup_name(sema, context, name.substr(0, angle));
+        }
         return 0;
     }
 
@@ -600,6 +616,7 @@ csabase::Analyser::get_rewrite_file(std::string file)
 
 int csabase::Analyser::InsertTextAfter(SourceLocation l, llvm::StringRef s)
 {
+    d_source_manager.getDecomposedExpansionLoc(l);
     return ReplaceText(l.getLocWithOffset(1), 0, s);
 }
 
@@ -622,7 +639,9 @@ int
 csabase::Analyser::ReplaceText(SourceLocation l, unsigned n, llvm::StringRef s)
 {
     l = d_source_manager.getExpansionLoc(l);
-    replacements_.insert(tooling::Replacement(d_source_manager, l, n, s));
+    d_source_manager.getDecomposedLoc(l);
+    tooling::Replacement r(d_source_manager, l, n, s);
+    replacements_.insert(r);
     return 0;
 }
 
@@ -635,13 +654,12 @@ int csabase::Analyser::ReplaceText(SourceRange r, llvm::StringRef s)
     return ReplaceText(r.getBegin(), n, s);
 }
 
-int csabase::Analyser::applyReplacements()
+int csabase::Analyser::ReplaceText(
+          llvm::StringRef file, unsigned offset, unsigned n, llvm::StringRef s)
 {
-    int ret = 1;
-    for (auto &r : replacements_) {
-        ret = r.apply(rewriter()) && ret;
-    }
-    return ret;
+    tooling::Replacement r(file, offset, n, s);
+    replacements_.insert(r);
+    return 0;
 }
 
 // ----------------------------------------------------------------------------

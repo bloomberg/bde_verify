@@ -23,6 +23,7 @@ class PluginAction : public clang::PluginASTAction
     std::string tool_name() const;
     bool toplevel_only() const;
     std::string rewrite_dir() const;
+    std::string rewrite_file() const;
 
   protected:
     std::unique_ptr<clang::ASTConsumer>
@@ -38,6 +39,7 @@ class PluginAction : public clang::PluginASTAction
     std::string tool_name_;
     bool toplevel_only_;
     std::string rewrite_dir_;
+    std::string rewrite_file_;
 };
 }
 

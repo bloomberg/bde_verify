@@ -16,6 +16,7 @@
 #include <clang/Basic/Specifiers.h>
 #include <csabase_analyser.h>
 #include <csabase_config.h>
+#include <csabase_debug.h>
 #include <csabase_diagnostic_builder.h>
 #include <csabase_location.h>
 #include <csabase_ppobserver.h>
@@ -61,17 +62,19 @@ namespace ast_matchers {
     }
     AST_MATCHER_P(Expr, callTo, CXXMethodDecl *, method) {
         const Decl *callee = 0;
+        const CXXDestructorDecl *dtor = 0;
         if (const CallExpr *call = llvm::dyn_cast<CallExpr>(&Node)) {
             callee = call->getCalleeDecl();
         }
         else if (const CXXConstructExpr *ctor =
                                      llvm::dyn_cast<CXXConstructExpr>(&Node)) {
             callee = ctor->getConstructor();
+            dtor = ctor->getConstructor()->getParent()->getDestructor();
         }
         else if (const DeclRefExpr *dr = llvm::dyn_cast<DeclRefExpr>(&Node)) {
             callee = dr->getDecl();
         }
-        if (callee) {
+        while (callee) {
             const Decl *mc = method->getCanonicalDecl();
             const FunctionDecl *fd = llvm::dyn_cast<FunctionDecl>(callee);
             if (fd) {
@@ -80,7 +83,11 @@ namespace ast_matchers {
                     return true;                                      // RETURN
                 }
             }
-            return callee->getCanonicalDecl() == mc;                  // RETURN
+            if (callee->getCanonicalDecl() == mc) {
+                return true;                                          // RETURN
+            }
+            callee = dtor;
+            dtor = 0;
         }
         return false;
     }

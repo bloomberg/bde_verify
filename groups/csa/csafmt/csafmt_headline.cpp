@@ -40,6 +40,9 @@ static void open_file(Analyser& analyser,
         name == analyser.toplevel()) {
         const SourceManager &m = analyser.manager();
         llvm::StringRef buf = m.getBuffer(m.getFileID(where))->getBuffer();
+        if (buf.size() == 0) {
+            return;
+        }
         buf = buf.substr(0, buf.find('\n')).rtrim();
         std::string expectcpp("// " + filename);
         expectcpp.resize(70, ' ');

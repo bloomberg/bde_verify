@@ -21,7 +21,7 @@ template <>
 struct is_trivially_copyable<BloombergLP::joexx::Traits> : true_type
 {
 };
-}  // close traits namespace
+}  // close namespace bsl
 
 namespace BloombergLP {
 namespace joexx {

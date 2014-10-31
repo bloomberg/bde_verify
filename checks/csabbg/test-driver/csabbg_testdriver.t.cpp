@@ -3,7 +3,8 @@
 #include <bsl_cstdlib.h>
 #include <bsl_iostream.h>
 
-using namespace BloombergLP;
+namespace bde_verify { }
+using namespace bde_verify;
 using bsl::cout;
 using bsl::cerr;
 using bsl::endl;
@@ -16,7 +17,6 @@ using bsl::flush;
 ///                                  --------
 // Primary Manipulators:
 //: o void setF();
-//
 // Basic Accessors:
 //: o int F() const;
 //-----------------------------------------------------------------------------
@@ -283,7 +283,7 @@ int main(int argc, char *argv[])
 //    bsl::basic_nonesuch : not there::more stuff
 
 #define x() x()
-namespace BloombergLP
+namespace bde_verify
 {
     struct joe {
         void setF();

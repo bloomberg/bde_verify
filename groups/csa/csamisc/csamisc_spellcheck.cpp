@@ -182,6 +182,9 @@ report::break_for_spelling(std::vector<SourceRange>* words, SourceRange range)
 {
     llvm::StringRef comment = d_analyser.get_source(range, true);
     words->clear();
+    if (comment.startswith("// close namespace ")) {
+        return;
+    }
     bool in_single_quotes = false;
     bool in_double_quotes = false;
     bool in_block = false;
