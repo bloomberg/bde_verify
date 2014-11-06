@@ -295,6 +295,7 @@ namespace bde_verify
         joe(int);
         ~joe();
         void x();
+        template <int N> void H();
     };
 }
 

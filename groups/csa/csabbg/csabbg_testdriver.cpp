@@ -60,7 +60,7 @@ namespace ast_matchers {
                     internal::Matcher<Expr>, InnerMatcher) {
         return InnerMatcher.matches(*Node.getRetValue(), Finder, Builder);
     }
-    AST_MATCHER_P(Expr, callTo, CXXMethodDecl *, method) {
+    AST_MATCHER_P(Expr, callTo, Decl *, method) {
         const Decl *callee = 0;
         const CXXDestructorDecl *dtor = 0;
         if (const CallExpr *call = llvm::dyn_cast<CallExpr>(&Node)) {
@@ -129,7 +129,6 @@ struct data
     std::map<llvm::StringRef, SourceRange> d_classes;  // classes named
     std::map<std::string, unsigned> d_names_to_test;   // public method names
     std::map<std::string, unsigned> d_names_in_plan;   // method namess tested
-    std::set<const CXXMethodDecl *> d_methods;         // public methods
 };
 
 data::data()
@@ -175,6 +174,12 @@ struct report
 
     void check_boilerplate();
         // Check test driver boilerplate in the main file.
+
+    void note_function(std::string m);
+        // Mark the speciied 'm' as a public method of a class in @CLASSES.
+
+    void process_function(CXXMethodDecl *decl);
+        // Handle one public method of the classes in @CLASSES.
 
     void get_function_names();
         // Find the public methods of the classes in @CLASSES.
@@ -475,6 +480,44 @@ void report::match_set_status(const BoundNodes& nodes)
     }
 }
 
+void report::note_function(std::string m)
+{
+    size_t lt = m.find('<');
+    if (lt != m.npos && !llvm::StringRef(m).startswith("operator")) {
+        m = m.substr(0, lt);
+    }
+    ++d_data.d_names_to_test[m];
+}
+
+void report::process_function(CXXMethodDecl *m)
+{
+    if (m->getAccess() == AS_public &&
+        m->isUserProvided() &&
+        !m->getLocation().isMacroID()) {
+        MatchFinder mf;
+        bool found = false;
+        OnMatch<> m1([&](const BoundNodes &nodes) {
+            if (d_analyser.manager().getFileID(
+                    d_analyser.manager().getExpansionLoc(
+                        nodes.getNodeAs<Expr>("expr")->getExprLoc())) ==
+                d_analyser.manager().getMainFileID()) {
+                found = true;
+            }
+        });
+        mf.addDynamicMatcher(
+            decl(hasDescendant(
+                namedDecl(hasName("main"),
+                          forEachDescendant(expr(callTo(m)).bind("expr"))))),
+            &m1);
+        mf.match(*m->getTranslationUnitDecl(), *d_analyser.context());
+        if (!found) {
+            d_analyser.report(m, check_name, "TP27", "Method not called in "
+                                                     "test driver");
+        }
+        note_function(m->getNameAsString());
+    }
+}
+
 void report::get_function_names()
 {
     for (auto p : d_data.d_classes) {
@@ -517,44 +560,25 @@ void report::get_function_names()
             }
         }
         if (record) {
-            CXXRecordDecl::method_iterator b = record->method_begin();
-            CXXRecordDecl::method_iterator e = record->method_end();
+            DeclContext::decl_iterator b = record->decls_begin();
+            DeclContext::decl_iterator e = record->decls_end();
             for (; b != e; ++b) {
-                CXXMethodDecl *m = *b;
-                if (m->getAccess() == AS_public &&
-                    m->isUserProvided() &&
-                    !m->getLocation().isMacroID()) {
-                    MatchFinder mf;
-                    bool found = false;
-                    OnMatch<> m1([&](const BoundNodes &nodes) {
-                        if (d_analyser.manager().getFileID(
-                                d_analyser.manager().getExpansionLoc(
-                                    nodes.getNodeAs<Expr>("expr")
-                                        ->getExprLoc())) ==
-                            d_analyser.manager().getMainFileID()) {
-                            found = true;
-                        }
-                    });
-                    mf.addDynamicMatcher(
-                        decl(hasDescendant(namedDecl(
-                             hasName("main"),
-                             forEachDescendant(expr(callTo(m)).bind("expr"))
-                        ))),
-                        &m1);
-                    mf.match(*m->getTranslationUnitDecl(),
-                             *d_analyser.context());
-                    if (!found) {
-                        d_analyser.report(m, check_name, "TP27",
+                if (auto *t = llvm::dyn_cast<FunctionTemplateDecl>(*b)) {
+                    auto sb = t->spec_begin();
+                    auto se = t->spec_end();
+                    if (sb == se) {
+                        d_analyser.report(t, check_name, "TP27",
                                           "Method not called in test driver");
+                        note_function(t->getNameAsString());
                     }
-                    std::string method = m->getNameAsString();
-                    size_t lt = method.find('<');
-                    if (lt != method.npos &&
-                        !llvm::StringRef(method).startswith("operator")) {
-                        method = method.substr(0, lt);
+                    for (; sb != se; ++sb) {
+                        if (auto *m = llvm::dyn_cast<CXXMethodDecl>(*sb)) {
+                            process_function(m);
+                        }
                     }
-                    d_data.d_methods.insert(m);
-                    ++d_data.d_names_to_test[method];
+                }
+                else if (auto *m = llvm::dyn_cast<CXXMethodDecl>(*b)) {
+                    process_function(m);
                 }
             }
         }
