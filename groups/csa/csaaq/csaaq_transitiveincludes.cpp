@@ -839,7 +839,11 @@ void report::require_file(std::string     name,
 
     FileID fid = m.getFileID(sl);
     while (m.isInSystemHeader(sl)) {
-        sl = m.getIncludeLoc(fid);
+        SourceLocation il = m.getIncludeLoc(fid);
+        if (!il.isValid()) {
+            break;
+        }
+        sl = il;
         fid = m.getDecomposedIncludedLoc(fid).first;
     }
 
