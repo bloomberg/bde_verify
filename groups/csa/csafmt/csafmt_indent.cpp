@@ -271,18 +271,21 @@ bool report::WalkUpFromFunctionTypeLoc(FunctionTypeLoc func)
         }
 
         size_t level;
+        SourceLocation lpe =
+            d_analyser.get_trim_line_range(func.getParam(n - 1)->getLocEnd())
+                .getEnd();
         if (f.line() == arg1.line()) {
             Range tr(d_analyser.manager(),
                      d_analyser.get_trim_line_range(f.location()));
             level = arg1.column() - tr.from().column();
             add_indent(arg1.location(), level);
-            add_indent(func.getParam(n - 1)->getLocEnd(), -level);
+            add_indent(lpe, -level);
         } else {
             size_t length = 0;
-            for (size_t i = f.line() == arg1.line() ? 1 : 0; i < n; ++i) {
+            for (size_t i = 0; i < n; ++i) {
                 size_t line_length =
                     llvm::StringRef(d_analyser.get_source_line(
-                                        func.getParam(i)->getLocStart()))
+                                              func.getParam(i)->getLocStart()))
                         .trim().size();
                 if (length < line_length) {
                     length = line_length;
@@ -294,7 +297,7 @@ bool report::WalkUpFromFunctionTypeLoc(FunctionTypeLoc func)
             add_indent(arg1.location(), in);
             in.d_right_justified = false;
             in.d_offset = -level;
-            add_indent(func.getParam(n - 1)->getLocEnd(), in);
+            add_indent(lpe, in);
         }
     }
     return Base::WalkUpFromFunctionTypeLoc(func);
