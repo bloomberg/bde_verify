@@ -23,6 +23,7 @@
 #include <csabase_registercheck.h>
 #include <csabase_util.h>
 #include <csabase_visitor.h>
+#include <llvm/ADT/Hashing.h>
 #include <llvm/ADT/SmallVector.h>
 #include <llvm/ADT/StringRef.h>
 #include <llvm/ADT/Twine.h>
@@ -37,6 +38,8 @@
 #include <utility>
 #include <utils/event.hpp>
 #include <utils/function.hpp>
+#include <unordered_map>
+#include <unordered_set>
 #include <vector>
 #include <tuple>
 namespace clang { class FileEntry; }
@@ -48,6 +51,42 @@ using namespace csabase;
 using namespace clang::tooling;
 using namespace clang;
 
+namespace std {
+
+template <typename A, typename B> struct hash<pair<A, B>> {
+    size_t operator()(const pair<A, B>& p) const {
+        return llvm::hash_combine(hash<A>()(p.first), hash<B>()(p.second));
+    }
+};
+
+template <typename A, typename B, typename C> struct hash<tuple<A, B, C>> {
+    size_t operator()(const tuple<A, B, C>& t) const {
+        return llvm::hash_combine(hash<A>()(get<0>(t)),
+                                  hash<B>()(get<1>(t)),
+                                  hash<C>()(get<2>(t)));
+    }
+};
+
+template <> struct hash<SourceLocation> {
+    size_t operator()(const SourceLocation& sl) const {
+        return sl.getRawEncoding();
+    }
+};
+
+template <> struct hash<llvm::StringRef> {
+    size_t operator()(const llvm::StringRef& sr) const {
+        return llvm::hash_value(sr);
+    }
+};
+
+template <> struct hash<FileID> {
+    size_t operator()(const FileID& fid) const {
+        return fid.getHashValue();
+    }
+};
+
+}
+
 // ----------------------------------------------------------------------------
 
 static std::string const check_name("transitive-includes");
@@ -57,7 +96,7 @@ static std::string const check_name("transitive-includes");
 namespace
 {
 
-std::set<llvm::StringRef> top_level_files {
+std::unordered_set<llvm::StringRef> top_level_files {
 #undef  X
 #define X(n) #n, "bsl_" #n ".h", "stl_" #n ".h"
 X(algorithm),     X(array),         X(atomic),           X(bitset),             
@@ -107,190 +146,291 @@ bool is_top_level(llvm::StringRef name)
     return false;
 }
 
-std::map<llvm::StringRef, llvm::StringRef> mapped_files {
-    { "algorithmfwd.h",                 "algorithm"           }, 
-    { "alloc_traits.h",                 "memory"              }, 
-    { "allocator.h",                    "memory"              }, 
-    { "atomic_base.h",                  "atomic"              }, 
-    { "atomic_lockfree_defines.h",      "atomic"              }, 
-    { "auto_ptr.h",                     "memory"              }, 
-    { "backward_warning.h",             "iosfwd"              }, 
-    { "basic_file.h",                   "ios"                 }, 
-    { "basic_ios.h",                    "ios"                 }, 
-    { "basic_ios.tcc",                  "ios"                 }, 
-    { "basic_string.h",                 "string"              }, 
-    { "basic_string.tcc",               "string"              }, 
-    { "bessel_function.tcc",            "cmath"               }, 
-    { "beta_function.tcc",              "cmath"               }, 
-    { "binders.h",                      "functional"          }, 
-    { "boost_concept_check.h",          "iterator"            }, 
-    { "c++0x_warning.h",                "iosfwd"              }, 
-    { "c++allocator.h",                 "memory"              }, 
-    { "c++config.h",                    "iosfwd"              }, 
-    { "c++io.h",                        "ios"                 }, 
-    { "c++locale.h",                    "locale"              }, 
-    { "cast.h",                         "pointer.h"           }, 
-    { "char_traits.h",                  "string"              }, 
-    { "codecvt.h",                      "locale"              }, 
-    { "concept_check.h",                "iterator"            }, 
-    { "cpp_type_traits.h",              "type_traits"         }, 
-    { "cpu_defines.h",                  "iosfwd"              }, 
-    { "ctype_base.h",                   "locale"              }, 
-    { "ctype_inline.h",                 "locale"              }, 
-    { "cxxabi_forced.h",                "cxxabi.h"            }, 
-    { "cxxabi_tweaks.h",                "cxxabi.h"            }, 
-    { "decimal.h",                      "decimal"             }, 
-    { "deque.tcc",                      "deque"               }, 
-    { "ell_integral.tcc",               "cmath"               }, 
-    { "error_constants.h",              "system_error"        }, 
-    { "exception_defines.h",            "exception"           }, 
-    { "exception_ptr.h",                "exception"           }, 
-    { "exp_integral.tcc",               "cmath"               }, 
-    { "forward_list.h",                 "forward_list"        }, 
-    { "forward_list.tcc",               "forward_list"        }, 
-    { "fstream.tcc",                    "fstream"             }, 
-    { "functexcept.h",                  "exception"           }, 
-    { "functional_hash.h",              "functional"          }, 
-    { "gamma.tcc",                      "cmath"               }, 
-    { "gslice.h",                       "valarray"            }, 
-    { "gslice_array.h",                 "valarray"            }, 
-    { "hash_bytes.h",                   "functional"          }, 
-    { "hashtable.h",                    "unordered_map"       }, 
-    { "hashtable_policy.h",             "unordered_map"       }, 
-    { "hypergeometric.tcc",             "cmath"               }, 
-    { "indirect_array.h",               "valarray"            }, 
-    { "ios_base.h",                     "ios"                 }, 
-    { "istream.tcc",                    "istream"             }, 
-    { "legendre_function.tcc",          "cmath"               }, 
-    { "list.tcc",                       "list"                }, 
-    { "locale_classes.h",               "locale"              }, 
-    { "locale_classes.tcc",             "locale"              }, 
-    { "locale_facets.h",                "locale"              }, 
-    { "locale_facets.tcc",              "locale"              }, 
-    { "locale_facets_nonio.h",          "locale"              }, 
-    { "locale_facets_nonio.tcc",        "locale"              }, 
-    { "localefwd.h",                    "locale"              }, 
-    { "mask_array.h",                   "valarray"            }, 
-    { "memoryfwd.h",                    "memory"              }, 
-    { "messages_members.h",             "locale"              }, 
-    { "modified_bessel_func.tcc",       "cmath"               }, 
-    { "move.h",                         "utility"             }, 
-    { "nested_exception.h",             "exception"           }, 
-    { "opt_random.h",                   "random"              }, 
-    { "os_defines.h",                   "iosfwd"              }, 
-    { "ostream.tcc",                    "ostream"             }, 
-    { "ostream_insert.h",               "ostream"             }, 
-    { "poly_hermite.tcc",               "cmath"               }, 
-    { "poly_laguerre.tcc",              "cmath"               }, 
-    { "postypes.h",                     "iosfwd"              }, 
-    { "ptr_traits.h",                   "memory"              }, 
-    { "random.h",                       "random"              }, 
-    { "random.tcc",                     "random"              }, 
-    { "range_access.h",                 "iterator"            }, 
-    { "rc_string_base.h",               "vstring.h"           }, 
-    { "regex.h",                        "regex"               }, 
-    { "regex_compiler.h",               "regex"               }, 
-    { "regex_constants.h",              "regex"               }, 
-    { "regex_cursor.h",                 "regex"               }, 
-    { "regex_error.h",                  "regex"               }, 
-    { "regex_grep_matcher.h",           "regex"               }, 
-    { "regex_grep_matcher.tcc",         "regex"               }, 
-    { "regex_nfa.h",                    "regex"               }, 
-    { "regex_nfa.tcc",                  "regex"               }, 
-    { "riemann_zeta.tcc",               "cmath"               }, 
-    { "ropeimpl.h",                     "rope"                }, 
-    { "shared_ptr.h",                   "memory"              }, 
-    { "shared_ptr_base.h",              "memory"              }, 
-    { "slice_array.h",                  "valarray"            }, 
-    { "special_function_util.h",        "cmath"               }, 
-    { "sso_string_base.h",              "vstring.h"           }, 
-    { "sstream.tcc",                    "sstream"             }, 
-    { "stl_algo.h",                     "algorithm"           }, 
-    { "stl_algobase.h",                 "algorithm"           }, 
-    { "stl_bvector.h",                  "vector"              }, 
-    { "stl_construct.h",                "memory"              }, 
-    { "stl_deque.h",                    "deque"               }, 
-    { "stl_function.h",                 "functional"          }, 
-    { "stl_heap.h",                     "queue"               }, 
-    { "stl_iterator.h",                 "iterator"            }, 
-    { "stl_iterator_base_funcs.h",      "iterator"            }, 
-    { "stl_iterator_base_types.h",      "iterator"            }, 
-    { "stl_list.h",                     "list"                }, 
-    { "stl_map.h",                      "map"                 }, 
-    { "stl_multimap.h",                 "map"                 }, 
-    { "stl_multiset.h",                 "set"                 }, 
-    { "stl_numeric.h",                  "numeric"             }, 
-    { "stl_pair.h",                     "utility"             }, 
-    { "stl_queue.h",                    "queue"               }, 
-    { "stl_raw_storage_iter.h",         "memory"              }, 
-    { "stl_relops.h",                   "utility"             }, 
-    { "stl_set.h",                      "set"                 }, 
-    { "stl_stack.h",                    "stack"               }, 
-    { "stl_tempbuf.h",                  "memory"              }, 
-    { "stl_tree.h",                     "map"                 }, 
-    { "stl_uninitialized.h",            "memory"              }, 
-    { "stl_vector.h",                   "vector"              }, 
-    { "stream_iterator.h",              "iterator"            }, 
-    { "streambuf.tcc",                  "streambuf"           }, 
-    { "streambuf_iterator.h",           "iterator"            }, 
-    { "stringfwd.h",                    "string"              }, 
-    { "strstream",                      "sstream"             }, 
-    { "time_members.h",                 "locale"              }, 
-    { "unique_ptr.h",                   "memory"              }, 
-    { "unordered_map.h",                "unordered_map"       }, 
-    { "unordered_set.h",                "unordered_set"       }, 
-    { "valarray_after.h",               "valarray"            }, 
-    { "valarray_array.h",               "valarray"            }, 
-    { "valarray_array.tcc",             "valarray"            }, 
-    { "valarray_before.h",              "valarray"            }, 
-    { "vector.tcc",                     "vector"              }, 
-    { "vstring.tcc",                    "vstring.h"           }, 
-    { "vstring_fwd.h",                  "vstring.h"           }, 
-    { "vstring_util.h",                 "vstring.h"           }, 
+std::unordered_map<llvm::StringRef, llvm::StringRef> mapped_files {
+    { "/bits/algorithmfwd.h",                 "algorithm"           }, 
+    { "/bits/alloc_traits.h",                 "memory"              }, 
+    { "/bits/allocator.h",                    "memory"              }, 
+    { "/bits/atomic_base.h",                  "atomic"              }, 
+    { "/bits/atomic_lockfree_defines.h",      "atomic"              }, 
+    { "/bits/auto_ptr.h",                     "memory"              }, 
+    { "/bits/backward_warning.h",             "iosfwd"              }, 
+    { "/bits/basic_file.h",                   "ios"                 }, 
+    { "/bits/basic_ios.h",                    "ios"                 }, 
+    { "/bits/basic_ios.tcc",                  "ios"                 }, 
+    { "/bits/basic_string.h",                 "string"              }, 
+    { "/bits/basic_string.tcc",               "string"              }, 
+    { "/bits/bessel_function.tcc",            "cmath"               }, 
+    { "/bits/beta_function.tcc",              "cmath"               }, 
+    { "/bits/binders.h",                      "functional"          }, 
+    { "/bits/boost_concept_check.h",          "iterator"            }, 
+    { "/bits/c++0x_warning.h",                "iosfwd"              }, 
+    { "/bits/c++allocator.h",                 "memory"              }, 
+    { "/bits/c++config.h",                    "iosfwd"              }, 
+    { "/bits/c++io.h",                        "ios"                 }, 
+    { "/bits/c++locale.h",                    "locale"              }, 
+    { "/bits/cast.h",                         "pointer.h"           }, 
+    { "/bits/char_traits.h",                  "string"              }, 
+    { "/bits/codecvt.h",                      "locale"              }, 
+    { "/bits/concept_check.h",                "iterator"            }, 
+    { "/bits/cpp_type_traits.h",              "type_traits"         }, 
+    { "/bits/cpu_defines.h",                  "iosfwd"              }, 
+    { "/bits/ctype_base.h",                   "locale"              }, 
+    { "/bits/ctype_inline.h",                 "locale"              }, 
+    { "/bits/cxxabi_forced.h",                "cxxabi.h"            }, 
+    { "/bits/cxxabi_tweaks.h",                "cxxabi.h"            }, 
+    { "/bits/decimal.h",                      "decimal"             }, 
+    { "/bits/deque.tcc",                      "deque"               }, 
+    { "/bits/ell_integral.tcc",               "cmath"               }, 
+    { "/bits/error_constants.h",              "system_error"        }, 
+    { "/bits/exception_defines.h",            "exception"           }, 
+    { "/bits/exception_ptr.h",                "exception"           }, 
+    { "/bits/exp_integral.tcc",               "cmath"               }, 
+    { "/bits/forward_list.h",                 "forward_list"        }, 
+    { "/bits/forward_list.tcc",               "forward_list"        }, 
+    { "/bits/fstream.tcc",                    "fstream"             }, 
+    { "/bits/functexcept.h",                  "exception"           }, 
+    { "/bits/functional_hash.h",              "functional"          }, 
+    { "/bits/gamma.tcc",                      "cmath"               }, 
+    { "/bits/gslice.h",                       "valarray"            }, 
+    { "/bits/gslice_array.h",                 "valarray"            }, 
+    { "/bits/hash_bytes.h",                   "functional"          }, 
+    { "/bits/hashtable.h",                    "unordered_map"       }, 
+    { "/bits/hashtable_policy.h",             "unordered_map"       }, 
+    { "/bits/hypergeometric.tcc",             "cmath"               }, 
+    { "/bits/indirect_array.h",               "valarray"            }, 
+    { "/bits/ios_base.h",                     "ios"                 }, 
+    { "/bits/istream.tcc",                    "istream"             }, 
+    { "/bits/legendre_function.tcc",          "cmath"               }, 
+    { "/bits/list.tcc",                       "list"                }, 
+    { "/bits/locale_classes.h",               "locale"              }, 
+    { "/bits/locale_classes.tcc",             "locale"              }, 
+    { "/bits/locale_facets.h",                "locale"              }, 
+    { "/bits/locale_facets.tcc",              "locale"              }, 
+    { "/bits/locale_facets_nonio.h",          "locale"              }, 
+    { "/bits/locale_facets_nonio.tcc",        "locale"              }, 
+    { "/bits/localefwd.h",                    "locale"              }, 
+    { "/bits/mask_array.h",                   "valarray"            }, 
+    { "/bits/memoryfwd.h",                    "memory"              }, 
+    { "/bits/messages_members.h",             "locale"              }, 
+    { "/bits/modified_bessel_func.tcc",       "cmath"               }, 
+    { "/bits/move.h",                         "utility"             }, 
+    { "/bits/nested_exception.h",             "exception"           }, 
+    { "/bits/opt_random.h",                   "random"              }, 
+    { "/bits/os_defines.h",                   "iosfwd"              }, 
+    { "/bits/ostream.tcc",                    "ostream"             }, 
+    { "/bits/ostream_insert.h",               "ostream"             }, 
+    { "/bits/poly_hermite.tcc",               "cmath"               }, 
+    { "/bits/poly_laguerre.tcc",              "cmath"               }, 
+    { "/bits/postypes.h",                     "iosfwd"              }, 
+    { "/bits/ptr_traits.h",                   "memory"              }, 
+    { "/bits/random.h",                       "random"              }, 
+    { "/bits/random.tcc",                     "random"              }, 
+    { "/bits/range_access.h",                 "iterator"            }, 
+    { "/bits/rc_string_base.h",               "vstring.h"           }, 
+    { "/bits/regex.h",                        "regex"               }, 
+    { "/bits/regex_compiler.h",               "regex"               }, 
+    { "/bits/regex_constants.h",              "regex"               }, 
+    { "/bits/regex_cursor.h",                 "regex"               }, 
+    { "/bits/regex_error.h",                  "regex"               }, 
+    { "/bits/regex_grep_matcher.h",           "regex"               }, 
+    { "/bits/regex_grep_matcher.tcc",         "regex"               }, 
+    { "/bits/regex_nfa.h",                    "regex"               }, 
+    { "/bits/regex_nfa.tcc",                  "regex"               }, 
+    { "/bits/riemann_zeta.tcc",               "cmath"               }, 
+    { "/bits/ropeimpl.h",                     "rope"                }, 
+    { "/bits/shared_ptr.h",                   "memory"              }, 
+    { "/bits/shared_ptr_base.h",              "memory"              }, 
+    { "/bits/slice_array.h",                  "valarray"            }, 
+    { "/bits/special_function_util.h",        "cmath"               }, 
+    { "/bits/sso_string_base.h",              "vstring.h"           }, 
+    { "/bits/sstream.tcc",                    "sstream"             }, 
+    { "/bits/stl_algo.h",                     "algorithm"           }, 
+    { "/bits/stl_algobase.h",                 "algorithm"           }, 
+    { "/bits/stl_bvector.h",                  "vector"              }, 
+    { "/bits/stl_construct.h",                "memory"              }, 
+    { "/bits/stl_deque.h",                    "deque"               }, 
+    { "/bits/stl_function.h",                 "functional"          }, 
+    { "/bits/stl_heap.h",                     "queue"               }, 
+    { "/bits/stl_iterator.h",                 "iterator"            }, 
+    { "/bits/stl_iterator_base_funcs.h",      "iterator"            }, 
+    { "/bits/stl_iterator_base_types.h",      "iterator"            }, 
+    { "/bits/stl_list.h",                     "list"                }, 
+    { "/bits/stl_map.h",                      "map"                 }, 
+    { "/bits/stl_multimap.h",                 "map"                 }, 
+    { "/bits/stl_multiset.h",                 "set"                 }, 
+    { "/bits/stl_numeric.h",                  "numeric"             }, 
+    { "/bits/stl_pair.h",                     "utility"             }, 
+    { "/bits/stl_queue.h",                    "queue"               }, 
+    { "/bits/stl_raw_storage_iter.h",         "memory"              }, 
+    { "/bits/stl_relops.h",                   "utility"             }, 
+    { "/bits/stl_set.h",                      "set"                 }, 
+    { "/bits/stl_stack.h",                    "stack"               }, 
+    { "/bits/stl_tempbuf.h",                  "memory"              }, 
+    { "/bits/stl_tree.h",                     "map"                 }, 
+    { "/bits/stl_uninitialized.h",            "memory"              }, 
+    { "/bits/stl_vector.h",                   "vector"              }, 
+    { "/bits/stream_iterator.h",              "iterator"            }, 
+    { "/bits/streambuf.tcc",                  "streambuf"           }, 
+    { "/bits/streambuf_iterator.h",           "iterator"            }, 
+    { "/bits/stringfwd.h",                    "string"              }, 
+    { "/bits/strstream",                      "sstream"             }, 
+    { "/bits/time_members.h",                 "locale"              }, 
+    { "/bits/unique_ptr.h",                   "memory"              }, 
+    { "/bits/unordered_map.h",                "unordered_map"       }, 
+    { "/bits/unordered_set.h",                "unordered_set"       }, 
+    { "/bits/valarray_after.h",               "valarray"            }, 
+    { "/bits/valarray_array.h",               "valarray"            }, 
+    { "/bits/valarray_array.tcc",             "valarray"            }, 
+    { "/bits/valarray_before.h",              "valarray"            }, 
+    { "/bits/vector.tcc",                     "vector"              }, 
+    { "/bits/vstring.tcc",                    "vstring.h"           }, 
+    { "/bits/vstring_fwd.h",                  "vstring.h"           }, 
+    { "/bits/vstring_util.h",                 "vstring.h"           }, 
 
-    { "bslstl_algorithmworkaround.h",   "bsl_algorithm.h"     }, 
-    { "bslstl_allocator.h",             "bsl_memory.h"        }, 
-    { "bslstl_allocatortraits.h",       "bsl_memory.h"        }, 
-    { "bslstl_badweakptr.h",            "bsl_memory.h"        }, 
-    { "bslstl_bidirectionaliterator.h", "bsl_iterator.h"      }, 
-    { "bslstl_bitset.h",                "bsl_bitset.h"        }, 
-    { "bslstl_deque.h",                 "bsl_deque.h"         }, 
-    { "bslstl_equalto.h",               "bsl_functional.h"    }, 
-    { "bslstl_forwarditerator.h",       "bsl_iterator.h"      }, 
-    { "bslstl_hash.h",                  "bsl_functional.h"    }, 
-    { "bslstl_istringstream.h",         "bsl_sstream.h"       }, 
-    { "bslstl_iterator.h",              "bsl_iterator.h"      }, 
-    { "bslstl_list.h",                  "bsl_list.h"          }, 
-    { "bslstl_map.h",                   "bsl_map.h"           }, 
-    { "bslstl_multimap.h",              "bsl_map.h"           }, 
-    { "bslstl_multiset.h",              "bsl_set.h"           }, 
-    { "bslstl_ostringstream.h",         "bsl_sstream.h"       }, 
-    { "bslstl_pair.h",                  "bsl_utility.h"       }, 
-    { "bslstl_randomaccessiterator.h",  "bsl_iterator.h"      }, 
-    { "bslstl_set.h",                   "bsl_set.h"           }, 
-    { "bslstl_sharedptr.h",             "bsl_memory.h"        }, 
-    { "bslstl_sstream.h",               "bsl_sstream.h"       }, 
-    { "bslstl_stack.h",                 "bsl_stack.h"         }, 
-    { "bslstl_stdexceptutil.h",         "bsl_stdexcept.h"     }, 
-    { "bslstl_string.h",                "bsl_string.h"        }, 
-    { "bslstl_stringbuf.h",             "bsl_sstream.h"       }, 
-    { "bslstl_stringstream.h",          "bsl_sstream.h"       }, 
-    { "bslstl_unorderedmap.h",          "bsl_unordered_map.h" }, 
-    { "bslstl_unorderedmultimap.h",     "bsl_unordered_map.h" }, 
-    { "bslstl_unorderedmultiset.h",     "bsl_unordered_set.h" }, 
-    { "bslstl_unorderedset.h",          "bsl_unordered_set.h" }, 
-    { "bslstl_vector.h",                "bsl_vector.h"        }, 
-    { "bslstl_allocator.h",             "bsl_memory.h"        }, 
+    { "/bslstl_algorithmworkaround.h",        "bsl_algorithm.h"     }, 
+    { "/bslstl_allocator.h",                  "bsl_memory.h"        }, 
+    { "/bslstl_allocatortraits.h",            "bsl_memory.h"        }, 
+    { "/bslstl_badweakptr.h",                 "bsl_memory.h"        }, 
+    { "/bslstl_bidirectionaliterator.h",      "bsl_iterator.h"      }, 
+    { "/bslstl_bitset.h",                     "bsl_bitset.h"        }, 
+    { "/bslstl_deque.h",                      "bsl_deque.h"         }, 
+    { "/bslstl_equalto.h",                    "bsl_functional.h"    }, 
+    { "/bslstl_forwarditerator.h",            "bsl_iterator.h"      }, 
+    { "/bslstl_hash.h",                       "bsl_functional.h"    }, 
+    { "/bslstl_istringstream.h",              "bsl_sstream.h"       }, 
+    { "/bslstl_iterator.h",                   "bsl_iterator.h"      }, 
+    { "/bslstl_list.h",                       "bsl_list.h"          }, 
+    { "/bslstl_map.h",                        "bsl_map.h"           }, 
+    { "/bslstl_multimap.h",                   "bsl_map.h"           }, 
+    { "/bslstl_multiset.h",                   "bsl_set.h"           }, 
+    { "/bslstl_ostringstream.h",              "bsl_sstream.h"       }, 
+    { "/bslstl_pair.h",                       "bsl_utility.h"       }, 
+    { "/bslstl_randomaccessiterator.h",       "bsl_iterator.h"      }, 
+    { "/bslstl_set.h",                        "bsl_set.h"           }, 
+    { "/bslstl_sharedptr.h",                  "bsl_memory.h"        }, 
+    { "/bslstl_sstream.h",                    "bsl_sstream.h"       }, 
+    { "/bslstl_stack.h",                      "bsl_stack.h"         }, 
+    { "/bslstl_stdexceptutil.h",              "bsl_stdexcept.h"     }, 
+    { "/bslstl_string.h",                     "bsl_string.h"        }, 
+    { "/bslstl_stringbuf.h",                  "bsl_sstream.h"       }, 
+    { "/bslstl_stringstream.h",               "bsl_sstream.h"       }, 
+    { "/bslstl_unorderedmap.h",               "bsl_unordered_map.h" }, 
+    { "/bslstl_unorderedmultimap.h",          "bsl_unordered_map.h" }, 
+    { "/bslstl_unorderedmultiset.h",          "bsl_unordered_set.h" }, 
+    { "/bslstl_unorderedset.h",               "bsl_unordered_set.h" }, 
+    { "/bslstl_vector.h",                     "bsl_vector.h"        }, 
+    { "/bslstl_allocator.h",                  "bsl_memory.h"        }, 
 };
 
-std::set<llvm::StringRef> skipped_files {
-    "bsl_stdhdrs_epilogue.h",
-    "bsl_stdhdrs_prologue.h",
+std::string get_mapped(llvm::StringRef s)
+{
+    for (size_t rs = s.rfind('/'); rs != s.npos; rs = s.rfind('/', rs)) {
+        auto i = mapped_files.find(s.substr(rs));
+        if (i != mapped_files.end()) {
+            return i->second;
+        }
+    }
+    return "";
+}
+
+bool is_mapped(llvm::StringRef s)
+{
+    return !get_mapped(s).empty();
+}
+
+llvm::Regex skipped_files[] = {
+    { "(^|/)bsl_stdhdrs_(epi|pro)logue(_recursive)?[.]h$" },
+    { ".+/(bits|stlport)/[^/.]+([.]h)?$"                  },
 };
 
-std::set<llvm::StringRef> reexporting_files {
+bool is_skipped(llvm::StringRef name)
+{
+    for (auto& re : skipped_files) {
+        if (re.match(name)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+std::unordered_set<llvm::StringRef> reexporting_files {
     "bael_log.h",
 };
+
+std::unordered_map<llvm::StringRef,
+                   std::unordered_set<llvm::StringRef>> if_included_map{
+    {"bsl_ios.h", {"bsl_iostream.h", "bsl_streambuf.h", "bsl_strstream.h"}},
+    {"bsl_iosfwd.h", {"bsl_ios.h"}},
+    {"bsl_istream.h",{"bsl_iostream.h"}},
+    {"bsl_ostream.h",{"bsl_iostream.h"}},
+    {"bsl_streambuf.h",{"bsl_iostream.h"}},
+    {"ios", {"bsl_iostream.h", "bsl_streambuf.h", "bsl_strstream.h"}},
+    {"iosfwd", {"bsl_ios.h"}},
+    {"istream",{"bsl_iostream.h"}},
+    {"math.h",{"bsl_cmath.h"}},
+    {"ostream",{"bsl_iostream.h"}},
+    {"streambuf",{"bsl_iostream.h"}},
+};
+
+bool reexports(llvm::StringRef outer, llvm::StringRef inner)
+{
+    llvm::SmallVector<char, 1000> buf;
+
+    outer = llvm::sys::path::filename(outer);
+    inner = llvm::sys::path::filename(inner);
+
+    if (outer == inner) {
+        return true;
+    }
+
+    if (outer == "bsl_ios.h" &&
+        (inner == "bsl_iosfwd.h" ||
+         inner == "iosfwd")) {
+        return true;
+    }
+
+    if (outer == "bsl_cmath.h" && inner == "math.h") {
+        return true;
+    }
+
+    if (outer == "bsl_iostream.h" &&
+        (inner == "bsl_ios.h" ||
+         inner == "ios" ||
+         inner == "bsl_istream.h" ||
+         inner == "istream" ||
+         inner == "bsl_ostream.h" ||
+         inner == "ostream" ||
+         inner == "streambuf" ||
+         inner == "bsl_streambuf.h")) {
+        return true;
+    }
+
+    if (outer == "bsl_streambuf.h" &&
+        (inner == "bsl_ios.h" ||
+         inner == "ios")) {
+        return true;
+    }
+
+    if (outer == "bsl_strstream.h" &&
+        (inner == "bsl_ios.h" ||
+         inner == "ios")) {
+        return true;
+    }
+
+    if (reexporting_files.count(outer)) {
+        return true;
+    }
+
+    if (outer == ("bsl_" + inner + ".h").toStringRef(buf)) {
+        return true;
+    }
+
+    if (outer == ("bsl_c_" + inner).toStringRef(buf)) {
+        return true;
+    }
+
+    return false;
+}
 
 struct data
     // Data attached to analyzer for this check.
@@ -299,19 +439,21 @@ struct data
         // Create an object of this type.
 
     std::vector<FileID>                                        d_fileid_stack;
-    llvm::StringRef                                            d_guard;
+    std::string                                                d_guard;
     SourceLocation                                             d_guard_pos;
-    std::map<FileID, std::map<std::string, SourceLocation>>    d_once;
-    std::map<FileID,
-             std::vector<std::tuple<std::string, SourceLocation, bool> > >
+    std::unordered_map<FileID, std::unordered_map<std::string, SourceLocation>>
+                                                               d_once;
+    std::unordered_map<FileID, std::unordered_set<std::string>>
                                                                d_includes;
-    std::map<FileID, llvm::StringRef>                          d_guards;
-    std::map<std::tuple<FileID, FileID, SourceLocation>, SourceLocation>
-                                                               d_fid_map;
-    std::map<std::pair<SourceLocation, SourceLocation>, llvm::StringRef>
-                                                               d_file_for_loc;
-    std::map<SourceLocation, std::vector<std::pair<FileID, bool>>>
+    std::unordered_set<std::string>                            d_all_includes;
+    std::unordered_map<FileID, std::string>                    d_guards;
+    std::unordered_map<std::tuple<FileID, FileID, SourceLocation>,
+                       SourceLocation>                         d_fid_map;
+    std::unordered_map<std::pair<SourceLocation, SourceLocation>,
+                       std::string>                            d_file_for_loc;
+    std::unordered_map<SourceLocation, std::vector<std::pair<FileID, bool>>>
                                                                d_include_stack;
+    std::unordered_set<std::pair<FileID, const Decl *>>        d_decls;
 };
 
 data::data()
@@ -332,7 +474,7 @@ struct report : public RecursiveASTVisitor<report>
     std::vector<std::pair<FileID, bool>>& include_stack(SourceLocation sl);
         // Get the include stack for the specified 'sl'.
 
-    llvm::StringRef file_for_location(SourceLocation in, SourceLocation sl);
+    std::string file_for_location(SourceLocation in, SourceLocation sl);
         // Return the header file appropriate for including the specified 'sl'
         // at the specified 'in', calculated as follows:
         // 1) If 'sl' is (transitively) included through the component header
@@ -422,14 +564,16 @@ struct report : public RecursiveASTVisitor<report>
         // Preprocessor callback for 'else'.
 
     void require_file(std::string     name,
-                      SourceLocation  sl,
-                      llvm::StringRef symbol);
+                      SourceLocation  srcloc,
+                      llvm::StringRef symbol,
+                      SourceLocation  symloc);
         // Indicate that the specified file 'name' is needed at the specified
-        // 'sl' in order to obtain the specified 'symbol'.
+        // 'srcloc' in order to obtain the specified 'symbol' located at the
+        // specified 'symloc'.
 
     void inc_for_decl(llvm::StringRef  r,
-                          SourceLocation   sl,
-                          const Decl      *ds);
+                      SourceLocation   sl,
+                      const Decl      *ds);
         // For the specified name 'r' at location 'sl' referenced by the
         // specified declaration 'ds', determine which header file, if any, is
         // needed.
@@ -453,6 +597,13 @@ struct report : public RecursiveASTVisitor<report>
         // Return true if the specified 'guard' or 'token' is a header guard
         // for the specified 'file' or 'sl'.
 
+    std::string map_if_included(FileID fid, std::string name);
+        // Return a mapped file for the specified 'name' if that file is
+        // included within the specified 'fid'.
+
+    std::string name_for(const NamedDecl *decl);
+        // Return a diagnostic name for the specified 'decl'.
+
     bool shouldVisitTemplateInstantiations () const;
         // Return true;
 
@@ -461,10 +612,12 @@ struct report : public RecursiveASTVisitor<report>
     bool VisitNamedDecl(NamedDecl *decl);
     bool VisitNamespaceAliasDecl(NamespaceAliasDecl *decl);
     bool VisitNamespaceDecl(NamespaceDecl *decl);
+    bool VisitQualifiedTypeLoc(QualifiedTypeLoc tl);
     bool VisitTagDecl(TagDecl *decl);
     bool VisitTemplateDecl(TemplateDecl *decl);
     bool VisitTypeLoc(TypeLoc tl);
     bool VisitTypedefNameDecl(TypedefNameDecl *decl);
+    bool VisitTypedefTypeLoc(TypedefTypeLoc tl);
     bool VisitUsingDecl(UsingDecl *decl);
     bool VisitUsingDirectiveDecl(UsingDirectiveDecl *decl);
     bool VisitValueDecl(ValueDecl *decl);
@@ -473,12 +626,15 @@ struct report : public RecursiveASTVisitor<report>
     Analyser&                d_analyser;
     data&                    d_data;
     PPObserver::CallbackType d_type;
+
+    SourceManager&           m;
 };
 
 report::report(Analyser& analyser, PPObserver::CallbackType type)
 : d_analyser(analyser)
 , d_data(analyser.attachment<data>())
 , d_type(type)
+, m(analyser.manager())
 {
 }
 
@@ -486,18 +642,38 @@ std::vector<std::pair<FileID, bool>>& report::include_stack(SourceLocation sl)
 {
     auto& v = d_data.d_include_stack[sl];
     if (!v.size()) {
-        SourceManager& m = d_analyser.manager();
         while (sl.isValid()) {
             FileName fn(m.getFilename(sl));
-            v.push_back(
-                std::make_pair(m.getFileID(sl), is_top_level(fn.name())));
+            v.emplace_back(m.getFileID(sl), is_top_level(fn.name()));
             sl = m.getIncludeLoc(v.back().first);
         }
     }
     return v;
 }
 
-llvm::StringRef report::file_for_location(SourceLocation sl, SourceLocation in)
+std::string report::map_if_included(FileID fid, std::string name)
+{
+    name = llvm::sys::path::filename(name);
+    auto i = if_included_map.find(name);
+    if (i != if_included_map.end()) {
+        for (const auto& m : i->second) {
+            if (d_data.d_all_includes.count(m)) {
+                return map_if_included(fid, m);
+            }
+        }
+    }
+    std::string n = "bsl_" + name + ".h";
+    if (d_data.d_all_includes.count(n)) {
+        return n;
+    }
+    n = "bsl_c" + name;
+    if (d_data.d_all_includes.count(n)) {
+        return n;
+    }
+    return name;
+}
+
+std::string report::file_for_location(SourceLocation sl, SourceLocation in)
 {
     auto ip = std::make_pair(in, sl);
     auto i = d_data.d_file_for_loc.find(ip);
@@ -505,54 +681,46 @@ llvm::StringRef report::file_for_location(SourceLocation sl, SourceLocation in)
         return i->second;
     }
 
-    SourceManager& m = d_analyser.manager();
     FileID in_id = m.getFileID(in);
     FileID fid = m.getFileID(sl);
     auto& v = include_stack(sl);
     FileID top = fid;
     bool found = false;
     bool just_found = false;
-    llvm::StringRef result = m.getFilename(sl);
+    std::string result = m.getFilename(sl);
     for (auto& p : v) {
-        llvm::StringRef f = m.getFilename(m.getLocForStartOfFile(p.first));
-        llvm::StringRef t = m.getFilename(m.getLocForStartOfFile(top));
+        SourceLocation fl = m.getLocForStartOfFile(p.first);
+        SourceLocation tl = m.getLocForStartOfFile(top);
+        llvm::StringRef f = m.getFilename(fl);
+        llvm::StringRef t = m.getFilename(tl);
         FileName ff(f);
         if (p.first == in_id) {
             result = t;
             break;
         }
-        if (skipped_files.count(ff.name())) {
+        if (is_skipped(f) && !is_mapped(f)) {
             continue;
         }
         if (!found) {
-            if (p.second) {
+            if (p.second || is_mapped(f)) {
                 found = true;
                 just_found = true;
                 top = p.first;
             }
-            else {
-                FileName fn(t);
-                auto j = mapped_files.find(ff.name());
-                if (j != mapped_files.end()) {
-                    found = true;
-                    just_found = true;
-                    top = p.first;
-                }
-            }
         }
         else {
-            if (reexporting_files.count(ff.name()) ||
-                (just_found && d_analyser.is_component_header(ff.name()))) {
+            if (reexports(f, t) ||
+                (just_found && d_analyser.is_component(ff.name()))) {
                 top = p.first;
             }
             just_found = false;
         }
     }
-    auto j = mapped_files.find(FileName(result).name());
-    if (j != mapped_files.end()) {
-        result = j->second;
+    if (is_mapped(result)) {
+        result = get_mapped(result);
     }
-    if (skipped_files.count(FileName(result).name())) {
+    result = map_if_included(fid, result);
+    if (is_skipped(result)) {
         result = "";
     }
     return d_data.d_file_for_loc[ip] = result;
@@ -572,12 +740,11 @@ void report::set_guard(llvm::StringRef guard, SourceLocation where)
 
 void report::push_include(FileID fid, llvm::StringRef name, SourceLocation sl)
 {
-    SourceManager& m = d_analyser.manager();
     bool in_header = d_analyser.is_component_header(m.getFilename(sl));
     for (FileID f : d_data.d_fileid_stack) {
         if (f == fid) {
-            d_data.d_includes[f].push_back(std::make_tuple(
-                name, d_analyser.get_line_range(sl).getBegin(), true));
+            d_data.d_includes[f].insert(name);
+            d_data.d_all_includes.insert(name);
         }
         else if (in_header && f == m.getMainFileID()) {
             SourceLocation sfl = sl;
@@ -610,14 +777,16 @@ void report::push_include(FileID fid, llvm::StringRef name, SourceLocation sl)
                 }
                 d_data.d_fid_map[t] = sfl;
             }
-            d_data.d_includes[f].push_back(std::make_tuple(
-                name, d_analyser.get_line_range(sfl).getBegin(), false));
+            d_data.d_includes[f].insert(name);
+            d_data.d_all_includes.insert(name);
         }
     }
+#if 0
     llvm::StringRef file = llvm::sys::path::filename(name);
     if (file != name) {
         push_include(fid, file, sl);
     }
+#endif
 }
 
 // InclusionDirective
@@ -631,7 +800,6 @@ void report::operator()(SourceLocation   where,
                         llvm::StringRef  relpath,
                         const Module    *imported)
 {
-    SourceManager& m = d_analyser.manager();
     FileID fid = m.getFileID(where);
     if (d_data.d_guard_pos.isValid() &&
         fid != m.getFileID(d_data.d_guard_pos)) {
@@ -650,9 +818,9 @@ void report::operator()(SourceLocation                now,
                         SrcMgr::CharacteristicKind    type,
                         FileID                        prev)
 {
-    std::string name = d_analyser.manager().getPresumedLoc(now).getFilename();
+    std::string name = m.getPresumedLoc(now).getFilename();
     if (reason == PPCallbacks::EnterFile) {
-        d_data.d_fileid_stack.push_back(d_analyser.manager().getFileID(now));
+        d_data.d_fileid_stack.emplace_back(m.getFileID(now));
     } else if (reason == PPCallbacks::ExitFile) {
         if (d_data.d_fileid_stack.size() > 0) {
             d_data.d_fileid_stack.pop_back();
@@ -681,13 +849,13 @@ void report::operator()(Token const&          token,
 {
     llvm::StringRef macro = token.getIdentifierInfo()->getName();
     const MacroInfo *mi = md->getMacroInfo();
-    SourceManager& m = d_analyser.manager();
     Location loc(m, mi->getDefinitionLoc());
     if (loc && !range.getBegin().isMacroID() && macro != "std") {
         require_file(
             file_for_location(mi->getDefinitionLoc(), range.getBegin()),
             range.getBegin(),
-            /* std::string("MacroExpands ") + */ macro.str());
+            /*std::string("MacroExpands ") +*/ macro.str(),
+            mi->getDefinitionLoc());
     }
 }
 
@@ -726,12 +894,12 @@ bool report::is_guard_for(const Token& token, llvm::StringRef file)
 
 bool report::is_guard_for(llvm::StringRef guard, SourceLocation sl)
 {
-    return is_guard_for(guard, d_analyser.manager().getFilename(sl));
+    return is_guard_for(guard, m.getFilename(sl));
 }
 
 bool report::is_guard_for(const Token& token, SourceLocation sl)
 {
-    return is_guard_for(token, d_analyser.manager().getFilename(sl));
+    return is_guard_for(token, m.getFilename(sl));
 }
 
 // Ifdef
@@ -740,12 +908,11 @@ void report::operator()(SourceLocation        where,
                         const Token&          token,
                         const MacroDirective *)
 {
-    SourceManager& m = d_analyser.manager();
     llvm::StringRef tn = token.getIdentifierInfo()->getName();
 
     clear_guard();
 
-    if (!m.isInSystemHeader(where) && is_guard(token)) {
+    if (is_guard(token)) {
         set_guard(tn, where);
     }
 }
@@ -759,8 +926,7 @@ void report::operator()(const Token&          token,
 
     llvm::StringRef tn = token.getIdentifierInfo()->getName();
 
-    if (!d_analyser.manager().isInSystemHeader(range.getBegin()) &&
-        is_guard(token)) {
+    if (is_guard(token)) {
         set_guard(token.getIdentifierInfo()->getName(), range.getBegin());
     }
 }
@@ -768,11 +934,10 @@ void report::operator()(const Token&          token,
 // SourceRangeSkipped
 void report::operator()(SourceRange range)
 {
-    SourceManager& m = d_analyser.manager();
     Location loc(m, range.getBegin());
-    if (d_data.d_guard.size() > 0 && !m.isInSystemHeader(range.getBegin())) {
-        llvm::Regex r(("ifndef +" + d_data.d_guard + "[[:space:]]+"
-                       "# *include +<([^>]+)>").str());
+    if (d_data.d_guard.size() > 0) {
+        llvm::Regex r("ifndef +" + d_data.d_guard + "[[:space:]]+"
+                      "# *include +<([^>]+)>");
         llvm::StringRef source = d_analyser.get_source(range);
         llvm::SmallVector<llvm::StringRef, 7> matches;
         if (r.match(source, &matches)) {
@@ -825,35 +990,26 @@ const NamedDecl *report::look_through_typedef(const Decl *ds)
 }
 
 void report::require_file(std::string     name,
-                          SourceLocation  sl,
-                          llvm::StringRef symbol)
+                          SourceLocation  srcloc,
+                          llvm::StringRef symbol,
+                          SourceLocation  symloc)
 {
     if (name.empty()) {
         return;
     }
 
-    SourceManager& m = d_analyser.manager();
-    SourceLocation orig_sl = sl;
+    SourceLocation orig_sl = srcloc;
 
-    sl = m.getExpansionLoc(sl);
+    srcloc = m.getExpansionLoc(srcloc);
+    FileID fid = m.getFileID(srcloc);
+    FileName ff(m.getFilename(srcloc));
 
-    FileID fid = m.getFileID(sl);
-    while (m.isInSystemHeader(sl)) {
-        SourceLocation il = m.getIncludeLoc(fid);
-        if (!il.isValid()) {
-            break;
-        }
-        sl = il;
-        fid = m.getDecomposedIncludedLoc(fid).first;
-    }
-
-    FileName ff(m.getFilename(sl));
     FileName fn(name);
     name = fn.name();
 
     if (name == ff.name() ||
         is_top_level(ff.name()) ||
-        skipped_files.count(ff.name())) {
+        is_skipped(ff.name())) {
         return;
     }
 
@@ -863,34 +1019,51 @@ void report::require_file(std::string     name,
         }
     }
 
-    for (const auto& p : d_data.d_includes[fid]) {
-        if (std::get<0>(p) == name /*&&
-            (!std::get<1>(p).isValid() ||
-             !m.isBeforeInTranslationUnit(sl, std::get<1>(p)))*/) {
+    for (const auto& s : d_data.d_includes[fid]) {
+        if (s == name) {
             return;
         }
     }
 
     if (!d_data.d_once[fid].count(name) /*||
-        m.isBeforeInTranslationUnit(sl, d_data.d_once[fid][name])*/) {
-        d_data.d_once[fid][name] = sl;
-        d_analyser.report(sl, check_name, "AQK01",
+        m.isBeforeInTranslationUnit(srcloc, d_data.d_once[fid][name])*/) {
+        d_data.d_once[fid][name] = srcloc;
+        d_analyser.report(srcloc, check_name, "AQK01",
                           "Need #include <%0> for '%1'")
             << name
             << symbol;
         if (d_analyser.is_component_header(ff.name())) {
-            d_data.d_once[m.getMainFileID()][name] = sl;
+            d_data.d_once[m.getMainFileID()][name] = srcloc;
         }
     }
 }
 
 void report::inc_for_decl(llvm::StringRef r, SourceLocation sl, const Decl *ds)
 {
-    SourceManager& m = d_analyser.manager();
     sl = m.getExpansionLoc(sl);
+    if (!d_analyser.is_component(sl)) {
+        return;
+    }
+    if (!d_data.d_decls.insert({m.getFileID(sl), ds->getCanonicalDecl()})
+             .second) {
+        return;
+    }
+
+    if (const UsingDecl *ud = llvm::dyn_cast<UsingDecl>(ds)) {
+        auto sb = ud->shadow_begin();
+        auto se = ud->shadow_end();
+        for (; sb != se; ++sb) {
+            const UsingShadowDecl *usd = *sb;
+            for (auto u = usd; u; u = u->getPreviousDecl()) {
+                inc_for_decl(r, sl, u);
+            }
+        }
+        return;
+    }
 
     for (const Decl *d = ds; d; d = look_through_typedef(d)) {
         bool skip = false;
+        Decl *prefer = 0;
         for (const Decl *p = d; !skip && p; p = p->getPreviousDecl()) {
 #if 1
             Location loc(m, p->getLocation());
@@ -900,7 +1073,27 @@ void report::inc_for_decl(llvm::StringRef r, SourceLocation sl, const Decl *ds)
             for (; !skip && rb != re; ++rb) {
                 SourceLocation rl = rb->getLocation();
                 if (rl.isValid() /*&& !m.isBeforeInTranslationUnit(sl, rl)*/) {
-                    skip = d_analyser.is_component(file_for_location(rl, sl));
+                    llvm::StringRef file = file_for_location(rl, sl);
+                    skip = d_analyser.is_component(file) ||
+                           d_data.d_includes[m.getMainFileID()].count(file);
+                }
+                if (auto decl = llvm::dyn_cast<VarDecl>(*rb)) {
+                    if (decl->isThisDeclarationADefinition()) {
+                        prefer = *rb;
+                    }
+                }
+                if (auto decl = llvm::dyn_cast<FunctionDecl>(*rb)) {
+                    if (decl->isThisDeclarationADefinition()) {
+                        prefer = *rb;
+                    }
+                }
+                if (auto decl = llvm::dyn_cast<TagDecl>(*rb)) {
+                    if (decl->getRBraceLoc().isValid()) {
+                        prefer = *rb;
+                    }
+                }
+                if (auto decl = llvm::dyn_cast<UsingDecl>(*rb)) {
+                    prefer = *rb;
                 }
             }
 #endif
@@ -915,28 +1108,39 @@ void report::inc_for_decl(llvm::StringRef r, SourceLocation sl, const Decl *ds)
                 SourceLocation rl = rb->getLocation();
                 if (rl.isValid() /*&& !m.isBeforeInTranslationUnit(sl, rl)*/) {
                     Location loc(m, rl);
-                    if (!skip && loc) {
-                        require_file(file_for_location(rl, sl), sl, r);
+                    if (!skip && loc && (!prefer || prefer == *rb)) {
+                        require_file(file_for_location(rl, sl), sl, r, rl);
                         skip = true;
                     }
                 }
             }
 #endif
-            const UsingDecl *ud = llvm::dyn_cast<UsingDecl>(p);
-            if (!skip && ud) {
-                auto sb = ud->shadow_begin();
-                auto se = ud->shadow_end();
-                for (; !skip && sb != se; ++sb) {
-                    const UsingShadowDecl *usd = *sb;
-                    for (auto u = usd; !skip && u; u = u->getPreviousDecl()) {
-                        inc_for_decl(r, sl, u);
-                    }
-                }
-            }
         }
     }
 }
 //#define inc_for_decl(r,s,d) inc_for_decl(std::string(__FUNCTION__)+" "+r,s,d)
+
+std::string report::name_for(const NamedDecl *decl)
+{
+    std::string result;
+    llvm::raw_string_ostream s(result);
+    PrintingPolicy pp(d_analyser.context()->getLangOpts());
+    pp.Indentation = 4;
+    pp.SuppressSpecifiers = false;
+    pp.SuppressTagKeyword = false;
+    pp.SuppressTag = false;
+    pp.SuppressScope = false;
+    pp.SuppressUnwrittenScope = false;
+    pp.SuppressInitializers = false;
+    pp.ConstantArraySizeAsWritten = true;
+    pp.AnonymousTagLocations = true;
+    pp.Bool = true;
+    pp.TerseOutput = false;
+    pp.PolishForDeclaration = true;
+    pp.IncludeNewlines = false;
+    decl->getNameForDiagnostic(s, pp, true);
+    return s.str();
+}
 
 bool report::shouldVisitTemplateInstantiations() const
 {
@@ -948,10 +1152,9 @@ bool report::VisitNamespaceAliasDecl(NamespaceAliasDecl *decl)
 #if 1
     SourceLocation sl = decl->getLocation();
     if (sl.isValid() &&
-        !d_analyser.manager().isInSystemHeader(sl) &&
         !sl.isMacroID() &&
         decl->isExternallyVisible()) {
-        std::string name = decl->getNameAsString();
+        std::string name = name_for(decl);
         inc_for_decl(name, sl, decl);
     }
 #endif
@@ -963,11 +1166,10 @@ bool report::VisitNamespaceDecl(NamespaceDecl *decl)
 #if 1
     SourceLocation sl = decl->getLocation();
     if (sl.isValid() &&
-        !d_analyser.manager().isInSystemHeader(sl) &&
         !sl.isMacroID() &&
         decl->isExternallyVisible() &&
         decl->getName() != "std") {
-        std::string name = decl->getNameAsString();
+        std::string name = name_for(decl);
         inc_for_decl(name, sl, decl);
     }
 #endif
@@ -979,10 +1181,9 @@ bool report::VisitTemplateDecl(TemplateDecl *decl)
 #if 1
     SourceLocation sl = decl->getLocation();
     if (sl.isValid() &&
-        !d_analyser.manager().isInSystemHeader(sl) &&
         !sl.isMacroID() &&
         decl->isExternallyVisible()) {
-        std::string name = decl->getNameAsString();
+        std::string name = name_for(decl);
         inc_for_decl(name, sl, decl);
     }
 #endif
@@ -994,10 +1195,9 @@ bool report::VisitTagDecl(TagDecl *decl)
 #if 1
     SourceLocation sl = decl->getLocation();
     if (sl.isValid() &&
-        !d_analyser.manager().isInSystemHeader(sl) &&
         !sl.isMacroID() &&
         decl->isExternallyVisible()) {
-        std::string name = decl->getNameAsString();
+        std::string name = name_for(decl);
         inc_for_decl(name, sl, decl);
     }
 #endif
@@ -1009,10 +1209,9 @@ bool report::VisitTypedefNameDecl(TypedefNameDecl *decl)
 #if 1
     SourceLocation sl = decl->getLocation();
     if (sl.isValid() &&
-        !d_analyser.manager().isInSystemHeader(sl) &&
         !sl.isMacroID() &&
         decl->isExternallyVisible()) {
-        std::string name = decl->getNameAsString();
+        std::string name = name_for(decl);
         inc_for_decl(name, sl, decl);
     }
 #endif
@@ -1024,10 +1223,9 @@ bool report::VisitUsingDecl(UsingDecl *decl)
 #if 1
     SourceLocation sl = decl->getLocation();
     if (sl.isValid() &&
-        !d_analyser.manager().isInSystemHeader(sl) &&
         !sl.isMacroID() &&
         decl->isExternallyVisible()) {
-        std::string name = decl->getNameAsString();
+        std::string name = name_for(decl);
         inc_for_decl(name, sl, decl);
     }
 #endif
@@ -1039,10 +1237,9 @@ bool report::VisitValueDecl(ValueDecl *decl)
 #if 1
     SourceLocation sl = decl->getLocation();
     if (sl.isValid() &&
-        !d_analyser.manager().isInSystemHeader(sl) &&
         !sl.isMacroID() &&
         decl->isExternallyVisible()) {
-        std::string name = decl->getNameAsString();
+        std::string name = name_for(decl);
         inc_for_decl(name, sl, decl);
     }
 #endif
@@ -1051,13 +1248,12 @@ bool report::VisitValueDecl(ValueDecl *decl)
 
 bool report::VisitNamedDecl(NamedDecl *decl)
 {
-#if 0
+#if 1
     SourceLocation sl = decl->getLocation();
     if (sl.isValid() &&
-        !d_analyser.manager().isInSystemHeader(sl) &&
         !sl.isMacroID() &&
         decl->isExternallyVisible()) {
-        std::string name = decl->getNameAsString();
+        std::string name = name_for(decl);
         inc_for_decl(name, sl, decl);
     }
 #endif
@@ -1070,10 +1266,9 @@ bool report::VisitUsingDirectiveDecl(UsingDirectiveDecl *decl)
     NamespaceDecl *nd = decl->getNominatedNamespace();
     SourceLocation sl = decl->getLocation();
     if (sl.isValid() &&
-        !d_analyser.manager().isInSystemHeader(sl) &&
         !sl.isMacroID() &&
         nd->isExternallyVisible()) {
-        inc_for_decl(nd->getNameAsString(), sl, nd);
+        inc_for_decl(name_for(nd), sl, nd);
     }
 #endif
     return base::VisitUsingDirectiveDecl(decl);
@@ -1084,13 +1279,13 @@ bool report::VisitDeclRefExpr(DeclRefExpr *expr)
 #if 1
     SourceLocation sl = expr->getExprLoc();
     if (sl.isValid() &&
-        !d_analyser.manager().isInSystemHeader(sl) &&
         !sl.isMacroID()) {
         const NamedDecl *ds = expr->getFoundDecl();
         const DeclContext *dc = ds->getDeclContext();
         std::string name = expr->getNameInfo().getName().getAsString();
         while (dc->isRecord()) {
-            name = llvm::dyn_cast<NamedDecl>(dc)->getNameAsString();
+            ds = llvm::dyn_cast<NamedDecl>(dc);
+            name = name_for(ds);
             dc = dc->getParent();
         }
         if (dc->isFileContext() ||
@@ -1107,14 +1302,34 @@ bool report::VisitCXXConstructExpr(CXXConstructExpr *expr)
 {
 #if 1
     SourceLocation sl = expr->getExprLoc();
+    const NamedDecl *ds = 0;
+    std::string name;
+    if (const VarDecl *vd = d_analyser.get_parent<VarDecl>(expr)) {
+        TypeLoc tl = vd->getTypeSourceInfo()->getTypeLoc().getUnqualifiedLoc();
+        for (;;) {
+            ElaboratedTypeLoc etl = tl.getAs<ElaboratedTypeLoc>();
+            if (etl.isNull()) {
+                break;
+            }
+            tl = etl.getNamedTypeLoc();
+        }
+        TypedefTypeLoc ttl = tl.getAs<TypedefTypeLoc>();
+        if (!ttl.isNull()) {
+            ds = ttl.getTypedefNameDecl();
+            name = ds->getNameAsString();
+            sl = ttl.getBeginLoc();
+        }
+    }
+
     if (sl.isValid() &&
-        !d_analyser.manager().isInSystemHeader(sl) &&
         !sl.isMacroID()) {
-        const NamedDecl *ds = expr->getConstructor()->getParent();
+        if (!ds) {
+            ds = expr->getConstructor()->getParent();
+            name = name_for(ds);
+        }
         const DeclContext *dc = ds->getDeclContext();
-        std::string name = ds->getNameAsString();
         while (dc->isRecord()) {
-            name = llvm::dyn_cast<NamedDecl>(dc)->getNameAsString();
+            name = name_for(llvm::dyn_cast<NamedDecl>(dc));
             dc = dc->getParent();
         }
         if (dc->isFileContext() ||
@@ -1127,10 +1342,46 @@ bool report::VisitCXXConstructExpr(CXXConstructExpr *expr)
     return base::VisitCXXConstructExpr(expr);
 }
 
+bool report::VisitQualifiedTypeLoc(QualifiedTypeLoc tl)
+{
+    const Type *type = tl.getTypePtr();
+    SourceLocation sl = tl.getBeginLoc();
+    if (!m.isWrittenInSameFile(tl.getBeginLoc(), tl.getEndLoc())) {
+        sl = m.getExpansionLoc(sl);
+    }
+    PrintingPolicy pp(d_analyser.context()->getLangOpts());
+    pp.SuppressTagKeyword = true;
+    pp.SuppressInitializers = true;
+    pp.TerseOutput = true;
+    std::string r = QualType(type, 0).getAsString(pp);
+    NamedDecl *ds = d_analyser.lookup_name(r);
+    if (!ds) {
+        tl.getTypePtr()->isIncompleteType(&ds);
+    }
+    if (ds && sl.isValid() && !sl.isMacroID()) {
+        r = name_for(ds);
+        inc_for_decl(r, sl, ds);
+    }
+    return base::VisitQualifiedTypeLoc(tl);
+}
+
+bool report::VisitTypedefTypeLoc(TypedefTypeLoc tl)
+{
+    TypedefNameDecl *ds = tl.getTypedefNameDecl();
+    SourceLocation sl = tl.getBeginLoc();
+    if (!m.isWrittenInSameFile(tl.getBeginLoc(), tl.getEndLoc())) {
+        sl = m.getExpansionLoc(sl);
+    }
+    if (ds && sl.isValid() && !sl.isMacroID()) {
+        std::string r = name_for(ds);
+        inc_for_decl(r, sl, ds);
+    }
+    return base::VisitTypedefTypeLoc(tl);
+}
+
 bool report::VisitTypeLoc(TypeLoc tl)
 {
-#if 1
-    SourceManager& m = d_analyser.manager();
+#if 0
     const Type *type = tl.getTypePtr();
     if (type->getAs<TypedefType>() || !type->isBuiltinType()) {
         SourceLocation sl = tl.getBeginLoc();
@@ -1151,7 +1402,7 @@ bool report::VisitTypeLoc(TypeLoc tl)
                 tl.getTypePtr()->isIncompleteType(&ds);
             }
         }
-        if (ds && sl.isValid() && !sl.isMacroID() && !m.isInSystemHeader(sl)) {
+        if (ds && sl.isValid() && !sl.isMacroID()) {
             inc_for_decl(r, sl, ds);
         }
     }
