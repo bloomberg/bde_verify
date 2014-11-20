@@ -60,6 +60,7 @@ CXXFILES =                                                 \
         csabase_analyser.cpp                               \
         csabase_attachments.cpp                            \
         csabase_checkregistry.cpp                          \
+        csabase_clang.cpp                                  \
         csabase_config.cpp                                 \
         csabase_debug.cpp                                  \
         csabase_diagnosticfilter.cpp                       \

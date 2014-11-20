@@ -29,34 +29,13 @@ static std::string const check_name("diagnostic-filter");
 csabase::DiagnosticFilter::DiagnosticFilter(Analyser const& analyser,
                                             bool toplevel_only,
                                             DiagnosticOptions& options)
-    : d_options(&options)
-    , d_client(new TextDiagnosticPrinter(llvm::errs(), d_options))
-    , d_analyser(&analyser)
-    , d_toplevel_only(toplevel_only)
-{
-}
-
-csabase::DiagnosticFilter::~DiagnosticFilter()
+: TextDiagnosticPrinter(llvm::errs(), &options)
+, d_analyser(&analyser)
+, d_toplevel_only(toplevel_only)
 {
 }
 
 // ----------------------------------------------------------------------------
-
-void csabase::DiagnosticFilter::BeginSourceFile(LangOptions const& opts,
-                                                Preprocessor const* pp)
-{
-    d_client->BeginSourceFile(opts, pp);
-}
-
-void csabase::DiagnosticFilter::EndSourceFile()
-{
-    d_client->EndSourceFile();
-}
-
-bool csabase::DiagnosticFilter::IncludeInDiagnosticCounts() const
-{
-    return true;
-}
 
 static std::string get_filename(Diagnostic const& d)
 {
@@ -73,6 +52,7 @@ void
 csabase::DiagnosticFilter::HandleDiagnostic(DiagnosticsEngine::Level level,
                                             Diagnostic const&        info)
 {
+#if 0
     if (   DiagnosticsEngine::Warning < level
         || (   !info.getLocation().isFileID()
             && info.getID() != diag::pp_pragma_once_in_main_file
@@ -85,15 +65,10 @@ csabase::DiagnosticFilter::HandleDiagnostic(DiagnosticsEngine::Level level,
                )
            )
        )
+#endif
     {
-        DiagnosticConsumer::HandleDiagnostic(level, info);
-        d_client->HandleDiagnostic(level, info);
+        TextDiagnosticPrinter::HandleDiagnostic(level, info);
     }
-}
-
-DiagnosticConsumer* csabase::DiagnosticFilter::clone(DiagnosticsEngine&) const
-{
-    return new DiagnosticFilter(*d_analyser, d_toplevel_only, *d_options);
 }
 
 // ----------------------------------------------------------------------------

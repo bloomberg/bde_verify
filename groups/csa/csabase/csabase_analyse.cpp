@@ -48,6 +48,7 @@ class AnalyseConsumer : public ASTConsumer
     AnalyseConsumer(CompilerInstance&   compiler,
                     std::string const&  source,
                     PluginAction const& plugin);
+    ~AnalyseConsumer();
     void Initialize(ASTContext& context);
     bool HandleTopLevelDecl(DeclGroupRef DG);
     llvm::StringRef Canon(llvm::StringRef path);
@@ -81,6 +82,13 @@ AnalyseConsumer::AnalyseConsumer(CompilerInstance&   compiler,
     compiler.getDiagnostics().getClient()->BeginSourceFile(
         compiler.getLangOpts(),
         compiler.hasPreprocessor() ? &compiler.getPreprocessor() : 0);
+}
+
+// -----------------------------------------------------------------------------
+
+AnalyseConsumer::~AnalyseConsumer()
+{
+    analyser_.compiler().getDiagnostics().getClient()->EndSourceFile();
 }
 
 // -----------------------------------------------------------------------------

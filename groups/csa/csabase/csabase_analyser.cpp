@@ -333,16 +333,15 @@ csabase::Analyser::report(SourceLocation where,
                           DiagnosticIDs::Level level)
 {
     Location location(get_location(where));
-    if (   (always || is_component(location.file()))
-        && !config()->suppressed(tag, where))
-    {
+    if ((always || is_component(location.file())) &&
+        !config()->suppressed(tag, where)) {
         unsigned int id(
             compiler_.getDiagnostics().getDiagnosticIDs()->getCustomDiagID(
                 level, tool_name() + tag + ": " + message));
-        return diagnostic_builder(
-            compiler_.getDiagnostics().Report(where, id));
+        return csabase::diagnostic_builder(
+            compiler_.getDiagnostics().Report(where, id), always);
     }
-    return diagnostic_builder();
+    return csabase::diagnostic_builder();
 }
 
 // -----------------------------------------------------------------------------

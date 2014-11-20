@@ -1,35 +1,6 @@
-// csabase_diagnosticfilter.h                                         -*-C++-*-
+// csabase_clang.cpp                                                  -*-C++-*-
 
-#ifndef INCLUDED_CSABASE_DIAGNOSTICFILTER_H
-#define INCLUDED_CSABASE_DIAGNOSTICFILTER_H
-
-#include <clang/Frontend/TextDiagnosticPrinter.h>
-#include <memory>
-
-// ----------------------------------------------------------------------------
-
-namespace clang { class DiagnosticOptions; }
-
-namespace csabase { class Analyser; }
-namespace csabase
-{
-class DiagnosticFilter : public clang::TextDiagnosticPrinter
-{
-  public:
-    DiagnosticFilter(Analyser const&           analyser,
-                     bool                      toplevel_only,
-                     clang::DiagnosticOptions& options);
-
-    void HandleDiagnostic(clang::DiagnosticsEngine::Level level,
-                          clang::Diagnostic const&        info) override;
-
-private:
-    Analyser const*                          d_analyser;
-    bool                                     d_toplevel_only;
-};
-}
-
-#endif
+#include <csabase_clang.h>
 
 // ----------------------------------------------------------------------------
 // Copyright (C) 2014 Bloomberg Finance L.P.

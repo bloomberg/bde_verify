@@ -526,10 +526,6 @@ struct report : public RecursiveASTVisitor<report>
         // Return 'true' iff the specified 'token' is the specified 'name'.
 
     void operator()(Token const&          token,
-                    MacroDirective const *md);
-        // Preprocessor callback for macro definition.
-
-    void operator()(Token const&          token,
                     MacroDirective const *md,
                     SourceRange           range,
                     MacroArgs const      *);
@@ -832,13 +828,6 @@ bool report::is_named(Token const& token, llvm::StringRef name)
 {
     return token.isAnyIdentifier() &&
            token.getIdentifierInfo()->getName() == name;
-}
-
-// MacroDefined
-// MacroUndefined
-void report::operator()(Token const&          token,
-                        MacroDirective const *md)
-{
 }
 
 // MacroExpands
@@ -1423,10 +1412,6 @@ void subscribe(Analyser& analyser, Visitor&, PPObserver& observer)
                                                 observer.e_InclusionDirective);
     observer.onPPFileChanged        += report(analyser,
                                                        observer.e_FileChanged);
-    observer.onPPMacroDefined       += report(analyser,
-                                                      observer.e_MacroDefined);
-    observer.onPPMacroUndefined     += report(analyser,
-                                                    observer.e_MacroUndefined);
     observer.onPPMacroExpands       += report(analyser,
                                                       observer.e_MacroExpands);
     observer.onPPIfdef              += report(analyser, observer.e_Ifdef);

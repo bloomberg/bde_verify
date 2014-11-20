@@ -71,6 +71,8 @@ export VERBOSE ?= @
 #  ----------------------------------------------------------------------------
 
 CXXFILES =                                                                    \
+        groups/csa/csaaq/csaaq_cppinexternc.cpp                               \
+        groups/csa/csaaq/csaaq_includeinexternc.cpp                           \
         groups/csa/csaaq/csaaq_transitiveincludes.cpp                         \
         groups/csa/csabde/csabde_tool.cpp                                     \
         groups/csa/csabbg/csabbg_allocatorforward.cpp                         \
@@ -225,7 +227,8 @@ $(CSABASEDIR)/$(OBJ)/$(LIBCSABASE): csabase
 
 $(OBJ)/$(TARGET): $(CSABASEDIR)/$(OBJ)/$(LIBCSABASE) $(OFILES)
 	@echo linking executable
-	$(VERBOSE) $(LINK) $(LDFLAGS) -o $@ $(OFILES) $(LIBS)
+	$(VERBOSE) $(LINK) $(LDFLAGS) -o $@.$$ $(OFILES) $(LIBS)
+	mv $@.$$ $@
 
 $(OBJ)/%.o: %.cpp
 	@if [ ! -d $(@D) ]; then mkdir -p $(@D); fi
