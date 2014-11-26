@@ -5,6 +5,7 @@
 
 #include <clang/Frontend/TextDiagnosticPrinter.h>
 #include <memory>
+#include <string>
 
 // ----------------------------------------------------------------------------
 
@@ -17,7 +18,7 @@ class DiagnosticFilter : public clang::TextDiagnosticPrinter
 {
   public:
     DiagnosticFilter(Analyser const&           analyser,
-                     bool                      toplevel_only,
+                     std::string               diagnose,
                      clang::DiagnosticOptions& options);
 
     void HandleDiagnostic(clang::DiagnosticsEngine::Level level,
@@ -25,7 +26,7 @@ class DiagnosticFilter : public clang::TextDiagnosticPrinter
 
 private:
     Analyser const*                          d_analyser;
-    bool                                     d_toplevel_only;
+    std::string                              d_diagnose;
 };
 }
 

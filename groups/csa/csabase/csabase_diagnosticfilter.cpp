@@ -26,12 +26,12 @@ static std::string const check_name("diagnostic-filter");
 
 // ----------------------------------------------------------------------------
 
-csabase::DiagnosticFilter::DiagnosticFilter(Analyser const& analyser,
-                                            bool toplevel_only,
+csabase::DiagnosticFilter::DiagnosticFilter(Analyser const&    analyser,
+                                            std::string        diagnose,
                                             DiagnosticOptions& options)
 : TextDiagnosticPrinter(llvm::errs(), &options)
 , d_analyser(&analyser)
-, d_toplevel_only(toplevel_only)
+, d_diagnose(diagnose)
 {
 }
 
@@ -52,21 +52,28 @@ void
 csabase::DiagnosticFilter::HandleDiagnostic(DiagnosticsEngine::Level level,
                                             Diagnostic const&        info)
 {
-#if 0
-    if (   DiagnosticsEngine::Warning < level
-        || (   !info.getLocation().isFileID()
-            && info.getID() != diag::pp_pragma_once_in_main_file
-           )
-        || (   d_analyser->is_component(get_filename(info))
-            && !d_analyser->is_generated(info.getLocation())
-            && (   !d_toplevel_only
-                || d_analyser->manager().getMainFileID() ==
-                   d_analyser->manager().getFileID(info.getLocation())
-               )
-           )
-       )
-#endif
-    {
+    bool handle = false;
+    if (!handle) {
+        handle = !info.getLocation().isFileID() &&
+                 info.getID() != diag::pp_pragma_once_in_main_file;
+    }
+    if (!handle) {
+        handle = d_diagnose == "all";
+    }
+    if (!handle) {
+        handle = d_diagnose == "nogen" &&
+                 !d_analyser->is_generated(info.getLocation());
+    }
+    if (!handle) {
+        handle = d_diagnose == "component" &&
+                 d_analyser->is_component(info.getLocation());
+    }
+    if (!handle) {
+        handle = d_diagnose == "main" &&
+                 d_analyser->manager().getMainFileID() ==
+                 d_analyser->manager().getFileID(info.getLocation());
+    }
+    if (handle) {
         TextDiagnosticPrinter::HandleDiagnostic(level, info);
     }
 }

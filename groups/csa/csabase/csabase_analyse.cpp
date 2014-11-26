@@ -78,7 +78,7 @@ AnalyseConsumer::AnalyseConsumer(CompilerInstance&   compiler,
     analyser_.toplevel(source);
 
     compiler.getDiagnostics().setClient(new DiagnosticFilter(
-        analyser_, plugin.toplevel_only(), compiler.getDiagnosticOpts()));
+        analyser_, plugin.diagnose(), compiler.getDiagnosticOpts()));
     compiler.getDiagnostics().getClient()->BeginSourceFile(
         compiler.getLangOpts(),
         compiler.hasPreprocessor() ? &compiler.getPreprocessor() : 0);
@@ -300,7 +300,7 @@ PluginAction::PluginAction()
 : debug_()
 , config_(1, "load .bdeverify")
 , tool_name_()
-, toplevel_only_(false)
+, diagnose_("component")
 {
 }
 
@@ -333,11 +333,10 @@ bool PluginAction::ParseArgs(CompilerInstance const& compiler,
         }
         else if (arg == "toplevel-only-on")
         {
-            toplevel_only_ = true;
+            diagnose_ = "main";
         }
-        else if (arg == "toplevel-only-off")
-        {
-            toplevel_only_ = false;
+        else if (arg.startswith("diagnose=")) {
+            diagnose_ = arg.substr(9).str();
         }
         else if (arg.startswith("config=")) {
             config_.push_back("load " + arg.substr(7).str());
@@ -377,9 +376,9 @@ std::string PluginAction::tool_name() const
     return tool_name_;
 }
 
-bool PluginAction::toplevel_only() const
+std::string PluginAction::diagnose() const
 {
-    return toplevel_only_;
+    return diagnose_;
 }
 
 std::string PluginAction::rewrite_dir() const

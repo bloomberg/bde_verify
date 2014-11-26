@@ -98,6 +98,8 @@ public:
         e_Ifndef,
         e_Else,
         e_Endif,
+
+        e_Comment,
     };
 
     void FileChanged(

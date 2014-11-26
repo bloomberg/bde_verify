@@ -194,11 +194,9 @@ csabase::Config::process(std::string const& line)
                 FileName fn(file);
                 if (d_suppressions.insert(std::make_pair(tag, fn.name()))
                         .second &&
-                    d_groups.find(tag) != d_groups.end()) {
-                    const std::vector<std::string>& group_items =
-                        d_groups.find(tag)->second;
-                    for (size_t i = 0; i < group_items.size(); ++i) {
-                        process("suppress " + group_items[i] + " " + file);
+                    d_groups.count(tag)) {
+                    for (const auto& group_item : d_groups.find(tag)->second) {
+                        process("suppress " + group_item + " " + file);
                     }
                 }
             }
@@ -206,6 +204,26 @@ csabase::Config::process(std::string const& line)
         else {
             llvm::errs()
                 << "WARNING: suppress needs tag and files on line '"
+                << line << "'\n";
+        }
+    }
+    else if ("unsuppress" == command) {
+        std::string tag;
+        if (args >> tag) {
+            std::string file;
+            while (args >> file) {
+                FileName fn(file);
+                auto p = std::make_pair(tag, fn.name());
+                if (d_suppressions.erase(p) && d_groups.count(tag)) {
+                    for (const auto& group_item : d_groups.find(tag)->second) {
+                        process("unsuppress " + group_item + " " + file);
+                    }
+                }
+            }
+        }
+        else {
+            llvm::errs()
+                << "WARNING: unsuppress needs tag and files on line '"
                 << line << "'\n";
         }
     }

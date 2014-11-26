@@ -493,7 +493,11 @@ void report::process_function(CXXMethodDecl *m)
 {
     if (m->getAccess() == AS_public &&
         m->isUserProvided() &&
-        !m->getLocation().isMacroID()) {
+        !m->getLocation().isMacroID() &&
+        !d_analyser.config()->suppressed(
+            "TP27",
+            d_analyser.manager().getLocForStartOfFile(
+                                      d_analyser.manager().getMainFileID()))) {
         MatchFinder mf;
         bool found = false;
         OnMatch<> m1([&](const BoundNodes &nodes) {
@@ -511,8 +515,8 @@ void report::process_function(CXXMethodDecl *m)
             &m1);
         mf.match(*m->getTranslationUnitDecl(), *d_analyser.context());
         if (!found) {
-            d_analyser.report(m, check_name, "TP27", "Method not called in "
-                                                     "test driver");
+            d_analyser.report(m, check_name, "TP27",
+                              "Method not called in test driver");
         }
         note_function(m->getNameAsString());
     }

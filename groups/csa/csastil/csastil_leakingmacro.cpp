@@ -80,8 +80,7 @@ static void onCloseFile(Analyser* analyser,
             )
         {
             analyser->report(macro.second, check_name, "SLM01",
-                             "Macro definition '%0' leaks from header",
-                             true)
+                             "Macro definition '%0' leaks from header")
                 << macro.first;
         }
     }

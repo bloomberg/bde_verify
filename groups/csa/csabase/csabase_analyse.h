@@ -21,7 +21,7 @@ class PluginAction : public clang::PluginASTAction
     bool debug() const;
     const std::vector<std::string>& config() const;
     std::string tool_name() const;
-    bool toplevel_only() const;
+    std::string diagnose() const;
     std::string rewrite_dir() const;
     std::string rewrite_file() const;
 
@@ -37,7 +37,7 @@ class PluginAction : public clang::PluginASTAction
     bool debug_;
     std::vector<std::string> config_;
     std::string tool_name_;
-    bool toplevel_only_;
+    std::string diagnose_;
     std::string rewrite_dir_;
     std::string rewrite_file_;
 };

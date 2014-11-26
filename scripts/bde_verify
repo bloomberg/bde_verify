@@ -52,7 +52,7 @@ my @dummy;
 my $std;
 my @std;
 my $warnoff;
-my $tlonly;
+my $diagnose = "component";
 my $rwd;
 my $rwf;
 my $tag;
@@ -80,7 +80,7 @@ usage: $0 [options] [additional compiler options] file.cpp ...
     --[no]nsa                [$nsa] (command logged for tracking purposes)
     --rewrite-dir=dir
     --rewrite-file=file
-    --toplevel
+    --diagnose={main,component,nogen,all}
     --std=type
     --tag=string
     --debug
@@ -119,7 +119,12 @@ GetOptions(
     "W=s"                          => \@wflags,
     "f=s"                          => \@lflags,
     "std=s"                        => \$std,
-    "toplevel"                     => \$tlonly,
+    "toplevel"                     => sub { $diagnose = "main" },
+    "diagnose=s"                   => sub {
+        my %opts = ("main" => 1, "component" => 1, "nogen" => 1, "all" => 1);
+        die "Unknown value '$_[1]' for '-$_[0]='\n" unless $opts{$_[1]};
+        $diagnose = $_[1];
+    },
     'tag=s'                        => \$tag,
     'llvm=s'                       => \$dummy,
     "m32|m64|pipe|pthread|MMD|g|c" => \$dummy,
@@ -128,7 +133,7 @@ GetOptions(
 
 my @config = ("-plugin-arg-bde_verify", "config=$config")    if $config ne "";
 my @debug  = ("-plugin-arg-bde_verify", "debug-on")          if $debug;
-my @tlo    = ("-plugin-arg-bde_verify", "toplevel-only-on")  if $tlonly;
+my @tlo    = ("-plugin-arg-bde_verify", "diagnose=$diagnose");
 my @rwd    = ("-plugin-arg-bde_verify", "rewrite-dir=$rwd")  if $rwd;
 print "No such directory $rwd\n" if $rwd and ! -d $rwd;
 my @rwf    = ("-plugin-arg-bde_verify", "rewrite-file=$rwf") if $rwf;

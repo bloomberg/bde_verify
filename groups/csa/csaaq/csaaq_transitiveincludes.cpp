@@ -1009,7 +1009,7 @@ void report::require_file(std::string     name,
     }
 
     for (const auto& s : d_data.d_includes[fid]) {
-        if (s == name) {
+        if (llvm::sys::path::filename(s) == name) {
             return;
         }
     }
@@ -1038,6 +1038,7 @@ void report::inc_for_decl(llvm::StringRef r, SourceLocation sl, const Decl *ds)
         return;
     }
 
+#if 0
     if (const UsingDecl *ud = llvm::dyn_cast<UsingDecl>(ds)) {
         auto sb = ud->shadow_begin();
         auto se = ud->shadow_end();
@@ -1049,6 +1050,7 @@ void report::inc_for_decl(llvm::StringRef r, SourceLocation sl, const Decl *ds)
         }
         return;
     }
+#endif
 
     for (const Decl *d = ds; d; d = look_through_typedef(d)) {
         bool skip = false;
@@ -1356,6 +1358,7 @@ bool report::VisitQualifiedTypeLoc(QualifiedTypeLoc tl)
 
 bool report::VisitTypedefTypeLoc(TypedefTypeLoc tl)
 {
+#if 1
     TypedefNameDecl *ds = tl.getTypedefNameDecl();
     SourceLocation sl = tl.getBeginLoc();
     if (!m.isWrittenInSameFile(tl.getBeginLoc(), tl.getEndLoc())) {
@@ -1365,6 +1368,7 @@ bool report::VisitTypedefTypeLoc(TypedefTypeLoc tl)
         std::string r = name_for(ds);
         inc_for_decl(r, sl, ds);
     }
+#endif
     return base::VisitTypedefTypeLoc(tl);
 }
 
