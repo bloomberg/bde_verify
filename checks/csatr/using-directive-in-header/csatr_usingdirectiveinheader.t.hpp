@@ -31,6 +31,8 @@ namespace bde_verify
     }
 }
 
+#include <bsl_cstddef.h>
+
 bde_verify::csatr::UsingDirectiveInHeader::UsingDirectiveInHeader()
 {
     using namespace foo;

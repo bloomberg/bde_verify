@@ -3,11 +3,17 @@
 #include <clang/AST/DeclBase.h>
 #include <clang/AST/DeclCXX.h>
 #include <clang/Basic/SourceLocation.h>
+#include <clang/Lex/Token.h>
 #include <csabase_analyser.h>
+#include <csabase_debug.h>
 #include <csabase_diagnostic_builder.h>
 #include <csabase_location.h>
+#include <csabase_ppobserver.h>
 #include <csabase_registercheck.h>
+#include <csabase_visitor.h>
+#include <llvm/Support/Regex.h>
 #include <string>
+#include <map>
 
 using namespace csabase;
 using namespace clang;
@@ -18,24 +24,158 @@ static std::string const check_name("using-declaration-in-header");
 
 // ----------------------------------------------------------------------------
 
-static void
-using_declaration_in_header(Analyser& analyser, UsingDecl const* decl)
+namespace {
+
+struct data
+    // Data attached to analyzer for this check.
 {
-    DeclContext const* context(decl->getLexicalDeclContext());
-    if (context->isFileContext()
-        && analyser.get_location(decl).file() != analyser.toplevel()
-        && !analyser.is_global_package())
-    {
-        analyser.report(decl, check_name, "TR16",
-                        "Namespace level using declaration "
-                        "in header file")
-            << decl->getSourceRange();
+    std::map<FileID, SourceLocation> d_uds;
+    std::map<FileID, SourceLocation> d_ils;
+};
+
+struct report
+{
+    report(Analyser& analyser,
+            PPObserver::CallbackType type = PPObserver::e_None);
+        // Create an object of this type, that will use the specified
+        // 'analyser'.  Optionally specify a 'type' to identify the callback
+        // that will be invoked, for preprocessor callbacks that have the same
+        // signature.
+
+    void operator()(UsingDecl const* decl);
+
+    void operator()(SourceLocation   HashLoc,
+                    const Token&     IncludeTok,
+                    StringRef        FileName,
+                    bool             IsAngled,
+                    CharSourceRange  FilenameRange,
+                    const FileEntry *File,
+                    StringRef        SearchPath,
+                    StringRef        RelativePath,
+                    const Module    *Imported);
+
+    void operator()(const FileEntry&           ParentFile,
+                    const Token&               FilenameTok,
+                    SrcMgr::CharacteristicKind FileType);
+
+    void operator()(SourceRange Range);
+
+    void operator()();
+
+    Analyser&                d_analyser;
+    data&                    d_data;
+    PPObserver::CallbackType d_type;
+
+    SourceManager&           m;
+};
+
+report::report(Analyser& analyser, PPObserver::CallbackType type)
+: d_analyser(analyser)
+, d_data(analyser.attachment<data>())
+, d_type(type)
+, m(analyser.manager())
+{
+}
+
+void report::operator()(UsingDecl const* decl)
+{
+    if (decl->getLexicalDeclContext()->isFileContext()) {
+        SourceLocation sl = decl->getLocation();
+        if (!d_analyser.is_global_package() &&
+            d_analyser.is_header(d_analyser.get_location(decl).file())) {
+            d_analyser.report(sl, check_name, "TR16",
+                            "Namespace level using declaration in header file")
+                << decl->getSourceRange();
+        }
+        auto& nd = d_data.d_uds[m.getFileID(sl)];
+        if (!nd.isValid() || m.isBeforeInTranslationUnit(sl, nd)) {
+            nd = sl;
+        }
     }
 }
 
+// InclusionDirective
+void report::operator()(SourceLocation   HashLoc,
+                        const Token&     IncludeTok,
+                        StringRef        FileName,
+                        bool             IsAngled,
+                        CharSourceRange  FilenameRange,
+                        const FileEntry *File,
+                        StringRef        SearchPath,
+                        StringRef        RelativePath,
+                        const Module    *Imported)
+{
+    SourceLocation sl = FilenameRange.getBegin();
+    auto& il = d_data.d_ils[m.getFileID(sl)];
+    if (!il.isValid() || m.isBeforeInTranslationUnit(il, sl)) {
+        il = sl;
+    }
+}
+
+// FileSkipped
+void report::operator()(const FileEntry&           ParentFile,
+                        const Token&               FilenameTok,
+                        SrcMgr::CharacteristicKind FileType)
+{
+    SourceLocation sl = FilenameTok.getLocation();
+    auto& il = d_data.d_ils[m.getFileID(sl)];
+    if (!il.isValid() || m.isBeforeInTranslationUnit(il, sl)) {
+        il = sl;
+        llvm::StringRef file(
+            FilenameTok.getLiteralData() + 1, FilenameTok.getLength() - 2);
+    }
+}
+
+// SourceRangeSkipped
+void report::operator()(SourceRange Range)
+{
+    SourceLocation sl = Range.getBegin();
+    llvm::StringRef s = d_analyser.get_source(Range);
+    llvm::SmallVector<llvm::StringRef, 7> matches;
+    static llvm::Regex r(" *ifn?def *INCLUDED_.*[[:space:]]+"
+                        "# *include +([<\"][^\">]*[\">])");
+    if (r.match(s, &matches) && s.find(matches[0]) == 0) {
+        sl = sl.getLocWithOffset(s.find(matches[1]));
+        auto& il = d_data.d_ils[m.getFileID(sl)];
+        if (!il.isValid() || m.isBeforeInTranslationUnit(il, sl)) {
+            il = sl;
+        }
+    }
+}
+
+// TranslationUnitDone
+void report::operator()()
+{
+    for (const auto& id : d_data.d_uds) {
+        const auto& il = d_data.d_ils[id.first];
+        if (il.isValid() && m.isBeforeInTranslationUnit(id.second, il)) {
+            d_analyser.report(id.second, check_name, "AQJ01",
+                              "Using declaration precedes header inclusion");
+            d_analyser.report(il, check_name, "AQJ01",
+                              "Header included here",
+                              false, DiagnosticIDs::Note);
+        }
+    }
+}
+
+void subscribe(Analyser& analyser, Visitor& visitor, PPObserver& observer)
+    // Hook up the callback functions.
+{
+    visitor.onUsingDecl += report(analyser);
+    observer.onPPInclusionDirective += report(analyser,
+                                                observer.e_InclusionDirective);
+    observer.onPPFileSkipped        += report(analyser,
+                                                observer.e_FileSkipped);
+    observer.onPPSourceRangeSkipped += report(analyser,
+                                                observer.e_SourceRangeSkipped);
+    analyser.onTranslationUnitDone  += report(analyser);
+}
+
+}  // close anonymous namespace
+
 // ----------------------------------------------------------------------------
 
-static RegisterCheck check(check_name, &using_declaration_in_header);
+static RegisterCheck check(check_name, &subscribe);
 
 // ----------------------------------------------------------------------------
 // Copyright (C) 2014 Bloomberg Finance L.P.

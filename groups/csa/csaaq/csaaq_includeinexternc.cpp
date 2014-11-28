@@ -73,18 +73,11 @@ std::unordered_set<std::string> special{
 struct data
     // Data attached to analyzer for this check.
 {
-    data();
-        // Create an object of this type.
-
     std::map<SourceLocation, std::string>           d_includes;
     std::map<SourceRange, const LinkageSpecDecl *>  d_linkages;
     std::unordered_map<std::string, SourceLocation> d_prop;
     std::unordered_map<std::string, bool>           d_system_headers;
 };
-
-data::data()
-{
-}
 
 struct report
 {
@@ -240,8 +233,8 @@ void report::operator()(SourceRange Range)
     if (d_type == PPObserver::e_FileSkipped) {
         if (!special.count(f)) {
             size_t pos = 0;
-            llvm::Regex r(" *ifn?def *INCLUDED_.*[[:space:]]+"
-                          "# *include +([<\"]([^\">]*)[\">])");
+            static llvm::Regex r(" *ifn?def *INCLUDED_.*[[:space:]]+"
+                                 "# *include +([<\"]([^\">]*)[\">])");
             llvm::SmallVector<llvm::StringRef, 7> matches;
             if (r.match(s, &matches) && s.find(matches[0]) == 0) {
                 llvm::StringRef file = matches[2];
