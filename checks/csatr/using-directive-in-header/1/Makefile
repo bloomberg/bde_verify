@@ -1,8 +1,8 @@
 # Makefile                                                       -*-makefile-*-
 FILES := $(wildcard *.cpp)
-CHECKNAME := $(notdir $(realpath .))
+CHECKNAME := using-directive-in-header
 
-BDE_VERIFY_DIR ?= ../../..
+BDE_VERIFY_DIR ?= ../../../..
 include $(BDE_VERIFY_DIR)/checks/Makefile.inc
 BDE_VERIFY_ARGS = -diagnose=all
 

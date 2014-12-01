@@ -26,9 +26,11 @@ namespace
 {
 struct data
     // Data attached to analyzer for this check.
-    {
+{
     std::map<FileID, SourceLocation> d_uds;
     std::map<FileID, SourceLocation> d_ils;
+    SourceLocation                   d_first_ud;
+    SourceLocation                   d_last_il;
 };
 
 struct report {
@@ -39,7 +41,11 @@ struct report {
     // that will be invoked, for preprocessor callbacks that have the same
     // signature.
 
+    void set_ud(SourceLocation& ud, SourceLocation sl);
+
     void operator()(UsingDirectiveDecl const* decl);
+
+    void set_il(SourceLocation& il, SourceLocation sl);
 
     void operator()(SourceLocation   HashLoc,
                     const Token&     IncludeTok,
@@ -74,6 +80,13 @@ report::report(Analyser& analyser, PPObserver::CallbackType type)
 {
 }
 
+void report::set_ud(SourceLocation& ud, SourceLocation sl)
+{
+    if (!ud.isValid() || m.isBeforeInTranslationUnit(sl, ud)) {
+        ud = sl;
+    }
+}
+
 void report::operator()(UsingDirectiveDecl const* decl)
 {
     if (decl->getLexicalDeclContext()->isFileContext() &&
@@ -86,10 +99,15 @@ void report::operator()(UsingDirectiveDecl const* decl)
                      "Namespace level using directive for '%0' in header file")
                 << name->getQualifiedNameAsString();
         }
-        auto& nd = d_data.d_uds[m.getFileID(sl)];
-        if (!nd.isValid() || m.isBeforeInTranslationUnit(sl, nd)) {
-            nd = sl;
-        }
+        set_ud(d_data.d_uds[m.getFileID(sl)], sl);
+        set_ud(d_data.d_first_ud, sl);
+    }
+}
+
+void report::set_il(SourceLocation& il, SourceLocation sl)
+{
+    if (!il.isValid() || m.isBeforeInTranslationUnit(il, sl)) {
+        il = sl;
     }
 }
 
@@ -105,10 +123,8 @@ void report::operator()(SourceLocation HashLoc,
                         const Module* Imported)
 {
     SourceLocation sl = FilenameRange.getBegin();
-    auto& il = d_data.d_ils[m.getFileID(sl)];
-    if (!il.isValid() || m.isBeforeInTranslationUnit(il, sl)) {
-        il = sl;
-    }
+    set_il(d_data.d_ils[m.getFileID(sl)], sl);
+    set_il(d_data.d_last_il, sl);
 }
 
 // FileSkipped
@@ -117,12 +133,8 @@ void report::operator()(const FileEntry& ParentFile,
                         SrcMgr::CharacteristicKind FileType)
 {
     SourceLocation sl = FilenameTok.getLocation();
-    auto& il = d_data.d_ils[m.getFileID(sl)];
-    if (!il.isValid() || m.isBeforeInTranslationUnit(il, sl)) {
-        il = sl;
-        llvm::StringRef file(
-            FilenameTok.getLiteralData() + 1, FilenameTok.getLength() - 2);
-    }
+    set_il(d_data.d_ils[m.getFileID(sl)], sl);
+    set_il(d_data.d_last_il, sl);
 }
 
 // SourceRangeSkipped
@@ -135,10 +147,8 @@ void report::operator()(SourceRange Range)
                          "# *include +([<\"][^\">]*[\">])");
     if (r.match(s, &matches) && s.find(matches[0]) == 0) {
         sl = sl.getLocWithOffset(s.find(matches[1]));
-        auto& il = d_data.d_ils[m.getFileID(sl)];
-        if (!il.isValid() || m.isBeforeInTranslationUnit(il, sl)) {
-            il = sl;
-        }
+        set_il(d_data.d_ils[m.getFileID(sl)], sl);
+        set_il(d_data.d_last_il, sl);
     }
 }
 
@@ -150,9 +160,23 @@ void report::operator()()
         if (il.isValid() && m.isBeforeInTranslationUnit(id.second, il)) {
             d_analyser.report(id.second, check_name, "AQJ02",
                               "Using directive precedes header inclusion");
-            d_analyser.report(il, check_name, "AQJ01", "Header included here",
-                              false, DiagnosticIDs::Note);
+            d_analyser.report(il, check_name, "AQJ02", "Header included here",
+                              true, DiagnosticIDs::Note);
+            if (d_data.d_first_ud.isValid() &&
+                m.getFileID(d_data.d_first_ud) == id.first) {
+                d_data.d_first_ud = SourceLocation();
+            }
         }
+    }
+    if (d_data.d_first_ud.isValid() &&
+        d_data.d_last_il.isValid() &&
+        m.getFileID(d_data.d_first_ud) != m.getFileID(d_data.d_last_il)) {
+        d_analyser.report(d_data.d_first_ud, check_name, "AQJ02",
+                          "Using directive precedes header inclusion",
+                          true);
+        d_analyser.report(d_data.d_last_il, check_name, "AQJ02",
+                          "Header included here",
+                          true, DiagnosticIDs::Note);
     }
 }
 

@@ -1,0 +1,8 @@
+In file included from cross_file.cpp:1:
+./cross_using.h:2:17: warning: AQJ02: Using directive precedes header inclusion
+using namespace a;
+                ^
+cross_file.cpp:2:10: note: AQJ02: Header included here
+#include <cross_inc.h>
+         ^
+1 warning generated.
