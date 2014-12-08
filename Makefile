@@ -73,6 +73,7 @@ export VERBOSE ?= @
 CXXFILES =                                                                    \
         groups/csa/csaaq/csaaq_cppinexternc.cpp                               \
         groups/csa/csaaq/csaaq_includeinexternc.cpp                           \
+        groups/csa/csaaq/csaaq_inentns.cpp                                    \
         groups/csa/csaaq/csaaq_transitiveincludes.cpp                         \
         groups/csa/csabde/csabde_tool.cpp                                     \
         groups/csa/csabbg/csabbg_allocatorforward.cpp                         \
@@ -173,6 +174,7 @@ LIBS     =    -lcsabase                                                       \
               -lclangIndex                                                    \
               -lclangFormat                                                   \
               -lclangTooling                                                  \
+              -lclangToolingCore                                              \
               -lclangFrontend                                                 \
               -lclangDriver                                                   \
               -lLLVMObjCARCOpts                                               \

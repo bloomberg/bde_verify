@@ -1,10 +1,9 @@
 # Makefile                                                       -*-makefile-*-
 FILES := $(wildcard *.cpp)
-CHECKNAME := using-directive-in-header
+CHECKNAME := test-driver
 
 BDE_VERIFY_DIR ?= ../../../..
 include $(BDE_VERIFY_DIR)/checks/Makefile.inc
-BDE_VERIFY_ARGS = -diagnose=all
 
 ## ----------------------------------------------------------------------------
 ## Copyright (C) 2014 Bloomberg Finance L.P.

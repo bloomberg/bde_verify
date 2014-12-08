@@ -1,58 +1,26 @@
 // csaaq_includeinexternc.cpp                                         -*-C++-*-
 
-#include <clang/AST/Decl.h>
-#include <clang/AST/DeclBase.h>
-#include <clang/AST/DeclCXX.h>
-#include <clang/AST/PrettyPrinter.h>
-#include <clang/AST/RecursiveASTVisitor.h>
-#include <clang/AST/Type.h>
-#include <clang/Basic/IdentifierTable.h>
-#include <clang/Basic/SourceLocation.h>
-#include <clang/Basic/SourceManager.h>
 #include <clang/Frontend/CompilerInstance.h>
+
 #include <clang/Lex/HeaderSearch.h>
-#include <clang/Lex/MacroInfo.h>
-#include <clang/Lex/PPCallbacks.h>
 #include <clang/Lex/Preprocessor.h>
 #include <clang/Lex/Token.h>
-#include <clang/Tooling/Refactoring.h>
+
 #include <csabase_analyser.h>
 #include <csabase_clang.h>
 #include <csabase_config.h>
 #include <csabase_debug.h>
-#include <csabase_diagnostic_builder.h>
-#include <csabase_filenames.h>
-#include <csabase_location.h>
 #include <csabase_ppobserver.h>
 #include <csabase_registercheck.h>
-#include <csabase_util.h>
+#include <csabase_report.h>
 #include <csabase_visitor.h>
-#include <llvm/ADT/Hashing.h>
-#include <llvm/ADT/SmallVector.h>
-#include <llvm/ADT/StringRef.h>
-#include <llvm/ADT/Twine.h>
-#include <llvm/Support/Casting.h>
+
 #include <llvm/Support/Regex.h>
-#include <llvm/Support/raw_ostream.h>
-#include <stddef.h>
-#include <cctype>
-#include <map>
-#include <set>
-#include <string>
-#include <utility>
-#include <utils/event.hpp>
-#include <utils/function.hpp>
+
 #include <unordered_map>
 #include <unordered_set>
-#include <vector>
-#include <tuple>
-namespace clang { class FileEntry; }
-namespace clang { class MacroArgs; }
-namespace clang { class Module; }
-namespace csabase { class Visitor; }
 
 using namespace csabase;
-using namespace clang::tooling;
 using namespace clang;
 
 // ----------------------------------------------------------------------------
@@ -79,16 +47,9 @@ struct data
     std::unordered_map<std::string, bool>           d_system_headers;
 };
 
-struct report
+struct report : Report<data>
 {
-    report(Analyser& analyser,
-           PPObserver::CallbackType type = PPObserver::e_None);
-        // Create an object of this type, that will use the specified
-        // 'analyser'.  Optionally specify a 'type' to identify the callback
-        // that will be invoked, for preprocessor callbacks that have the same
-        // signature.
-
-    bool is_system_header(llvm::StringRef file);
+    using Report<data>::Report;
 
     const LinkageSpecDecl *get_local_linkage(SourceLocation sl);
 
@@ -121,43 +82,12 @@ struct report
     void operator()(const LinkageSpecDecl *decl);
 
     void operator()();
-
-    Analyser&                d_analyser;
-    data&                    d_data;
-    PPObserver::CallbackType d_type;
-
-    SourceManager&           m;
 };
-
-report::report(Analyser& analyser, PPObserver::CallbackType type)
-: d_analyser(analyser)
-, d_data(analyser.attachment<data>())
-, d_type(type)
-, m(analyser.manager())
-{
-}
-
-bool report::is_system_header(llvm::StringRef file)
-{
-    auto i = d_data.d_system_headers.find(file);
-    if (i != d_data.d_system_headers.end()) {
-        return i->second;
-    }
-
-    const auto& hs =
-        d_analyser.compiler().getPreprocessor().getHeaderSearchInfo();
-    for (auto i = hs.system_dir_begin(); i != hs.system_dir_end(); ++i) {
-        if (file.startswith(i->getName())) {
-            return d_data.d_system_headers[file] = true;
-        }
-    }
-    return d_data.d_system_headers[file] = false;
-}
 
 const LinkageSpecDecl *report::get_local_linkage(SourceLocation sl)
 {
     const LinkageSpecDecl *result = 0;
-    for (const auto& r : d_data.d_linkages) {
+    for (const auto& r : d.d_linkages) {
         if (!m.isBeforeInTranslationUnit(sl, r.first.getBegin()) &&
             !m.isBeforeInTranslationUnit(r.first.getEnd(), sl) &&
             m.getFileID(m.getExpansionLoc(sl)) ==
@@ -170,11 +100,11 @@ const LinkageSpecDecl *report::get_local_linkage(SourceLocation sl)
 
 void report::set_prop(SourceLocation sl, llvm::StringRef file)
 {
-    if (!d_data.d_prop[file].isValid()) {
+    if (!d.d_prop[file].isValid()) {
         for (SourceLocation isl = sl;
              isl.isValid();
              isl = m.getIncludeLoc(m.getFileID(isl))) {
-            if (is_system_header(m.getFilename(isl))) {
+            if (a.is_system_header(isl)) {
                 return;
             }
         }
@@ -182,10 +112,10 @@ void report::set_prop(SourceLocation sl, llvm::StringRef file)
              isl.isValid();
              isl = m.getIncludeLoc(m.getFileID(isl))) {
             llvm::StringRef f = m.getFilename(isl);
-            if (d_data.d_prop[f].isValid()) {
+            if (d.d_prop[f].isValid()) {
                 break;
             }
-            d_data.d_prop[f] = sl;
+            d.d_prop[f] = sl;
         }
     }
 }
@@ -201,7 +131,7 @@ void report::operator()(SourceLocation   HashLoc,
                         StringRef        RelativePath,
                         const Module    *Imported)
 {
-    d_data.d_includes.insert({FilenameRange.getBegin(), File->getName()});
+    d.d_includes.insert({FilenameRange.getBegin(), File->getName()});
 }
 
 // FileSkipped
@@ -215,9 +145,9 @@ void report::operator()(const FileEntry&           ParentFile,
             FilenameTok.getLiteralData() + 1, FilenameTok.getLength() - 2);
         bool is_angled = *FilenameTok.getLiteralData() == '<';
         const DirectoryLookup *dl = 0;
-        if (const FileEntry *fe = d_analyser.compiler().getPreprocessor().
-                LookupFile(sl, file, is_angled, 0, dl, 0, 0, 0, 0)) {
-            d_data.d_includes.insert({sl, fe->getName()});
+        if (const FileEntry *fe = a.compiler().getPreprocessor().
+                LookupFile(sl, file, is_angled, 0, 0, dl, 0, 0, 0, 0)) {
+            d.d_includes.insert({sl, fe->getName()});
         }
     }
 }
@@ -227,7 +157,7 @@ void report::operator()(const FileEntry&           ParentFile,
 void report::operator()(SourceRange Range)
 {
     SourceLocation sl = Range.getBegin();
-    llvm::StringRef s = d_analyser.get_source(Range);
+    llvm::StringRef s = a.get_source(Range);
     llvm::StringRef f = m.getFilename(sl);
     llvm::SmallVector<llvm::StringRef, 7> matches;
     if (d_type == PPObserver::e_FileSkipped) {
@@ -242,16 +172,16 @@ void report::operator()(SourceRange Range)
                 sl = sl.getLocWithOffset(s.find(matches[2]));
                 const DirectoryLookup *dl = 0;
                 if (const FileEntry* fe =
-                        d_analyser.compiler().getPreprocessor().LookupFile(
-                            sl, file, is_angled, 0, dl, 0, 0, 0, 0)) {
-                    d_data.d_includes.insert({sl, fe->getName()});
+                        a.compiler().getPreprocessor().LookupFile(
+                            sl, file, is_angled, 0, 0, dl, 0, 0, 0, 0)) {
+                    d.d_includes.insert({sl, fe->getName()});
                 }
             }
         }
     }
     else {
-        if (!d_data.d_prop[f].isValid()) {
-            static llvm::Regex r(d_analyser.config()->value("enterprise"),
+        if (!d.d_prop[f].isValid()) {
+            static llvm::Regex r(a.config()->value("enterprise"),
                                  llvm::Regex::IgnoreCase |
                                  llvm::Regex::Newline);
             if (r.match(s, &matches)) {
@@ -265,41 +195,44 @@ void report::operator()(SourceRange Range)
 void report::operator()(const LinkageSpecDecl *decl)
 {
     if (decl->hasBraces()) {
-        d_data.d_linkages[decl->getSourceRange()] = decl;
+        d.d_linkages[decl->getSourceRange()] = decl;
     }
 }
 
 // TranslationUnitDone
 void report::operator()()
 {
-    llvm::StringRef ns = d_analyser.config()->value("enterprise");
+    llvm::StringRef ns = a.config()->value("enterprise");
     for (;;) {
-        auto n = d_data.d_prop.size();
-        for (const auto& f : d_data.d_includes) {
+        auto n = d.d_prop.size();
+        for (const auto& f : d.d_includes) {
             set_prop(f.first, f.second);
         }
-        if (d_data.d_prop.size() == n) {
+        if (d.d_prop.size() == n) {
             break;
         }
     }
-    for (const auto& f : d_data.d_includes) {
+    for (const auto& f : d.d_includes) {
         SourceLocation sl = m.getExpansionLoc(f.first);
         const LinkageSpecDecl *lsd = get_local_linkage(sl);
         if (!lsd ||
             lsd->getLanguage() != LinkageSpecDecl::lang_c ||
-            !d_data.d_prop[f.second].isValid()) {
+            !d.d_prop[f.second].isValid() ||
+            a.is_system_header(sl) ||
+            a.is_system_header(lsd) ||
+            a.is_system_header(d.d_prop[f.second])) {
             continue;
         }
-        d_analyser.report(sl, check_name, "IC01",
-                         "'%0' header included within C linkage specification",
-                          true)
+        a.report(sl, check_name, "IC01",
+                 "'%0' header included within C linkage specification",
+                 true)
             << ns;
-        d_analyser.report(lsd->getLocation(), check_name, "IC01",
-                          "C linkage specification here",
-                          true, DiagnosticIDs::Note);
-        d_analyser.report(d_data.d_prop[f.second], check_name, "IC01",
-                          "'%0' evidence here",
-                          true, DiagnosticIDs::Note)
+        a.report(lsd->getLocation(), check_name, "IC01",
+                 "C linkage specification here",
+                 true, DiagnosticIDs::Note);
+        a.report(d.d_prop[f.second], check_name, "IC01",
+                 "'%0' evidence here",
+                 true, DiagnosticIDs::Note)
             << ns;
     }
 }

@@ -260,6 +260,7 @@ llvm::Regex test_item(
 llvm::Regex tested_method(
     "(" "operator" " *" "(" "[(] *[)]"
                         "|" "[^([:alnum:]_[:space:]]+"
+                        "|" "[][)([:alnum:]_[:space:]*&]+"
                         ")"
     "|" "~?[[:alnum:]_]+"
     ")" "[[:space:]]*[(]",

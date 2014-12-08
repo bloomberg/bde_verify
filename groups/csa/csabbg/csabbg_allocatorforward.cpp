@@ -21,6 +21,7 @@
 #include <csabase_debug.h>
 #include <csabase_diagnostic_builder.h>
 #include <csabase_registercheck.h>
+#include <csabase_report.h>
 #include <csabase_util.h>
 #include <llvm/ADT/APSInt.h>
 #include <llvm/ADT/Optional.h>
@@ -57,10 +58,12 @@ AST_MATCHER_P(TemplateArgument, equalsIntegral, unsigned, N) {
          Node.getAsIntegral() == N;
 }
 
+#if 0
 AST_MATCHER_P(ClassTemplateSpecializationDecl, templateArgumentCountIs,
               unsigned, N) {
     return Node.getTemplateArgs().size() == N;
 }
+#endif
 
 AST_MATCHER_P(FunctionDecl, hasLastParameter,
                internal::Matcher<ParmVarDecl>, InnerMatcher) {
@@ -115,7 +118,7 @@ struct data
     Globals globals_;
 };
 
-struct report
+struct report : Report<data>
     // This class two static analysis checkers, one to detect object
     // constructors with allocator parameters which do not pass an allocator to
     // the constructors of their base classes and members with allocator
@@ -124,9 +127,7 @@ struct report
     // an allocator parameter.  It also contains a variety of utility methods
     // used in implementing those checks.
 {
-    report(Analyser& analyser);
-        // Create an object of this type, using the specified 'analyser' for
-        // access to compiler data structures.
+    using Report<data>::Report;
 
     const CXXRecordDecl *get_record_decl(QualType type);
         // Return the record declaration for the specified 'type' and a null
@@ -244,16 +245,7 @@ struct report
     void check_alloc_return(const ReturnStmt* stmt);
         // Check that the specified return 'stmt' does not return an item that 
         // takes allocators.
-
-    Analyser& analyser_;  // afford access to compiler data
-    data& data_;          // data held for this set of checks
 };
-
-report::report(Analyser& analyser)
-: analyser_(analyser)
-, data_(analyser.attachment<data>())
-{
-}
 
 const CXXRecordDecl *report::get_record_decl(QualType type)
 {
@@ -277,6 +269,13 @@ const CXXRecordDecl *report::get_record_decl(QualType type)
         rdecl = type->getPointeeCXXRecordDecl();
     }
 
+    if (rdecl) {
+        const CXXRecordDecl *tdecl = rdecl->getTemplateInstantiationPattern();
+        if (tdecl) {
+            rdecl = tdecl;
+        }
+    }
+
     return rdecl;
 }
 
@@ -286,7 +285,7 @@ bool report::is_allocator(QualType type)
 {
     return type->isPointerType()
         && type->getPointeeType()->getCanonicalTypeInternal() ==
-           data_.bslma_allocator_;
+           d.bslma_allocator_;
 }
 
 bool report::last_arg_is_explicit(const CXXConstructExpr* call)
@@ -304,18 +303,18 @@ bool report::takes_allocator(QualType type)
     while (type->isArrayType()) {
         type = QualType(type->getArrayElementTypeNoTypeQual(), 0);
     }
-    return data_.type_takes_allocator_
+    return d.type_takes_allocator_
         [type.getTypePtr()->getCanonicalTypeInternal().getTypePtr()];
 }
 
 bool report::takes_allocator(CXXConstructorDecl const* constructor)
 {
     data::CtorTakesAllocator::iterator itr =
-        data_.ctor_takes_allocator_.find(constructor);
-    if (itr != data_.ctor_takes_allocator_.end()) {
+        d.ctor_takes_allocator_.find(constructor);
+    if (itr != d.ctor_takes_allocator_.end()) {
         return itr->second;
     }
-    data_.ctor_takes_allocator_[constructor] = false;
+    d.ctor_takes_allocator_[constructor] = false;
     unsigned n = constructor->getNumParams();
 
     if (n == 0) {
@@ -325,7 +324,7 @@ bool report::takes_allocator(CXXConstructorDecl const* constructor)
     QualType type = constructor->getParamDecl(n - 1)->getType();
 
     if (is_allocator(type)) {
-        return data_.ctor_takes_allocator_[constructor] = true;       // RETURN
+        return d.ctor_takes_allocator_[constructor] = true;           // RETURN
     }
 
     const ReferenceType *ref =
@@ -341,7 +340,7 @@ bool report::takes_allocator(CXXConstructorDecl const* constructor)
         return false;                                                 // RETURN
     }
 
-    return data_.ctor_takes_allocator_[constructor] = takes_allocator(type);
+    return d.ctor_takes_allocator_[constructor] = takes_allocator(type);
 }
 
 static const DynTypedMatcher &
@@ -355,7 +354,7 @@ allocator_type_matcher()
 
 void report::match_allocator_type(const BoundNodes& nodes)
 {
-    analyser_.attachment<data>().bslma_allocator_ = QualType(
+    d.bslma_allocator_ = QualType(
         nodes.getNodeAs<CXXRecordDecl>("allocator")->getTypeForDecl(), 0);
 }
 
@@ -395,7 +394,7 @@ void report::match_nested_allocator_trait(const BoundNodes& nodes)
     std::string type = nodes.getNodeAs<QualType>("type")->getAsString();
 
     if (!contains_word(type, decl->getNameAsString())) {
-        analyser_.report(nodes.getNodeAs<CXXMethodDecl>("trait"),
+        a.report(nodes.getNodeAs<CXXMethodDecl>("trait"),
                          check_name, "BT01",
                          "Trait declaration does not mention its class '%0'")
             << decl->getNameAsString();
@@ -408,11 +407,11 @@ void report::match_nested_allocator_trait(const BoundNodes& nodes)
         (type.find("BloombergLP::bslmf::NestedTraitDeclaration<") == 0 &&
          (type.find(", bslma::UsesBslmaAllocator, true>") != type.npos ||
           type.find(", bslma::UsesBslmaAllocator>") != type.npos))) {
-        analyser_.attachment<data>().decls_with_true_allocator_trait_.insert(
+        d.decls_with_true_allocator_trait_.insert(
             llvm::dyn_cast<NamedDecl>(decl->getCanonicalDecl()));
     } else if (type.find("BloombergLP::bslmf::NestedTraitDeclaration<") == 0 &&
                type.find(", bslma::UsesBslmaAllocator, false>") != type.npos) {
-        analyser_.attachment<data>().decls_with_false_allocator_trait_.insert(
+        d.decls_with_false_allocator_trait_.insert(
             llvm::dyn_cast<NamedDecl>(decl->getCanonicalDecl()));
     }
 }
@@ -451,11 +450,10 @@ class_using_allocator_matcher()
 
 void report::match_class_using_allocator(const BoundNodes& nodes)
 {
-    analyser_.attachment<data>()
-        .type_takes_allocator_[nodes.getNodeAs<CXXRecordDecl>("class")
-                                   ->getTypeForDecl()
-                                   ->getCanonicalTypeInternal()
-                                   .getTypePtr()] = true;
+    d.type_takes_allocator_[nodes.getNodeAs<CXXRecordDecl>("class")
+                                ->getTypeForDecl()
+                                ->getCanonicalTypeInternal()
+                                .getTypePtr()] = true;
 }
 
 static const DynTypedMatcher
@@ -500,15 +498,12 @@ void report::match_allocator_trait(data::DeclsWithAllocatorTrait* set,
 
 void report::match_negative_allocator_trait(const BoundNodes& nodes)
 {
-    match_allocator_trait(
-        &analyser_.attachment<data>().decls_with_false_allocator_trait_,
-        nodes);
+    match_allocator_trait(&d.decls_with_false_allocator_trait_, nodes);
 }
 
 void report::match_positive_allocator_trait(const BoundNodes& nodes)
 {
-    match_allocator_trait(
-        &analyser_.attachment<data>().decls_with_true_allocator_trait_, nodes);
+    match_allocator_trait(&d.decls_with_true_allocator_trait_, nodes);
 }
 
 static const DynTypedMatcher
@@ -531,9 +526,7 @@ dependent_allocator_trait_matcher()
 
 void report::match_dependent_allocator_trait(const BoundNodes& nodes)
 {
-    match_allocator_trait(
-        &analyser_.attachment<data>().decls_with_dependent_allocator_trait_,
-        nodes);
+    match_allocator_trait(&d.decls_with_dependent_allocator_trait_, nodes);
 }
 
 static const DynTypedMatcher
@@ -595,7 +588,7 @@ void report::match_should_return_by_value(const BoundNodes& nodes)
 {
     const FunctionDecl *func = nodes.getNodeAs<FunctionDecl>("func");
     const PointerType *p1 = nodes.getNodeAs<PointerType>("type");
-    if (analyser_.is_component(func) &&
+    if (a.is_component(func) &&
         func->getCanonicalDecl() == func &&
         !func->isTemplateInstantiation() &&
         !func->getLocation().isMacroID() &&
@@ -609,12 +602,12 @@ void report::match_should_return_by_value(const BoundNodes& nodes)
         !is_allocator(p1->desugar()) &&
         !takes_allocator(p1->getPointeeType().getCanonicalType()) &&
         !hasRVCognate(func)) {
-        analyser_.report(func, check_name, "RV01",
-                         "Consider returning '%0' by value")
+        a.report(func, check_name, "RV01",
+                 "Consider returning '%0' by value")
             << p1->getPointeeType().getCanonicalType().getAsString();
-        analyser_.report(func->getParamDecl(0), check_name, "RV01",
-                         "instead of through pointer parameter",
-                         false, DiagnosticIDs::Note);
+        a.report(func->getParamDecl(0), check_name, "RV01",
+                 "instead of through pointer parameter",
+                 false, DiagnosticIDs::Note);
     }
 }
 
@@ -643,13 +636,12 @@ void report::operator()()
     OnMatch<report, &report::match_should_return_by_value> m7(this);
     mf.addDynamicMatcher(should_return_by_value_matcher(), &m7);
 
-    mf.match(*analyser_.context()->getTranslationUnitDecl(),
-             *analyser_.context());
+    mf.match(*a.context()->getTranslationUnitDecl(), *a.context());
 
-    check_not_forwarded(data_.ctors_.begin(), data_.ctors_.end());
-    check_wrong_parm(data_.cexprs_.begin(), data_.cexprs_.end());
-    check_alloc_returns(data_.returns_.begin(), data_.returns_.end());
-    check_globals_use_allocator(data_.globals_.begin(), data_.globals_.end());
+    check_not_forwarded(d.ctors_.begin(), d.ctors_.end());
+    check_wrong_parm(d.cexprs_.begin(), d.cexprs_.end());
+    check_alloc_returns(d.returns_.begin(), d.returns_.end());
+    check_globals_use_allocator(d.globals_.begin(), d.globals_.end());
 }
 
 void report::check_globals_use_allocator(data::Globals::const_iterator begin,
@@ -667,16 +659,15 @@ void report::check_globals_use_allocator(data::Globals::const_iterator begin,
                 const Expr *last = expr->getArg(n - 1);
                 bool result;
                 if (last->isDefaultArgument() ||
-                    (last->EvaluateAsBooleanCondition(
-                         result, *analyser_.context()) &&
+                    (last->EvaluateAsBooleanCondition(result, *a.context()) &&
                      result == false)) {
                     bad = true;
                 }
             }
             if (bad) {
-                analyser_.report(decl, check_name, "GA01",
-                                 "Variable with global storage must be "
-                                 "initialized with non-default allocator");
+                a.report(decl, check_name, "GA01",
+                         "Variable with global storage must be "
+                         "initialized with non-default allocator");
             }
         }
     }
@@ -694,13 +685,13 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
         bool uses_allocator = takes_allocator(
                    record->getTypeForDecl()->getCanonicalTypeInternal());
         bool has_true_alloc_trait =
-            data_.decls_with_true_allocator_trait_.count(record);
+            d.decls_with_true_allocator_trait_.count(record);
         bool has_false_alloc_trait =
-            data_.decls_with_false_allocator_trait_.count(record);
+            d.decls_with_false_allocator_trait_.count(record);
         bool has_dependent_alloc_trait =
             !has_true_alloc_trait &&
             !has_false_alloc_trait &&
-            data_.decls_with_dependent_allocator_trait_.count(record);
+            d.decls_with_dependent_allocator_trait_.count(record);
         const CXXRecordDecl *tr = record;
         if (const ClassTemplateSpecializationDecl* ts =
                 llvm::dyn_cast<ClassTemplateSpecializationDecl>(tr)) {
@@ -713,13 +704,13 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
                 !has_dependent_alloc_trait) {
                 record = tr;
             }
-            if (data_.decls_with_true_allocator_trait_.count(tr)) {
+            if (d.decls_with_true_allocator_trait_.count(tr)) {
                 has_true_alloc_trait = true;
             }
-            if (data_.decls_with_false_allocator_trait_.count(tr)) {
+            if (d.decls_with_false_allocator_trait_.count(tr)) {
                 has_false_alloc_trait = true;
             }
-            if (data_.decls_with_dependent_allocator_trait_.count(tr)) {
+            if (d.decls_with_dependent_allocator_trait_.count(tr)) {
                 has_dependent_alloc_trait = true;
             }
         }
@@ -737,16 +728,16 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
             records.insert(rp);
 
             if (!uses_allocator && has_true_alloc_trait) {
-                analyser_.report(record, check_name, "AT01",
-                        "Class %0 does not use allocators but has a "
-                        "positive allocator trait")
+                a.report(record, check_name, "AT01",
+                         "Class %0 does not use allocators but has a "
+                         "positive allocator trait")
                     << record;
             } else if (uses_allocator &&
                        !has_true_alloc_trait &&
                        !has_dependent_alloc_trait) {
-                analyser_.report(record, check_name, "AT02",
-                        "Class %0 uses allocators but does not have an "
-                        "allocator trait")
+                a.report(record, check_name, "AT02",
+                         "Class %0 uses allocators but does not have an "
+                         "allocator trait")
                     << record;
             }
         }
@@ -784,9 +775,9 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
 
             if (!found) {
                 if (decl->isUserProvided()) {
-                    analyser_.report(decl, check_name, "AC01",
-                                 "This constructor has no version that can be "
-                                 "called with an allocator")
+                    a.report(decl, check_name, "AC01",
+                             "This constructor has no version that can be "
+                             "called with an allocator")
                         << decl;
                 }
                 else {
@@ -795,9 +786,9 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
                         decl->isCopyOrMoveConstructor() ? "copy "    :
                                                           "";
 
-                    analyser_.report(decl, check_name, "AC02",
-                                 "Implicit " + type + "constructor cannot be "
-                                 "called with an allocator")
+                    a.report(decl, check_name, "AC02",
+                             "Implicit " + type + "constructor cannot be "
+                             "called with an allocator")
                         << decl;
                 }
             }
@@ -807,7 +798,7 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
 
 void report::check_not_forwarded(const CXXConstructorDecl *decl)
 {
-    if (data_.bslma_allocator_.isNull()) {
+    if (d.bslma_allocator_.isNull()) {
         // We have not seen the declaration for the allocator yet, so this
         // constructor cannot be using it.
         return;                                                       // RETURN
@@ -849,7 +840,7 @@ void report::check_not_forwarded(const CXXCtorInitializer* init,
         : init->getAnyMember()->getType().getTypePtr();
 
     if (!takes_allocator(type->getCanonicalTypeInternal()) ||
-        data_.decls_with_false_allocator_trait_.count(
+        d.decls_with_false_allocator_trait_.count(
             get_record_decl(type->getCanonicalTypeInternal()))) {
         return;                                                       // RETURN
     }
@@ -879,13 +870,13 @@ void report::check_not_forwarded(const CXXCtorInitializer* init,
     }
 
     if (init->isBaseInitializer()) {
-        analyser_.report(loc, check_name, "MA01",
-                "Allocator not passed to base %0")
-            << init->getBaseClass()->getCanonicalTypeInternal().
-            getAsString() << range;
+        a.report(loc, check_name, "MA01",
+                 "Allocator not passed to base %0")
+            << init->getBaseClass()->getCanonicalTypeInternal().getAsString()
+            << range;
     } else {
-        analyser_.report(loc, check_name, "MA02",
-                "Allocator not passed to member %0")
+        a.report(loc, check_name, "MA02",
+                 "Allocator not passed to member %0")
             << init->getAnyMember()->getNameAsString() << range;
     }
 }
@@ -994,10 +985,10 @@ void report::check_wrong_parm(const CXXConstructExpr *expr)
             // pointer-to-allocator, report the problem if it is new.
 
             if (is_allocator(arg->getType())) {
-                analyser_.report(arg->getExprLoc(), check_name, "AM01",
-                                "Allocator argument initializes "
-                                "non-allocator %0 of type '%1' rather than "
-                                "allocator %2")
+                a.report(arg->getExprLoc(), check_name, "AM01",
+                         "Allocator argument initializes "
+                         "non-allocator %0 of type '%1' rather than "
+                         "allocator %2")
                     << parm_name(wrongp, n - 1)
                     << wrongp->getType().getAsString()
                     << parm_name(allocp, n)
@@ -1021,12 +1012,12 @@ void report::check_alloc_return(const ReturnStmt *stmt)
 {
     if (   stmt->getRetValue()
         && !stmt->getRetValue()->getType()->isPointerType()
-        && data_.decls_with_true_allocator_trait_.count(
+        && d.decls_with_true_allocator_trait_.count(
             get_record_decl(stmt->getRetValue()->getType()))) {
-        const FunctionDecl* func = analyser_.get_parent<FunctionDecl>(stmt);
+        const FunctionDecl* func = a.get_parent<FunctionDecl>(stmt);
         if (!func || !func->getReturnType()->isReferenceType()) {
-            analyser_.report(stmt, check_name, "AR01",
-                             "Type using allocator is returned by value");
+            a.report(stmt, check_name, "AR01",
+                     "Type using allocator is returned by value");
         }
     }
 }

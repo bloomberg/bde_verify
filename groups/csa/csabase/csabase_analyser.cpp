@@ -14,6 +14,7 @@
 #include <clang/Basic/IdentifierTable.h>
 #include <clang/Basic/SourceManager.h>
 #include <clang/Frontend/CompilerInstance.h>
+#include <clang/Lex/HeaderSearch.h>
 #include <clang/Lex/Lexer.h>
 #include <clang/Lex/Preprocessor.h>
 #include <clang/Rewrite/Core/Rewriter.h>
@@ -265,6 +266,27 @@ bool csabase::Analyser::is_global_package(std::string const& pkg) const
     return in->second;
 }
 
+bool csabase::Analyser::is_system_header(llvm::StringRef file)
+{
+    auto i = is_system_header_.find(file);
+    if (i != is_system_header_.end()) {
+        return i->second;
+    }
+
+    const auto& hs = compiler().getPreprocessor().getHeaderSearchInfo();
+    for (auto i = hs.system_dir_begin(); i != hs.system_dir_end(); ++i) {
+        if (file.startswith(i->getName())) {
+            return is_system_header_[file] = true;
+        }
+    }
+    return is_system_header_[file] = false;
+}
+
+bool csabase::Analyser::is_system_header(SourceLocation sl)
+{
+    return is_system_header(manager().getFilename(sl));
+}
+
 bool csabase::Analyser::is_global_package() const
 {
     return is_global_package(package());
@@ -388,7 +410,7 @@ SourceRange csabase::Analyser::get_line_range(SourceLocation loc)
         size_t line_num = sm.getExpansionLineNumber(loc);
         range.setBegin(sm.translateLineCol(fid, line_num, 1u));
         range.setEnd(sm.translateLineCol(fid, line_num, ~0u));
-    } 
+    }
 
     return range;
 }

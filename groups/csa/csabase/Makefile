@@ -69,6 +69,7 @@ CXXFILES =                                                 \
         csabase_location.cpp                               \
         csabase_ppobserver.cpp                             \
         csabase_registercheck.cpp                          \
+        csabase_report.cpp                                 \
         csabase_tool.cpp                                   \
         csabase_util.cpp                                   \
         csabase_visitor.cpp                                \

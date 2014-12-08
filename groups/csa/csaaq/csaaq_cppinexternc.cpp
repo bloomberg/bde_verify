@@ -1,52 +1,19 @@
 // csaaq_cppinexternc.cpp                                             -*-C++-*-
 
-#include <clang/AST/Decl.h>
-#include <clang/AST/DeclBase.h>
-#include <clang/AST/DeclCXX.h>
-#include <clang/AST/PrettyPrinter.h>
-#include <clang/AST/RecursiveASTVisitor.h>
-#include <clang/AST/Type.h>
-#include <clang/Basic/IdentifierTable.h>
-#include <clang/Basic/SourceLocation.h>
-#include <clang/Basic/SourceManager.h>
-#include <clang/Lex/MacroInfo.h>
-#include <clang/Lex/PPCallbacks.h>
 #include <clang/Lex/Token.h>
-#include <clang/Tooling/Refactoring.h>
+
 #include <csabase_analyser.h>
 #include <csabase_clang.h>
-#include <csabase_config.h>
 #include <csabase_debug.h>
-#include <csabase_diagnostic_builder.h>
-#include <csabase_filenames.h>
-#include <csabase_location.h>
 #include <csabase_ppobserver.h>
 #include <csabase_registercheck.h>
-#include <csabase_util.h>
+#include <csabase_report.h>
 #include <csabase_visitor.h>
-#include <llvm/ADT/Hashing.h>
-#include <llvm/ADT/SmallVector.h>
-#include <llvm/ADT/StringRef.h>
-#include <llvm/ADT/Twine.h>
-#include <llvm/Support/Casting.h>
+
 #include <llvm/Support/Regex.h>
-#include <llvm/Support/raw_ostream.h>
-#include <stddef.h>
-#include <cctype>
-#include <map>
-#include <set>
-#include <string>
-#include <utility>
-#include <utils/event.hpp>
-#include <utils/function.hpp>
+
 #include <unordered_map>
 #include <unordered_set>
-#include <vector>
-#include <tuple>
-namespace clang { class FileEntry; }
-namespace clang { class MacroArgs; }
-namespace clang { class Module; }
-namespace csabase { class Visitor; }
 
 using namespace csabase;
 using namespace clang::tooling;
@@ -70,9 +37,6 @@ std::unordered_set<std::string> special{
 struct data
     // Data attached to analyzer for this check.
 {
-    data();
-        // Create an object of this type.
-
     std::map<SourceLocation, std::pair<std::string, bool>>        d_includes;
     std::map<SourceRange, const LinkageSpecDecl *>                d_linkages;
     std::unordered_map<std::string,
@@ -81,18 +45,9 @@ struct data
     std::unordered_set<SourceLocation>                            d_done;
 };
 
-data::data()
+struct report : Report<data>
 {
-}
-
-struct report
-{
-    report(Analyser& analyser,
-           PPObserver::CallbackType type = PPObserver::e_None);
-        // Create an object of this type, that will use the specified
-        // 'analyser'.  Optionally specify a 'type' to identify the callback
-        // that will be invoked, for preprocessor callbacks that have the same
-        // signature.
+    using Report<data>::Report;
 
     const LinkageSpecDecl *get_linkage(SourceLocation sl);
 
@@ -135,21 +90,7 @@ struct report
     void operator()(const Stmt *stmt);
 
     void operator()();
-
-    Analyser&                d_analyser;
-    data&                    d_data;
-    PPObserver::CallbackType d_type;
-
-    SourceManager&           m;
 };
-
-report::report(Analyser& analyser, PPObserver::CallbackType type)
-: d_analyser(analyser)
-, d_data(analyser.attachment<data>())
-, d_type(type)
-, m(analyser.manager())
-{
-}
 
 const LinkageSpecDecl *report::get_linkage(SourceLocation sl)
 {

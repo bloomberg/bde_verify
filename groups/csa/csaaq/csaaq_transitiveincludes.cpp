@@ -1,54 +1,27 @@
 // csaaq_transitiveincludes.cpp                                       -*-C++-*-
 
-#include <clang/AST/Decl.h>
-#include <clang/AST/DeclBase.h>
-#include <clang/AST/DeclCXX.h>
-#include <clang/AST/PrettyPrinter.h>
 #include <clang/AST/RecursiveASTVisitor.h>
-#include <clang/AST/Type.h>
-#include <clang/Basic/IdentifierTable.h>
-#include <clang/Basic/SourceLocation.h>
-#include <clang/Basic/SourceManager.h>
+
 #include <clang/Lex/MacroInfo.h>
-#include <clang/Lex/PPCallbacks.h>
 #include <clang/Lex/Token.h>
-#include <clang/Tooling/Refactoring.h>
+
 #include <csabase_analyser.h>
-#include <csabase_config.h>
 #include <csabase_debug.h>
-#include <csabase_diagnostic_builder.h>
 #include <csabase_filenames.h>
-#include <csabase_location.h>
 #include <csabase_ppobserver.h>
 #include <csabase_registercheck.h>
-#include <csabase_util.h>
+#include <csabase_report.h>
 #include <csabase_visitor.h>
+
 #include <llvm/ADT/Hashing.h>
-#include <llvm/ADT/SmallVector.h>
 #include <llvm/ADT/StringRef.h>
-#include <llvm/ADT/Twine.h>
-#include <llvm/Support/Casting.h>
+
 #include <llvm/Support/Regex.h>
-#include <llvm/Support/raw_ostream.h>
-#include <stddef.h>
-#include <cctype>
-#include <map>
-#include <set>
-#include <string>
-#include <utility>
-#include <utils/event.hpp>
-#include <utils/function.hpp>
+
 #include <unordered_map>
 #include <unordered_set>
-#include <vector>
-#include <tuple>
-namespace clang { class FileEntry; }
-namespace clang { class MacroArgs; }
-namespace clang { class Module; }
-namespace csabase { class Visitor; }
 
 using namespace csabase;
-using namespace clang::tooling;
 using namespace clang;
 
 namespace std {
@@ -435,9 +408,6 @@ bool reexports(llvm::StringRef outer, llvm::StringRef inner)
 struct data
     // Data attached to analyzer for this check.
 {
-    data();
-        // Create an object of this type.
-
     std::vector<FileID>                                        d_fileid_stack;
     std::string                                                d_guard;
     SourceLocation                                             d_guard_pos;
@@ -456,20 +426,11 @@ struct data
     std::unordered_set<std::pair<FileID, const Decl *>>        d_decls;
 };
 
-data::data()
+struct report : public RecursiveASTVisitor<report>, Report<data>
 {
-}
+    using Report<data>::Report;
 
-struct report : public RecursiveASTVisitor<report>
-{
     typedef RecursiveASTVisitor<report> base;
-
-    report(Analyser& analyser,
-           PPObserver::CallbackType type = PPObserver::e_None);
-        // Create an object of this type, that will use the specified
-        // 'analyser'.  Optionally specify a 'type' to identify the callback
-        // that will be invoked, for preprocessor callbacks that have the same
-        // signature.
 
     std::vector<std::pair<FileID, bool>>& include_stack(SourceLocation sl);
         // Get the include stack for the specified 'sl'.
@@ -618,21 +579,7 @@ struct report : public RecursiveASTVisitor<report>
     bool VisitUsingDirectiveDecl(UsingDirectiveDecl *decl);
     bool VisitValueDecl(ValueDecl *decl);
         // Return true after processing the specified 'tl' and 'expr'.
-
-    Analyser&                d_analyser;
-    data&                    d_data;
-    PPObserver::CallbackType d_type;
-
-    SourceManager&           m;
 };
-
-report::report(Analyser& analyser, PPObserver::CallbackType type)
-: d_analyser(analyser)
-, d_data(analyser.attachment<data>())
-, d_type(type)
-, m(analyser.manager())
-{
-}
 
 std::vector<std::pair<FileID, bool>>& report::include_stack(SourceLocation sl)
 {

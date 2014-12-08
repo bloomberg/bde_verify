@@ -78,6 +78,9 @@ class Analyser : public Attachments
     template <typename T> bool is_component(T const*);
     template <typename T> bool is_component_header(T const*);
     template <typename T> bool is_component_source(T const*);
+    bool               is_system_header(llvm::StringRef);
+    bool               is_system_header(clang::SourceLocation);
+    template <typename T> bool is_system_header(T const*);
     bool               is_test_driver() const;
     bool               is_main() const;
     bool               is_standard_namespace(std::string const&) const;
@@ -170,6 +173,8 @@ private:
     typedef std::map<std::string, bool>   IsStandardNamespace;
     mutable IsStandardNamespace           is_standard_namespace_;
     clang::tooling::Replacements          replacements_;
+    typedef std::map<std::string, bool>   IsSystemHeader;
+    mutable IsSystemHeader                is_system_header_;
 };
 
 // -----------------------------------------------------------------------------
@@ -222,6 +227,13 @@ bool Analyser::is_component_source(T const* value)
 
 template <typename T>
 inline
+bool Analyser::is_system_header(T const* value)
+{
+    return is_system_header(get_location(value).file());
+}
+
+template <typename T>
+inline
 T* Analyser::lookup_name_as(const std::string& name)
 {
     clang::NamedDecl* nd = lookup_name(name);
@@ -232,10 +244,10 @@ template <typename Parent, typename Node>
 inline
 const Parent* Analyser::get_parent(const Node* node)
 {
-    for (clang::ASTContext::ParentVector pv = context()->getParents(*node);
+    for (auto pv = context()->getParents(*node);
          pv.size() >= 1;
          pv = context()->getParents(pv[0])) {
-        if (const Parent* p = pv[0].get<Parent>()) {
+        if (const Parent* p = pv[0].template get<Parent>()) {
             return p;                                                 // RETURN
         }
     }

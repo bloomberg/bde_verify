@@ -10,6 +10,7 @@
 #include <csabase_location.h>
 #include <csabase_ppobserver.h>
 #include <csabase_registercheck.h>
+#include <csabase_report.h>
 #include <csabase_visitor.h>
 #include <llvm/Support/Regex.h>
 #include <string>
@@ -31,18 +32,11 @@ struct data
 {
     std::map<FileID, SourceLocation> d_uds;
     std::map<FileID, SourceLocation> d_ils;
-    SourceLocation d_first_ud;
-    SourceLocation d_last_il;
 };
 
-struct report
+struct report : Report<data>
 {
-    report(Analyser& analyser,
-            PPObserver::CallbackType type = PPObserver::e_None);
-        // Create an object of this type, that will use the specified
-        // 'analyser'.  Optionally specify a 'type' to identify the callback
-        // that will be invoked, for preprocessor callbacks that have the same
-        // signature.
+    using Report<data>::Report;
 
     void set_ud(SourceLocation& ud, SourceLocation sl);
 
@@ -67,21 +61,7 @@ struct report
     void operator()(SourceRange Range);
 
     void operator()();
-
-    Analyser&                d_analyser;
-    data&                    d_data;
-    PPObserver::CallbackType d_type;
-
-    SourceManager&           m;
 };
-
-report::report(Analyser& analyser, PPObserver::CallbackType type)
-: d_analyser(analyser)
-, d_data(analyser.attachment<data>())
-, d_type(type)
-, m(analyser.manager())
-{
-}
 
 void report::set_ud(SourceLocation& ud, SourceLocation sl)
 {
@@ -94,14 +74,13 @@ void report::operator()(UsingDecl const* decl)
 {
     if (decl->getLexicalDeclContext()->isFileContext()) {
         SourceLocation sl = decl->getLocation();
-        if (!d_analyser.is_global_package() &&
-            d_analyser.is_header(d_analyser.get_location(decl).file())) {
-            d_analyser.report(sl, check_name, "TR16",
+        if (!a.is_global_package() &&
+            a.is_header(a.get_location(decl).file())) {
+            a.report(sl, check_name, "TR16",
                             "Namespace level using declaration in header file")
                 << decl->getSourceRange();
         }
-        set_ud(d_data.d_uds[m.getFileID(sl)], sl);
-        set_ud(d_data.d_first_ud, sl);
+        set_ud(d.d_uds[m.getFileID(sl)], sl);
     }
 }
 
@@ -124,8 +103,7 @@ void report::operator()(SourceLocation   HashLoc,
                         const Module    *Imported)
 {
     SourceLocation sl = FilenameRange.getBegin();
-    set_il(d_data.d_ils[m.getFileID(sl)], sl);
-    set_il(d_data.d_last_il, sl);
+    set_il(d.d_ils[m.getFileID(sl)], sl);
 }
 
 // FileSkipped
@@ -134,52 +112,41 @@ void report::operator()(const FileEntry&           ParentFile,
                         SrcMgr::CharacteristicKind FileType)
 {
     SourceLocation sl = FilenameTok.getLocation();
-    set_il(d_data.d_ils[m.getFileID(sl)], sl);
-    set_il(d_data.d_last_il, sl);
+    set_il(d.d_ils[m.getFileID(sl)], sl);
 }
 
 // SourceRangeSkipped
 void report::operator()(SourceRange Range)
 {
     SourceLocation sl = Range.getBegin();
-    llvm::StringRef s = d_analyser.get_source(Range);
+    llvm::StringRef s = a.get_source(Range);
     llvm::SmallVector<llvm::StringRef, 7> matches;
     static llvm::Regex r(" *ifn?def *INCLUDED_.*[[:space:]]+"
                         "# *include +([<\"][^\">]*[\">])");
     if (r.match(s, &matches) && s.find(matches[0]) == 0) {
         sl = sl.getLocWithOffset(s.find(matches[1]));
-        set_il(d_data.d_ils[m.getFileID(sl)], sl);
-        set_il(d_data.d_last_il, sl);
+        set_il(d.d_ils[m.getFileID(sl)], sl);
     }
 }
 
 // TranslationUnitDone
 void report::operator()()
 {
-    for (const auto& id : d_data.d_uds) {
-        const auto& il = d_data.d_ils[id.first];
-        if (il.isValid() && m.isBeforeInTranslationUnit(id.second, il)) {
-            d_analyser.report(id.second, check_name, "AQJ01",
-                              "Using declaration precedes header inclusion");
-            d_analyser.report(il, check_name, "AQJ01",
-                              "Header included here",
-                              true, DiagnosticIDs::Note);
-            if (d_data.d_first_ud.isValid() &&
-                m.getFileID(d_data.d_first_ud) == id.first) {
-                d_data.d_first_ud = SourceLocation();
+    for (const auto& id : d.d_uds) {
+        if (!a.is_header(m.getFilename(m.getLocForStartOfFile(id.first)))) {
+            const auto& il = d.d_ils[id.first];
+            if (il.isValid() &&
+                m.isBeforeInTranslationUnit(id.second, il) &&
+                !a.is_system_header(id.second) &&
+                !a.is_system_header(il)) {
+                a.report(id.second, check_name, "AQJ01",
+                         "Using declaration precedes header inclusion",
+                         true);
+                a.report(il, check_name, "AQJ01",
+                         "Header included here",
+                          true, DiagnosticIDs::Note);
             }
         }
-    }
-
-    if (d_data.d_first_ud.isValid() &&
-        d_data.d_last_il.isValid() &&
-        m.getFileID(d_data.d_first_ud) != m.getFileID(d_data.d_last_il)) {
-        d_analyser.report(d_data.d_first_ud, check_name, "AQJ01",
-                          "Using declaration precedes header inclusion",
-                          true);
-        d_analyser.report(d_data.d_last_il, check_name, "AQJ01",
-                          "Header included here",
-                          true, DiagnosticIDs::Note);
     }
 }
 
