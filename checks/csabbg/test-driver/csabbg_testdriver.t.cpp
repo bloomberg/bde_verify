@@ -121,8 +121,8 @@ int main(int argc, char *argv[])
         // --------------------------------------------------------------------
 
         if (verbose) {
-            cout << "Usage Example" << endl
-                 << "=============" << endl;
+            printf("Usage Example\n=============\n");
+
         }
 
         static volatile const bool b = false;
@@ -148,8 +148,8 @@ int main(int argc, char *argv[])
         // --------------------------------------------------------------------
 
         if (verbose) {
-            cout << "'f' AND 'setf'" << endl
-                 << "==========" << endl;
+            cout << endl << "'f' AND 'setf'" << endl << "==========" << '\n';
+
         }
       } break;
       case 1: {

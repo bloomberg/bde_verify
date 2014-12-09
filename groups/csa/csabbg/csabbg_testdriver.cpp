@@ -21,6 +21,7 @@
 #include <csabase_location.h>
 #include <csabase_ppobserver.h>
 #include <csabase_registercheck.h>
+#include <csabase_report.h>
 #include <csabase_util.h>
 #include <csabase_visitor.h>
 #include <ctype.h>
@@ -138,15 +139,10 @@ data::data()
 {
 }
 
-struct report
+struct report : Report<data>
     // Callback object for inspecting test drivers.
 {
-    Analyser&      d_analyser;
-    SourceManager& d_manager;
-    data&          d_data;
-
-    report(Analyser& analyser);
-        // Initialize an object of this type.
+    using Report<data>::Report;
 
     SourceRange get_test_plan();
         // Return the TEST PLAN comment block.
@@ -195,23 +191,14 @@ struct report
         // set the specified 'best_loc', 'best_needle', and 'best_distance' to
         // the matched position, string, and closeness respectively.
 
-    void match_print_banner(const BoundNodes &nodes);
-    bool found_banner;
-    llvm::StringRef banner_text;
-    const StringLiteral *banner_literal;
+    void check_banner(SourceLocation bl, llvm::StringRef s);
+        // Check the specified banner 's' at the specified position 'bl'.
 
     void match_noisy_print(const BoundNodes &nodes);
     void match_no_print(const BoundNodes &nodes);
     void match_return_status(const BoundNodes &nodes);
     void match_set_status(const BoundNodes &nodes);
 };
-
-report::report(Analyser& analyser)
-: d_analyser(analyser)
-, d_manager(analyser.manager())
-, d_data(analyser.attachment<data>())
-{
-}
 
 // Loosely match the banner of a TEST PLAN.
 llvm::Regex test_plan_banner(
@@ -222,10 +209,10 @@ llvm::Regex test_plan_banner(
 
 SourceRange report::get_test_plan()
 {
-    data::Comments::iterator b = d_data.d_comments.begin();
-    data::Comments::iterator e = d_data.d_comments.end();
+    data::Comments::iterator b = d.d_comments.begin();
+    data::Comments::iterator e = d.d_comments.end();
     for (data::Comments::iterator i = b; i != e; ++i) {
-        llvm::StringRef comment = d_analyser.get_source(*i);
+        llvm::StringRef comment = a.get_source(*i);
         if (test_plan_banner.match(comment)) {
             return *i;                                                // RETURN
         }
@@ -267,118 +254,47 @@ llvm::Regex tested_method(
     llvm::Regex::Newline);  // Match a method name in a test item.
 
 const internal::DynTypedMatcher &
-print_banner_matcher()
-    // Return an AST matcher which looks for the banner printer in a test case
-    // statement.  It is satisfied with a 'printf' or 'cout' version, with or
-    // without a leading newline/'endl'.  The 'printf' string literal combining
-    // text and underlining is bound to "BANNER", the 'cout' banner text is
-    // bound to "TEST" and the 'cout' underlining is bound to "====".  Valid
-    // cases look like one of
-    //: o 'cout' with initial 'endl'
-    //..
-    //    if (verbose) cout << endl
-    //                      << "TESTING FOO" << endl
-    //                      << "===========" << endl;
-    //..
-    //: o 'cout' without initial 'endl'
-    //..
-    //    if (verbose) cout << "TESTING FOO" << endl
-    //                      << "===========" << endl;
-    //..
-    //: o 'printf' with initial '\n'
-    //..
-    //    if (verbose) printf("\nTESTING FOO\n===========\n");
-    //..
-    //: o 'printf' without initial '\n'
-    //..
-    //    if (verbose) printf("TESTING FOO\n===========\n");
-    //..
+print_matcher()
 {
     static const internal::DynTypedMatcher matcher =
-        caseStmt(has(compoundStmt(hasDescendant(ifStmt(
-            hasCondition(ignoringImpCasts(declRefExpr(to(
-                varDecl(hasName("verbose")))))
-            ),
-            anyOf(
-                hasDescendant(
-                    callExpr(
-                        argumentCountIs(1),
-                        callee(functionDecl(hasName("printf"))),
-                        hasArgument(0, ignoringImpCasts(
-                            stringLiteral().bind("BANNER")))
-                    )
+        caseStmt(has(compoundStmt(has(ifStmt(
+            hasCondition(ignoringImpCasts(
+                declRefExpr(to(varDecl(hasName("verbose"))))
+            )),
+            forEachDescendant(expr(anyOf(
+                callExpr(argumentCountIs(1),
+                         callee(functionDecl(hasName("printf"))),
+                         hasArgument(0, ignoringImpCasts(stringLiteral()
+                                                         .bind("ps")
+                         ))
                 ),
-                hasDescendant(
-                    operatorCallExpr(
-                        hasOverloadedOperatorName("<<"),
-                        hasArgument(0, ignoringImpCasts(
-                    operatorCallExpr(
-                        hasOverloadedOperatorName("<<"),
-                        hasArgument(0, ignoringImpCasts(
-                    operatorCallExpr(
-                        hasOverloadedOperatorName("<<"),
-                        hasArgument(0, ignoringImpCasts(
-                    operatorCallExpr(
-                        hasOverloadedOperatorName("<<"),
-                        hasArgument(0, ignoringImpCasts(
-                    operatorCallExpr(
-                        hasOverloadedOperatorName("<<"),
-                        hasArgument(0, ignoringImpCasts(declRefExpr(to(
-                            varDecl(hasName("cout")))))),
-                        hasArgument(1, ignoringImpCasts(declRefExpr(to(
-                            functionDecl(hasName("endl"))))))))),
-                        hasArgument(1, ignoringImpCasts(
-                            stringLiteral().bind("TEST")))))),
-                        hasArgument(1, ignoringImpCasts(declRefExpr(to(
-                            functionDecl(hasName("endl"))))))))),
-                        hasArgument(1, ignoringImpCasts(
-                            stringLiteral().bind("====")))))),
-                        hasArgument(1, ignoringImpCasts(declRefExpr(to(
-                            functionDecl(hasName("endl")))))))
+                callExpr(argumentCountIs(1),
+                         callee(functionDecl(hasName("printf"))),
+                         hasArgument(0, ignoringImpCasts(characterLiteral()
+                                                         .bind("pc")
+                         ))
                 ),
-                hasDescendant(
-                    operatorCallExpr(
-                        hasOverloadedOperatorName("<<"),
-                        hasArgument(0, ignoringImpCasts(
-                    operatorCallExpr(
-                        hasOverloadedOperatorName("<<"),
-                        hasArgument(0, ignoringImpCasts(
-                    operatorCallExpr(
-                        hasOverloadedOperatorName("<<"),
-                        hasArgument(0, ignoringImpCasts(
-                    operatorCallExpr(
-                        hasOverloadedOperatorName("<<"),
-                        hasArgument(0, ignoringImpCasts(declRefExpr(to(
-                            varDecl(hasName("cout")))))),
-                        hasArgument(1, ignoringImpCasts(
-                            stringLiteral().bind("TEST")))))),
-                        hasArgument(1, ignoringImpCasts(declRefExpr(to(
-                            functionDecl(hasName("endl"))))))))),
-                        hasArgument(1, ignoringImpCasts(
-                            stringLiteral().bind("====")))))),
-                        hasArgument(1, ignoringImpCasts(declRefExpr(to(
-                            functionDecl(hasName("endl")))))))
+                operatorCallExpr(
+                    hasOverloadedOperatorName("<<"),
+                    hasArgument(1, ignoringImpCasts(declRefExpr(to(
+                        functionDecl(hasName("endl"))
+                    )).bind("ce")))
                 ),
-                hasDescendant(
-                    operatorCallExpr(
-                        hasOverloadedOperatorName("<<"),
-                        hasArgument(0, ignoringImpCasts(
-                    operatorCallExpr(
-                        hasOverloadedOperatorName("<<"),
-                        hasArgument(0, ignoringImpCasts(
-                    operatorCallExpr(
-                        hasOverloadedOperatorName("<<"),
-                        hasArgument(0, ignoringImpCasts(declRefExpr(to(
-                            varDecl(hasName("cout")))))),
-                        hasArgument(1, ignoringImpCasts(
-                            stringLiteral().bind("TEST")))))),
-                        hasArgument(1, ignoringImpCasts(
-                            stringLiteral().bind("====")))))),
-                        hasArgument(1, ignoringImpCasts(declRefExpr(to(
-                            functionDecl(hasName("endl")))))))
+                operatorCallExpr(
+                    hasOverloadedOperatorName("<<"),
+                    hasArgument(1, ignoringImpCasts(stringLiteral()
+                                                    .bind("cs")
+                    ))
+                ),
+                operatorCallExpr(
+                    hasOverloadedOperatorName("<<"),
+                    hasArgument(1, ignoringImpCasts(characterLiteral()
+                                                    .bind("cc")
+                    ))
                 )
-            )
+            )))
         )))));
+
     return matcher;
 }
 
@@ -449,7 +365,7 @@ return_status_matcher()
 
 void report::match_return_status(const BoundNodes& nodes)
 {
-    d_data.d_return = nodes.getNodeAs<Stmt>("good");
+    d.d_return = nodes.getNodeAs<Stmt>("good");
 }
 
 const internal::DynTypedMatcher &
@@ -476,71 +392,67 @@ set_status_matcher()
 void report::match_set_status(const BoundNodes& nodes)
 {
     if (const Stmt *bad = nodes.getNodeAs<Stmt>("bad")) {
-        d_analyser.report(bad->getLocEnd(), check_name, "TP24",
-                          "`default:` case should set `testStatus = -1;`");
+        a.report(bad->getLocEnd(), check_name, "TP24",
+                 "`default:` case should set `testStatus = -1;`");
     }
 }
 
-void report::note_function(std::string m)
+void report::note_function(std::string f)
 {
-    size_t lt = m.find('<');
-    if (lt != m.npos && !llvm::StringRef(m).startswith("operator")) {
-        m = m.substr(0, lt);
+    size_t lt = f.find('<');
+    if (lt != f.npos && !llvm::StringRef(f).startswith("operator")) {
+        f = f.substr(0, lt);
     }
-    ++d_data.d_names_to_test[m];
+    ++d.d_names_to_test[f];
 }
 
-void report::process_function(CXXMethodDecl *m)
+void report::process_function(CXXMethodDecl *f)
 {
-    if (m->getAccess() == AS_public &&
-        m->isUserProvided() &&
-        !m->getLocation().isMacroID() &&
-        !d_analyser.config()->suppressed(
-            "TP27",
-            d_analyser.manager().getLocForStartOfFile(
-                                      d_analyser.manager().getMainFileID()))) {
+    if (f->getAccess() == AS_public &&
+        f->isUserProvided() &&
+        !f->getLocation().isMacroID() &&
+        !a.config()->suppressed(
+            "TP27", m.getLocForStartOfFile(m.getMainFileID()))) {
         MatchFinder mf;
         bool found = false;
         OnMatch<> m1([&](const BoundNodes &nodes) {
-            if (d_analyser.manager().getFileID(
-                    d_analyser.manager().getExpansionLoc(
-                        nodes.getNodeAs<Expr>("expr")->getExprLoc())) ==
-                d_analyser.manager().getMainFileID()) {
+            if (m.getFileID(m.getExpansionLoc(
+                    nodes.getNodeAs<Expr>("expr")->getExprLoc())) ==
+                m.getMainFileID()) {
                 found = true;
             }
         });
         mf.addDynamicMatcher(
             decl(hasDescendant(
                 namedDecl(hasName("main"),
-                          forEachDescendant(expr(callTo(m)).bind("expr"))))),
+                          forEachDescendant(expr(callTo(f)).bind("expr"))))),
             &m1);
-        mf.match(*m->getTranslationUnitDecl(), *d_analyser.context());
+        mf.match(*f->getTranslationUnitDecl(), *a.context());
         if (!found) {
-            d_analyser.report(m, check_name, "TP27",
-                              "Method not called in test driver");
+            a.report(f, check_name, "TP27",
+                     "Method not called in test driver");
         }
-        note_function(m->getNameAsString());
+        note_function(f->getNameAsString());
     }
 }
 
 void report::get_function_names()
 {
-    for (auto p : d_data.d_classes) {
+    for (auto p : d.d_classes) {
         std::string name = p.first.str();
         if (!p.first.startswith("::")) {
             name = "::" + name;
         }
         bool is_bsl = llvm::StringRef(name).startswith("::bsl::");
-        NamedDecl *nd = d_analyser.lookup_name(name);
+        NamedDecl *nd = a.lookup_name(name);
         if (!nd && is_bsl) {
-            nd = d_analyser.lookup_name("::std::" + name.substr(7));
+            nd = a.lookup_name("::std::" + name.substr(7));
         }
         if (!nd) {
-            nd = d_analyser.lookup_name(
-                "::" + d_analyser.config()->toplevel_namespace() + name);
+            nd = a.lookup_name("::" + a.config()->toplevel_namespace() + name);
             if (!nd && is_bsl) {
-                nd = d_analyser.lookup_name(
-                    "::" + d_analyser.config()->toplevel_namespace() +
+                nd = a.lookup_name(
+                    "::" + a.config()->toplevel_namespace() +
                     "::std::" + name.substr(7));
             }
         }
@@ -572,8 +484,8 @@ void report::get_function_names()
                     auto sb = t->spec_begin();
                     auto se = t->spec_end();
                     if (sb == se) {
-                        d_analyser.report(t, check_name, "TP27",
-                                          "Method not called in test driver");
+                        a.report(t, check_name, "TP27",
+                                 "Method not called in test driver");
                         note_function(t->getNameAsString());
                     }
                     for (; sb != se; ++sb) {
@@ -588,9 +500,9 @@ void report::get_function_names()
             }
         }
         else {
-            d_analyser.report(p.second.getBegin(), check_name, "TP25",
-                              "Cannot find definition of class '%0' from "
-                              "@CLASSES section.")
+            a.report(p.second.getBegin(), check_name, "TP25",
+                     "Cannot find definition of class '%0' from "
+                     "@CLASSES section.")
                 << p.first;
         }
     }
@@ -598,7 +510,7 @@ void report::get_function_names()
 
 void report::operator()()
 {
-    if (!d_analyser.is_test_driver()) {
+    if (!a.is_test_driver()) {
         return;                                                       // RETURN
     }
 
@@ -609,13 +521,11 @@ void report::operator()()
     SourceRange plan_range = get_test_plan();
 
     if (!plan_range.isValid()) {
-        d_analyser.report(
-            d_manager.getLocForStartOfFile(d_manager.getMainFileID()),
-            check_name, "TP14",
-            "TEST PLAN section is absent");
+        a.report(m.getLocForStartOfFile(m.getMainFileID()), check_name, "TP14",
+                 "TEST PLAN section is absent");
     }
 
-    llvm::StringRef plan = d_analyser.get_source(plan_range);
+    llvm::StringRef plan = a.get_source(plan_range);
 
     llvm::SmallVector<llvm::StringRef, 7> matches;
     size_t offset = 0;
@@ -637,10 +547,9 @@ void report::operator()()
     }
 
     if (sep_offset > offset) {
-        d_analyser.report(plan_range.getBegin(),
-                          check_name, "TP02",
-                          "TEST PLAN section is missing '// ---...---' "
-                          "separator line between preamble and methods list");
+        a.report(plan_range.getBegin(), check_name, "TP02",
+                 "TEST PLAN section is missing '// ---...---' "
+                 "separator line between preamble and methods list");
     }
 
     size_t plan_pos = offset;
@@ -664,60 +573,58 @@ void report::operator()()
         SourceRange bracket_range(getOffsetRange(plan_range, lb, rb - lb));
 
         if (number.empty()) {
-            d_analyser.report(bracket_range.getBegin(),
-                              check_name, "TP03",
-                              "Missing test number")
+            a.report(bracket_range.getBegin(), check_name, "TP03",
+                     "Missing test number")
                 << bracket_range;
         }
 
         if (test_num == 0) {
-            d_analyser.report(bracket_range.getBegin(),
-                              check_name, "TP04",
-                              "Test number may not be 0")
+            a.report(bracket_range.getBegin(), check_name, "TP04",
+                     "Test number may not be 0")
                 << bracket_range;
         }
 
         if (item.empty()) {
-            d_analyser.report(bracket_range.getEnd().getLocWithOffset(1),
-                              check_name, "TP07",
-                              "Missing test item");
+            a.report(bracket_range.getEnd().getLocWithOffset(1),
+                     check_name, "TP07",
+                     "Missing test item");
         } else {
-            d_data.d_tests_of_cases.insert(std::make_pair(test_num, item));
-            d_data.d_cases_of_tests.insert(std::make_pair(item, test_num));
+            d.d_tests_of_cases.insert(std::make_pair(test_num, item));
+            d.d_cases_of_tests.insert(std::make_pair(item, test_num));
             if (tested_method.match(item, &matches)) {
-                ++d_data.d_names_in_plan[matches[1]];
+                ++d.d_names_in_plan[matches[1]];
             }
         }
 
         if (cruft.find_first_not_of(" ") != cruft.npos) {
-            d_analyser.report(bracket_range.getBegin().getLocWithOffset(-1),
-                              check_name, "TP16",
-                              "Extra characters before test number brackets");
+            a.report(bracket_range.getBegin().getLocWithOffset(-1),
+                     check_name, "TP16",
+                     "Extra characters before test number brackets");
         }
     }
     if (count == 0) {
-        d_analyser.report(plan_range.getBegin().getLocWithOffset(plan_pos),
-                          check_name, "TP13",
-                          "No test items found in test plan");
+        a.report(plan_range.getBegin().getLocWithOffset(plan_pos),
+                 check_name, "TP13",
+                 "No test items found in test plan");
     }
     else {
-        for (const auto &a : d_data.d_names_to_test) {
-            if (a.second > d_data.d_names_in_plan[a.first]) {
-                d_analyser.report(
+        for (const auto &n : d.d_names_to_test) {
+            if (n.second > d.d_names_in_plan[n.first]) {
+                a.report(
                     plan_range.getBegin().getLocWithOffset(plan_pos),
                     check_name, "TP26",
                     "Tested %plural{1:class has|:classes have}0 "
                     "%plural{1:a|:%1}1 function%s1 named '%2' "
                     "but the test plan has %plural{0:none|:%3}3")
-                << int(d_data.d_classes.size())
-                << int(a.second)
-                << a.first
-                << int(d_data.d_names_in_plan[a.first]);
+                << int(d.d_classes.size())
+                << int(n.second)
+                << n.first
+                << int(d.d_names_in_plan[n.first]);
             }
         }
     }
 
-    CompoundStmt const* stmt = d_data.d_main;
+    CompoundStmt const* stmt = d.d_main;
     if (!stmt) {
         return;                                                       // RETURN
     }
@@ -737,32 +644,31 @@ void report::operator()()
         if (!last) {
             last = stmt;
         }
-        d_data.d_return = 0;
-        mf.match(*last, *d_analyser.context());
-        if (!d_data.d_return) {
-            d_analyser.report(last->getLocEnd(), check_name, "TP23",
-                              "Final statement of `main()` must be "
-                              "`return testStatus;`");
+        d.d_return = 0;
+        mf.match(*last, *a.context());
+        if (!d.d_return) {
+            a.report(last->getLocEnd(), check_name, "TP23",
+                   "Final statement of `main()` must be `return testStatus;`");
         }
     } else {
-        d_analyser.report(stmt, check_name, "TP11",
-                          "No switch statement found in test driver main");
+        a.report(stmt, check_name, "TP11",
+                 "No switch statement found in test driver main");
         return;                                                       // RETURN
     }
 
     const SwitchCase* sc;
     for (sc = ss->getSwitchCaseList(); sc; sc = sc->getNextSwitchCase()) {
-        size_t line = Location(d_manager, sc->getColonLoc()).line() + 1;
+        size_t line = Location(m, sc->getColonLoc()).line() + 1;
 
         // Skip over preprocessor conditionals.
-        while (d_data.d_cclines.find(line) != d_data.d_cclines.end()) {
+        while (d.d_cclines.find(line) != d.d_cclines.end()) {
             ++line;
         }
 
         SourceRange cr;
-        if (d_data.d_comments_of_lines.find(line) !=
-            d_data.d_comments_of_lines.end()) {
-            cr = d_data.d_comments[d_data.d_comments_of_lines[line]];
+        if (d.d_comments_of_lines.find(line) !=
+            d.d_comments_of_lines.end()) {
+            cr = d.d_comments[d.d_comments_of_lines[line]];
         }
 
         const CaseStmt* cs = llvm::dyn_cast<CaseStmt>(sc);
@@ -771,72 +677,94 @@ void report::operator()()
             MatchFinder mf;
             OnMatch<report, &report::match_set_status> m1(this);
             mf.addDynamicMatcher(set_status_matcher(), &m1);
-            mf.match(*sc, *d_analyser.context());
+            mf.match(*sc, *a.context());
             continue;
         }
 
         llvm::APSInt case_value;
-        cs->getLHS()->EvaluateAsInt(case_value, *d_analyser.context());
+        cs->getLHS()->EvaluateAsInt(case_value, *a.context());
         bool negative = 0 >  case_value.getSExtValue();
         bool zero     = 0 == case_value.getSExtValue();
 
         MatchFinder mf;
-        OnMatch<report, &report::match_print_banner> m1(this);
-        mf.addDynamicMatcher(print_banner_matcher(), &m1);
         OnMatch<report, &report::match_noisy_print> m2(this);
         mf.addDynamicMatcher(noisy_print_matcher(), &m2);
         OnMatch<report, &report::match_no_print> m3(this);
         mf.addDynamicMatcher(no_print_matcher(), &m3);
+        std::string banner;
+        SourceLocation bl;
+        OnMatch<> m4([&](const BoundNodes &nodes) {
+            if (auto sl = nodes.getNodeAs<DeclRefExpr>("ce")) {
+                banner = "\n" + banner;
+                bl = sl->getExprLoc();
+            }
+            else if (auto sl = nodes.getNodeAs<StringLiteral>("ps")) {
+                banner = sl->getString().str() + banner;
+                bl = sl->getExprLoc();
+            }
+            else if (auto sl = nodes.getNodeAs<StringLiteral>("cs")) {
+                banner = sl->getString().str() + banner;
+                bl = sl->getExprLoc();
+            }
+            else if (auto sl = nodes.getNodeAs<CharacterLiteral>("pc")) {
+                banner = char(sl->getValue()) + banner;
+                bl = sl->getExprLoc();
+            }
+            else if (auto sl = nodes.getNodeAs<CharacterLiteral>("cc")) {
+                banner = char(sl->getValue()) + banner;
+                bl = sl->getExprLoc();
+            }
+        });
+        mf.addDynamicMatcher(print_matcher(), &m4);
 
-        found_banner = false;
-        banner_text = llvm::StringRef();
-        banner_literal = 0;
-        mf.match(*cs, *d_analyser.context());
-        if (!found_banner && !zero) {
-            d_analyser.report(sc->getLocStart(),
-                              check_name, "TP17",
-                              "Test case does not contain "
-                              "'if (verbose) print test banner'");
+        mf.match(*cs, *a.context());
+
+        if (!zero) {
+            check_banner(bl, banner);
+        }
+
+        if (!bl.isValid() && !zero) {
+            a.report(sc->getLocStart(), check_name, "TP17",
+                "Test case does not contain 'if (verbose) print test banner'");
         }
 
         if (!cr.isValid()) {
             if (!zero) {
-                d_analyser.report(sc->getLocStart(),
-                                  check_name, "TP05",
-                                  "Test case has no comment");
+                a.report(sc->getLocStart(), check_name, "TP05",
+                         "Test case has no comment");
             }
             continue;
         } else {
             if (zero) {
-                d_analyser.report(sc->getLocStart(),
-                        check_name, "TP10",
-                        "Case 0 should not have a test comment");
+                a.report(sc->getLocStart(), check_name, "TP10",
+                         "Case 0 should not have a test comment");
             }
         }
 
-        llvm::StringRef comment = d_analyser.get_source(cr);
+        llvm::StringRef comment = a.get_source(cr);
         llvm::SmallVector<llvm::StringRef, 7> matches;
         size_t testing_pos = 0;
         size_t line_pos = 0;
 
-        if (found_banner) {
+        if (bl.isValid()) {
+            llvm::StringRef banner_text =
+                llvm::StringRef(banner).ltrim().split('\n').first;
             if (test_title.match(comment, &matches)) {
                 llvm::StringRef t = matches[2];
                 testing_pos = comment.find(t);
                 line_pos = testing_pos + t.size();
                 std::pair<size_t, size_t> m = mid_mismatch(t, banner_text);
                 if (m.first != t.size()) {
-                    d_analyser.report(
+                    a.report(
                         cr.getBegin().getLocWithOffset(testing_pos + m.first),
                         check_name, "TP22",
                         "Mismatch between title in comment and as printed");
-                    d_analyser.report(banner_literal,
-                                      check_name, "TP22",
-                                      "Printed title is",
-                                      false, DiagnosticIDs::Note);
+                    a.report(bl, check_name, "TP22",
+                             "Printed title is",
+                             false, DiagnosticIDs::Note);
                 }
             } else {
-                d_analyser.report(
+                a.report(
                         cr.getBegin().getLocWithOffset(comment.find('\n') + 1),
                         check_name, "TP22",
                         "Test case title should be\n%0")
@@ -851,15 +779,13 @@ void report::operator()()
             std::pair<size_t, size_t> m =
                 mid_mismatch(t, "// Testing:\n");
             if (m.first != t.size()) {
-                d_analyser.report(
-                    cr.getBegin().getLocWithOffset(testing_pos + m.first),
-                    check_name, "TP15",
-                    "Correct format is '// Testing:'");
+                a.report(cr.getBegin().getLocWithOffset(testing_pos + m.first),
+                         check_name, "TP15",
+                         "Correct format is '// Testing:'");
             }
         } else if (!negative) {
-            d_analyser.report(cr.getBegin(),
-                              check_name, "TP12",
-                              "Comment should contain a 'Testing:' section");
+            a.report(cr.getBegin(), check_name, "TP12",
+                     "Comment should contain a 'Testing:' section");
         }
 
         for (size_t end_pos = 0;
@@ -871,7 +797,7 @@ void report::operator()()
                 break;
             }
             typedef data::CasesOfTests::const_iterator Ci;
-            std::pair<Ci, Ci> be = d_data.d_cases_of_tests.equal_range(line);
+            std::pair<Ci, Ci> be = d.d_cases_of_tests.equal_range(line);
             Ci match_itr;
             for (match_itr = be.first; match_itr != be.second; ++match_itr) {
                 if (match_itr->second == case_value.getSExtValue()) {
@@ -885,37 +811,35 @@ void report::operator()()
                 size_t off = plan_pos;
                 off += plan.drop_front(off).find(line);
                 off = plan.rfind(']', off) - 1;
-                d_analyser.report(cr.getBegin().getLocWithOffset(line_pos),
-                        check_name, "TP08",
+                a.report(cr.getBegin().getLocWithOffset(line_pos),
+                         check_name, "TP08",
                         "Test plan does not have case number %0 for this item")
                     << case_value.getSExtValue();
-                d_analyser.report(
-                        plan_range.getBegin().getLocWithOffset(off),
-                        check_name, "TP08",
-                        "Test plan item is", false,
-                        DiagnosticIDs::Note);
+                a.report(plan_range.getBegin().getLocWithOffset(off),
+                         check_name, "TP08",
+                         "Test plan item is",
+                         false, DiagnosticIDs::Note);
             }
             else if (!negative && test_item.match(line)) {
-                d_analyser.report(cr.getBegin().getLocWithOffset(line_pos),
-                                  check_name, "TP09",
-                                  "Test plan should contain this item from "
-                                  "'Testing' section of case %0")
+                a.report(cr.getBegin().getLocWithOffset(line_pos),
+                         check_name, "TP09",
+                         "Test plan should contain this item from "
+                         "'Testing' section of case %0")
                     << case_value.getSExtValue();
             }
         }
 
         typedef data::TestsOfCases::const_iterator Ci;
-        std::pair<Ci, Ci> be = d_data.d_tests_of_cases.equal_range(
+        std::pair<Ci, Ci> be = d.d_tests_of_cases.equal_range(
             case_value.getSExtValue());
         for (Ci i = be.first; i != be.second; ++i) {
             if (comment.drop_front(testing_pos).find(i->second) ==
                 comment.npos) {
-                d_analyser.report(
-                    plan_range.getBegin().getLocWithOffset(
-                        plan_pos + plan.drop_front(plan_pos).find(i->second)),
-                    check_name, "TP06",
-                    "'Testing' section of case %0 should contain this item "
-                    "from test plan")
+                a.report(plan_range.getBegin().getLocWithOffset(
+                         plan_pos + plan.drop_front(plan_pos).find(i->second)),
+                         check_name, "TP06",
+                         "'Testing' section of case %0 should contain this "
+                         "item from test plan")
                     << case_value.getSExtValue();
             }
         }
@@ -930,33 +854,33 @@ llvm::Regex classes(
 
 void report::operator()(SourceRange range)
 {
-    Location location(d_analyser.get_location(range.getBegin()));
-    if (location.file() == d_analyser.toplevel()) {
-        data::Comments& c = d_data.d_comments;
+    Location location(a.get_location(range.getBegin()));
+    if (location.file() == a.toplevel()) {
+        data::Comments& c = d.d_comments;
         if (c.size() == 0 ||
-            !areConsecutive(d_manager, c.back(), range)) {
-            d_data.d_comments_of_lines[location.line()] = c.size();
+            !areConsecutive(m, c.back(), range)) {
+            d.d_comments_of_lines[location.line()] = c.size();
             c.push_back(range);
         }
         else {
             c.back().setEnd(range.getEnd());
         }
     }
-    if (d_data.d_collecting_classes != data::DONE &&
-        d_analyser.is_component(location.file())) {
-        llvm::StringRef line = d_analyser.get_source_line(location.location());
-        if (d_data.d_collecting_classes == data::NOT_YET) {
+    if (d.d_collecting_classes != data::DONE &&
+        a.is_component(location.file())) {
+        llvm::StringRef line = a.get_source_line(location.location());
+        if (d.d_collecting_classes == data::NOT_YET) {
             if (line.find("//@CLASS") == 0) {
-                d_data.d_collecting_classes = data::NOW;
+                d.d_collecting_classes = data::NOW;
             }
         }
         else {
             llvm::SmallVector<llvm::StringRef, 7> matches;
             if (classes.match(line, &matches)) {
-                d_data.d_classes[matches[1]] = range;
+                d.d_classes[matches[1]] = range;
             }
             else {
-                d_data.d_collecting_classes = data::DONE;
+                d.d_collecting_classes = data::DONE;
             }
         }
     }
@@ -965,15 +889,15 @@ void report::operator()(SourceRange range)
 void report::operator()(const FunctionDecl *function)
 {
     if (function->isMain() && function->hasBody()) {
-        d_data.d_main = llvm::dyn_cast<CompoundStmt>(function->getBody());
+        d.d_main = llvm::dyn_cast<CompoundStmt>(function->getBody());
     }
 }
 
 void report::mark_ccline(SourceLocation loc)
 {
-    Location location(d_analyser.get_location(loc));
-    if (location.file() == d_analyser.toplevel()) {
-        d_data.d_cclines.insert(location.line());
+    Location location(a.get_location(loc));
+    if (location.file() == a.toplevel()) {
+        d.d_cclines.insert(location.line());
     }
 }
 
@@ -1046,81 +970,42 @@ static std::string cappish(llvm::StringRef ref)
     return s;
 }
 
-void report::match_print_banner(const BoundNodes& nodes)
+void report::check_banner(SourceLocation bl, llvm::StringRef s)
 {
-    const StringLiteral *l1 = nodes.getNodeAs<StringLiteral>("BANNER");
-    const StringLiteral *l2 = nodes.getNodeAs<StringLiteral>("TEST");
-    const StringLiteral *l3 = nodes.getNodeAs<StringLiteral>("====");
-
-    found_banner = true;
-
-    if (l1) {
-        llvm::StringRef s = l1->getString();
+    if (!bl.isValid()) {
+        a.report(bl, check_name, "TP17",
+                "Test case does not contain 'if (verbose) print test banner'");
+    }
+    else {
         size_t n = s.size();
-        // e.g., n == 11
-        // \n TEST \n ==== \n
-        //  0 1234  5 6789 10
-        // or n == 10
-        // TEST \n ==== \n
-        // 0123  4 5678  9
-        banner_text = s.ltrim().split('\n').first;
-        banner_literal = l1;
+        llvm::StringRef text = s.ltrim().split('\n').first;
+        bool c = is_all_cappish(s);
         if ((s.count('\n') != 3 ||
              s[0] != '\n' ||
              s[n - 1] != '\n' ||
              s[n / 2] != '\n' ||
              s.find_first_not_of('=', n / 2 + 1) != n - 1 ||
-             !is_all_cappish(s)) &&
+             !c) &&
             (s.count('\n') != 2 ||
              s[n - 1] != '\n' ||
              s[n / 2 - 1] != '\n' ||
              s.find_first_not_of('=', n / 2) != n - 1 ||
-             !is_all_cappish(s))
+             !c)
            ) {
-            size_t col = d_manager.getPresumedColumnNumber(l1->getLocStart());
+            size_t col = m.getPresumedColumnNumber(bl);
             std::string indent(col - 1, ' ');
-            d_analyser.report(l1, check_name, "TP18",
-                              "Incorrect test banner format");
-            d_analyser.report(l1, check_name, "TP18",
-                              "Correct format is\n%0",
-                              false, DiagnosticIDs::Note)
+            a.report(bl, check_name, "TP18",
+                     c ? "Incorrect test banner format"
+                       : "Incorrect test banner format (not ALL CAPS)");
+            a.report(bl, check_name, "TP18",
+                     "Correct format is\n%0",
+                     false, DiagnosticIDs::Note)
                 << indent
-                 + "\"\\n"
-                 + cappish(banner_text)
-                 + "\\n"
-                 + std::string(banner_text.size(), '=')
-                 + "\\n\"";
-        }
-    } else if (l2 && l3) {
-        llvm::StringRef text = l2->getString();
-        llvm::StringRef ul = l3->getString();
-        if (text.size() > 0 && text[0] == '\n' &&
-            ul  .size() > 0 && ul  [0] == '\n') {
-            text = text.substr(1);
-            ul   = ul  .substr(1);
-        }
-        banner_text = text.ltrim().split('\n').first;
-        banner_literal = l2;
-        if (text.size() != ul.size() ||
-            ul.find_first_not_of('=') != ul.npos ||
-            !is_all_cappish(text)) {
-            size_t col = d_manager.getPresumedColumnNumber(l2->getLocStart());
-            std::string indent(col > 9 ? col - 9 : col, ' ');
-            d_analyser.report(l2, check_name, "TP18",
-                              "Incorrect test banner format");
-            d_analyser.report(l2, check_name, "TP18",
-                              "Correct format is\n%0",
-                              false, DiagnosticIDs::Note)
-                << indent
-                 + "cout << endl\n"
+                 + (s[0] == '\n' ? "\"\\n\" " : "")
+                 + "\"" + cappish(text) + "\" \"\\n\"\n"
                  + indent
-                 + "     << \""
-                 + cappish(banner_text)
-                 + "\" << endl\n"
-                 + indent
-                 + "     << \""
-                 + std::string(banner_text.size(), '=')
-                 + "\" << endl;\n";
+                 + (s[0] == '\n' ? "     " : "")
+                 + "\"" + std::string(text.size(), '=') + "\" \"\\n\"";
         }
     }
 }
@@ -1133,8 +1018,8 @@ void report::match_noisy_print(const BoundNodes& nodes)
         return;                                                       // RETURN
     }
 
-    d_analyser.report(noisy->getCond(), check_name, "TP20",
-                      "Within loops, act on very verbose");
+    a.report(noisy->getCond(), check_name, "TP20",
+             "Within loops, act on very verbose");
 }
 
 void report::match_no_print(const BoundNodes& nodes)
@@ -1148,18 +1033,18 @@ void report::match_no_print(const BoundNodes& nodes)
     // Don't warn about this in case 0, the usage example, or in negative cases
     // (which are not regular tests).
     for (const Stmt *s = quiet;
-         const CaseStmt *cs = d_analyser.get_parent<CaseStmt>(s);
+         const CaseStmt *cs = a.get_parent<CaseStmt>(s);
          s = cs) {
         llvm::APSInt val;
-        if (cs->getLHS()->isIntegerConstantExpr(val, *d_analyser.context()) &&
+        if (cs->getLHS()->isIntegerConstantExpr(val, *a.context()) &&
             !val.isStrictlyPositive()) {
             return;                                                   // RETURN
         }
     }
 
     // Require that the loop contain a call to a tested method.
-    llvm::StringRef code = d_analyser.get_source(quiet->getSourceRange());
-    for (const auto& func_count : d_data.d_names_to_test) {
+    llvm::StringRef code = a.get_source(quiet->getSourceRange());
+    for (const auto& func_count : d.d_names_to_test) {
         size_t pos = code.find(func_count.first);
         if (pos != code.npos) {
             if (pos > 0) {
@@ -1175,8 +1060,8 @@ void report::match_no_print(const BoundNodes& nodes)
                     continue;
                 }
             }
-            d_analyser.report(quiet, check_name, "TP21",
-                              "Loops must contain very verbose action");
+            a.report(quiet, check_name, "TP21",
+                     "Loops must contain very verbose action");
             break;
         }
     }
@@ -1298,7 +1183,6 @@ void report::search(SourceLocation *best_loc,
                     const std::vector<llvm::StringRef> &needles,
                     FileID fid)
 {
-    const SourceManager &m = d_analyser.manager();
     SourceLocation top = m.getLocForStartOfFile(fid);
     llvm::StringRef haystack = m.getBufferData(fid);
     size_t num_lines = haystack.count('\n');
@@ -1365,7 +1249,7 @@ void report::search(SourceLocation *best_loc,
             for (size_t nn = nl; nn >= nl - nbl; --nn) {
                 SourceLocation end = m.translateLineCol(fid, line + nn, 1);
                 SourceRange r(begin, end);
-                llvm::StringRef s = d_analyser.get_source(r, true);
+                llvm::StringRef s = a.get_source(r, true);
                 size_t distance = squash(squashed_haystack, s)
                                       .edit_distance(squashed_needle);
                 // Record a better match whenever one is found.
@@ -1386,7 +1270,6 @@ void report::search(SourceLocation *best_loc,
 
 void report::check_boilerplate()
 {
-    const SourceManager &m = d_analyser.manager();
     FileID fid = m.getMainFileID();
 
     size_t distance;
@@ -1399,11 +1282,11 @@ void report::check_boilerplate()
     needles.push_back(standard_bde_assert_test_function_bsl);
     search(&loc, &needle, &distance, "(failed)", needles, fid);
     if (distance != 0) {
-        d_analyser.report(loc, check_name, "TP19",
-                          "Missing or malformed standard test driver section");
-        d_analyser.report(loc, check_name, "TP19",
-                          "One correct form (of several possible) is\n%0",
-                          false, DiagnosticIDs::Note)
+        a.report(loc, check_name, "TP19",
+                 "Missing or malformed standard test driver section");
+        a.report(loc, check_name, "TP19",
+                 "One correct form (of several possible) is\n%0",
+                 false, DiagnosticIDs::Note)
             << needle;
     }
 
@@ -1412,11 +1295,11 @@ void report::check_boilerplate()
     needles.push_back(standard_bde_test_driver_macro_abbreviations_bsl);
     search(&loc, &needle, &distance, "define LOOP_ASSERT", needles, fid);
     if (distance != 0) {
-        d_analyser.report(loc, check_name, "TP19",
-                          "Missing or malformed standard test driver section");
-        d_analyser.report(loc, check_name, "TP19",
-                          "One correct form (of several possible) is\n%0",
-                          false, DiagnosticIDs::Note)
+        a.report(loc, check_name, "TP19",
+                 "Missing or malformed standard test driver section");
+        a.report(loc, check_name, "TP19",
+                 "One correct form (of several possible) is\n%0",
+                 false, DiagnosticIDs::Note)
             << needle;
     }
 }
