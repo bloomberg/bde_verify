@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/opt/bb/bin/perl -w
 # bde_verify                                                         -*-perl-*-
 
 # Bde_verify is a static analysis tool that verifies that source code adheres 
@@ -9,6 +9,8 @@
 use strict;
 use Getopt::Long qw(:config no_ignore_case);
 use Cwd;
+use DateTime;
+use Fcntl qw/ :flock /;
 
 my @known_systems = ('AIX', 'HP-UX', 'Linux', 'SunOS');
 chomp(my $system   = `uname -s`);
@@ -211,9 +213,11 @@ my @command = (
 print join(" \\\n ", map { join "\\ ", split(/ /, $_, -1) } @command), "\n"
                                                                    if $verbose;
 if ($nsa) {
-    open(LOG, ">>$log");
-    print LOG $ENV{USER}, map { " $_" } @command, "\n";
-    close(LOG);
+    my $now = DateTime->now()->format_cldr("yyyyMMddHHmmss");
+    open my $fh, ">>", $log;
+    flock $fh, LOCK_EX;
+    print $fh $ENV{USER}, " ", $now, map { " $_" } @command, "\n";
+    close $fh;
 }
 
 eval "use BSD::Resource; setrlimit(RLIMIT_CORE, 0, 0);";
