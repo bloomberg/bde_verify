@@ -181,9 +181,8 @@ void report::operator()(SourceRange Range)
     }
     else {
         if (!d.d_prop[f].isValid()) {
-            static llvm::Regex r(a.config()->value("enterprise"),
-                                 llvm::Regex::IgnoreCase |
-                                 llvm::Regex::Newline);
+            llvm::Regex r(a.config()->value("enterprise"),
+                          llvm::Regex::IgnoreCase | llvm::Regex::Newline);
             if (r.match(s, &matches)) {
                 sl = sl.getLocWithOffset(s.find(matches[0]));
                 set_prop(sl, f);

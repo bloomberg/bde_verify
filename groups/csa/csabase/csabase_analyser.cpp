@@ -296,8 +296,16 @@ bool csabase::Analyser::is_standard_namespace(std::string const& ns) const
 {
     IsGlobalPackage::iterator in = is_standard_namespace_.find(ns);
     if (in == is_standard_namespace_.end()) {
+        std::string pat = ns;
+        for (size_t i = 0; i < pat.size(); ++i) {
+            if (pat[i] == ':') {
+                pat.insert(i, "(");
+                pat.append(")?");
+                ++i;
+            }
+        }
         llvm::Regex re("(" "^[[:space:]]*" "|" "[^[:alnum:]]" ")" +
-                       ns.substr(0, ns.find(':')) +
+                       pat +
                        "(" "[^[:alnum:]]" "|" "[[:space:]]*$" ")");
         in = is_standard_namespace_
                  .insert(std::make_pair(

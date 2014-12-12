@@ -484,6 +484,89 @@ void csabase::Config::check_bv_stack(Analyser& analyser) const
     }
 }
 
+namespace {
+
+typedef std::vector<std::string> VS_t;
+
+VS_t cross(const VS_t &vs1, const VS_t &vs2)
+    // Return the cross product of the specified 'vs1' and vs2' sets.
+{
+    VS_t rs;
+    for (const auto& s1 : vs1) {
+        for (const auto& s2 : vs2) {
+            rs.push_back(s1 + s2);
+        }
+    }
+    return rs;
+}
+
+void append(VS_t &vs1, const VS_t &vs2)
+    // Append the contents of the specified 'vs2' to the specified 'vs1'.
+{
+    vs1.insert(vs1.end(), vs2.begin(), vs2.end());
+}
+
+VS_t comma_split(const std::string &s, size_t &pos)
+    // Split the specified string 's' starting from the specified 'pos' at top-
+    // level commas into a set of strings and return them.  A top-level comma
+    // is not enclosed within balanced braces.  Processing stops at the end of
+    // the string or at the first unbalanced '}'.  The next position to be
+    // processed will be set in 'pos'.
+{
+    VS_t result;
+    std::string current;
+    size_t nesting = 0;
+    while (char c = s[pos++]) {
+        if (c == ',' && nesting == 0) {
+            result.push_back(current);
+            current.clear();
+        }
+        else if (c == '}' && nesting == 0) {
+            result.push_back(current);
+            break;
+        }
+        else {
+            current += c;
+            if (c == '{') {
+                ++nesting;
+            }
+            else if (c == '}') {
+                --nesting;
+            }
+        }
+    }
+    return result;
+}
+
+VS_t expand(const std::string &s, size_t &pos)
+    // Brace-expand the specified string 's' starting from the specified 'pos'
+    // and return the set of strings.
+{
+    size_t left = s.find('{', pos);
+    if (left == s.npos) {
+        VS_t result{s.substr(pos)};
+        pos = s.size();
+        return result;
+    }
+    VS_t result{s.substr(pos, left - pos)};
+    pos = left + 1;
+    VS_t x = comma_split(s, pos);
+    VS_t w;
+    for (const auto& sx : x) {
+        size_t xpos = 0;
+        append(w, expand(sx, xpos));
+    }
+    return cross(cross(result, w), expand(s, pos));
+}
+
+}
+
+std::vector<std::string> csabase::Config::brace_expand(const std::string &s)
+{
+    size_t p = 0;
+    return expand(s, p);
+}
+
 // ----------------------------------------------------------------------------
 // Copyright (C) 2014 Bloomberg Finance L.P.
 //

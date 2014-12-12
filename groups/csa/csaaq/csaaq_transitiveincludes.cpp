@@ -934,6 +934,10 @@ void report::require_file(std::string     name,
         return;
     }
 
+    if (a.is_standard_namespace(symbol)) {
+        return;
+    }
+
     SourceLocation orig_sl = srcloc;
 
     srcloc = m.getExpansionLoc(srcloc);
