@@ -72,6 +72,7 @@ export VERBOSE ?= @
 
 CXXFILES =                                                                    \
         groups/csa/csaaq/csaaq_cppinexternc.cpp                               \
+        groups/csa/csaaq/csaaq_friendsinheaders.cpp                           \
         groups/csa/csaaq/csaaq_includeinexternc.cpp                           \
         groups/csa/csaaq/csaaq_inentns.cpp                                    \
         groups/csa/csaaq/csaaq_transitiveincludes.cpp                         \
