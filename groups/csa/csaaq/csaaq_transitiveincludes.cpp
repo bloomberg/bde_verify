@@ -761,7 +761,6 @@ void report::operator()(SourceLocation                now,
                         SrcMgr::CharacteristicKind    type,
                         FileID                        prev)
 {
-    std::string name = m.getPresumedLoc(now).getFilename();
     if (reason == PPCallbacks::EnterFile) {
         d_data.d_fileid_stack.emplace_back(m.getFileID(now));
     } else if (reason == PPCallbacks::ExitFile) {
@@ -860,8 +859,6 @@ void report::operator()(const Token&          token,
 {
     clear_guard();
 
-    llvm::StringRef tn = token.getIdentifierInfo()->getName();
-
     if (is_guard(token)) {
         set_guard(token.getIdentifierInfo()->getName(), range.getBegin());
     }
@@ -937,8 +934,6 @@ void report::require_file(std::string     name,
     if (a.is_standard_namespace(symbol)) {
         return;
     }
-
-    SourceLocation orig_sl = srcloc;
 
     srcloc = m.getExpansionLoc(srcloc);
     FileID fid = m.getFileID(srcloc);
@@ -1034,7 +1029,7 @@ void report::inc_for_decl(llvm::StringRef r, SourceLocation sl, const Decl *ds)
                         prefer = *rb;
                     }
                 }
-                if (auto decl = llvm::dyn_cast<UsingDecl>(*rb)) {
+                if (llvm::dyn_cast<UsingDecl>(*rb)) {
                     prefer = *rb;
                 }
             }

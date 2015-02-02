@@ -497,7 +497,6 @@ void report::operator()(const Token &token,
         unsigned n;
         if (args && (n = args->getNumArguments()) > 0) {
             const Token *begin = args->getUnexpArgument(0);
-            const Token *end = begin + n;
             Location arg(d_analyser.manager(), begin->getLocation());
             std::vector<size_t> levels(1, 4);
             if (l.line() == arg.line()) {
@@ -557,7 +556,7 @@ void report::process(Range r, bool greater)
         if (!dotdot &&
             line.substr(0, r.from().column() - 1)
                                .find_first_not_of(' ') == line.npos &&
-            (!greater || line.size() - line.ltrim().size() < exact_offset)) {
+            (!greater || line.size() < exact_offset + line.ltrim().size())) {
             std::string expect =
                 std::string(std::max(0,
                                      std::min(79 - int(line.trim().size()),

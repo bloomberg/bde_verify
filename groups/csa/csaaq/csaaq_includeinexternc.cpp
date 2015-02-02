@@ -131,7 +131,9 @@ void report::operator()(SourceLocation   HashLoc,
                         StringRef        RelativePath,
                         const Module    *Imported)
 {
-    d.d_includes.insert({FilenameRange.getBegin(), File->getName()});
+    if (File) {
+        d.d_includes.insert({FilenameRange.getBegin(), File->getName()});
+    }
 }
 
 // FileSkipped
@@ -162,7 +164,6 @@ void report::operator()(SourceRange Range)
     llvm::SmallVector<llvm::StringRef, 7> matches;
     if (d_type == PPObserver::e_FileSkipped) {
         if (!special.count(f)) {
-            size_t pos = 0;
             static llvm::Regex r(" *ifn?def *INCLUDED_.*[[:space:]]+"
                                  "# *include +([<\"]([^\">]*)[\">])");
             llvm::SmallVector<llvm::StringRef, 7> matches;

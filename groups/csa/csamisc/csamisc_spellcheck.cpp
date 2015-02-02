@@ -10,6 +10,7 @@
 #include <clang/Basic/SourceManager.h>
 #include <csabase_analyser.h>
 #include <csabase_config.h>
+#include <csabase_debug.h>
 #include <csabase_diagnostic_builder.h>
 #include <csabase_ppobserver.h>
 #include <csabase_registercheck.h>
@@ -151,7 +152,6 @@ void report::operator()()
     }
 
     for (const auto& file_comment : d_analyser.attachment<data>().d_comments) {
-        const std::string &file_name = file_comment.first;
         if (d_analyser.is_component(file_comment.first)) {
             for (const auto& comment : file_comment.second) {
                 check_spelling(comment);
@@ -302,14 +302,10 @@ void report::check_spelling(SourceRange comment)
     }
 }
 
-const internal::DynTypedMatcher &
-parameter_matcher()
+internal::DynTypedMatcher parameter_matcher()
     // Return an AST matcher which looks for named parameters.
 {
-    static const internal::DynTypedMatcher matcher = decl(forEachDescendant(
-        parmVarDecl(matchesName(".")).bind("parm")
-    ));
-    return matcher;
+    return decl(forEachDescendant(parmVarDecl(matchesName(".")).bind("parm")));
 }
 
 void report::match_parameter(const BoundNodes &nodes)

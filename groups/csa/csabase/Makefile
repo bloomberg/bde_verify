@@ -1,58 +1,61 @@
 # Makefile                                                       -*-makefile-*-
 
-CSABASE  = csabase
-LIBCSABASE = libcsabase.a
+PREFIX     ?= /opt/bb
+SHELL      ?= bash
+LLVMDIR    ?= $(PREFIX)
 
-default: $(CSABASE)
+PATH       := $(DISTRIBUTION_REFROOT)$(PREFIX)/lib/gcc-4.8/bin:$(DISTRIBUTION_REFROOT)$(PREFIX)/bin:/bbshr/bde/bde-tools/bin:/usr/bin:/bin:/usr/ccs/bin:/opt/swt/bin:$(PREFIX)/bin
+export PATH
 
-SHELL    = /opt/swt/bin/bash
+SYSTEM      = $(shell uname -s)
 
-SYSTEM   = $(shell uname -s)
+GCCDIR     ?= $(abspath $(dir \
+              $(abspath $(dir \
+              $(abspath $(shell env PATH=$(PATH) which g++))))))
+
+CSABASE     = csabase
+LIBCSABASE  = libcsabase.a
+
+CXXFLAGS   += -std=c++11
+CXXFLAGS   += -Wall -Wno-mismatched-tags -Wno-unused-local-typedefs
+                                                                                INCFLAGS   += -I$(PREFIX)/include
 
 # Set up locations and flags for the compiler that will build bde_verify.
 ifeq ($(SYSTEM),Linux)
-    COMPILER ?= clang
+    COMPILER ?= gcc
     ifeq    ($(COMPILER),gcc)
-VERSION  = 4.8.1
-CCDIR    = /opt/swt/install/gcc-$(VERSION)
-CXX      = $(CCDIR)/bin/g++
-CXXFLAGS += -std=c++11
-LINK     = $(CXX)
-AR       = /usr/bin/ar
-CXXFLAGS += -Wno-unused-local-typedefs
+        CXX         = g++
     endif
     ifeq ($(COMPILER),clang)
-VERSION  = 3.6.0
-CCDIR    = /home/hrosen4/mbig/llvm-$(VERSION)/install-$(SYSTEM)
-CXX      = $(CCDIR)/bin/clang++
-CXXFLAGS += -std=c++11
-LINK     = $(CXX)
+        CXX         = clang++
+        CXXFLAGS   += --gcc-toolchain=$(GCCDIR)
     endif
+
+    AR          = /usr/bin/ar                                                   
 endif
+
 ifeq ($(SYSTEM),SunOS)
     COMPILER ?= gcc
     ifeq    ($(COMPILER),gcc)
-VERSION  = 4.8.1
-CCDIR    = /opt/swt/install/gcc-$(VERSION)
-CXX      = $(CCDIR)/bin/g++
-CXXFLAGS += -m64 -pthreads -mno-faster-structs -DBYTE_ORDER=BIG_ENDIAN
-CFLAGS   += -m64 -pthreads -mno-faster-structs -DBYTE_ORDER=BIG_ENDIAN
-CXXFLAGS += -std=c++11
-LINK     = $(CXX)
-AR       = /usr/ccs/bin/ar
-CXXFLAGS += -Wno-unused-local-typedefs
+        CXX         = g++
     endif
+    ifeq ($(COMPILER),clang)
+        CXX         = clang++
+        CXXFLAGS   += --gcc-toolchain=$(GCCDIR)
+    endif
+
+    AR          = /usr/ccs/bin/ar
+    CXXFLAGS   += -DBYTE_ORDER=BIG_ENDIAN
 endif
 
-OBJ      = $(SYSTEM)-$(COMPILER)-$(VERSION)
+OBJ         = $(SYSTEM)-$(COMPILER)
 
 # Set up location of clang headers and libraries needed by bde_verify.
-LLVM     = /home/hrosen4/mbig/llvm-3.6.0/install-$(SYSTEM)
-INCFLAGS += -I$(LLVM)/include
+INCFLAGS   += -I$(LLVMDIR)/include
 
 export VERBOSE ?= @
 
-#  ----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 CXXFILES =                                                 \
         csabase_abstractvisitor.cpp                        \
@@ -76,12 +79,13 @@ CXXFILES =                                                 \
 
 # -----------------------------------------------------------------------------
 
-DEFFLAGS += -D__STDC_LIMIT_MACROS
-DEFFLAGS += -D__STDC_CONSTANT_MACROS
+DEFFLAGS += -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS
 INCFLAGS += -I.
 CXXFLAGS += -g -fno-common -fno-strict-aliasing -fno-exceptions -fno-rtti
 
 OFILES = $(CXXFILES:%.cpp=$(OBJ)/%.o)
+
+default: $(CSABASE)
 
 $(CSABASE): $(OBJ)/$(LIBCSABASE)
 
@@ -92,7 +96,7 @@ $(OBJ)/$(LIBCSABASE): $(OFILES)
 $(OBJ)/%.o: %.cpp
 	@if [ ! -d $(@D) ]; then mkdir -p $(@D); fi
 	@echo compiling $(@:$(OBJ)/%.o=%.cpp)
-	$(VERBOSE) $(CXX) $(INCFLAGS) $(DEFFLAGS) $(CXXFLAGS) $(WARNFLAGS) \
+	$(VERBOSE) $(CXX) $(INCFLAGS) $(DEFFLAGS) $(CXXFLAGS) \
                           -o $@ -c $(@:$(OBJ)/%.o=%.cpp)
 
 .PHONY: clean
@@ -104,24 +108,6 @@ clean:
 	$(VERBOSE) $(RM) $(OBJ)/make.depend
 	$(VERBOSE) $(RM) -r $(OBJ)
 	$(VERBOSE) $(RM) mkerr olderr *~
-
-# -----------------------------------------------------------------------------
-# run include-what-you-use on the bde_verify sources
-
-IWYUFILES = $(CXXFILES:%.cpp=%.iwyu)
-
-LCSYSTEM = $(shell echo $(SYSTEM) | tr '[A-Z]' '[a-z]')
-LLVMBUILDDIR = /home/hrosen4/mbig/llvm-3.4.1/build-$(LCSYSTEM)/Release+Asserts
-IWYU = $(LLVMBUILDDIR)/bin/include-what-you-use
-
-%.iwyu: %.cpp
-	-$(VERBOSE) $(IWYU) $(INCFLAGS) $(DEFFLAGS) \
-                        $(filter-out -Wno-unused-local-typedefs, $(CXXFLAGS)) \
-                        $(@:%.iwyu=%.cpp)
-
-.PHONY: iwyu
-
-iwyu: $(IWYUFILES)
 
 # -----------------------------------------------------------------------------
 

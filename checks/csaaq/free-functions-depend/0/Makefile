@@ -1,21 +1,13 @@
-#!/bin/sh
+# Makefile                                                       -*-makefile-*-
+FILES := $(wildcard *.cpp)
+CHECKNAME := free-functions-depend
+BDE_VERIFY_ARGS := --diagnose=all
 
-# Script by which bde_build.pl can invoke bde_verify:
-#   bde_build.pl -k -DCC={this} -DCXX={this} -c bde_verify ...
-
-: ${VD:=/home/hrosen4/bde_verify}
-: ${EXE:=$VD/Linux-gcc-4.8.1/bde_verify}
-"$VD/scripts/bde_verify"                                                      \
-    --nodefinc                                                                \
-    --nodefdef                                                                \
-    --config=$VD/bde_verify.cfg                                               \
-    --exe=$EXE                                                                \
-    $@
-
-exit 0
+BDE_VERIFY_DIR ?= ../../../..
+include $(BDE_VERIFY_DIR)/checks/Makefile.inc
 
 ## ----------------------------------------------------------------------------
-## Copyright (C) 2014 Bloomberg Finance L.P.
+## Copyright (C) 2015 Bloomberg Finance L.P.
 ##
 ## Permission is hereby granted, free of charge, to any person obtaining a copy
 ## of this software and associated documentation files (the "Software"), to

@@ -73,13 +73,10 @@ struct comments
     }
 };
 
-const internal::DynTypedMatcher &
-return_matcher()
+internal::DynTypedMatcher return_matcher()
     // Return an AST matcher which looks for return statements.
 {
-    static const internal::DynTypedMatcher matcher =
-        decl(forEachDescendant(returnStmt().bind("return")));
-    return matcher;
+    return decl(forEachDescendant(returnStmt().bind("return")));
 }
 
 // Callback object invoked upon completion.
@@ -144,7 +141,6 @@ struct report
 
     bool isAllCasesReturn(const ReturnStmt *ret)
     {
-        const data& d = d_analyser.attachment<data>();
         const SwitchStmt *ss = d_analyser.get_parent<SwitchStmt>(ret);
         if (ss) {
             const SwitchCase *me = d_analyser.get_parent<SwitchCase>(ret);

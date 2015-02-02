@@ -1,70 +1,74 @@
 # Makefile                                                       -*-makefile-*-
-TARGET   = bde_verify
-CSABASE  = csabase
-LIBCSABASE = libcsabase.a
-CSABASEDIR = groups/csa/csabase
 
-SHELL    = /opt/swt/bin/bash
+PREFIX     ?= /opt/bb
+SHELL      ?= bash
+LLVMDIR    ?= $(PREFIX)
 
-SYSTEM   = $(shell uname -s)
+PATH       := $(DISTRIBUTION_REFROOT)$(PREFIX)/lib/gcc-4.8/bin:$(DISTRIBUTION_REFROOT)$(PREFIX)/bin:/bbshr/bde/bde-tools/bin:/usr/bin:/bin:/usr/ccs/bin:/opt/swt/bin:$(PREFIX)/bin
+export PATH
+
+SYSTEM      = $(shell uname -s)
+DESTDIR    ?= $(SYSTEM)
+
+GCCDIR     ?= $(abspath $(dir \
+              $(abspath $(dir \
+              $(abspath $(shell env PATH=$(PATH) which g++))))))
+
+TARGET      = bde_verify_bin
+CSABASE     = csabase
+LIBCSABASE  = libcsabase.a
+CSABASEDIR  = groups/csa/csabase
+
+CXXFLAGS   += -std=c++11
+CXXFLAGS   += -Wall -Wno-mismatched-tags -Wno-unused-local-typedefs
+
+CXXFLAGS   += -DSPELL_CHECK=1
+INCFLAGS   += -I$(PREFIX)/include -I/opt/swt/include
 
 # Set up locations and flags for the compiler that will build bde_verify.
 ifeq ($(SYSTEM),Linux)
-    COMPILER ?= clang
-    ifeq    ($(COMPILER),gcc)
-VERSION  = 4.8.1
-CCDIR    = /opt/swt/install/gcc-$(VERSION)
-CXX      = $(CCDIR)/bin/g++
-CXXFLAGS += -std=c++11
-LINK     = $(CXX)
-AR       = /usr/bin/ar
-LDFLAGS  += -Wl,-rpath,$(CCDIR)/lib64
-CXXFLAGS += -Wno-unused-local-typedefs
+    COMPILER ?= gcc
+    ifeq ($(COMPILER),gcc)
+        CXX         = g++
     endif
     ifeq ($(COMPILER),clang)
-VERSION  = 3.6.0
-CCDIR    = /home/hrosen4/mbig/llvm-$(VERSION)/install-$(SYSTEM)
-CXX      = $(CCDIR)/bin/clang++
-CXXFLAGS += -std=c++11
-LINK     = $(CXX)
-LDFLAGS += -Wl,-rpath,/opt/swt/install/gcc-4.8.1/lib64
+        CXX         = clang++
+        CXXFLAGS   += --gcc-toolchain=$(GCCDIR)
+        LDFLAGS    += --gcc-toolchain=$(GCCDIR)
     endif
-ASPELL   = /opt/swt/install/aspell-0.60.6.1-64
-CXXFLAGS += -DSPELL_CHECK=1
-INCFLAGS += -I$(ASPELL)/include
-LDFLAGS  += -L$(ASPELL)/lib64 -laspell
-EXTRALIBS += -lz
+
+    AR          = /usr/bin/ar
+    LINK        = $(CXX)
+    LDFLAGS    += -Wl,-L,$(GCCDIR)/lib64 -Wl,-rpath,$(GCCDIR)/lib64
+    LDFLAGS    += -Wl,-L,$(PREFIX)/lib64 -Wl,-rpath,$(PREFIX)/lib64
+    LDFLAGS    += -Wl,-L,/opt/swt/lib64  -Wl,-rpath,/opt/swt/lib64
 endif
+
 ifeq ($(SYSTEM),SunOS)
     COMPILER ?= gcc
-    ifeq    ($(COMPILER),gcc)
-VERSION  = 4.8.1
-CCDIR    = /opt/swt/install/gcc-$(VERSION)
-CXX      = $(CCDIR)/bin/g++
-CXXFLAGS += -m64 -pthreads -mno-faster-structs -DBYTE_ORDER=BIG_ENDIAN
-CFLAGS   += -m64 -pthreads -mno-faster-structs -DBYTE_ORDER=BIG_ENDIAN
-LDFLAGS  += -m64 -pthreads -mno-faster-structs
-CXXFLAGS += -std=c++11
-LINK     = $(CXX)
-AR       = /usr/ccs/bin/ar
-LDFLAGS  += -Wl,-L,$(CCDIR)/lib/sparcv9 -Wl,-R,$(CCDIR)/lib/sparcv9
-CXXFLAGS += -Wno-unused-local-typedefs
+    ifeq ($(COMPILER),gcc)
+        CXX         = g++
     endif
-ASPELL   = /opt/swt/install/aspell-0.60.6.1-64
-CXXFLAGS += -DSPELL_CHECK=1
-INCFLAGS += -I$(ASPELL)/include
-LDFLAGS  += -Wl,-L,$(ASPELL)/lib64 -Wl,-R,$(ASPELL)/lib64 -laspell -L$(OBJ)
-EXTRALIBS += -lrt
-EXTRALIBS += -lmalloc
-EXTRALIBS += -lz
+    ifeq ($(COMPILER),clang)
+        CXX         = clang++
+        CXXFLAGS   += --gcc-toolchain=$(GCCDIR)
+        LDFLAGS    += --gcc-toolchain=$(GCCDIR)
+    endif
+
+    AR          = /usr/ccs/bin/ar
+    LINK        = $(CXX)
+    CXXFLAGS   += -DBYTE_ORDER=BIG_ENDIAN
+    LDFLAGS    += -Wl,-L,$(GCCDIR)/sparcv9 -Wl,-R,$(GCCDIR)/sparcv9
+    LDFLAGS    += -Wl,-L,$(PREFIX)/lib64   -Wl,-R,$(PREFIX)/lib64
+    LDFLAGS    += -Wl,-L,/opt/swt/lib64    -Wl,-R,/opt/swt/lib64
+    EXTRALIBS  += -lrt -lmalloc
 endif
 
-OBJ      = $(SYSTEM)-$(COMPILER)-$(VERSION)
+OBJ         = $(SYSTEM)-$(COMPILER)
 
 # Set up location of clang headers and libraries needed by bde_verify.
-LLVM     = /home/hrosen4/mbig/llvm-3.6.0/install-$(SYSTEM)
-INCFLAGS += -I$(LLVM)/include
-LDFLAGS  += -L$(LLVM)/lib -L$(CSABASEDIR)/$(OBJ)
+INCFLAGS   += -I$(LLVMDIR)/include
+LDFLAGS    += -L$(LLVMDIR)/lib -L$(CSABASEDIR)/$(OBJ)
 
 export VERBOSE ?= @
 
@@ -72,9 +76,11 @@ export VERBOSE ?= @
 
 CXXFILES =                                                                    \
         groups/csa/csaaq/csaaq_cppinexternc.cpp                               \
+        groups/csa/csaaq/csaaq_freefunctionsdepend.cpp                        \
         groups/csa/csaaq/csaaq_friendsinheaders.cpp                           \
         groups/csa/csaaq/csaaq_includeinexternc.cpp                           \
         groups/csa/csaaq/csaaq_inentns.cpp                                    \
+        groups/csa/csaaq/csaaq_runtimeinit.cpp                                \
         groups/csa/csaaq/csaaq_transitiveincludes.cpp                         \
         groups/csa/csabde/csabde_tool.cpp                                     \
         groups/csa/csabbg/csabbg_allocatorforward.cpp                         \
@@ -92,6 +98,7 @@ CXXFILES =                                                                    \
         groups/csa/csafmt/csafmt_nonascii.cpp                                 \
         groups/csa/csafmt/csafmt_whitespace.cpp                               \
         groups/csa/csamisc/csamisc_anonymousnamespaceinheader.cpp             \
+        groups/csa/csamisc/csamisc_arrayargument.cpp                          \
         groups/csa/csamisc/csamisc_arrayinitialization.cpp                    \
         groups/csa/csamisc/csamisc_boolcomparison.cpp                         \
         groups/csa/csamisc/csamisc_charvsstring.cpp                           \
@@ -105,8 +112,10 @@ CXXFILES =                                                                    \
         groups/csa/csamisc/csamisc_namespacetags.cpp                          \
         groups/csa/csamisc/csamisc_opvoidstar.cpp                             \
         groups/csa/csamisc/csamisc_spellcheck.cpp                             \
+        groups/csa/csamisc/csamisc_strictaliasing.cpp                         \
         groups/csa/csamisc/csamisc_stringadd.cpp                              \
         groups/csa/csamisc/csamisc_swapab.cpp                                 \
+        groups/csa/csamisc/csamisc_thatwhich.cpp                              \
         groups/csa/csamisc/csamisc_thrownonstdexception.cpp                   \
         groups/csa/csamisc/csamisc_unnamed_temporary.cpp                      \
         groups/csa/csamisc/csamisc_verifysameargumentnames.cpp                \
@@ -140,13 +149,10 @@ TODO =                                                                        \
 
 # -----------------------------------------------------------------------------
 
-DEFFLAGS += -D__STDC_LIMIT_MACROS
-DEFFLAGS += -D__STDC_CONSTANT_MACROS
-INCFLAGS += -I.
-INCFLAGS += -I$(CSABASEDIR)
-INCFLAGS += -Igroups/csa/csadep
+DEFFLAGS += -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS
+INCFLAGS += -I. -I$(CSABASEDIR) -Igroups/csa/csadep
 CXXFLAGS += -g -fno-common -fno-strict-aliasing -fno-exceptions -fno-rtti
-LDFLAGS += -g
+LDFLAGS  += -g
 
 OFILES = $(CXXFILES:%.cpp=$(OBJ)/%.o)
 
@@ -219,6 +225,8 @@ LIBS     =    -lcsabase                                                       \
               -lpthread                                                       \
               -lcurses                                                        \
               -ldl                                                            \
+              -lz                                                             \
+              -laspell                                                        \
               $(EXTRALIBS)
 
 default: $(OBJ)/$(TARGET)
@@ -236,8 +244,19 @@ $(OBJ)/$(TARGET): $(CSABASEDIR)/$(OBJ)/$(LIBCSABASE) $(OFILES)
 $(OBJ)/%.o: %.cpp
 	@if [ ! -d $(@D) ]; then mkdir -p $(@D); fi
 	@echo compiling $(@:$(OBJ)/%.o=%.cpp)
-	$(VERBOSE) $(CXX) $(INCFLAGS) $(DEFFLAGS) $(CXXFLAGS) $(WARNFLAGS) \
+	$(VERBOSE) $(CXX) $(INCFLAGS) $(DEFFLAGS) $(CXXFLAGS) \
                           -o $@ -c $(@:$(OBJ)/%.o=%.cpp)
+
+install:  $(OBJ)/$(TARGET) $(CSABASEDIR)/$(OBJ)/$(LIBCSABASE)
+	mkdir -p $(DESTDIR)/bin
+	cp $(OBJ)/$(TARGET) $(DESTDIR)/bin
+	mkdir -p $(DESTDIR)/lib
+	cp $(CSABASEDIR)/$(OBJ)/$(LIBCSABASE) $(DESTDIR)/lib
+	cp bde_verify.cfg $(DESTDIR)/bin
+	cp scripts/bde_verify $(DESTDIR)/bin
+	mkdir -p $(DESTDIR)/include/bde_verify
+	cp $(CSABASEDIR)/csabase_*.h $(DESTDIR)/include/bde_verify
+	cp groups/csa/csadep/csadep_*.h $(DESTDIR)/include/bde_verify
 
 .PHONY: clean
 
@@ -283,25 +302,6 @@ run-current: $(OBJ)/$(TARGET) $(RCURNAME)
 
 $(RNAMES):
 	$(VERBOSE) $(MAKE) -s -C $(@D) run
-
-# -----------------------------------------------------------------------------
-# run include-what-you-use on the bde_verify sources
-
-IWYUFILES = $(CXXFILES:%.cpp=%.iwyu)
-
-LCSYSTEM = $(shell echo $(SYSTEM) | tr '[A-Z]' '[a-z]')
-LLVMBUILDDIR = /home/hrosen4/mbig/llvm-3.4.1/build-$(LCSYSTEM)/Release+Asserts
-IWYU = $(LLVMBUILDDIR)/bin/include-what-you-use
-
-%.iwyu: %.cpp
-	-$(VERBOSE) $(IWYU) $(INCFLAGS) $(DEFFLAGS) \
-                       $(filter-out -Wno-unused-local-typedefs, $(CXXFLAGS)) \
-                       $(@:%.iwyu=%.cpp)
-
-.PHONY: iwyu
-
-iwyu: $(IWYUFILES)
-	$(VERBOSE) $(MAKE) -C $(CSABASEDIR) iwyu
 
 # -----------------------------------------------------------------------------
 

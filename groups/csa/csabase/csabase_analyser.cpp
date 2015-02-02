@@ -128,7 +128,7 @@ std::string const& csabase::Analyser::rewrite_file() const
     return rewrite_file_;
 }
 
-clang::tooling::Replacements const& csabase::Analyser::replacements() const
+tooling::Replacements const& csabase::Analyser::replacements() const
 {
     return replacements_;
 }
@@ -252,6 +252,14 @@ bool csabase::Analyser::is_component_header(SourceLocation loc) const
     return is_component_header(get_location(loc).file());
 }
 
+bool csabase::Analyser::is_global_name(const NamedDecl *decl)
+{
+    llvm::Regex re("(^ *|[^[:alnum:]])" +
+                   decl->getNameAsString() +
+                   "([^[:alnum:]]| *$)");
+    return re.match(config()->value("global_names", decl->getLocation()));
+}
+
 bool csabase::Analyser::is_global_package(std::string const& pkg) const
 {
     IsGlobalPackage::iterator in = is_global_package_.find(pkg);
@@ -337,11 +345,16 @@ bool csabase::Analyser::is_component(SourceLocation loc) const
     return is_component(get_location(loc).file());
 }
 
+bool csabase::Analyser::is_test_driver(std::string const &file) const
+{
+    //-dk:TODO this should be configurable, e.g. using regexp
+    return 6 < file.size() && file.substr(file.size() - 6) == ".t.cpp";
+}
+
 bool csabase::Analyser::is_test_driver() const
 {
     //-dk:TODO this should be configurable, e.g. using regexp
-    return 6 < toplevel().size()
-        && toplevel().substr(toplevel().size() - 6) == ".t.cpp";
+    return is_test_driver(toplevel());
 }
 
 bool csabase::Analyser::is_main() const
@@ -478,6 +491,11 @@ void csabase::Analyser::process_translation_unit_done()
 {
     config()->check_bv_stack(*this);
     onTranslationUnitDone();
+    FileID fid = d_source_manager.getMainFileID();
+    pp_observer().FileChanged(d_source_manager.getLocForEndOfFile(fid),
+                              PPCallbacks::ExitFile,
+                              SrcMgr::CharacteristicKind(),
+                              fid);
 }
 
 // -----------------------------------------------------------------------------
