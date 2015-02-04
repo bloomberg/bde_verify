@@ -1,0 +1,5 @@
+bde-verify (1.0.0.0) unstable; urgency=low
+
+  * bde-verify Initial version
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Mon,  2 Feb 2015 16:40:30 -0500

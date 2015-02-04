@@ -1,11 +1,16 @@
 # Makefile.inc                                                   -*-makefile-*-
-VERBOSE ?= @
 
-BDEVERIFY ?= $(BDE_VERIFY_DIR)/scripts/bde_verify
+VERBOSE    ?= @
+SHELL      ?= bash
+SYSTEM      = $(shell uname -s)
+COMPILER   ?= gcc
+BDEVERIFY  ?= $(BDE_VERIFY_DIR)/scripts/bde_verify
+EXE        ?= $(BDE_VERIFY_DIR)/$(SYSTEM)-$(COMPILER)/bde_verify_bin
 
 ALL ?= off
 
 define CHECKARGS
+    -exe=$(EXE)                                                               \
     -nodefdef                                                                 \
     -config=/dev/null                                                         \
     -cl='namespace bde_verify'                                                \

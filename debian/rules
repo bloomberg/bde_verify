@@ -1,0 +1,46 @@
+#!/usr/bin/gmake -f
+# -*- makefile -*-
+
+thisdir := $(shell pwd)
+
+PREFIX  ?= $(firstword $(wildcard /opt/bb /usr))
+TMPDIR  := /tmp
+
+BUILD_BASE := $(DISTRIBUTION_REFROOT)/bbsrc/build-base
+include $(BUILD_BASE)/build-base.mk
+
+OBJECT_MODE := 64
+CXX := $(DISTRIBUTION_REFROOT)$(PREFIX)/lib/gcc-4.8/bin/g++
+
+DP = debian/tmp$(PREFIX)
+
+build: build-arch
+
+build-arch: debian/build-stamp
+
+binary: binary-arch
+
+binary-arch: debian/binary-stamp
+
+debian/build-stamp:
+	$(MAKE) -j 10 VERBOSE=
+	touch $@
+
+debian/install-stamp: debian/build-stamp
+	$(MAKE) install VERBOSE= DESTDIR=$(abspath $(DP))
+	touch $@
+
+debian/binary-stamp: debian/install-stamp
+	mkdir -p debian/tmp/DEBIAN
+	dpkg-gencontrol -pbde-verify -Pdebian/tmp
+	dpkg-deb -b debian/tmp $(TMPDIR)
+	touch $@
+
+.EXPORT_ALL_VARIABLES:
+
+clean:
+	rm -rf debian/tmp
+	rm -rf debian/tmp64
+	rm -f debian/build-stamp
+	rm -f debian/binary-stamp
+	rm -f debian/files

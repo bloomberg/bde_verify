@@ -20,21 +20,12 @@ my @known_hw = ('powerpc', 'ia64', 'x86_64', 'sparc', 'i386');
 chomp (my $hw = `uname -p`);
 $hw = 'x86_64' unless grep(/$hw/, @known_hw);
 
-my $clangver = "svn";
-my $gccver   = "4.9.2";
-my $home     = "/home/hrosen4/mbig/src/bde-oss-tools/bde_verify";
 my $bb       = "/bb/build/$system-$hw-64" .
                "/release/robolibs/trunk/lib/dpkgroot/opt/bb";
-my $config   = "$home/bde_verify.cfg";
+my $config   = "${0}.cfg";
+my $exe      = "${0}_bin";
 my @cl;
-my $exe;
-if ($system eq "SunOS") {
-    $exe      = "$home/$system-gcc-$gccver/bde_verify";
-} else {
-    $exe      = "$home/$system-gcc-$gccver/bde_verify";
-   #$exe      = "$home/$system-clang-$clangver/bde_verify";
-}
-my $cc       = "/opt/swt/install/gcc-$gccver/bin/g++";
+my $cc       = "g++";
 my $debug    = "";
 my $verbose  = "";
 my $help     = "";

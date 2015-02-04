@@ -1,59 +1,37 @@
 # Makefile                                                       -*-makefile-*-
 
-PREFIX     ?= /opt/bb
-SHELL      ?= bash
+PREFIX     ?= $(firstword $(wildcard /opt/bb /usr))
 LLVMDIR    ?= $(PREFIX)
 
-PATH       := $(DISTRIBUTION_REFROOT)$(PREFIX)/lib/gcc-4.8/bin:$(DISTRIBUTION_REFROOT)$(PREFIX)/bin:/bbshr/bde/bde-tools/bin:/usr/bin:/bin:/usr/ccs/bin:/opt/swt/bin:$(PREFIX)/bin
-export PATH
-
-SYSTEM      = $(shell uname -s)
-
-GCCDIR     ?= $(abspath $(dir \
-              $(abspath $(dir \
-              $(abspath $(shell env PATH=$(PATH) which g++))))))
+SYSTEM     := $(shell uname -s)
+GCCDIR     := $(patsubst %/bin/g++,%,$(shell which $(CXX)))
 
 CSABASE     = csabase
 LIBCSABASE  = libcsabase.a
 
-CXXFLAGS   += -std=c++11
+CXXFLAGS   += -m64 -std=c++11
 CXXFLAGS   += -Wall -Wno-mismatched-tags -Wno-unused-local-typedefs
-                                                                                INCFLAGS   += -I$(PREFIX)/include
+INCFLAGS   += -I$(PREFIX)/include -I/opt/swt/include
 
 # Set up locations and flags for the compiler that will build bde_verify.
-ifeq ($(SYSTEM),Linux)
-    COMPILER ?= gcc
-    ifeq    ($(COMPILER),gcc)
-        CXX         = g++
-    endif
-    ifeq ($(COMPILER),clang)
-        CXX         = clang++
-        CXXFLAGS   += --gcc-toolchain=$(GCCDIR)
-    endif
-
-    AR          = /usr/bin/ar                                                   
+ifeq ($(notdir $(CXX)),clang++)
+    CXXFLAGS   += --gcc-toolchain=$(GCCDIR)
+    LDFLAGS    += --gcc-toolchain=$(GCCDIR)
 endif
 
-ifeq ($(SYSTEM),SunOS)
-    COMPILER ?= gcc
-    ifeq    ($(COMPILER),gcc)
-        CXX         = g++
-    endif
-    ifeq ($(COMPILER),clang)
-        CXX         = clang++
-        CXXFLAGS   += --gcc-toolchain=$(GCCDIR)
-    endif
-
+ifeq ($(SYSTEM),Linux)
+    AR          = /usr/bin/ar
+else ifeq ($(SYSTEM),SunOS)
     AR          = /usr/ccs/bin/ar
     CXXFLAGS   += -DBYTE_ORDER=BIG_ENDIAN
 endif
 
-OBJ         = $(SYSTEM)-$(COMPILER)
+OBJ        := $(SYSTEM)-$(notdir $(CXX))
 
 # Set up location of clang headers and libraries needed by bde_verify.
 INCFLAGS   += -I$(LLVMDIR)/include
 
-export VERBOSE ?= @
+VERBOSE ?= @
 
 # -----------------------------------------------------------------------------
 
@@ -99,6 +77,12 @@ $(OBJ)/%.o: %.cpp
 	$(VERBOSE) $(CXX) $(INCFLAGS) $(DEFFLAGS) $(CXXFLAGS) \
                           -o $@ -c $(@:$(OBJ)/%.o=%.cpp)
 
+install: $(OBJ)/$(LIBCSABASE)
+	mkdir -p $(DESTDIR)/include/bde_verify
+	cp csabase_*.h $(DESTDIR)/include/bde_verify
+	mkdir -p $(DESTDIR)/lib
+	cp $(OBJ)/$(LIBCSABASE) $(DESTDIR)/lib
+
 .PHONY: clean
 
 clean:
@@ -120,9 +104,20 @@ depend $(OBJ)/make.depend:
             $(filter-out -Wno-unused-local-typedefs, $(CXXFLAGS))             \
 		| perl -pe 's[^(?! )][$(OBJ)/]' > $(OBJ)/make.depend
 
-ifneq "$(MAKECMDGOALS)" "clean"
+ifeq "$(MAKECMDGOALS)" "clean"
+else ifeq "$(MAKECMDGOALS)" "joe"
+else
     include $(OBJ)/make.depend
 endif
+
+# -----------------------------------------------------------------------------
+
+.EXPORT_ALL_VARIABLES:
+
+.PHONY: joe
+
+joe:
+	$(VERBOSE) echo Target 'joe' is for testing variables.
 
 ## ----------------------------------------------------------------------------
 ## Copyright (C) 2014 Bloomberg Finance L.P.
