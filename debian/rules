@@ -3,13 +3,12 @@
 
 thisdir := $(shell pwd)
 
-PREFIX  ?= $(firstword $(wildcard /opt/bb /usr))
-TMPDIR  := /tmp
+PREFIX  ?= /opt/bb
+TMPDIR  ?= /tmp
 
 BUILD_BASE := $(DISTRIBUTION_REFROOT)/bbsrc/build-base
 include $(BUILD_BASE)/build-base.mk
 
-OBJECT_MODE := 64
 CXX := $(DISTRIBUTION_REFROOT)$(PREFIX)/lib/gcc-4.8/bin/g++
 
 DP = debian/tmp$(PREFIX)
@@ -23,11 +22,11 @@ binary: binary-arch
 binary-arch: debian/binary-stamp
 
 debian/build-stamp:
-	$(MAKE) -j 10 VERBOSE=
+	$(MAKE)
 	touch $@
 
 debian/install-stamp: debian/build-stamp
-	$(MAKE) install VERBOSE= DESTDIR=$(abspath $(DP))
+	$(MAKE) DESTDIR=$(abspath $(DP)) install
 	touch $@
 
 debian/binary-stamp: debian/install-stamp

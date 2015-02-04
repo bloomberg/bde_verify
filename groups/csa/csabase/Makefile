@@ -59,7 +59,7 @@ CXXFILES =                                                 \
 
 DEFFLAGS += -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS
 INCFLAGS += -I.
-CXXFLAGS += -g -fno-common -fno-strict-aliasing -fno-exceptions -fno-rtti
+CXXFLAGS += -fno-common -fno-strict-aliasing -fno-exceptions -fno-rtti
 
 OFILES = $(CXXFILES:%.cpp=$(OBJ)/%.o)
 
@@ -104,20 +104,13 @@ depend $(OBJ)/make.depend:
             $(filter-out -Wno-unused-local-typedefs, $(CXXFLAGS))             \
 		| perl -pe 's[^(?! )][$(OBJ)/]' > $(OBJ)/make.depend
 
-ifeq "$(MAKECMDGOALS)" "clean"
-else ifeq "$(MAKECMDGOALS)" "joe"
-else
+ifneq "$(MAKECMDGOALS)" "clean"
     include $(OBJ)/make.depend
 endif
 
 # -----------------------------------------------------------------------------
 
 .EXPORT_ALL_VARIABLES:
-
-.PHONY: joe
-
-joe:
-	$(VERBOSE) echo Target 'joe' is for testing variables.
 
 ## ----------------------------------------------------------------------------
 ## Copyright (C) 2014 Bloomberg Finance L.P.

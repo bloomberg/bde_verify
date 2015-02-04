@@ -128,8 +128,8 @@ TODO =                                                                        \
 
 DEFFLAGS += -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS
 INCFLAGS += -I. -I$(CSABASEDIR) -Igroups/csa/csadep
-CXXFLAGS += -g -fno-common -fno-strict-aliasing -fno-exceptions -fno-rtti
-LDFLAGS  += -g -m64
+CXXFLAGS += -fno-common -fno-strict-aliasing -fno-exceptions -fno-rtti
+LDFLAGS  += -m64
 
 OFILES = $(CXXFILES:%.cpp=$(OBJ)/%.o)
 
@@ -295,12 +295,6 @@ endif
 # -----------------------------------------------------------------------------
 
 .EXPORT_ALL_VARIABLES:
-
-.PHONY: joe
-
-joe:
-	$(VERBOSE) $(MAKE) -C $(CSABASEDIR) joe
-	$(VERBOSE) echo Target 'joe' is for testing variables.
 
 ## ----------------------------------------------------------------------------
 ## Copyright (C) 2014 Bloomberg Finance L.P.
