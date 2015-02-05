@@ -96,7 +96,7 @@ class Analyser : public Attachments
                               std::string const&          check,
                               std::string const&          tag,
                               std::string const&          message,
-                              bool                        always = false,
+                              bool                        always = true,
                               clang::DiagnosticIDs::Level level =
                                                 clang::DiagnosticIDs::Warning);
 
@@ -105,7 +105,7 @@ class Analyser : public Attachments
                               std::string const&          check,
                               std::string const&          tag,
                               std::string const&          message,
-                              bool                        always = false,
+                              bool                        always = true,
                               clang::DiagnosticIDs::Level level =
                                                 clang::DiagnosticIDs::Warning);
 
@@ -140,7 +140,6 @@ class Analyser : public Attachments
         // Return the name of the file to use for rewriting the specified
         // 'file'.
 
-    int InsertTextAfter(clang::SourceLocation l, llvm::StringRef s);
     int InsertTextBefore(clang::SourceLocation l, llvm::StringRef s);
     int RemoveText(clang::SourceRange r);
     int RemoveText(clang::SourceLocation l, unsigned n);

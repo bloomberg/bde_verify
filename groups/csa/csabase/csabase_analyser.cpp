@@ -661,12 +661,6 @@ csabase::Analyser::get_rewrite_file(std::string file)
 
 // ----------------------------------------------------------------------------
 
-int csabase::Analyser::InsertTextAfter(SourceLocation l, llvm::StringRef s)
-{
-    d_source_manager.getDecomposedExpansionLoc(l);
-    return ReplaceText(l.getLocWithOffset(1), 0, s);
-}
-
 int csabase::Analyser::InsertTextBefore(SourceLocation l, llvm::StringRef s)
 {
     return ReplaceText(l, 0, s);

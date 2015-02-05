@@ -4,6 +4,7 @@ CHECKNAME := unnamed-temporary
 
 BDE_VERIFY_DIR ?= ../../../..
 include $(BDE_VERIFY_DIR)/checks/Makefile.inc
+BDE_VERIFY_ARGS=-std=c++03
 
 ## ----------------------------------------------------------------------------
 ## Copyright (C) 2014 Bloomberg Finance L.P.

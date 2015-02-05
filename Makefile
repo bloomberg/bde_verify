@@ -4,9 +4,13 @@ PREFIX     ?= $(firstword $(wildcard /opt/bb /usr))
 LLVMDIR    ?= $(PREFIX)
 
 SYSTEM     := $(shell uname -s)
-DESTDIR    := $(SYSTEM)
+DESTDIR    ?= $(PREFIX)
 
-GCCDIR     := $(patsubst %/bin/g++,%,$(shell which $(CXX)))
+ifeq ($(notdir $(CXX)),g++)
+GCCDIR     ?= $(patsubst %/bin/g++,%,$(shell which $(CXX)))
+else
+GCCDIR     ?= $(patsubst %/bin/g++,%,$(shell which g++))
+endif
 
 TARGET      = bde_verify_bin
 CSABASE     = csabase
@@ -14,14 +18,14 @@ LIBCSABASE  = libcsabase.a
 CSABASEDIR  = groups/csa/csabase
 
 CXXFLAGS   += -m64 -std=c++11
-CXXFLAGS   += -Wall -Wno-mismatched-tags -Wno-unused-local-typedefs
+CXXFLAGS   += -Wall -Wno-unused-local-typedefs
 
 CXXFLAGS   += -DSPELL_CHECK=1
 INCFLAGS   += -I$(PREFIX)/include -I/opt/swt/include
 
 # Set up locations and flags for the compiler that will build bde_verify.
 ifeq ($(notdir $(CXX)),clang++)
-    CXXFLAGS   += --gcc-toolchain=$(GCCDIR)
+    CXXFLAGS   += --gcc-toolchain=$(GCCDIR) -Wno-mismatched-tags
     LDFLAGS    += --gcc-toolchain=$(GCCDIR)
 endif
 
@@ -230,7 +234,6 @@ install:  $(OBJ)/$(TARGET) $(CSABASEDIR)/$(OBJ)/$(LIBCSABASE)
 	cp $(OBJ)/$(TARGET) bde_verify.cfg scripts/bde_verify $(DESTDIR)/bin
 	mkdir -p $(DESTDIR)/include/bde_verify
 	cp groups/csa/csadep/csadep_*.h $(DESTDIR)/include/bde_verify
-	ls -lR $(DESTDIR)
 
 .PHONY: clean
 
@@ -269,13 +272,13 @@ check: $(OBJ)/$(TARGET) $(CNAMES)
 check-current: $(OBJ)/$(TARGET) $(CCURNAME)
 
 $(CNAMES):
-	$(VERBOSE) $(MAKE) -C $(@D) check
+	$(VERBOSE) $(MAKE) -C $(@D) -k --no-print-directory check
 
 run: $(OBJ)/$(TARGET) $(RNAMES)
 run-current: $(OBJ)/$(TARGET) $(RCURNAME)
 
 $(RNAMES):
-	$(VERBOSE) $(MAKE) -C $(@D) run
+	$(VERBOSE) $(MAKE) -C $(@D) -k --no-print-directory run
 
 # -----------------------------------------------------------------------------
 

@@ -13,6 +13,7 @@
 #include <clang/Basic/SourceManager.h>
 #include <clang/Lex/Lexer.h>
 #include <csabase_analyser.h>
+#include <csabase_debug.h>
 #include <csabase_diagnostic_builder.h>
 #include <csabase_location.h>
 #include <csabase_ppobserver.h>
@@ -164,16 +165,15 @@ struct report
                              std::set<const ReturnStmt*>::iterator end)
     {
         const data& d = d_analyser.attachment<data>();
-        for (std::set<const ReturnStmt*>::iterator it = begin;
-             it != end;
-             ++it) {
+        for (auto it = begin; it != end; ++it) {
             // Ignore final top-level return statements.
             if (!d.d_last_returns.count(*it) &&
                 d_analyser.is_component(*it) &&
                 !is_commented(*it, d.d_rcs.begin(), d.d_rcs.end()) &&
                 !isAllCasesReturn(*it)) {
                 d_analyser.report(*it, check_name, "MR01",
-                        "Mid-function 'return' requires '// RETURN' comment");
+                        "Mid-function 'return' requires '// RETURN' comment",
+                        true);
                 SourceRange line_range =
                     d_analyser.get_line_range((*it)->getLocEnd());
                 if (line_range.isValid()) {
@@ -184,9 +184,9 @@ struct report
                                       ) + "// RETURN";
                     d_analyser.report(*it, check_name, "MR01",
                                       "Correct text is\n%0",
-                                      false, DiagnosticIDs::Note)
+                                      true, DiagnosticIDs::Note)
                         << line.str() + tag;
-                    d_analyser.InsertTextAfter(line_range.getEnd(), tag);
+                    d_analyser.InsertTextBefore(line_range.getEnd(), tag);
                 }
             }
         }
@@ -236,9 +236,9 @@ struct report
                                        ? std::string(70 - line.size(), ' ')
                                        : "\n" + std::string(70, ' ')
                                       ) + "// RETURN";
-                    d_analyser.report(*it, check_name, "MR01",
+                    d_analyser.report(*it, check_name, "MR02",
                             "Correct text is\n%0",
-                            false, DiagnosticIDs::Note)
+                            true, DiagnosticIDs::Note)
                         << line.str() + tag;
                     line_range.setBegin(
                         line_range.getBegin().getLocWithOffset(line.size()));

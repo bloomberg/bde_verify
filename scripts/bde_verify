@@ -1,4 +1,4 @@
-#!/opt/bb/bin/perl -w
+#!/usr/bin/env perl
 # bde_verify                                                         -*-perl-*-
 
 # Bde_verify is a static analysis tool that verifies that source code adheres 
@@ -7,6 +7,7 @@
 # environment.
 
 use strict;
+use warnings;
 use Getopt::Long qw(:config no_ignore_case);
 use Cwd;
 use DateTime;
@@ -22,8 +23,17 @@ $hw = 'x86_64' unless grep(/$hw/, @known_hw);
 
 my $bb       = "/bb/build/$system-$hw-64" .
                "/release/robolibs/trunk/lib/dpkgroot/opt/bb";
+$bb          = '' unless -d $bb;
+
 my $config   = "${0}.cfg";
+$config      =~ s{/scripts/}{/} unless -r $config;
+$config      = "${0}.cfg"       unless -r $config;
+
 my $exe      = "${0}_bin";
+$exe         =~ s{/scripts/}{/$system-g++/}             unless -x $exe;
+$exe         =~ s{/$system-g[+][+]/}{/$system-clang++/} unless -x $exe;
+$exe         = "${0}_bin"                               unless -x $exe;
+
 my @cl;
 my $cc       = "g++";
 my $debug    = "";
@@ -31,8 +41,8 @@ my $verbose  = "";
 my $help     = "";
 my $definc   = 1;
 my $defdef   = 1;
-my $nsa      = 1;
 my $log      = "/home/hrosen4/mbig/bde_verify.log";
+my $nsa      = -w $log;
 my @incs;
 my @defs;
 my @wflags;
@@ -165,7 +175,7 @@ for (@ARGV) {
 push(@incs, (
     "$bb/include",
     "$bb/include/stlport",
-)) if $definc;
+)) if $bb and $definc;
 for (@incs) { warn "cannot find directory $_\n" unless -d; }
 @incs = map { ( "-I", $_ ) }
         map { $_ eq Cwd::cwd() ? "." : $_ }

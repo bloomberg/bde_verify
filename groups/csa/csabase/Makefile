@@ -4,18 +4,22 @@ PREFIX     ?= $(firstword $(wildcard /opt/bb /usr))
 LLVMDIR    ?= $(PREFIX)
 
 SYSTEM     := $(shell uname -s)
-GCCDIR     := $(patsubst %/bin/g++,%,$(shell which $(CXX)))
+ifeq ($(notdir $(CXX)),g++)
+GCCDIR     ?= $(patsubst %/bin/g++,%,$(shell which $(CXX)))
+else
+GCCDIR     ?= $(patsubst %/bin/g++,%,$(shell which g++))
+endif
 
 CSABASE     = csabase
 LIBCSABASE  = libcsabase.a
 
 CXXFLAGS   += -m64 -std=c++11
-CXXFLAGS   += -Wall -Wno-mismatched-tags -Wno-unused-local-typedefs
+CXXFLAGS   += -Wall -Wno-unused-local-typedefs
 INCFLAGS   += -I$(PREFIX)/include -I/opt/swt/include
 
 # Set up locations and flags for the compiler that will build bde_verify.
 ifeq ($(notdir $(CXX)),clang++)
-    CXXFLAGS   += --gcc-toolchain=$(GCCDIR)
+    CXXFLAGS   += --gcc-toolchain=$(GCCDIR) -Wno-mismatched-tags
     LDFLAGS    += --gcc-toolchain=$(GCCDIR)
 endif
 

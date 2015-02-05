@@ -43,6 +43,9 @@ csabase::DiagnosticFilter::HandleDiagnostic(DiagnosticsEngine::Level level,
 {
     bool handle = false;
     if (!handle) {
+        handle = level >= DiagnosticsEngine::Error;
+    }
+    if (!handle) {
         handle = !info.getLocation().isFileID() &&
                  info.getID() != diag::pp_pragma_once_in_main_file;
     }

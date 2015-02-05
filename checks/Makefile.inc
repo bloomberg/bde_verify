@@ -3,7 +3,7 @@
 VERBOSE    ?= @
 SHELL      ?= bash
 SYSTEM      = $(shell uname -s)
-COMPILER   ?= gcc
+COMPILER   ?= g++
 BDEVERIFY  ?= $(BDE_VERIFY_DIR)/scripts/bde_verify
 EXE        ?= $(BDE_VERIFY_DIR)/$(SYSTEM)-$(COMPILER)/bde_verify_bin
 
@@ -49,6 +49,8 @@ run: $(RUNFILES)
 
 $(RUNFILES):
 	$(RUN)
+
+.EXPORT_ALL_VARIABLES:
 
 ## ----------------------------------------------------------------------------
 ## Copyright (C) 2014 Bloomberg Finance L.P.

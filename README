@@ -17,14 +17,15 @@ Supported Platforms:
    o SunOS sparc
 
 Prerequesites: 
-   o llvm/clang (see below for instructions)
+   o llvm/clang >= 3.6.0 (see below for instructions)
+   o gcc >= 4.8.1
    o gnu make
-   o aspell 0.60.6.1
+   o aspell
 
 Bde_verify is built with current llvm/clang, available by git as described in
 <http://llvm.org/docs/GettingStarted.html#git-mirror>.  It, and clang, use
-c++11 constructs, so you will need to build with a sufficiently recent gcc. It
-is known to build with gcc-4.8.1 and gcc-4.9.2.
+c++11 constructs, so you will need to build with a sufficiently recent gcc or
+clang. It is known to build with gcc-4.8.1 and gcc-4.9.2 and clang 3.6.0.
 
 To build from llvm/clang using git, download only LLVM and Clang:
     git clone http://llvm.org/git/llvm.git
@@ -45,14 +46,22 @@ following arguments to configure:
     CXX=$GCCDIR/bin/g++
 
 For bde_verify itself, there is no autoconf support to create a Makefile.
-Set up the following variables in the Makefiles in the top-level and in the
-csabase directories to hand-configure.
+The following variables in the Makefiles in the top-level and in the csabase
+directories control aspects of the build, and may be changed if the defaults
+are not adequate.
 
-    COMPILER  = gcc
-    VERSION   = compiler version, e.g., 4.9.2
-    CCDIR     = path to compiler installation directory
-    LLVM      = path to LLVM installation
-    ASPELL    = path to aspell installation
+    CXX       = (g++)      The C++ compiler
+    PREFIX    = (/usr)     Where to find headers and libraries
+    LLVMDIR   = ($PREFIX)  Where to find llvm/clang headers and libraries
+    DESTDIR   = ($PREFIX)  Where to install
+    GCCDIR    = (from g++) Where to find gcc headers and libraries
+    INCFLAGS  =            Extra include flags
+    CXXFLAGS  =            Extra compiler flags
+    LDFLAGS   =            Extra linker flags
+
+The Makefile will derive GCCDIR from `which $CXX` if the final path component
+of CXX is g++, and from `which g++` otherwise.  (When building with clang,
+clang needs to be told where to look for libraries and headers.)
 
 Once you have Clang installed and bde_verify Makefiles set up, build bde_verify
 as follows.

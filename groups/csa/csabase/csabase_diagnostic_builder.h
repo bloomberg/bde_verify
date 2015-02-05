@@ -13,7 +13,7 @@ class diagnostic_builder
 {
   public:
     diagnostic_builder();
-    diagnostic_builder(clang::DiagnosticBuilder other, bool always = false);
+    diagnostic_builder(clang::DiagnosticBuilder other, bool always = true);
     diagnostic_builder& operator<<(long long argument);
     diagnostic_builder& operator<<(long argument);
     template <typename T>

@@ -75,7 +75,7 @@ static void open_file(Analyser& analyser,
                             true, DiagnosticIDs::Note)
                 << expect;
             if (m.first == 0) {
-                analyser.InsertTextAfter(
+                analyser.InsertTextBefore(
                     where.getLocWithOffset(m.first), expect + "\n");
             } else {
                 analyser.ReplaceText(analyser.get_line_range(where), expect);
