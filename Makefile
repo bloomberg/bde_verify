@@ -31,18 +31,23 @@ endif
 
 ifeq ($(SYSTEM),Linux)
     AR          = /usr/bin/ar
-    LDFLAGS    += -Wl,-L,$(GCCDIR)/lib64 -Wl,-rpath,$(GCCDIR)/lib64
-    LDFLAGS    += -Wl,-L,$(PREFIX)/lib64 -Wl,-rpath,$(PREFIX)/lib64
-    LDFLAGS    += -Wl,-L,/opt/swt/lib64  -Wl,-rpath,/opt/swt/lib64
-    LDFLAGS    += -Wl,-L,/usr/lib64      -Wl,-rpath,/usr/lib64
+    LIBDIRS     = $(GCCDIR)/lib64                                             \
+                  $(PREFIX)/lib64                                             \
+                  /opt/swt/lib64                                              \
+                  /usr/lib64
+    LDFLAGS    += $(foreach L,$(LIBDIRS),-Wl,-L$(L) -Wl,-rpath,$(L))
 else ifeq ($(SYSTEM),SunOS)
     AR          = /usr/ccs/bin/ar
     CXXFLAGS   += -DBYTE_ORDER=BIG_ENDIAN
-    LDFLAGS    += -Wl,-L,$(GCCDIR)/lib/sparcv9 -Wl,-R,$(GCCDIR)/lib/sparcv9
-    LDFLAGS    += -Wl,-L,$(PREFIX)/lib64       -Wl,-R,$(PREFIX)/lib64
-    LDFLAGS    += -Wl,-L,/opt/swt/lib64        -Wl,-R,/opt/swt/lib64
-    LDFLAGS    += -Wl,-L,/usr/lib/sparcv9      -Wl,-R,/usr/lib/sparcv9
-    EXTRALIBS  += -lrt -ltinfo
+    LIBDIRS     = $(GCCDIR)/lib/sparcv9                                       \
+                  $(PREFIX)/lib64                                             \
+                  /opt/swt/lib64                                              \
+                  /usr/lib/sparcv9
+    LDFLAGS    += $(foreach L,$(LIBDIRS),-Wl,-L$(L) -Wl,-R,$(L))
+    EXTRALIBS  += -lrt
+    ifneq (,$(wildcard $(foreach L,$(LIBDIRS),$(L)/libtinfo.so)))
+        EXTRALIBS += -ltinfo
+    endif
 endif
 
 OBJ        := $(SYSTEM)-$(notdir $(CXX))
