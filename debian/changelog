@@ -1,5 +1,22 @@
-bde-verify (1.0.0.0) unstable; urgency=low
+bde-verify (1.0.0.1) unstable; urgency=low
 
-  * bde-verify Initial version
+  * 9f1a7ec Bunch o' stuff: 1 - allocator disavowal on class templates 2 - conversion operators in test drivers 3 - using declarations before includes in cpp files 4 - lift common "report" class stuff
+  * a4ee5c4 Distinguish between missing and misplaced version file.
+  * fad6589 Working version of BSL_OVERRIDES_STD cleaner.
+  * 3057625 Check for another version of allocator traits.
+  * 48cb877 Change scm_version output.
+  * c45edb0 Exclude version files from lower level packages.
+  * 834d6d7 Change directory version.
+  * 0d8545e Don't complain about *scm_versions file in files included by them.
+  * 86163b9 Show correct version of test banner printing.
+  * ece0305 Group for a_xxxyy_zzzz should be xxx. Don't complain about version info files in test drivers.
+  * 5f07f04 Look for other version of allocator type trait. Speed up function contract checking by removing schlemiel the painter behavior. Don't define BSL_OVERRIDES_STD in script for bsl* files.
+  * daa5a9a Make a "current" version of check-all. Make banner test and expected files.
+  * 5a8e3ff Don't complain about scm_version.h files not including themselves!
+  * 48d10ba Windows changes. Changes for latest SVN version of LLVM/CLANG.
+  * 89872df updated from the lastest github version.
+  * 571f08d saving the current version.
+  * f4ee97d save the current version.
+  * 5fd1e8c updated version.
 
- -- Hyman Rosen <hrosen4@bloomberg.net>  Mon,  2 Feb 2015 16:40:30 -0500
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Thu, 5 Feb 2015 20:14:57 -0500
