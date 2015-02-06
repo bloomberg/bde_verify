@@ -38,10 +38,10 @@ ifeq ($(SYSTEM),Linux)
 else ifeq ($(SYSTEM),SunOS)
     AR          = /usr/ccs/bin/ar
     CXXFLAGS   += -DBYTE_ORDER=BIG_ENDIAN
-    LDFLAGS    += -Wl,-L,$(GCCDIR)/sparcv9 -Wl,-R,$(GCCDIR)/sparcv9
-    LDFLAGS    += -Wl,-L,$(PREFIX)/lib64   -Wl,-R,$(PREFIX)/lib64
-    LDFLAGS    += -Wl,-L,/opt/swt/lib64    -Wl,-R,/opt/swt/lib64
-    LDFLAGS    += -Wl,-L,/usr/lib/sparcv9  -Wl,-R,/usr/lib/sparcv9
+    LDFLAGS    += -Wl,-L,$(GCCDIR)/lib/sparcv9 -Wl,-R,$(GCCDIR)/lib/sparcv9
+    LDFLAGS    += -Wl,-L,$(PREFIX)/lib64       -Wl,-R,$(PREFIX)/lib64
+    LDFLAGS    += -Wl,-L,/opt/swt/lib64        -Wl,-R,/opt/swt/lib64
+    LDFLAGS    += -Wl,-L,/usr/lib/sparcv9      -Wl,-R,/usr/lib/sparcv9
     EXTRALIBS  += -lrt -ltinfo
 endif
 
