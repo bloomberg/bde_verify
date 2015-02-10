@@ -239,6 +239,8 @@ install:  $(OBJ)/$(TARGET) $(CSABASEDIR)/$(OBJ)/$(LIBCSABASE)
 	cp $(OBJ)/$(TARGET) bde_verify.cfg scripts/bde_verify $(DESTDIR)/bin
 	mkdir -p $(DESTDIR)/include/bde_verify
 	cp groups/csa/csadep/csadep_*.h $(DESTDIR)/include/bde_verify
+	mkdir -p $(DESTDIR)/include/bde_verify/utils
+	cp groups/csa/csabase/utils/*.hpp $(DESTDIR)/include/bde_verify/utils
 
 .PHONY: clean
 
