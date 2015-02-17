@@ -141,10 +141,9 @@ void report::operator()()
                 !a.is_system_header(id.second) &&
                 !a.is_system_header(il)) {
                 a.report(id.second, check_name, "AQJ02",
-                         "Using directive precedes header inclusion",
-                         true);
+                         "Using directive precedes header inclusion");
                 a.report(il, check_name, "AQJ02", "Header included here",
-                         true, DiagnosticIDs::Note);
+                         false, DiagnosticIDs::Note);
             }
         }
     }

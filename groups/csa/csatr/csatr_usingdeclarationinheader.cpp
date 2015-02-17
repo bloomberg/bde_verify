@@ -140,11 +140,10 @@ void report::operator()()
                 !a.is_system_header(id.second) &&
                 !a.is_system_header(il)) {
                 a.report(id.second, check_name, "AQJ01",
-                         "Using declaration precedes header inclusion",
-                         true);
+                         "Using declaration precedes header inclusion");
                 a.report(il, check_name, "AQJ01",
                          "Header included here",
-                          true, DiagnosticIDs::Note);
+                          false, DiagnosticIDs::Note);
             }
         }
     }

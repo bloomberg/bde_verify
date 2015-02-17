@@ -96,7 +96,7 @@ class Analyser : public Attachments
                               std::string const&          check,
                               std::string const&          tag,
                               std::string const&          message,
-                              bool                        always = true,
+                              bool                        always = false,
                               clang::DiagnosticIDs::Level level =
                                                 clang::DiagnosticIDs::Warning);
 
@@ -105,7 +105,7 @@ class Analyser : public Attachments
                               std::string const&          check,
                               std::string const&          tag,
                               std::string const&          message,
-                              bool                        always = true,
+                              bool                        always = false,
                               clang::DiagnosticIDs::Level level =
                                                 clang::DiagnosticIDs::Warning);
 

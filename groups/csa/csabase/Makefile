@@ -82,8 +82,9 @@ $(OBJ)/%.o: %.cpp
                           -o $@ -c $(@:$(OBJ)/%.o=%.cpp)
 
 install: $(OBJ)/$(LIBCSABASE)
-	mkdir -p $(DESTDIR)/include/bde_verify
+	mkdir -p $(DESTDIR)/include/bde_verify/utils
 	cp csabase_*.h $(DESTDIR)/include/bde_verify
+	cp utils/*.hpp $(DESTDIR)/include/bde_verify/utils
 	mkdir -p $(DESTDIR)/lib
 	cp $(OBJ)/$(LIBCSABASE) $(DESTDIR)/lib
 
@@ -106,7 +107,7 @@ depend $(OBJ)/make.depend:
 	@echo analysing dependencies
 	$(VERBOSE) $(CXX) $(INCFLAGS) $(DEFFLAGS) -M $(CXXFILES)                  \
             $(filter-out -Wno-unused-local-typedefs, $(CXXFLAGS))             \
-		| perl -pe 's[^(?! )][$(OBJ)/]' > $(OBJ)/make.depend
+        | perl -pe 's[^(?! )][$(OBJ)/]' > $(OBJ)/make.depend
 
 ifneq "$(MAKECMDGOALS)" "clean"
     include $(OBJ)/make.depend

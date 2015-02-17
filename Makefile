@@ -294,7 +294,7 @@ depend $(OBJ)/make.depend:
 	@echo analysing dependencies
 	$(VERBOSE) $(CXX) $(INCFLAGS) $(DEFFLAGS) -M $(CXXFILES)                  \
             $(filter-out -Wno-unused-local-typedefs, $(CXXFLAGS))             \
-		| perl -pe 's[^(?! )][$(OBJ)/]' > $(OBJ)/make.depend
+        | perl -pe 's[^(?! )][$(OBJ)/]' > $(OBJ)/make.depend
 
 ifneq "$(MAKECMDGOALS)" "clean"
     include $(OBJ)/make.depend
