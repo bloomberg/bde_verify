@@ -48,6 +48,9 @@ else ifeq ($(SYSTEM),SunOS)
     ifneq (,$(wildcard $(foreach L,$(LIBDIRS),$(L)/libtinfo.so)))
         EXTRALIBS += -ltinfo
     endif
+    ifneq (,$(wildcard $(foreach L,$(LIBDIRS),$(L)/libmalloc.so)))
+        EXTRALIBS += -lmalloc
+    endif
 endif
 
 OBJ        := $(SYSTEM)-$(notdir $(CXX))
