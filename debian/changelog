@@ -1,4 +1,4 @@
-bde-verify (1.0.0.3) unstable; urgency=low
+bde-verify (1.0.0.4) unstable; urgency=low
 
   * c11cfd6 Conditionally link in -lmalloc on Sub.
   * f6077c5 Fix treatmemnt of "always" parameter for diagnostics.
