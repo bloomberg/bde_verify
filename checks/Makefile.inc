@@ -10,6 +10,7 @@ EXE        ?= $(BDE_VERIFY_DIR)/$(SYSTEM)-$(COMPILER)/bde_verify_bin
 ALL ?= off
 
 define CHECKARGS
+    -cc=$(CXX)                                                                \
     -exe=$(EXE)                                                               \
     -nodefdef                                                                 \
     -config=/dev/null                                                         \
