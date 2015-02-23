@@ -54,7 +54,10 @@ void report::operator()(const CallExpr *expr)
         "isprint", "ispunct", "isspace", "isupper", "isxdigit"
     };
     const FunctionDecl *f = expr->getDirectCallee();
-    if (!f || f->getNumParams() != 1 || !is.count(f->getName())) {
+    if (!f ||
+        f->getNumParams() != 1 ||
+        !f->getIdentifier() ||
+        !is.count(f->getName())) {
         return;                                                       // RETURN
     }
     const DeclContext *dc = f->getParent();
