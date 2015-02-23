@@ -90,6 +90,7 @@ CXXFILES =                                                                    \
         groups/csa/csamisc/csamisc_arrayargument.cpp                          \
         groups/csa/csamisc/csamisc_arrayinitialization.cpp                    \
         groups/csa/csamisc/csamisc_boolcomparison.cpp                         \
+        groups/csa/csamisc/csamisc_charclassrange.cpp                         \
         groups/csa/csamisc/csamisc_charvsstring.cpp                           \
         groups/csa/csamisc/csamisc_constantreturn.cpp                         \
         groups/csa/csamisc/csamisc_contiguousswitch.cpp                       \
