@@ -34,7 +34,7 @@ $exe         =~ s{/$system-g[+][+]/}{/$system-clang++/} unless -x $exe;
 $exe         = "${0}_bin"                               unless -x $exe;
 
 my @cl;
-my $cc       = "g++";
+my $cc       = $ENV{CXX} || "g++";
 my $debug    = "";
 my $verbose  = "";
 my $help     = "";
