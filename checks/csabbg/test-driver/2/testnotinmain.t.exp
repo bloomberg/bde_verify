@@ -1,0 +1,7 @@
+testnotinmain.t.cpp:75:14: warning: TP27: Method not called in test driver
+        void h();
+             ^
+testnotinmain.t.cpp:81:14: warning: TP27: Method not called in test driver
+        void k();
+             ^
+2 warnings generated.

@@ -382,11 +382,17 @@ void report::process_function(CXXMethodDecl *f)
                 found = true;
             }
         });
+#if 0
         mf.addDynamicMatcher(
             decl(hasDescendant(
                 namedDecl(hasName("main"),
                           forEachDescendant(expr(callTo(f)).bind("expr"))))),
             &m1);
+#else
+        mf.addDynamicMatcher(
+            decl(forEachDescendant(expr(callTo(f)).bind("expr"))),
+            &m1);
+#endif
         mf.match(*f->getTranslationUnitDecl(), *a.context());
         if (!found) {
             a.report(f, check_name, "TP27",
