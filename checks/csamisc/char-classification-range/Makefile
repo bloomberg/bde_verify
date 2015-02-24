@@ -4,6 +4,7 @@ CHECKNAME := $(notdir $(realpath .))
 
 BDE_VERIFY_DIR ?= ../../..
 include $(BDE_VERIFY_DIR)/checks/Makefile.inc
+BDE_VERIFY_ARGS = -cl='set standard_namespaces std'
 
 ## ----------------------------------------------------------------------------
 ## Copyright (C) 2015 Bloomberg Finance L.P.
