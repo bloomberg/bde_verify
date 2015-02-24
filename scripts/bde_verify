@@ -10,7 +10,6 @@ use strict;
 use warnings;
 use Getopt::Long qw(:config no_ignore_case);
 use Cwd;
-use DateTime;
 use Fcntl qw/ :flock /;
 
 my @known_systems = ('AIX', 'HP-UX', 'Linux', 'SunOS');
@@ -41,7 +40,9 @@ my $verbose  = "";
 my $help     = "";
 my $definc   = 1;
 my $defdef   = 1;
-my $log      = "/home/hrosen4/mbig/bde_verify.log";
+my $log      = "${0}.log";
+$log         =~ s{^.*/}{};
+$log         = "/home/hrosen4/mbig/${log}";
 my $nsa      = -w $log;
 my @incs;
 my @defs;
@@ -215,7 +216,10 @@ my @command = (
 print join(" \\\n ", map { join "\\ ", split(/ /, $_, -1) } @command), "\n"
                                                                    if $verbose;
 if ($nsa) {
-    my $now = DateTime->now()->format_cldr("yyyyMMddHHmmss");
+    my ($ss,$mm,$HH,$dd,$MM,$YYYY) = gmtime;
+    $YYYY += 1900;
+    $MM += 1;
+    my $now = sprintf('%.4d' . ('%.2d' x 5), $YYYY, $MM, $dd, $HH, $mm, $ss);
     open my $fh, ">>", $log;
     flock $fh, LOCK_EX;
     print $fh $ENV{USER}, " ", $now, map { " $_" } @command, "\n";
