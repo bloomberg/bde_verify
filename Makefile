@@ -95,6 +95,7 @@ CXXFILES =                                                                    \
         groups/csa/csamisc/csamisc_constantreturn.cpp                         \
         groups/csa/csamisc/csamisc_contiguousswitch.cpp                       \
         groups/csa/csamisc/csamisc_cstylecastused.cpp                         \
+        groups/csa/csamisc/csamisc_donotuseendl.cpp                           \
         groups/csa/csamisc/csamisc_funcalpha.cpp                              \
         groups/csa/csamisc/csamisc_hashptr.cpp                                \
         groups/csa/csamisc/csamisc_longinline.cpp                             \
