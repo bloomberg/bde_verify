@@ -78,7 +78,7 @@ namespace
                     (it->line() != loc.line() &&
                      it->line() != loc.line() + 1) ||
                     it->column() != 69) {
-                    analyser_->report(decl, check_name, "IC01",
+                    analyser_->report(decl, check_name, "IEC01",
                             "Constructor suitable for implicit conversions")
                         << decl->getSourceRange();
                 }
