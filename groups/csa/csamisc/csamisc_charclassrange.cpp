@@ -74,7 +74,7 @@ void report::operator()(const CallExpr *expr)
 
     MatchFinder mf;
     OnMatch<> m1([&](const BoundNodes &nodes) {
-        a.report(nodes.getNodeAs<CallExpr>("1")->getArg(0), check_name, "CC01",
+        a.report(nodes.getNodeAs<CallExpr>("1")->getArg(0), check_name, "ISC01",
                  "Sign extension may cause unexpected behavior");
     });
     mf.addDynamicMatcher(
@@ -85,7 +85,7 @@ void report::operator()(const CallExpr *expr)
             ))
         ).bind("1"), &m1);
     OnMatch<> m2([&](const BoundNodes &nodes) {
-        a.report(nodes.getNodeAs<CallExpr>("2")->getArg(0), check_name, "CC02",
+        a.report(nodes.getNodeAs<CallExpr>("2")->getArg(0), check_name, "ISC02",
                  "Sign extension may cause unexpected behavior");
     });
     mf.addDynamicMatcher(
@@ -97,7 +97,7 @@ void report::operator()(const CallExpr *expr)
             ))
         ).bind("2"), &m2);
     OnMatch<> m3([&](const BoundNodes &nodes) {
-        a.report(nodes.getNodeAs<CallExpr>("3")->getArg(0), check_name, "CC03",
+        a.report(nodes.getNodeAs<CallExpr>("3")->getArg(0), check_name, "ISC03",
                  "Out-of-range value may cause unexpected behavior");
     });
     mf.addDynamicMatcher(
