@@ -150,7 +150,10 @@ my %uf     = ( "no-strict-aliasing" => 1, "PIC" => 1 );
 @wflags = map { "-W$_" } grep { not /,/ } @wflags;
 unshift @wflags, "-w" if $warnoff;
 
-push(@defs, ("BDE_VERIFY"));
+# Use ${0}, not ${me}, to use symlink name.
+my $macro = ${0};
+$macro =~ s{^(.*/)?([^.]*).*}{\U$2\E};
+push(@defs, ($macro));
 push(@defs, (
     "BB_THREADED",
     "BDE_BUILD_TARGET_DBG",
