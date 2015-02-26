@@ -24,14 +24,16 @@ my $bb       = "/bb/build/$system-$hw-64" .
                "/release/robolibs/trunk/lib/dpkgroot/opt/bb";
 $bb          = '' unless -d $bb;
 
-my $config   = "${0}.cfg";
-$config      =~ s{/scripts/}{/} unless -r $config;
-$config      = "${0}.cfg"       unless -r $config;
+my $me       = Cwd::abs_path(${0});
 
-my $exe      = "${0}_bin";
+my $config   = "${me}.cfg";
+$config      =~ s{/scripts/}{/} unless -r $config;
+$config      = "${me}.cfg"      unless -r $config;
+
+my $exe      = "${me}_bin";
 $exe         =~ s{/scripts/}{/$system-g++/}             unless -x $exe;
 $exe         =~ s{/$system-g[+][+]/}{/$system-clang++/} unless -x $exe;
-$exe         = "${0}_bin"                               unless -x $exe;
+$exe         = "${me}_bin"                              unless -x $exe;
 
 my @cl;
 my $cc       = $ENV{CXX} || "g++";
@@ -40,7 +42,7 @@ my $verbose  = "";
 my $help     = "";
 my $definc   = 1;
 my $defdef   = 1;
-my $log      = "${0}.log";
+my $log      = "${me}.log";
 $log         =~ s{^.*/}{};
 $log         = "/home/hrosen4/mbig/${log}";
 my $nsa      = -w $log;
