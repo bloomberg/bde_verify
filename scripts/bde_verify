@@ -25,10 +25,14 @@ my $bb       = "/bb/build/$system-$hw-64" .
 $bb          = '' unless -d $bb;
 
 my $me       = Cwd::abs_path(${0});
+my $pt       = $me;
+$pt          =~ s{[^/]*$}{};
+my $nm       = ${0};
+$nm          =~ s{.*/}{};
 
-my $config   = "${me}.cfg";
+my $config   = "${pt}${nm}.cfg";
 $config      =~ s{/scripts/}{/} unless -r $config;
-$config      = "${me}.cfg"      unless -r $config;
+$config      = "${pt}${nm}.cfg" unless -r $config;
 
 my $exe      = "${me}_bin";
 $exe         =~ s{/scripts/}{/$system-g++/}             unless -x $exe;
@@ -42,9 +46,7 @@ my $verbose  = "";
 my $help     = "";
 my $definc   = 1;
 my $defdef   = 1;
-my $log      = "${me}.log";
-$log         =~ s{^.*/}{};
-$log         = "/home/hrosen4/mbig/${log}";
+my $log      = "/home/hrosen4/mbig/${nm}.log";
 my $nsa      = -w $log;
 my @incs;
 my @defs;
@@ -150,9 +152,8 @@ my %uf     = ( "no-strict-aliasing" => 1, "PIC" => 1 );
 @wflags = map { "-W$_" } grep { not /,/ } @wflags;
 unshift @wflags, "-w" if $warnoff;
 
-# Use ${0}, not ${me}, to use symlink name.
-my $macro = ${0};
-$macro =~ s{^(.*/)?([^.]*).*}{\U$2\E};
+my $macro = ${nm};
+$macro =~ s{^([^.]*).*}{\U$1\E};
 push(@defs, ($macro));
 push(@defs, (
     "BB_THREADED",

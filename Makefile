@@ -242,7 +242,9 @@ $(OBJ)/%.o: %.cpp
 install:  $(OBJ)/$(TARGET) $(CSABASEDIR)/$(OBJ)/$(LIBCSABASE)
 	$(VERBOSE) $(MAKE) -C $(CSABASEDIR) install
 	mkdir -p $(DESTDIR)/bin
-	cp $(OBJ)/$(TARGET) bde_verify.cfg scripts/bde_verify $(DESTDIR)/bin
+	cp $(OBJ)/$(TARGET) $(DESTDIR)/bin
+	cp bde_verify.cfg scripts/bde_verify $(DESTDIR)/bin
+	cp bb_verify.cfg  scripts/bb_verify  $(DESTDIR)/bin
 	mkdir -p $(DESTDIR)/include/bde_verify
 	cp groups/csa/csadep/csadep_*.h $(DESTDIR)/include/bde_verify
 
