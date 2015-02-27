@@ -1,3 +1,26 @@
+bde-verify (1.0.0.5) unstable; urgency=low
+
+  * c1d7ec8 Disable upper-case name check for bb_verify. Disable in-enterprise-namespace check for main().
+  * af3fa46 Make bb config negative, so that all off still works.
+  * d9b1741 Create bb_verify variant.
+  * 8c08c48 Pass -DSCRIPT_NAME, not -DBDE_VERIFY. if the script name is different.
+  * 187a470 Resolve path to script location completely.
+  * 81e885d Duplicate tags.
+  * 5bb209d Change overlapped tags.
+  * 5598f3a Add allocator/s to dictionary.
+  * 7138174 Check to recommend not using endl.
+  * cf89791 Warn about calling std::swap instead of 'using std::swap; swap(...)'.
+  * 875aa2c Verify that taking function address satisfies call requirements.
+  * 6e67f4b Use CXX environment variable as default for cc parameter.
+  * 4def88d Use built-in date/time instead of DateTime module. Derive log file name from script name (for bb_verify use).
+  * 8bf5425 Accept calls to methods from test driver even not in main.
+  * 35c1c43 Specify the standard namespace to use.
+  * 551e08e Check for unnamed functions in calls.
+  * 23e14aa Add check for sign-extension problems on ctype is* methods.
+  * b7ff1cd Pass along $(CXX) to bde_verify for checks.
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Fri, 27 Feb 2015 15:52:27 -0500
+
 bde-verify (1.0.0.4) unstable; urgency=low
 
   * c11cfd6 Conditionally link in -lmalloc on Sub.
