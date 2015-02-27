@@ -49,6 +49,11 @@ void report::operator()(const NamedDecl *decl)
             break;
         }
     }
+    if (const auto *fd = llvm::dyn_cast<FunctionDecl>(decl)) {
+        if (fd->isMain()) {
+            return;
+        }
+    }
     if (!a.is_test_driver() &&
         decl->getLinkageInternal() == Linkage::ExternalLinkage &&
         !decl->isInAnonymousNamespace() &&
