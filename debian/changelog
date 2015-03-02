@@ -1,35 +1,8 @@
-bde-verify (1.0.0.5) unstable; urgency=low
+bde-verify (1.0.0.6) unstable; urgency=low
 
-  * c1d7ec8 Disable upper-case name check for bb_verify. Disable in-enterprise-namespace check for main().
-  * af3fa46 Make bb config negative, so that all off still works.
-  * d9b1741 Create bb_verify variant.
-  * 8c08c48 Pass -DSCRIPT_NAME, not -DBDE_VERIFY. if the script name is different.
-  * 187a470 Resolve path to script location completely.
-  * 81e885d Duplicate tags.
-  * 5bb209d Change overlapped tags.
-  * 5598f3a Add allocator/s to dictionary.
-  * 7138174 Check to recommend not using endl.
-  * cf89791 Warn about calling std::swap instead of 'using std::swap; swap(...)'.
-  * 875aa2c Verify that taking function address satisfies call requirements.
-  * 6e67f4b Use CXX environment variable as default for cc parameter.
-  * 4def88d Use built-in date/time instead of DateTime module. Derive log file name from script name (for bb_verify use).
-  * 8bf5425 Accept calls to methods from test driver even not in main.
-  * 35c1c43 Specify the standard namespace to use.
-  * 551e08e Check for unnamed functions in calls.
-  * 23e14aa Add check for sign-extension problems on ctype is* methods.
-  * b7ff1cd Pass along $(CXX) to bde_verify for checks.
-
- -- Hyman Rosen <hrosen4@bloomberg.net>  Fri, 27 Feb 2015 15:52:27 -0500
-
-bde-verify (1.0.0.4) unstable; urgency=low
-
-  * c11cfd6 Conditionally link in -lmalloc on Sub.
-  * f6077c5 Fix treatmemnt of "always" parameter for diagnostics.
-
- -- Hyman Rosen <hrosen4@bloomberg.net>  Wed, 18 Feb 2015 17:06:20 -0500
-
-bde-verify (1.0.0.2) unstable; urgency=low
-
+  * 6c5b336 dpkg version increase
+  * f047614 Increase version
+  * 7dd507f Changelog for version 1.0.0.3
   * 9f1a7ec Bunch o' stuff: 1 - allocator disavowal on class templates 2 - conversion operators in test drivers 3 - using declarations before includes in cpp files 4 - lift common "report" class stuff
   * a4ee5c4 Distinguish between missing and misplaced version file.
   * fad6589 Working version of BSL_OVERRIDES_STD cleaner.
@@ -49,4 +22,4 @@ bde-verify (1.0.0.2) unstable; urgency=low
   * f4ee97d save the current version.
   * 5fd1e8c updated version.
 
- -- Hyman Rosen <hrosen4@bloomberg.net>  Thu, 5 Feb 2015 20:16:20 -0500
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Mon, 2 Mar 2015 17:26:58 -0500
