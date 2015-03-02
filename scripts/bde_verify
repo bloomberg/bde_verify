@@ -34,10 +34,10 @@ my $config   = "${pt}${nm}.cfg";
 $config      =~ s{/scripts/}{/} unless -r $config;
 $config      = "${pt}${nm}.cfg" unless -r $config;
 
-my $exe      = "${me}_bin";
+my $exe      = "${pt}bde_verify_bin";
 $exe         =~ s{/scripts/}{/$system-g++/}             unless -x $exe;
 $exe         =~ s{/$system-g[+][+]/}{/$system-clang++/} unless -x $exe;
-$exe         = "${me}_bin"                              unless -x $exe;
+$exe         = "${pt}bde_verify_bin"                    unless -x $exe;
 
 my @cl;
 my $cc       = $ENV{CXX} || "g++";
