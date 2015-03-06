@@ -288,7 +288,7 @@ csabase::PPObserver::Ident(SourceLocation location, std::string const& ident)
 // -----------------------------------------------------------------------------
 
 static llvm::Regex pragma_bdeverify(
-    "^ *# *pragma +bde_?verify +"             "("  // 1
+    "^ *# *pragma +b[bd]e?_?verify +"         "("  // 1
         "(" "push"                           ")|"  // 2
         "(" "pop"                            ")|"  // 3
         "(" "[-] *([[:alnum:]]+|[*])"        ")|"  // 4 5
@@ -299,7 +299,7 @@ static llvm::Regex pragma_bdeverify(
     llvm::Regex::NoFlags);
 
 static llvm::Regex comment_bdeverify(
-    "^ *// *BDE_VERIFY +pragma *: *"          "("  // 1
+    "^ *// *B[BD]E?_?VERIFY +pragma *: *"     "("  // 1
         "(" "push"                           ")|"  // 2
         "(" "pop"                            ")|"  // 3
         "(" "[-] *([[:alnum:]]+|[*])" ")|"         // 4 5
