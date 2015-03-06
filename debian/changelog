@@ -1,3 +1,9 @@
+bde-verify (1.0.0.7) unstable; urgency=low
+
+  * 930b167 Accept "bb_verify" pragmas.
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Fri, 6 Mar 2015 15:34:13 -0500
+
 bde-verify (1.0.0.6) unstable; urgency=low
 
   * 6c5b336 dpkg version increase
