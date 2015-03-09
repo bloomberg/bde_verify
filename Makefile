@@ -74,6 +74,7 @@ CXXFILES =                                                                    \
         groups/csa/csabde/csabde_tool.cpp                                     \
         groups/csa/csabbg/csabbg_allocatorforward.cpp                         \
         groups/csa/csabbg/csabbg_allocatornewwithpointer.cpp                  \
+        groups/csa/csabbg/csabbg_assertassign.cpp                             \
         groups/csa/csabbg/csabbg_bslovrdstl.cpp                               \
         groups/csa/csabbg/csabbg_enumvalue.cpp                                \
         groups/csa/csabbg/csabbg_functioncontract.cpp                         \
@@ -96,6 +97,7 @@ CXXFILES =                                                                    \
         groups/csa/csamisc/csamisc_contiguousswitch.cpp                       \
         groups/csa/csamisc/csamisc_cstylecastused.cpp                         \
         groups/csa/csamisc/csamisc_donotuseendl.cpp                           \
+        groups/csa/csamisc/csamisc_dumpast.cpp                                \
         groups/csa/csamisc/csamisc_funcalpha.cpp                              \
         groups/csa/csamisc/csamisc_hashptr.cpp                                \
         groups/csa/csamisc/csamisc_longinline.cpp                             \
