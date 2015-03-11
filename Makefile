@@ -76,6 +76,7 @@ CXXFILES =                                                                    \
         groups/csa/csabbg/csabbg_allocatornewwithpointer.cpp                  \
         groups/csa/csabbg/csabbg_assertassign.cpp                             \
         groups/csa/csabbg/csabbg_bslovrdstl.cpp                               \
+        groups/csa/csabbg/csabbg_cmporder.cpp                                 \
         groups/csa/csabbg/csabbg_enumvalue.cpp                                \
         groups/csa/csabbg/csabbg_functioncontract.cpp                         \
         groups/csa/csabbg/csabbg_midreturn.cpp                                \

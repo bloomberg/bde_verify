@@ -111,6 +111,7 @@ class Analyser : public Attachments
 
     clang::SourceManager& manager() const;
     llvm::StringRef         get_source(clang::SourceRange, bool exact = false);
+    clang::SourceRange      get_full_range(clang::SourceRange);
     clang::SourceRange      get_line_range(clang::SourceLocation);
     clang::SourceRange      get_trim_line_range(clang::SourceLocation);
     llvm::StringRef         get_source_line(clang::SourceLocation);

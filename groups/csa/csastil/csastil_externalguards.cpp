@@ -66,13 +66,13 @@ onIfndef(Analyser* analyser, SourceLocation where, Token const& token)
 // ----------------------------------------------------------------------------
 
 static llvm::Regex ndef(
-    "^ *! *defined *[(]? *(INCLUDE[_[:alnum:]]*) *[)]? *$");
+    "^ *! *defined *[(]? *(INCLUDE[_[:alnum:]]*) *[)]?[[:space:]]*$");
 
 static void onIf(Analyser* analyser, SourceLocation where, SourceRange source)
 {
     llvm::SmallVector<llvm::StringRef, 7> matches;
     llvm::StringRef guard;
-    if (ndef.match(analyser->get_source(source), &matches)) {
+    if (ndef.match(analyser->get_source(source, true), &matches)) {
         guard = matches[1];
     }
     analyser->attachment<ExternalGuards>().d_conditions.push(
@@ -114,8 +114,8 @@ static void onEndif(Analyser* analyser, SourceLocation end, SourceLocation)
             && !guard.empty()
             && guard != component_guard
             ) {
-            std::string include =
-                getInclude(analyser->get_source(SourceRange(where, end)));
+            std::string include = getInclude(
+                analyser->get_source(SourceRange(where, end), true));
             std::string include_guard =
                 "INCLUDED_" + FileName(include).component().upper();
             if (include.empty()) {

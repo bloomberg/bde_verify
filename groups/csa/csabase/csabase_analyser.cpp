@@ -393,6 +393,22 @@ SourceManager& csabase::Analyser::manager() const
     return compiler_.getSourceManager();
 }
 
+SourceRange csabase::Analyser::get_full_range(SourceRange range)
+{
+    SourceManager& sm(manager());
+    SourceLocation b = sm.getFileLoc(range.getBegin());
+    SourceLocation e = sm.getFileLoc(range.getEnd());
+    SourceLocation t = sm.getFileLoc(
+        Lexer::getLocForEndOfToken(e, 0, sm, context()->getLangOpts()));
+    if (!t.isValid()) {
+        t = e;
+    }
+    if (b.isValid() && t.isValid()) {
+        range = SourceRange(b, t);
+    }
+    return range;
+}
+
 llvm::StringRef csabase::Analyser::get_source(SourceRange range, bool exact)
 {
     const char *pb = "";
@@ -400,20 +416,17 @@ llvm::StringRef csabase::Analyser::get_source(SourceRange range, bool exact)
 
     if (range.isValid()) {
         SourceManager& sm(manager());
-        SourceLocation b = sm.getFileLoc(range.getBegin());
-        SourceLocation e = sm.getFileLoc(range.getEnd());
-        SourceLocation t = exact ? e : sm.getFileLoc(
-                Lexer::getLocForEndOfToken(
-                    e.getLocWithOffset(-1), 0, sm, context()->getLangOpts()));
-        if (!t.isValid()) {
-            t = e;
+        if (!exact) {
+            range = get_full_range(range);
         }
+        SourceLocation b = sm.getFileLoc(range.getBegin());
+        SourceLocation t = sm.getFileLoc(range.getEnd());
         if (   b.isValid()
             && t.isValid()
             && sm.getFileID(b) == sm.getFileID(t)
             && sm.getFileOffset(b) <= sm.getFileOffset(t)) {
             pb = sm.getCharacterData(b);
-            pe = sm.getCharacterData(t.isValid() ? t : e);
+            pe = sm.getCharacterData(t);
         }
     }
     return llvm::StringRef(pb, pe - pb);
