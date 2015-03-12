@@ -119,6 +119,12 @@ struct report
         // (even nested within local classes) ignore it - the original in the
         // template will be processed.
         const FunctionDecl* func = d_analyser.get_parent<FunctionDecl>(ret);
+        if (!func) {
+            // This shouldn't happen, but it does when run with g++ 4.1.2
+            // system files (after spitting out lots of errors about weakref
+            // declarations).
+            return;
+        }
         d_data.d_last_returns.insert(last_return(func->getBody()->children()));
         do {
             if (func->isTemplateInstantiation()) {

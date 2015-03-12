@@ -1,10 +1,6 @@
 // csabbg_cmporder.cpp                                                -*-C++-*-
 
 #include <clang/AST/Stmt.h>
-#include <clang/ASTMatchers/ASTMatchFinder.h>
-#include <clang/ASTMatchers/ASTMatchers.h>
-#include <clang/ASTMatchers/ASTMatchersInternal.h>
-#include <clang/ASTMatchers/ASTMatchersMacros.h>
 #include <csabase_analyser.h>
 #include <csabase_debug.h>
 #include <csabase_diagnostic_builder.h>
@@ -15,8 +11,6 @@
 #include <set>
 
 using namespace clang;
-using namespace clang::ast_matchers;
-using namespace clang::ast_matchers::internal;
 using namespace csabase;
 
 // -----------------------------------------------------------------------------
@@ -41,11 +35,9 @@ struct report : Report<data>
 
 void report::operator()(const BinaryOperator *op)
 {
-    MatchFinder mf;
-
-    if (!op->getOperatorLoc().isMacroID() && op->isComparisonOp()) {
+    if (!op->getOperatorLoc().isMacroID() && op->isEqualityOp()) {
         auto parent = a.get_parent<BinaryOperator>(op);
-        if (!parent || !parent->isComparisonOp()) {
+        if (!parent || !parent->isEqualityOp()) {
             auto lhs = op->getLHS()->IgnoreParenImpCasts();
             auto rhs = op->getRHS()->IgnoreParenImpCasts();
             const char *tag = 0;
