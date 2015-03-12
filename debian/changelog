@@ -1,3 +1,11 @@
+bde-verify (1.0.0.8) unstable; urgency=low
+
+  * e104b39 Allow enums to be indented to their first enumerator when on tag line.
+  * 14f894f Check comparison order when rhs is constant.
+  * 82a4d5e Add check for assignment instead of comparison in macros.
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Thu, 12 Mar 2015 14:39:58 -0400
+
 bde-verify (1.0.0.7) unstable; urgency=low
 
   * 930b167 Accept "bb_verify" pragmas.
