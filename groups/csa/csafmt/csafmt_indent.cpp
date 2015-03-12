@@ -24,6 +24,7 @@
 #include <csabase_location.h>
 #include <csabase_ppobserver.h>
 #include <csabase_registercheck.h>
+#include <csabase_report.h>
 #include <ext/alloc_traits.h>
 #include <llvm/ADT/SmallVector.h>
 #include <llvm/ADT/StringRef.h>
@@ -89,16 +90,12 @@ struct data
     std::vector<Consecutive> d_consecutive;
 };
 
-struct report : public RecursiveASTVisitor<report>
+struct report : public RecursiveASTVisitor<report>, public Report<data>
     // Callback object for indentation checking.
 {
+    using Report<data>::Report;
+
     typedef RecursiveASTVisitor<report> Base;
-
-    Analyser& d_analyser;  // analyser object
-    data& d_data;          // indentation data
-
-    report(Analyser& analyser);
-        // Create a 'report' object, accessing the specified 'analyser'.
 
     void add_indent(SourceLocation sloc, indent ind, bool sing = false);
 
@@ -119,6 +116,7 @@ struct report : public RecursiveASTVisitor<report>
     void process(Range r, bool greater);
 
     bool WalkUpFromCompoundStmt(CompoundStmt *stmt);
+    bool WalkUpFromEnumConstantDecl(EnumConstantDecl *decl);
     bool WalkUpFromTagDecl(TagDecl *tag);
     bool WalkUpFromFunctionTypeLoc(FunctionTypeLoc func);
     bool WalkUpFromTemplateDecl(TemplateDecl *tplt);
@@ -142,21 +140,15 @@ struct report : public RecursiveASTVisitor<report>
         // process that set first.
 };
 
-report::report(Analyser& analyser)
-: d_analyser(analyser)
-, d_data(analyser.attachment<data>())
-{
-}
-
 void report::add_indent(SourceLocation sloc, indent ind, bool sing)
 {
-    Location loc(d_analyser.manager(), sloc);
+    Location loc(m, sloc);
     sing = sing || !loc.location().isValid();
-    d_data.d_indent[loc.file()].insert(std::make_pair(
-        d_analyser.manager().getFileOffset(loc.location()), ind));
+    d.d_indent[loc.file()].insert(
+        std::make_pair(m.getFileOffset(loc.location()), ind));
     if (sing) {
         ERRS() << loc.file() << " "
-               << d_analyser.manager().getFileOffset(loc.location()) << " "
+               << m.getFileOffset(loc.location()) << " "
                << ind.d_offset << " " << ind.d_right_justified;
         ERNL();
     }
@@ -164,8 +156,8 @@ void report::add_indent(SourceLocation sloc, indent ind, bool sing)
 
 bool report::VisitStmt(Stmt *stmt)
 {
-    if (d_analyser.is_component(stmt)) {
-        Range r(d_analyser.manager(), stmt->getSourceRange());
+    if (a.is_component(stmt)) {
+        Range r(m, stmt->getSourceRange());
         if (r) {
             process(r, llvm::dyn_cast<Expr>(stmt) != 0);
         }
@@ -175,13 +167,32 @@ bool report::VisitStmt(Stmt *stmt)
 
 bool report::VisitDecl(Decl *decl)
 {
-    if (d_analyser.is_component(decl)) {
-        Range r(d_analyser.manager(), decl->getSourceRange());
+    if (a.is_component(decl)) {
+        Range r(m, decl->getSourceRange());
         if (r) {
             process(r, false);
         }
     }
     return true;
+}
+
+bool report::WalkUpFromEnumConstantDecl(EnumConstantDecl *decl)
+{
+    auto tag = llvm::dyn_cast<EnumDecl>(decl->getDeclContext());
+    if (*tag->enumerator_begin() == decl) {
+        SourceLocation tagloc = tag->getDefinition()->getLocation();
+        SourceLocation litloc = decl->getLocation();
+        if (tag->getRBraceLoc().isValid() &&
+            !tag->getRBraceLoc().isMacroID() &&
+            m.getPresumedLineNumber(tagloc) ==
+            m.getPresumedLineNumber(litloc)) {
+            int indent = m.getPresumedColumnNumber(litloc) -
+                         m.getPresumedColumnNumber(tagloc);
+            add_indent(tag->getLocation().getLocWithOffset(1), indent - 4);
+            add_indent(tag->getRBraceLoc(), 4 - indent);
+        }
+    }
+    return Base::WalkUpFromEnumConstantDecl(decl);
 }
 
 bool report::WalkUpFromCompoundStmt(CompoundStmt *stmt)
@@ -208,11 +219,9 @@ bool report::WalkUpFromFunctionTypeLoc(FunctionTypeLoc func)
     if (n > 0 &&
         func.getLocalRangeBegin().isValid() &&
         !func.getLocalRangeBegin().isMacroID()) {
-        Location f(d_analyser.manager(), func.getLocalRangeBegin());
-        Location arg1(
-            d_analyser.manager(), func.getParam(0)->getLocStart());
-        Location argn(
-            d_analyser.manager(), func.getParam(n - 1)->getLocStart());
+        Location f(m, func.getLocalRangeBegin());
+        Location arg1(m, func.getParam(0)->getLocStart());
+        Location argn(m, func.getParam(n - 1)->getLocStart());
 
         if (n > 1) {
             bool one_per_line = true;
@@ -221,7 +230,7 @@ bool report::WalkUpFromFunctionTypeLoc(FunctionTypeLoc func)
             SourceLocation bad = arg1.location();
             for (size_t i = 1; i < n; ++i) {
                 ParmVarDecl *parm = func.getParam(i);
-                Location arg(d_analyser.manager(), parm->getLocStart());
+                Location arg(m, parm->getLocStart());
                 if (arg.line() != line) {
                     all_on_one_line = false;
                     if (!one_per_line) {
@@ -241,28 +250,26 @@ bool report::WalkUpFromFunctionTypeLoc(FunctionTypeLoc func)
             }
 
             if (!one_per_line && !all_on_one_line) {
-                d_analyser.report(bad, check_name, "IND02",
-                                  "Function parameters should be all on a "
-                                  "single line or each on a separate line");
+                a.report(bad, check_name, "IND02",
+                         "Function parameters should be all on a "
+                         "single line or each on a separate line");
             }
             else if (one_per_line) {
                 Location an1;
                 for (size_t i = 0; i < n; ++i) {
                     ParmVarDecl *parm = func.getParam(i);
                     if (parm->getIdentifier()) {
-                        Location an(d_analyser.manager(), parm->getLocation());
+                        Location an(m, parm->getLocation());
                         if (!an1) {
                             an1 = an;
                         }
                         else if (an.column() != an1.column()) {
-                            d_analyser.report(an.location(), check_name,
-                                              "IND03",
-                                              "Function parameter names "
-                                              "should align vertically");
-                            d_analyser.report(an1.location(), check_name,
-                                              "IND03",
-                                              "Starting alignment was here",
-                                              false, DiagnosticIDs::Note);
+                            a.report(an.location(), check_name, "IND03",
+                                     "Function parameter names "
+                                     "should align vertically");
+                            a.report(an1.location(), check_name, "IND03",
+                                     "Starting alignment was here",
+                                     false, DiagnosticIDs::Note);
                             break;
                         }
                     }
@@ -272,21 +279,18 @@ bool report::WalkUpFromFunctionTypeLoc(FunctionTypeLoc func)
 
         size_t level;
         SourceLocation lpe =
-            d_analyser.get_trim_line_range(func.getParam(n - 1)->getLocEnd())
-                .getEnd();
+            a.get_trim_line_range(func.getParam(n - 1)->getLocEnd()).getEnd();
         if (f.line() == arg1.line()) {
-            Range tr(d_analyser.manager(),
-                     d_analyser.get_trim_line_range(f.location()));
+            Range tr(m, a.get_trim_line_range(f.location()));
             level = arg1.column() - tr.from().column();
             add_indent(arg1.location(), level);
             add_indent(lpe, -level);
         } else {
             size_t length = 0;
             for (size_t i = 0; i < n; ++i) {
-                size_t line_length =
-                    llvm::StringRef(d_analyser.get_source_line(
-                                              func.getParam(i)->getLocStart()))
-                        .trim().size();
+                size_t line_length = llvm::StringRef(
+                            a.get_source_line(func.getParam(i)->getLocStart()))
+                    .trim().size();
                 if (length < line_length) {
                     length = line_length;
                 }
@@ -308,11 +312,10 @@ bool report::WalkUpFromTemplateDecl(TemplateDecl *tplt)
     TemplateParameterList *tpl = tplt->getTemplateParameters();
     unsigned n = tpl->size();
     if (n > 0 && !tplt->getLocation().isMacroID()) {
-        Location t(d_analyser.manager(), tplt->getLocStart());
-        Location l(d_analyser.manager(), tpl->getParam(0)->getLocStart());
-        Location r(d_analyser.manager(), tpl->getParam(n - 1)->getLocStart());
-        Range tr(d_analyser.manager(),
-                 d_analyser.get_trim_line_range(t.location()));
+        Location t(m, tplt->getLocStart());
+        Location l(m, tpl->getParam(0)->getLocStart());
+        Location r(m, tpl->getParam(n - 1)->getLocStart());
+        Range tr(m, a.get_trim_line_range(t.location()));
         size_t level =
             t.line() == l.line() ? l.column() - tr.from().column() : 4;
         add_indent(l.location(), level);
@@ -324,7 +327,7 @@ bool report::WalkUpFromTemplateDecl(TemplateDecl *tplt)
 bool report::WalkUpFromAccessSpecDecl(AccessSpecDecl *as)
 {
     if (!as->getLocation().isMacroID()) {
-        Location l(d_analyser.manager(), as->getAccessSpecifierLoc());
+        Location l(m, as->getAccessSpecifierLoc());
         add_indent(l.location(), -2);
         add_indent(as->getLocEnd(), +2);
     }
@@ -337,11 +340,9 @@ bool report::WalkUpFromCallExpr(CallExpr *call)
     if (n > 0 &&
         !call->getLocStart().isMacroID() &&
         !llvm::dyn_cast<CXXOperatorCallExpr>(call)) {
-        Location c(d_analyser.manager(), call->getLocStart());
-        Location l(d_analyser.manager(),
-                   call->getArg(0)->getSourceRange().getBegin());
-        Range tr(d_analyser.manager(),
-                 d_analyser.get_trim_line_range(call->getLocStart()));
+        Location c(m, call->getLocStart());
+        Location l(m, call->getArg(0)->getSourceRange().getBegin());
+        Range tr(m, a.get_trim_line_range(call->getLocStart()));
         size_t level =
             c.line() == l.line() ? l.column() - tr.from().column() : 4;
         add_indent(c.location().getLocWithOffset(1), level);
@@ -354,13 +355,12 @@ bool report::WalkUpFromParenListExpr(ParenListExpr *list)
 {
     unsigned n = list->getNumExprs();
     if (n > 0 && !list->getLocStart().isMacroID()) {
-        Location l(d_analyser.manager(), list->getLParenLoc());
-        Location r(d_analyser.manager(), list->getRParenLoc());
-        Location a1(d_analyser.manager(), list->getExpr(0)->getLocStart());
-        Location an(d_analyser.manager(), list->getExpr(n - 1)->getLocStart());
+        Location l(m, list->getLParenLoc());
+        Location r(m, list->getRParenLoc());
+        Location a1(m, list->getExpr(0)->getLocStart());
+        Location an(m, list->getExpr(n - 1)->getLocStart());
         if (l.line() == a1.line()) {
-            Range tr(d_analyser.manager(),
-                     d_analyser.get_trim_line_range(l.location()));
+            Range tr(m, a.get_trim_line_range(l.location()));
             size_t level = a1.column() - tr.from().column();
             add_indent(a1.location(), level);
             add_indent(r.location(), -level);
@@ -368,8 +368,8 @@ bool report::WalkUpFromParenListExpr(ParenListExpr *list)
             size_t length = 0;
             for (size_t i = 0; i < n; ++i) {
                 size_t line_length =
-                    llvm::StringRef(d_analyser.get_source_line(
-                                        list->getExpr(i)->getLocStart()))
+                    llvm::StringRef(
+                            a.get_source_line(list->getExpr(i)->getLocStart()))
                         .trim().size();
                 if (length < line_length) {
                     length = line_length;
@@ -404,58 +404,55 @@ bool report::WalkUpFromSwitchCase(SwitchCase *stmt)
 
 void report::do_consecutive()
 {
-    if (d_data.d_consecutive.size() > 1) {
-        NamedDecl *decl = d_data.d_consecutive.front().first;
+    if (d.d_consecutive.size() > 1) {
+        NamedDecl *decl = d.d_consecutive.front().first;
         SourceLocation sl = decl->getLocation();
-        Location loc(d_analyser.manager(), sl);
-        for (size_t i = 1; i < d_data.d_consecutive.size(); ++i) {
-            NamedDecl *decli = d_data.d_consecutive[i].first;
+        Location loc(m, sl);
+        for (size_t i = 1; i < d.d_consecutive.size(); ++i) {
+            NamedDecl *decli = d.d_consecutive[i].first;
             SourceLocation sli = decli->getLocation();
-            Location loci(d_analyser.manager(), sli);
+            Location loci(m, sli);
             if (loci.column() > loc.column()) {
                 decl = decli;
                 sl = sli;
                 loc = loci;
             }
         }
-        for (size_t i = 0; i < d_data.d_consecutive.size(); ++i) {
-            NamedDecl *decli = d_data.d_consecutive[i].first;
+        for (size_t i = 0; i < d.d_consecutive.size(); ++i) {
+            NamedDecl *decli = d.d_consecutive[i].first;
             SourceLocation sli = decli->getLocation();
-            Location loci(d_analyser.manager(), sli);
+            Location loci(m, sli);
             if (loc.column() != loci.column() &&
                 loc.column() + decl->getNameAsString().length() !=
                 loci.column() + decli->getNameAsString().length()) {
-                d_analyser.report(sli, check_name, "IND04",
-                                  "Declarators on consecutive lines must be "
-                                  "aligned");
-                d_analyser.report(sl, check_name, "IND04",
-                                  "Rightmost declarator is here",
-                                  false, DiagnosticIDs::Note);
+                a.report(sli, check_name, "IND04",
+                         "Declarators on consecutive lines must be aligned");
+                a.report(sl, check_name, "IND04",
+                         "Rightmost declarator is here",
+                         false, DiagnosticIDs::Note);
             }
         }
     }
-    d_data.d_consecutive.clear();
+    d.d_consecutive.clear();
 }
 
 void report::add_consecutive(NamedDecl *decl, SourceRange sr)
 {
-    Range r(d_analyser.manager(), sr);
+    Range r(m, sr);
     if (   !decl
         || !r
-        || d_data.d_consecutive.size() == 0
-        || d_data.d_consecutive.back().second.to().line() + 1 !=
-                                                             r.from().line()) {
+        || d.d_consecutive.size() == 0
+        || d.d_consecutive.back().second.to().line() + 1 != r.from().line()) {
         do_consecutive();
     }
     if (decl && r && !decl->getLocation().isMacroID()) {
-        d_data.d_consecutive.push_back(std::make_pair(decl, r));
+        d.d_consecutive.push_back(std::make_pair(decl, r));
     }
 }
 
 bool report::VisitDeclStmt(DeclStmt *ds)
 {
-    if (d_analyser.get_parent<Stmt>(ds) ==
-        d_analyser.get_parent<CompoundStmt>(ds)) {
+    if (a.get_parent<Stmt>(ds) == a.get_parent<CompoundStmt>(ds)) {
         DeclStmt::decl_iterator b = ds->decl_begin();
         DeclStmt::decl_iterator e = ds->decl_end();
         while (b != e) {
@@ -492,12 +489,12 @@ void report::operator()(const Token &token,
                         SourceRange range,
                         MacroArgs const *args)
 {
-    Location l(d_analyser.manager(), token.getLocation());
-    if (d_analyser.is_component(l.file())) {
+    Location l(m, token.getLocation());
+    if (a.is_component(l.file())) {
         unsigned n;
         if (args && (n = args->getNumArguments()) > 0) {
             const Token *begin = args->getUnexpArgument(0);
-            Location arg(d_analyser.manager(), begin->getLocation());
+            Location arg(m, begin->getLocation());
             std::vector<size_t> levels(1, 4);
             if (l.line() == arg.line()) {
                 levels[0] = arg.column() - l.column();
@@ -516,13 +513,13 @@ llvm::Regex reindent("^ *// *[-^](-*v)$");
 
 void report::operator()(SourceRange comment)
 {
-    if (d_analyser.is_test_driver()) {
-        llvm::StringRef line = d_analyser.get_source_line(comment.getBegin());
-        Location loc(d_analyser.manager(), comment.getBegin());
+    if (a.is_test_driver()) {
+        llvm::StringRef line = a.get_source_line(comment.getBegin());
+        Location loc(m, comment.getBegin());
         llvm::SmallVector<llvm::StringRef, 7> matches;
         if (line == "//..") {
-            if (loc.file() == d_analyser.toplevel()) {
-                indent ind((d_data.d_in_dotdot[loc.file()] ^= 1) ? +4 : -4);
+            if (loc.file() == a.toplevel()) {
+                indent ind((d.d_in_dotdot[loc.file()] ^= 1) ? +4 : -4);
                 ind.d_dotdot = true;
                 add_indent(comment.getEnd(), ind);
             }
@@ -536,14 +533,14 @@ void report::operator()(SourceRange comment)
 
 void report::process(Range r, bool greater)
 {
-    bool& done = d_data.d_done[r.from().file()][r.from().line()];
+    bool& done = d.d_done[r.from().file()][r.from().line()];
     if (!done) {
         done = true;
         int offset = 0;
         int exact_offset = 0;
-        unsigned end = d_analyser.manager().getFileOffset(r.from().location());
+        unsigned end = m.getFileOffset(r.from().location());
         bool dotdot = false;
-        for (const auto &i : d_data.d_indent[r.from().file()]) {
+        for (const auto &i : d.d_indent[r.from().file()]) {
             if (end < i.first) {
                 break;
             }
@@ -552,7 +549,7 @@ void report::process(Range r, bool greater)
             exact_offset =
                 i.second.d_right_justified ? i.second.d_offset : offset;
         }
-        llvm::StringRef line = d_analyser.get_source_line(r.from().location());
+        llvm::StringRef line = a.get_source_line(r.from().location());
         if (!dotdot &&
             line.substr(0, r.from().column() - 1)
                                .find_first_not_of(' ') == line.npos &&
@@ -564,11 +561,11 @@ void report::process(Range r, bool greater)
                             ' ') +
                 line.trim().str();
             if (line != expect) {
-                d_analyser.report(r.from().location(), check_name, "IND01",
-                                  "Possibly mis-indented line");
-                d_analyser.report(r.from().location(), check_name, "IND01",
-                                  "Correct version may be\n%0",
-                                  false, DiagnosticIDs::Note)
+                a.report(r.from().location(), check_name, "IND01",
+                         "Possibly mis-indented line");
+                a.report(r.from().location(), check_name, "IND01",
+                         "Correct version may be\n%0",
+                         false, DiagnosticIDs::Note)
                     << expect;
             }
         }
@@ -577,7 +574,7 @@ void report::process(Range r, bool greater)
 
 void report::operator()()
 {
-    TraverseDecl(d_analyser.context()->getTranslationUnitDecl());
+    TraverseDecl(a.context()->getTranslationUnitDecl());
 
     // Process remnant declarators.
     add_consecutive(0, SourceRange());
