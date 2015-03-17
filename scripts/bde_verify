@@ -53,6 +53,7 @@ my @defs;
 my @wflags;
 my @lflags = (
     "cxx-exceptions",
+    "exceptions",
     "diagnostics-show-note-include-stack",
     "diagnostics-show-option",
 );

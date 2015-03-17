@@ -46,6 +46,7 @@ struct Word
     bool            is_preposition   : 1;
     bool            is_that          : 1;
     bool            is_which         : 1;
+    bool            is_punct         : 1;
 
     Word();
 
@@ -64,6 +65,7 @@ Word::Word()
 , is_preposition(false)
 , is_that(false)
 , is_which(false)
+, is_punct(false)
 {
 }
 
@@ -90,6 +92,7 @@ void Word::set(llvm::StringRef s, size_t position)
     is_that          = s.equals_lower("that");
     is_which         = s.equals_lower("which");
     is_preposition   = prepositions.count(s) || s.endswith("ing");
+    is_punct         = s.size() == 1 && !isalpha(s[0] & 0xFF);
 }
 
 struct data
@@ -193,6 +196,7 @@ void report::that_which(SourceRange range)
             continue;
         }
         if (w[i].is_which &&
+            !w[i - 1].is_punct &&
             !w[i - 1].is_comma &&
             !w[i - 1].is_that &&
             !w[i - 1].is_preposition) {

@@ -310,7 +310,7 @@ internal::DynTypedMatcher parameter_matcher()
 
 void report::match_parameter(const BoundNodes &nodes)
 {
-    static const char * const abbr[] = {
+    static std::set<llvm::StringRef> ok{
         "argc", // main argument
         "argv", // main argument
         "cb",   // callback
@@ -328,7 +328,6 @@ void report::match_parameter(const BoundNodes &nodes)
         "src",  // source
         "tmp",  // temporary
     };
-    static std::set<llvm::StringRef> ok(utils::begin(abbr), utils::end(abbr));
 
     const ParmVarDecl *parm = nodes.getNodeAs<ParmVarDecl>("parm");
     if (d_analyser.is_component(parm)) {
@@ -339,14 +338,23 @@ void report::match_parameter(const BoundNodes &nodes)
         while (words.match(name.substr(pos), &matches)) {
             llvm::StringRef word = matches[1];
             pos = name.find(word, pos);
-            if (!ok.count(word) &&
+            if (!ok.count(word.lower()) &&
                 !aspell_speller_check(
-                spell_checker, word.data(), word.size())) {
-                d_analyser.report(
+                    spell_checker, word.data(), word.size())) {
+                llvm::SmallVector<llvm::StringRef, 100> var_abbrs;
+                llvm::StringRef(
+                    d_analyser.config()->value(
+                        "variable_abbreviations", parm->getLocation()))
+                    .split(var_abbrs, " ", -1, false);
+                std::set<llvm::StringRef> vars{
+                    var_abbrs.begin(), var_abbrs.end()};
+                if (!vars.count(word.lower())) {
+                    d_analyser.report(
                         parm->getLocation().getLocWithOffset(pos),
                         check_name, "SP03",
                         "Parameter name contains misspelled word '%0'")
-                    << word;
+                        << word;
+                }
             }
             pos += word.size();
         }

@@ -1,11 +1,49 @@
 // parms.cpp                                                          -*-C++-*-
-void (*g)(int _cat01_XRay1__bravo);
-void f(int a, int b, int wolfRamHart, int wolRamHar);
-#pragma bde_verify append variable_abbreviations huh
-void h(int huh, int huhHuh, int huhHuhHuhWord);
+void OPER_DO_ALIGNED_WORD(unsigned long long *,      unsigned long long     );
+void OPER_DO_BITS(        unsigned long long *, int, unsigned long long, int);
+
+template <
+ void OPER_DO_ALIGNED_WORD(unsigned long long *,      unsigned long long     ),
+ void OPER_DO_BITS(        unsigned long long *, int, unsigned long long, int)
+>
+struct x;
+
+void f(
+ void OPER_DO_ALIGNED_WORD(unsigned long long *,      unsigned long long     ),
+ void OPER_DO_BITS(        unsigned long long *, int, unsigned long long, int)
+);
+
+template <int A, int B,
+          class C>
+struct y;
+
+template <int A,
+          unsigned B>
+struct z;
+
+template <
+    int A,
+    unsigned B
+>
+struct w;
+
+void f(int A, int B,
+          class C);
+
+void f(int A,
+          unsigned B);
+
+void f(
+    int A,
+    unsigned B
+);
+
+void f(int A,
+    unsigned B
+);
 
 // ----------------------------------------------------------------------------
-// Copyright (C) 2014 Bloomberg Finance L.P.
+// Copyright (C) 2015 Bloomberg Finance L.P.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to

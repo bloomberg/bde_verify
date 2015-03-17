@@ -30,59 +30,66 @@ struct report : Report<data>
 {
     using Report<data>::Report;
 
+    bool carefullyIsModifiable(const Expr *e);
+
     void operator()(const BinaryOperator *op);
 };
+
+bool report::carefullyIsModifiable(const Expr *e)
+    // We want to just call isModifiableLvalue, but that triggers an assertion
+    // on calls to dependent members.  We'll just treat call expressions as
+    // non-modifiable, which they usually are anyway.
+{
+    return !llvm::dyn_cast<CallExpr>(e) &&
+           e->isModifiableLvalue(*a.context()) == Expr::MLV_Valid;
+}
 
 void report::operator()(const BinaryOperator *op)
 {
     if (!op->getOperatorLoc().isMacroID() && op->isEqualityOp()) {
-        auto parent = a.get_parent<BinaryOperator>(op);
-        if (!parent || !parent->isEqualityOp()) {
-            auto lhs = op->getLHS()->IgnoreParenImpCasts();
-            auto rhs = op->getRHS()->IgnoreParenImpCasts();
-            const char *tag = 0;
-            if (lhs->isModifiableLvalue(*a.context()) == Expr::MLV_Valid &&
-                rhs->isModifiableLvalue(*a.context()) != Expr::MLV_Valid) {
-                tag = "CR01";
-                a.report(op->getOperatorLoc(), check_name, tag,
-                         "Non-modifiable operand should be on the left")
-                    << op->getSourceRange();
+        auto lhs = op->getLHS()->IgnoreParenImpCasts();
+        auto rhs = op->getRHS()->IgnoreParenImpCasts();
+        const char *tag = 0;
+        if (carefullyIsModifiable(lhs) && !carefullyIsModifiable(rhs)) {
+            tag = "CR01";
+            a.report(op->getOperatorLoc(), check_name, tag,
+                     "Non-modifiable operand should be on the left")
+                << op->getSourceRange();
+        }
+        else if (!lhs->isEvaluatable(*a.context()) &&
+                  rhs->isEvaluatable(*a.context())) {
+            tag = "CR02";
+            a.report(op->getOperatorLoc(), check_name, tag,
+                     "Constant operand should be on the left")
+                << op->getSourceRange();
+        }
+        if (tag) {
+            SourceRange lr(
+                a.get_full_range(op->getLHS()->getSourceRange()));
+            SourceRange rr(
+                a.get_full_range(op->getRHS()->getSourceRange()));
+            llvm::StringRef rop =
+                op->getOpcodeStr(op->reverseComparisonOp(op->getOpcode()));
+            SourceRange opr(a.get_full_range(
+                SourceRange(op->getOperatorLoc(), op->getOperatorLoc())));
+            llvm::StringRef wl = a.get_source(
+                SourceRange(lr.getEnd(), opr.getBegin()), true);
+            if (!wl.size() || wl[0] != ' ') {
+                wl = "";
             }
-            else if (!lhs->isCXX11ConstantExpr(*a.context()) &&
-                      rhs->isCXX11ConstantExpr(*a.context())) {
-                tag = "CR02";
-                a.report(op->getOperatorLoc(), check_name, tag,
-                         "Constant operand should be on the left")
-                    << op->getSourceRange();
+            llvm::StringRef wr = a.get_source(
+                SourceRange(opr.getEnd(), rr.getBegin()), true);
+            if (!wr.size() || wr[0] != ' ') {
+                wr = "";
             }
-            if (tag) {
-                SourceRange lr(
-                    a.get_full_range(op->getLHS()->getSourceRange()));
-                SourceRange rr(
-                    a.get_full_range(op->getRHS()->getSourceRange()));
-                llvm::StringRef rop =
-                    op->getOpcodeStr(op->reverseComparisonOp(op->getOpcode()));
-                SourceRange opr(a.get_full_range(
-                    SourceRange(op->getOperatorLoc(), op->getOperatorLoc())));
-                llvm::StringRef wl = a.get_source(
-                    SourceRange(lr.getEnd(), opr.getBegin()), true);
-                if (!wl.size() || wl[0] != ' ') {
-                    wl = "";
-                }
-                llvm::StringRef wr = a.get_source(
-                    SourceRange(opr.getEnd(), rr.getBegin()), true);
-                if (!wr.size() || wr[0] != ' ') {
-                    wr = "";
-                }
-                std::string rev = a.get_source(rr, true).str() +
-                                  wr.str() + rop.str() + wl.str() +
-                                  a.get_source(lr, true).str();
-                a.report(op->getOperatorLoc(), check_name, tag,
-                         "Replace with %0", false, DiagnosticIDs::Note)
-                    << rev
-                    << op->getSourceRange();
-                a.ReplaceText(a.get_full_range(op->getSourceRange()), rev);
-            }
+            std::string rev = a.get_source(rr, true).str() +
+                              wr.str() + rop.str() + wl.str() +
+                              a.get_source(lr, true).str();
+            a.report(op->getOperatorLoc(), check_name, tag,
+                     "Replace with %0", false, DiagnosticIDs::Note)
+                << rev
+                << op->getSourceRange();
+            a.ReplaceText(a.get_full_range(op->getSourceRange()), rev);
         }
     }
 }

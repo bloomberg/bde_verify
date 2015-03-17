@@ -55,6 +55,29 @@ static std::string const check_name("indentation");
 namespace
 {
 
+struct PList
+{
+    virtual ~PList() { }
+    virtual unsigned         size(                  ) const = 0;
+    virtual const NamedDecl *getParam(unsigned index) const = 0;
+};
+
+struct PListFunctionTypeLoc : PList
+{
+    const FunctionTypeLoc *o;
+    PListFunctionTypeLoc(const FunctionTypeLoc *o) : o(o) {                 }
+    unsigned         size(              ) const { return o->getNumParams(); }
+    const NamedDecl *getParam(unsigned i) const { return o->getParam(i);    }
+};
+
+struct PListTemplateParameterList : PList
+{
+    const TemplateParameterList *o;
+    PListTemplateParameterList(const TemplateParameterList *o) : o(o) {  }
+    unsigned         size(              ) const { return o->size();      }
+    const NamedDecl *getParam(unsigned i) const { return o->getParam(i); }
+};
+
 struct indent
 {
     indent(int offset = 0);
@@ -88,6 +111,9 @@ struct data
 
     typedef std::pair<NamedDecl *, Range> Consecutive;
     std::vector<Consecutive> d_consecutive;
+
+    typedef std::map<Location, bool> ToProcessMap;
+    ToProcessMap d_to_process;
 };
 
 struct report : public RecursiveASTVisitor<report>, public Report<data>
@@ -113,7 +139,13 @@ struct report : public RecursiveASTVisitor<report>, public Report<data>
 
     bool VisitStmt(Stmt *stmt);
     bool VisitDecl(Decl *decl);
-    void process(Range r, bool greater);
+    void get_indent(Location l, int& offset, int& exact, bool& dotdot);
+    void process(Location l, bool greater);
+    void process_parameter_list(PList          *pl,
+                                SourceLocation  sl,
+                                const char     *type,
+                                const char     *tagline,
+                                const char     *tagalign);
 
     bool WalkUpFromCompoundStmt(CompoundStmt *stmt);
     bool WalkUpFromEnumConstantDecl(EnumConstantDecl *decl);
@@ -132,6 +164,13 @@ struct report : public RecursiveASTVisitor<report>, public Report<data>
     void do_consecutive();
         // Issue warnings for misaligned declarators and clear the existing
         // declarator set.
+
+    bool diff_func_parms(NamedDecl *d1, NamedDecl *d2);
+        // Return 'true' if the specified 'd1' is a function parameter in a
+        // different function declaration than the specified parameter 'd2'.
+        // Note that we compare the parameters by looking at their nesting
+        // depth and relative positions, not their declaration contexts,
+        // because clang hasn't set those yet at the time this is called.
 
     void add_consecutive(NamedDecl *decl, SourceRange sr);
         // Add the specified 'decl' and 'sr' to the accumulating set of
@@ -157,9 +196,9 @@ void report::add_indent(SourceLocation sloc, indent ind, bool sing)
 bool report::VisitStmt(Stmt *stmt)
 {
     if (a.is_component(stmt)) {
-        Range r(m, stmt->getSourceRange());
-        if (r) {
-            process(r, llvm::dyn_cast<Expr>(stmt) != 0);
+        Location l(m, stmt->getLocStart());
+        if (l) {
+            d.d_to_process[l] = llvm::dyn_cast<Expr>(stmt) != 0;
         }
     }
     return true;
@@ -168,9 +207,9 @@ bool report::VisitStmt(Stmt *stmt)
 bool report::VisitDecl(Decl *decl)
 {
     if (a.is_component(decl)) {
-        Range r(m, decl->getSourceRange());
-        if (r) {
-            process(r, false);
+        Location l(m, decl->getLocStart());
+        if (l) {
+            d.d_to_process[l] = false;
         }
     }
     return true;
@@ -213,114 +252,142 @@ bool report::WalkUpFromTagDecl(TagDecl *tag)
     return Base::WalkUpFromTagDecl(tag);
 }
 
-bool report::WalkUpFromFunctionTypeLoc(FunctionTypeLoc func)
+void report::process_parameter_list(PList          *pl,
+                                    SourceLocation  sl,
+                                    const char     *type,
+                                    const char     *tagline,
+                                    const char     *tagalign)
 {
-    unsigned n = func.getNumParams();
-    if (n > 0 &&
-        func.getLocalRangeBegin().isValid() &&
-        !func.getLocalRangeBegin().isMacroID()) {
-        Location f(m, func.getLocalRangeBegin());
-        Location arg1(m, func.getParam(0)->getLocStart());
-        Location argn(m, func.getParam(n - 1)->getLocStart());
+    unsigned n = pl->size();
 
-        if (n > 1) {
-            bool one_per_line = true;
-            bool all_on_one_line = true;
-            size_t line = arg1.line();
-            SourceLocation bad = arg1.location();
-            for (size_t i = 1; i < n; ++i) {
-                ParmVarDecl *parm = func.getParam(i);
-                Location arg(m, parm->getLocStart());
-                if (arg.line() != line) {
-                    all_on_one_line = false;
-                    if (!one_per_line) {
-                        bad = arg.location();
-                        break;
-                    }
-                }
-                else {
-                    one_per_line = false;
-                    if (!all_on_one_line) {
-                        bad = arg.location();
-                        break;
-                    }
-                }
-                line = arg.line();
+    if (n == 0) {
+        return;                                                       // RETURN
+    }
 
-            }
+    Location f(m, sl);
+    Location arg1(m, pl->getParam(0)->getLocStart());
+    Location argn(m, pl->getParam(n - 1)->getLocStart());
 
-            if (!one_per_line && !all_on_one_line) {
-                a.report(bad, check_name, "IND02",
-                         "Function parameters should be all on a "
-                         "single line or each on a separate line");
-            }
-            else if (one_per_line) {
-                Location an1;
-                for (size_t i = 0; i < n; ++i) {
-                    ParmVarDecl *parm = func.getParam(i);
-                    if (parm->getIdentifier()) {
-                        Location an(m, parm->getLocation());
-                        if (!an1) {
-                            an1 = an;
-                        }
-                        else if (an.column() != an1.column()) {
-                            a.report(an.location(), check_name, "IND03",
-                                     "Function parameter names "
-                                     "should align vertically");
-                            a.report(an1.location(), check_name, "IND03",
-                                     "Starting alignment was here",
-                                     false, DiagnosticIDs::Note);
-                            break;
-                        }
-                    }
+    if (n > 1) {
+        bool one_per_line = true;
+        bool all_on_one_line = true;
+        size_t line = arg1.line();
+        SourceLocation bad = arg1.location();
+        for (size_t i = 1; i < n; ++i) {
+            auto parm = pl->getParam(i);
+            Location arg(m, parm->getLocStart());
+            if (arg.line() != line) {
+                all_on_one_line = false;
+                if (!one_per_line) {
+                    bad = arg.location();
+                    break;
                 }
             }
+            else {
+                one_per_line = false;
+                if (!all_on_one_line) {
+                    bad = arg.location();
+                    break;
+                }
+            }
+            line = arg.line();
         }
 
-        size_t level;
-        SourceLocation lpe =
-            a.get_trim_line_range(func.getParam(n - 1)->getLocEnd()).getEnd();
-        if (f.line() == arg1.line()) {
-            Range tr(m, a.get_trim_line_range(f.location()));
-            level = arg1.column() - tr.from().column();
-            add_indent(arg1.location(), level);
-            add_indent(lpe, -level);
-        } else {
-            size_t length = 0;
+        if (!one_per_line && !all_on_one_line) {
+            a.report(bad, check_name, tagline,
+                     "%0 parameters should be all on a "
+                     "single line or each on a separate line")
+                << type;
+        }
+        else if (one_per_line) {
+            Location anr;
             for (size_t i = 0; i < n; ++i) {
-                size_t line_length = llvm::StringRef(
-                            a.get_source_line(func.getParam(i)->getLocStart()))
-                    .trim().size();
-                if (length < line_length) {
-                    length = line_length;
+                auto parm = pl->getParam(i);
+                if (parm->getIdentifier()) {
+                    Location an(m, parm->getLocation());
+                    if (!anr || anr.column() < an.column()) {
+                        anr = an;
+                    }
                 }
             }
-            level = 79 - length;
-            indent in(level);
-            in.d_right_justified = true;
-            add_indent(arg1.location(), in);
-            in.d_right_justified = false;
-            in.d_offset = -level;
-            add_indent(lpe, in);
+            for (size_t i = 0; i < n; ++i) {
+                auto parm = pl->getParam(i);
+                if (parm->getIdentifier()) {
+                    Location an(m, parm->getLocation());
+                    if (an.column() != anr.column()) {
+                        a.report(an.location(), check_name, tagalign,
+                                 "%0 parameter names "
+                                 "should align vertically")
+                            << type;
+                        a.report(anr.location(), check_name, tagalign,
+                                 "Rightmost name is here",
+                                 false, DiagnosticIDs::Note);
+                    }
+                }
+            }
         }
     }
+
+    size_t level;
+    SourceLocation lpe =
+        a.get_trim_line_range(pl->getParam(n - 1)->getLocEnd()).getEnd();
+    if (f.line() == arg1.line()) {
+        Range tr(m, a.get_trim_line_range(f.location()));
+        level = arg1.column() - tr.from().column();
+        add_indent(arg1.location(), level);
+        add_indent(lpe, -level);
+    } else {
+        size_t length = 0;
+        int offset = 0;
+        for (size_t i = 0; i < n; ++i) {
+            size_t line_length =
+                llvm::StringRef(
+                    a.get_source_line(pl->getParam(i)->getLocStart()))
+                    .trim()
+                    .size();
+            if (length < line_length) {
+                length = line_length;
+            }
+            int line_offset;
+            int e;
+            bool d;
+            get_indent(Location(m, pl->getParam(i)->getLocStart()),
+                       line_offset, e, d);
+            if (offset < line_offset) {
+                offset = line_offset;
+            }
+        }
+        level = 79 - length;
+        indent in(level);
+        in.d_right_justified = true;
+        add_indent(arg1.location(), in);
+        in.d_right_justified = false;
+        in.d_offset = -level;
+        add_indent(lpe, in);
+    }
+}
+
+bool report::WalkUpFromFunctionTypeLoc(FunctionTypeLoc func)
+{
+    SourceLocation sl = func.getLocalRangeBegin();
+    if (sl.isValid() && !sl.isMacroID()) {
+        PListFunctionTypeLoc pl(&func);
+        process_parameter_list(&pl, sl, "Function", "IND02", "IND03");
+    }
+
     return Base::WalkUpFromFunctionTypeLoc(func);
 }
 
 bool report::WalkUpFromTemplateDecl(TemplateDecl *tplt)
 {
-    TemplateParameterList *tpl = tplt->getTemplateParameters();
-    unsigned n = tpl->size();
-    if (n > 0 && !tplt->getLocation().isMacroID()) {
-        Location t(m, tplt->getLocStart());
-        Location l(m, tpl->getParam(0)->getLocStart());
-        Location r(m, tpl->getParam(n - 1)->getLocStart());
-        Range tr(m, a.get_trim_line_range(t.location()));
-        size_t level =
-            t.line() == l.line() ? l.column() - tr.from().column() : 4;
-        add_indent(l.location(), level);
-        add_indent(tpl->getParam(n - 1)->getLocEnd(), -level);
+    if (!tplt->getLocation().isMacroID()) {
+        TemplateParameterList *tpl = tplt->getTemplateParameters();
+        PListTemplateParameterList pl(tpl);
+
+        process_parameter_list(
+            &pl, tpl->getLAngleLoc(), "Template", "IND05", "IND06");
     }
+
     return Base::WalkUpFromTemplateDecl(tplt);
 }
 
@@ -436,13 +503,25 @@ void report::do_consecutive()
     d.d_consecutive.clear();
 }
 
+bool report::diff_func_parms(NamedDecl *d1, NamedDecl *d2)
+{
+    auto p1 = llvm::dyn_cast<ParmVarDecl>(d1);
+    auto p2 = llvm::dyn_cast<ParmVarDecl>(d2);
+    if (p1 && p2) {
+        return p1->getFunctionScopeDepth() != p2->getFunctionScopeDepth() ||
+               p1->getFunctionScopeIndex() <= p2->getFunctionScopeIndex();
+    }
+    return false;
+}
+
 void report::add_consecutive(NamedDecl *decl, SourceRange sr)
 {
     Range r(m, sr);
     if (   !decl
         || !r
         || d.d_consecutive.size() == 0
-        || d.d_consecutive.back().second.to().line() + 1 != r.from().line()) {
+        || d.d_consecutive.back().second.to().line() + 1 != r.from().line()
+        || diff_func_parms(decl, d.d_consecutive.back().first)) {
         do_consecutive();
     }
     if (decl && r && !decl->getLocation().isMacroID()) {
@@ -531,28 +610,35 @@ void report::operator()(SourceRange comment)
     }
 }
 
-void report::process(Range r, bool greater)
+void report::get_indent(Location l, int& offset, int& exact, bool& dotdot)
 {
-    bool& done = d.d_done[r.from().file()][r.from().line()];
+    offset = 0;
+    exact = 0;
+    dotdot = false;
+    unsigned end = m.getFileOffset(l.location());
+    for (const auto &i : d.d_indent[l.file()]) {
+        if (end < i.first) {
+            break;
+        }
+        offset += i.second.d_offset;
+        dotdot ^= i.second.d_dotdot;
+        exact = i.second.d_right_justified ? i.second.d_offset : offset;
+    }
+}
+
+void report::process(Location l, bool greater)
+{
+    bool& done = d.d_done[l.file()][l.line()];
     if (!done) {
         done = true;
-        int offset = 0;
-        int exact_offset = 0;
-        unsigned end = m.getFileOffset(r.from().location());
-        bool dotdot = false;
-        for (const auto &i : d.d_indent[r.from().file()]) {
-            if (end < i.first) {
-                break;
-            }
-            offset += i.second.d_offset;
-            dotdot ^= i.second.d_dotdot;
-            exact_offset =
-                i.second.d_right_justified ? i.second.d_offset : offset;
-        }
-        llvm::StringRef line = a.get_source_line(r.from().location());
+        int offset;
+        int exact_offset;
+        bool dotdot;
+        get_indent(l, offset, exact_offset, dotdot);
+        llvm::StringRef line = a.get_source_line(l.location());
         if (!dotdot &&
-            line.substr(0, r.from().column() - 1)
-                               .find_first_not_of(' ') == line.npos &&
+            line.substr(0, l.column() - 1).find_first_not_of(' ') ==
+                line.npos &&
             (!greater || line.size() < exact_offset + line.ltrim().size())) {
             std::string expect =
                 std::string(std::max(0,
@@ -561,9 +647,9 @@ void report::process(Range r, bool greater)
                             ' ') +
                 line.trim().str();
             if (line != expect) {
-                a.report(r.from().location(), check_name, "IND01",
+                a.report(l.location(), check_name, "IND01",
                          "Possibly mis-indented line");
-                a.report(r.from().location(), check_name, "IND01",
+                a.report(l.location(), check_name, "IND01",
                          "Correct version may be\n%0",
                          false, DiagnosticIDs::Note)
                     << expect;
@@ -578,6 +664,10 @@ void report::operator()()
 
     // Process remnant declarators.
     add_consecutive(0, SourceRange());
+
+    for (const auto p : d.d_to_process) {
+        process(p.first, p.second);
+    }
 }
 
 void subscribe(Analyser& analyser, Visitor& visitor, PPObserver& observer)
