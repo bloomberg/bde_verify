@@ -518,7 +518,9 @@ void files::check_description(SourceRange range)
         end = comment.size();
     }
     size_t dpos = comment.find("//@DESCRIPTION:", cpos);
-    llvm::StringRef desc = comment.slice(dpos, comment.find("\n//\n", dpos));
+    size_t t1 = comment.find("\n///", dpos);
+    size_t t2 = comment.find("\n//@", dpos);
+    llvm::StringRef desc = comment.slice(dpos, t1 < t2 ? t1 : t2);
 
     if (cpos == comment.npos) {
         return;                                                       // RETURN

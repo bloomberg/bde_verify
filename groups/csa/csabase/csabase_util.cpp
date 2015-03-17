@@ -60,12 +60,12 @@ bool csabase::areConsecutive(clang::SourceManager &manager,
                manager.getBufferData(fidf).substr(offf, offs - offf));
 }
 
-std::string csabase::to_lower(std::string s)
+std::string csabase::to_lower(llvm::StringRef s)
 {
-    return llvm::StringRef(s).lower();
+    return s.lower();
 }
 
-bool csabase::contains_word(const std::string &have, const std::string &want)
+bool csabase::contains_word(llvm::StringRef have, llvm::StringRef want)
 {
     std::pair<size_t, size_t> m = mid_match(have, want);
     if (m.first == have.npos) {
@@ -84,6 +84,24 @@ bool csabase::contains_word(const std::string &have, const std::string &want)
         }
     }
     return true;
+}
+
+bool csabase::are_numeric_cognates(llvm::StringRef a, llvm::StringRef b)
+{
+    static std::string digits = "0123456789";
+    size_t ai = 0;
+    size_t bi = 0;
+
+    while (ai < a.size() && bi < b.size()) {
+        size_t adi = a.find_first_of(digits, ai);
+        size_t bdi = b.find_first_of(digits, bi);
+        if (a.slice(ai, adi) != b.slice(bi, bdi)) {
+            break;
+        }
+        ai = a.find_first_not_of(digits, adi);
+        bi = b.find_first_not_of(digits, bdi);
+    }
+    return ai == a.npos && bi == b.npos;
 }
 
 csabase::OnMatch<UseLambda, &UseLambda::NotFunction>::OnMatch(

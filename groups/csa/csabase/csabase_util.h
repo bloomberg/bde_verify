@@ -6,6 +6,7 @@
 #include <clang/ASTMatchers/ASTMatchFinder.h>
 #include <clang/ASTMatchers/ASTMatchers.h>
 #include <clang/Basic/SourceLocation.h>
+#include <llvm/ADT/StringRef.h>
 #include <stddef.h>
 #include <functional>
 #include <string>
@@ -37,13 +38,17 @@ bool areConsecutive(clang::SourceManager& manager,
     // two begin at the same column.  (This is used to paste consecutive '//'
     // comments into single blocks.)
 
-std::string to_lower(std::string s);
+std::string to_lower(llvm::StringRef s);
     // Return a copy of the specified 's' with all letters in lower case.
 
-bool contains_word(const std::string &have, const std::string &want);
+bool contains_word(llvm::StringRef have, const llvm::StringRef want);
     // Return true iff the specified string 'have' contains the specified
     // string 'want' as a word, that is, neither preceeded nor followed by
     // an underscore or alphanumeric character.
+
+bool are_numeric_cognates(llvm::StringRef a, llvm::StringRef b);
+    // Return true iff the specified 'a' and 'b' have the same value when
+    // digits are disregarded.
 
 clang::SourceRange
 getOffsetRange(clang::SourceLocation loc, int offset, int size);

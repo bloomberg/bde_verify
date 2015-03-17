@@ -25,6 +25,7 @@
 #include <csabase_ppobserver.h>
 #include <csabase_registercheck.h>
 #include <csabase_report.h>
+#include <csabase_util.h>
 #include <ext/alloc_traits.h>
 #include <llvm/ADT/SmallVector.h>
 #include <llvm/ADT/StringRef.h>
@@ -269,6 +270,13 @@ void report::process_parameter_list(PList          *pl,
     Location argn(m, pl->getParam(n - 1)->getLocStart());
 
     if (n > 1) {
+        std::vector<llvm::StringRef> parms(n);
+        for (unsigned i = 0; i < n; ++i) {
+            auto p = pl->getParam(i);
+            if (p->getIdentifier()) {
+                parms[i] = p->getName();
+            }
+        }
         bool one_per_line = true;
         bool all_on_one_line = true;
         size_t line = arg1.line();
@@ -276,21 +284,23 @@ void report::process_parameter_list(PList          *pl,
         for (size_t i = 1; i < n; ++i) {
             auto parm = pl->getParam(i);
             Location arg(m, parm->getLocStart());
-            if (arg.line() != line) {
-                all_on_one_line = false;
-                if (!one_per_line) {
-                    bad = arg.location();
-                    break;
+            if (!are_numeric_cognates(parms[i - 1], parms[i])) {
+                if (arg.line() != line) {
+                    all_on_one_line = false;
+                    if (!one_per_line) {
+                        bad = arg.location();
+                        break;
+                    }
                 }
-            }
-            else {
-                one_per_line = false;
-                if (!all_on_one_line) {
-                    bad = arg.location();
-                    break;
+                else {
+                    one_per_line = false;
+                    if (!all_on_one_line) {
+                        bad = arg.location();
+                        break;
+                    }
                 }
+                line = arg.line();
             }
-            line = arg.line();
         }
 
         if (!one_per_line && !all_on_one_line) {
@@ -301,29 +311,31 @@ void report::process_parameter_list(PList          *pl,
         }
         else if (one_per_line) {
             Location anr;
+            Location anp;
             for (size_t i = 0; i < n; ++i) {
                 auto parm = pl->getParam(i);
-                if (parm->getIdentifier()) {
-                    Location an(m, parm->getLocation());
-                    if (!anr || anr.column() < an.column()) {
+                Location an(m, parm->getLocation());
+                if (parm->getIdentifier() &&
+                    (i == 0 || anp.line() != an.line()) &&
+                    (!anr || anr.column() < an.column())) {
                         anr = an;
-                    }
                 }
+                anp = an;
             }
             for (size_t i = 0; i < n; ++i) {
                 auto parm = pl->getParam(i);
-                if (parm->getIdentifier()) {
-                    Location an(m, parm->getLocation());
-                    if (an.column() != anr.column()) {
-                        a.report(an.location(), check_name, tagalign,
-                                 "%0 parameter names "
-                                 "should align vertically")
-                            << type;
-                        a.report(anr.location(), check_name, tagalign,
-                                 "Rightmost name is here",
-                                 false, DiagnosticIDs::Note);
-                    }
+                Location an(m, parm->getLocation());
+                if (parm->getIdentifier() &&
+                    (i == 0 || anp.line() != an.line()) &&
+                    an.column() != anr.column()) {
+                    a.report(an.location(), check_name, tagalign,
+                             "%0 parameter names should align vertically")
+                        << type;
+                    a.report(anr.location(), check_name, tagalign,
+                             "Rightmost name is here", false,
+                             DiagnosticIDs::Note);
                 }
+                anp = an;
             }
         }
     }

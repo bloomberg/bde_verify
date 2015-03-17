@@ -651,24 +651,6 @@ SourceRange report::getContract(const FunctionDecl     *func,
     return contract;
 }
 
-bool are_numeric_cognates(llvm::StringRef a, llvm::StringRef b)
-{
-    llvm::StringRef digits = "0123456789";
-    size_t ai = 0;
-    size_t bi = 0;
-
-    while (ai < a.size() && bi < b.size()) {
-        size_t adi = a.find_first_of(digits, ai);
-        size_t bdi = b.find_first_of(digits, bi);
-        if (a.slice(ai, adi) != b.slice(bi, bdi)) {
-            break;
-        }
-        ai = a.find_first_not_of(digits, adi);
-        bi = b.find_first_not_of(digits, bdi);
-    }
-    return ai == a.npos && bi == b.npos;
-}
-
 SourceRange word_range(SourceRange context, const Word& word)
 {
     return getOffsetRange(context, word.offset, word.word.size() - 1);

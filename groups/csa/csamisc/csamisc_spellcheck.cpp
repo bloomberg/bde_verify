@@ -14,6 +14,7 @@
 #include <csabase_diagnostic_builder.h>
 #include <csabase_ppobserver.h>
 #include <csabase_registercheck.h>
+#include <csabase_report.h>
 #include <csabase_util.h>
 #include <ctype.h>
 #include <ext/alloc_traits.h>
@@ -59,6 +60,9 @@ struct data
     typedef std::map<std::string, Ranges> Comments;
     Comments d_comments;
 
+    typedef std::map<std::string, std::set<Location>> BadParms;
+    BadParms d_bad_parms;
+
     void append(Analyser& analyser, SourceRange range);
 };
 
@@ -73,13 +77,10 @@ void data::append(Analyser& analyser, SourceRange range)
     }
 }
 
-struct report
+struct report : Report<data>
     // Callback object for inspecting files.
 {
-    Analyser& d_analyser;                   // Analyser object.
-
-    report(Analyser& analyser);
-        // Create a 'report' object, accessing the specified 'analyser'.
+    using Report<data>::Report;
 
     void operator()(SourceRange range);
         // The specified comment 'range' is added to the stored data.
@@ -107,15 +108,9 @@ struct report
     AspellSpeller *spell_checker;
 };
 
-report::report(Analyser& analyser)
-: d_analyser(analyser)
-, spell_checker(0)
-{
-}
-
 void report::operator()(SourceRange range)
 {
-    d_analyser.attachment<data>().append(d_analyser, range);
+    d.append(a, range);
 }
 
 void report::operator()()
@@ -130,18 +125,16 @@ void report::operator()()
     aspell_config_replace(spell_config, "run-together", "true");
     AspellCanHaveError *possible_err = new_aspell_speller(spell_config);
     if (aspell_error_number(possible_err) != 0) {
-        SourceManager& m = d_analyser.manager();
-        d_analyser.report(m.getLocForStartOfFile(m.getMainFileID()),
-                          check_name, "SP02",
-                          "Cannot start spell checker: %0")
+        a.report(m.getLocForStartOfFile(m.getMainFileID()), check_name, "SP02",
+                 "Cannot start spell checker: %0")
             << aspell_error_message(possible_err);
             return;                                                   // RETURN
     }
     spell_checker = to_aspell_speller(possible_err);
     llvm::SmallVector<llvm::StringRef, 1000> raw_good_words;
     std::vector<std::string> good_words;
-    llvm::StringRef(d_analyser.config()->value("dictionary")).
-        split(raw_good_words, " ", -1, false);
+    llvm::StringRef(a.config()->value("dictionary"))
+        .split(raw_good_words, " ", -1, false);
     for (size_t i = 0; i < raw_good_words.size(); ++i) {
         std::vector<std::string> e = Config::brace_expand(raw_good_words[i]);
         good_words.insert(good_words.end(), e.begin(), e.end());
@@ -151,17 +144,16 @@ void report::operator()()
             spell_checker, good_words[i].data(), good_words[i].size());
     }
 
-    for (const auto& file_comment : d_analyser.attachment<data>().d_comments) {
-        if (d_analyser.is_component(file_comment.first)) {
+    for (const auto& file_comment : d.d_comments) {
+        if (a.is_component(file_comment.first)) {
             for (const auto& comment : file_comment.second) {
                 check_spelling(comment);
             }
         }
     }
 
-    size_t limit = std::strtoul(
-        d_analyser.config()->value("spelled_ok_count").c_str(),
-        0, 10);
+    size_t limit =
+        std::strtoul(a.config()->value("spelled_ok_count").c_str(), 0, 10);
 
     Errors::const_iterator b = d_errors.begin();
     Errors::const_iterator e = d_errors.end();
@@ -169,10 +161,9 @@ void report::operator()()
         const std::vector<SourceRange>& locs = b->second;
         if (limit == 0 || locs.size() < limit) {
             for (size_t j = 0; j < locs.size(); ++j) {
-                d_analyser.report(locs[j].getBegin(), check_name, "SP01",
-                                  "Misspelled word '%0'")
-                    << b->first
-                    << locs[j];
+                a.report(locs[j].getBegin(), check_name, "SP01",
+                         "Misspelled word '%0'")
+                    << b->first << locs[j];
             }
         }
     }
@@ -185,7 +176,7 @@ void report::operator()()
 void
 report::break_for_spelling(std::vector<SourceRange>* words, SourceRange range)
 {
-    llvm::StringRef comment = d_analyser.get_source(range, true);
+    llvm::StringRef comment = a.get_source(range, true);
     words->clear();
     if (comment.startswith("// close namespace ")) {
         return;
@@ -294,9 +285,8 @@ void report::check_spelling(SourceRange comment)
     std::vector<SourceRange> words;
     break_for_spelling(&words, comment);
     for (size_t i = 0; i < words.size(); ++i) {
-        llvm::StringRef word = d_analyser.get_source(words[i], true);
-        if (!aspell_speller_check(
-                 spell_checker, word.data(), word.size())) {
+        llvm::StringRef word = a.get_source(words[i], true);
+        if (!aspell_speller_check(spell_checker, word.data(), word.size())) {
             d_errors[word.lower()].push_back(words[i]);
         }
     }
@@ -330,30 +320,26 @@ void report::match_parameter(const BoundNodes &nodes)
     };
 
     const ParmVarDecl *parm = nodes.getNodeAs<ParmVarDecl>("parm");
-    if (d_analyser.is_component(parm)) {
+    if (a.is_component(parm)) {
         llvm::StringRef name = parm->getName();
         static llvm::Regex words("[[:digit:]_]*([[:alpha:]][[:lower:]]*)");
         llvm::SmallVector<llvm::StringRef, 7> matches;
         size_t pos = 0;
         while (words.match(name.substr(pos), &matches)) {
-            llvm::StringRef word = matches[1];
-            pos = name.find(word, pos);
-            if (!ok.count(word.lower()) &&
+            pos = name.find(matches[1], pos);
+            std::string word = matches[1].lower();
+            if (!ok.count(word) &&
                 !aspell_speller_check(
                     spell_checker, word.data(), word.size())) {
                 llvm::SmallVector<llvm::StringRef, 100> var_abbrs;
-                llvm::StringRef(
-                    d_analyser.config()->value(
-                        "variable_abbreviations", parm->getLocation()))
+                llvm::StringRef(a.config()->value("variable_abbreviations",
+                                                  parm->getLocation()))
                     .split(var_abbrs, " ", -1, false);
                 std::set<llvm::StringRef> vars{
                     var_abbrs.begin(), var_abbrs.end()};
-                if (!vars.count(word.lower())) {
-                    d_analyser.report(
-                        parm->getLocation().getLocWithOffset(pos),
-                        check_name, "SP03",
-                        "Parameter name contains misspelled word '%0'")
-                        << word;
+                if (!vars.count(word)) {
+                    d.d_bad_parms[word].insert(Location(
+                        m, parm->getLocation().getLocWithOffset(pos)));
                 }
             }
             pos += word.size();
@@ -366,8 +352,18 @@ void report::check_parameters()
     MatchFinder mf;
     OnMatch<report, &report::match_parameter> m1(this);
     mf.addDynamicMatcher(parameter_matcher(), &m1);
-    mf.match(*d_analyser.context()->getTranslationUnitDecl(),
-             *d_analyser.context());
+    mf.match(*a.context()->getTranslationUnitDecl(), *a.context());
+    size_t limit =
+        std::strtoul(a.config()->value("spelled_ok_count").c_str(), 0, 10);
+    for (const auto& p : d.d_bad_parms) {
+        if (limit == 0 || p.second.size() < limit) {
+            for (const auto& l : p.second) {
+                a.report(l.location(), check_name, "SP03",
+                         "Parameter name contains misspelled word '%0'")
+                    << p.first;
+            }
+        }
+    }
 }
 
 void subscribe(Analyser& analyser, Visitor&, PPObserver& observer)
