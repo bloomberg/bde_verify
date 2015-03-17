@@ -1,3 +1,10 @@
+bde-verify (1.0.0.9) unstable; urgency=low
+
+  * 7bd7a4c Pass -fexceptions to enable them. Fix indentation check for parameters. Avoid crash for comparison order check. Add custom variable abbreviations and ignore case on them. Don't complain about a leading 'which'.
+  * 5847a5a Only check equality comparison order. Weird "shouldn't happen" crash in mid-return.
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Mon, 16 Mar 2015 20:03:53 -0400
+
 bde-verify (1.0.0.8) unstable; urgency=low
 
   * e104b39 Allow enums to be indented to their first enumerator when on tag line.
