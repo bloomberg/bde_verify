@@ -22,11 +22,11 @@ binary: binary-arch
 binary-arch: debian/binary-stamp
 
 debian/build-stamp:
-	$(MAKE) VERBOSE=
+	$(MAKE)
 	touch $@
 
 debian/install-stamp: debian/build-stamp
-	$(MAKE) VERBOSE= DESTDIR=$(abspath $(DP)) install
+	$(MAKE) DESTDIR=$(abspath $(DP)) install
 	touch $@
 
 debian/binary-stamp: debian/install-stamp

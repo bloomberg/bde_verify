@@ -26,18 +26,20 @@ $bb          = '' unless -d $bb;
 
 my $me       = Cwd::abs_path(${0});
 my $pt       = $me;
-$pt          =~ s{[^/]*$}{};
+$pt          =~ s{(bin/|scripts/)?[^/]*$}{};
 my $nm       = ${0};
 $nm          =~ s{.*/}{};
 
-my $config   = "${pt}${nm}.cfg";
-$config      =~ s{/scripts/}{/} unless -r $config;
-$config      = "${pt}${nm}.cfg" unless -r $config;
+my $config   = "${pt}etc/bde-verify/${nm}.cfg";
+$config      = "${pt}${nm}.cfg"                 unless -r $config;
 
-my $exe      = "${pt}bde_verify_bin";
-$exe         =~ s{/scripts/}{/$system-g++/}             unless -x $exe;
-$exe         =~ s{/$system-g[+][+]/}{/$system-clang++/} unless -x $exe;
-$exe         = "${pt}bde_verify_bin"                    unless -x $exe;
+my $enm      = "bde_verify_bin";
+my $exe      = "${pt}libexec/bde-verify/$enm";
+$exe         = "${pt}$system-g++/$enm"          unless -x $exe;
+$exe         = "${pt}$system-clang++/$enm"      unless -x $exe;
+$exe         = "${pt}bin/$enm"                  unless -x $exe;
+$exe         = "${pt}scripts/$enm"              unless -x $exe;
+$exe         = "${pt}$enm"                      unless -x $exe;
 
 my @cl;
 my $cc       = $ENV{CXX} || "g++";

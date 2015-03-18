@@ -82,9 +82,9 @@ $(OBJ)/%.o: %.cpp
                           -o $@ -c $(@:$(OBJ)/%.o=%.cpp)
 
 install: $(OBJ)/$(LIBCSABASE)
-	mkdir -p $(DESTDIR)/include/bde_verify/utils
-	cp csabase_*.h $(DESTDIR)/include/bde_verify
-	cp utils/*.hpp $(DESTDIR)/include/bde_verify/utils
+	mkdir -p $(DESTDIR)/include/bde-verify/utils
+	cp csabase_*.h $(DESTDIR)/include/bde-verify
+	cp utils/*.hpp $(DESTDIR)/include/bde-verify/utils
 	mkdir -p $(DESTDIR)/lib
 	cp $(OBJ)/$(LIBCSABASE) $(DESTDIR)/lib
 
