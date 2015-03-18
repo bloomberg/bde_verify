@@ -1,3 +1,10 @@
+bde-verify (1.0.1.1) unstable; urgency=low
+
+  * c0f029a Change the installation paths to conform to correct /opt/bb usage.
+  * 055743b Allow quoted CLASSES to appear in multiple DESCRIPTION paragraphs. Use the spelled_ok_count for parameters too. Don't complain about line and indentation for numeric cognate parameters.
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Wed, 18 Mar 2015 12:11:19 -0400
+
 bde-verify (1.0.1.0) unstable; urgency=low
 
   * f2a70d8 Disable comparison order check.
