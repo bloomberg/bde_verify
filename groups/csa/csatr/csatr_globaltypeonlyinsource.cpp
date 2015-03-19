@@ -48,21 +48,31 @@ static void
 global_type_only_in_source(Analyser& analyser, TypeDecl const* decl)
 {
     if (decl->getDeclContext()->isFileContext()
+        && !llvm::dyn_cast<TypedefDecl>(decl)
         && analyser.get_location(decl).file() == analyser.toplevel()
         && !analyser.is_component_header(analyser.toplevel())
         && !decl->isInAnonymousNamespace()
         && !analyser.is_test_driver()
-        && std::find_if(decl->redecls_begin(), decl->redecls_end(),
-                        decl_not_in_toplevel(&analyser)) == decl->redecls_end()
         && decl->isExternallyVisible()
         && decl->getDeclName().isIdentifier()
         && !decl->getDeclName().getAsString().empty()
         )
     {
-        analyser.report(decl, check_name, "TR10",
-                        "Globally visible type '%0' "
-                        "is not declared in header.")
-            << decl->getQualifiedNameAsString();
+        auto r = llvm::dyn_cast<RecordDecl>(decl);
+        if (r && r->getDefinition() == decl) {
+            analyser.report(decl, check_name, "TR11",
+                            "Globally visible type '%0' "
+                            "should be defined in header.")
+                << decl->getQualifiedNameAsString();
+        }
+        else if (std::find_if(decl->redecls_begin(), decl->redecls_end(),
+                              decl_not_in_toplevel(&analyser)) ==
+                 decl->redecls_end()) {
+            analyser.report(decl, check_name, "TR10",
+                            "Globally visible type '%0' "
+                            "is not declared in header.")
+                << decl->getQualifiedNameAsString();
+        }
     }
 }
 
