@@ -1,3 +1,12 @@
+bde-verify (1.1.0.0) unstable; urgency=low
+
+  * 5f1be98 Update to canonicalize names and directories for packaging.
+  * 47a3b42 Add TR11 checks.
+  * e8f0b9e Don't complain about class template specializations in source files.
+  * 1db963b Complain about global class defined in source file.
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Thu, 19 Mar 2015 18:01:05 -0400
+
 bde-verify (1.0.1.1) unstable; urgency=low
 
   * c0f029a Change the installation paths to conform to correct /opt/bb usage.
