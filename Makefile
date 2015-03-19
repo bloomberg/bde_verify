@@ -14,7 +14,8 @@ endif
 
 TARGET      = bde_verify_bin
 CSABASE     = csabase
-LIBCSABASE  = libcsabase.a
+LCB         = bde-verify
+LIBCSABASE  = lib$(LCB).a
 CSABASEDIR  = groups/csa/csabase
 
 CXXFLAGS   += -m64 -std=c++11
@@ -151,7 +152,7 @@ LDFLAGS  += -m64
 
 OFILES = $(CXXFILES:%.cpp=$(OBJ)/%.o)
 
-LIBS     =    -lcsabase                                                       \
+LIBS     =    -l$(LCB)                                                        \
               -lLLVMX86AsmParser                                              \
               -lLLVMSparcAsmParser                                            \
               -lclangFrontendTool                                             \
@@ -242,15 +243,21 @@ $(OBJ)/%.o: %.cpp
 	$(VERBOSE) $(CXX) $(INCFLAGS) $(DEFFLAGS) $(CXXFLAGS) \
                           -o $@ -c $(@:$(OBJ)/%.o=%.cpp)
 
-install:  $(OBJ)/$(TARGET) $(CSABASEDIR)/$(OBJ)/$(LIBCSABASE)
-	$(VERBOSE) $(MAKE) -C $(CSABASEDIR) install
+.PHONY: install install-bin install-dev
+
+install: install-bin install-dev
+
+install-bin: $(OBJ)/$(TARGET)
+	$(VERBOSE) $(MAKE) -C $(CSABASEDIR) install-bin
 	mkdir -p $(DESTDIR)/libexec/bde-verify
 	cp $(OBJ)/$(TARGET) $(DESTDIR)/libexec/bde-verify
 	mkdir -p $(DESTDIR)/bin
 	cp scripts/bde_verify scripts/bb_verify $(DESTDIR)/bin
 	mkdir -p $(DESTDIR)/etc/bde-verify
 	cp bde_verify.cfg bb_verify.cfg $(DESTDIR)/etc/bde-verify
-	mkdir -p $(DESTDIR)/include/bde-verify
+
+install-dev:
+	$(VERBOSE) $(MAKE) -C $(CSABASEDIR) install-dev
 	cp groups/csa/csadep/csadep_*.h $(DESTDIR)/include/bde-verify
 
 .PHONY: clean

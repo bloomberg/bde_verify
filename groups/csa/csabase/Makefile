@@ -11,7 +11,8 @@ GCCDIR     ?= $(patsubst %/bin/g++,%,$(shell which g++))
 endif
 
 CSABASE     = csabase
-LIBCSABASE  = libcsabase.a
+LCB         = bde-verify
+LIBCSABASE  = lib$(LCB).a
 
 CXXFLAGS   += -m64 -std=c++11
 CXXFLAGS   += -Wall -Wno-unused-local-typedefs
@@ -81,7 +82,13 @@ $(OBJ)/%.o: %.cpp
 	$(VERBOSE) $(CXX) $(INCFLAGS) $(DEFFLAGS) $(CXXFLAGS) \
                           -o $@ -c $(@:$(OBJ)/%.o=%.cpp)
 
-install: $(OBJ)/$(LIBCSABASE)
+.PHONY: install install-bin install-dev
+
+install: install-bin install-dev
+
+install-bin:
+
+install-dev: $(OBJ)/$(LIBCSABASE)
 	mkdir -p $(DESTDIR)/include/bde-verify/utils
 	cp csabase_*.h $(DESTDIR)/include/bde-verify
 	cp utils/*.hpp $(DESTDIR)/include/bde-verify/utils

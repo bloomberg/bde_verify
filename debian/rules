@@ -11,8 +11,6 @@ include $(BUILD_BASE)/build-base.mk
 
 CXX := $(DISTRIBUTION_REFROOT)$(PREFIX)/lib/gcc-4.8/bin/g++
 
-DP = debian/tmp$(PREFIX)
-
 build: build-arch
 
 build-arch: debian/build-stamp
@@ -25,21 +23,41 @@ debian/build-stamp:
 	$(MAKE)
 	touch $@
 
-debian/install-stamp: debian/build-stamp
-	$(MAKE) DESTDIR=$(abspath $(DP)) install
+debian/install-bin-stamp: debian/build-stamp
+	$(MAKE) DESTDIR=$(abspath debian/tmp/bin$(PREFIX)) install-bin
 	touch $@
 
-debian/binary-stamp: debian/install-stamp
-	mkdir -p debian/tmp/DEBIAN
-	dpkg-gencontrol -pbde-verify -Pdebian/tmp
-	dpkg-deb -b debian/tmp $(TMPDIR)
+debian/install-dev-stamp: debian/build-stamp
+	$(MAKE) DESTDIR=$(abspath debian/tmp/dev$(PREFIX)) install-dev
+	touch $@
+
+debian/install-stamp: debian/install-bin-stamp debian/install-dev-stamp
+	touch $@
+
+debian/binary-bin-stamp: debian/install-bin-stamp
+	mkdir -p debian/tmp/bin/DEBIAN
+	dpkg-gencontrol -pbde-verify -Pdebian/tmp/bin
+	dpkg-deb -b debian/tmp/bin $(TMPDIR)
+	touch $@
+
+debian/binary-dev-stamp: debian/install-dev-stamp
+	mkdir -p debian/tmp/dev/DEBIAN
+	dpkg-gencontrol -plibbde-verify-dev -Pdebian/tmp/dev
+	dpkg-deb -b debian/tmp/dev $(TMPDIR)
+	touch $@
+
+debian/binary-stamp: debian/binary-bin-stamp debian/binary-dev-stamp
 	touch $@
 
 .EXPORT_ALL_VARIABLES:
 
 clean:
-	rm -rf debian/tmp
-	rm -rf debian/tmp64
-	rm -f debian/build-stamp
-	rm -f debian/binary-stamp
-	rm -f debian/files
+	rm -rf debian/tmp                                                         \
+           debian/files                                                       \
+           debian/build-stamp                                                 \
+           debian/install-bin-stamp                                           \
+           debian/install-dev-stamp                                           \
+           debian/install-stamp                                               \
+           debian/binary-bin-stamp                                            \
+           debian/binary-dev-stamp                                            \
+           debian/binary-stamp

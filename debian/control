@@ -17,3 +17,8 @@ Standards-Version: 3.8.4
 Package: bde-verify
 Architecture: amd64 solaris10-sparc
 Description: bde_verify
+
+Package: libbde-verify-dev
+Depends: llvm
+Architecture: amd64 solaris10-sparc
+Description: bde_verify base library and headers
