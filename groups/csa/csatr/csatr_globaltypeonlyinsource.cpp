@@ -2,6 +2,7 @@
 
 #include <clang/AST/Decl.h>
 #include <clang/AST/DeclBase.h>
+#include <clang/AST/DeclTemplate.h>
 #include <clang/AST/DeclarationName.h>
 #include <csabase_analyser.h>
 #include <csabase_diagnostic_builder.h>
@@ -49,6 +50,7 @@ global_type_only_in_source(Analyser& analyser, TypeDecl const* decl)
 {
     if (decl->getDeclContext()->isFileContext()
         && !llvm::dyn_cast<TypedefDecl>(decl)
+        && !llvm::dyn_cast<ClassTemplateSpecializationDecl>(decl)
         && analyser.get_location(decl).file() == analyser.toplevel()
         && !analyser.is_component_header(analyser.toplevel())
         && !decl->isInAnonymousNamespace()
