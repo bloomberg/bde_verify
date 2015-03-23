@@ -99,11 +99,7 @@ install-dev: $(OBJ)/$(LIBCSABASE)
 
 clean:
 	@echo cleaning files
-	$(VERBOSE) $(RM) $(OFILES)
-	$(VERBOSE) $(RM) $(OBJ)/$(LIBCSABASE)
-	$(VERBOSE) $(RM) $(OBJ)/make.depend
-	$(VERBOSE) $(RM) -r $(OBJ)
-	$(VERBOSE) $(RM) mkerr olderr *~
+	$(VERBOSE) $(RM) -rf $(OBJ)
 
 # -----------------------------------------------------------------------------
 
@@ -119,10 +115,6 @@ depend $(OBJ)/make.depend:
 ifneq "$(MAKECMDGOALS)" "clean"
     include $(OBJ)/make.depend
 endif
-
-# -----------------------------------------------------------------------------
-
-.EXPORT_ALL_VARIABLES:
 
 ## ----------------------------------------------------------------------------
 ## Copyright (C) 2014 Bloomberg Finance L.P.

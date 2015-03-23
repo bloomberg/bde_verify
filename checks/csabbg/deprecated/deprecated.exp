@@ -1,0 +1,75 @@
+deprecated.cpp:18:5: warning: DP01: Call to deprecated function
+    f();
+    ^
+deprecated.cpp:3:5: note: DP01: Deprecated here
+    // !DEPRECATED!:
+    ^
+deprecated.cpp:19:5: warning: DP01: Call to deprecated function
+    h();
+    ^
+In file included from deprecated.cpp:1:
+./deprecated.h:1:1: note: DP01: Deprecated here
+//@DEPRECATED://
+^
+deprecated.cpp:20:5: warning: DP01: Call to deprecated function
+    i();
+    ^
+In file included from deprecated.cpp:1:
+./deprecated.h:1:1: note: DP01: Deprecated here
+//@DEPRECATED://
+^
+deprecated.cpp:21:5: warning: DP01: Call to deprecated function
+    C::j();
+    ^
+In file included from deprecated.cpp:1:
+./deprecated.h:1:1: note: DP01: Deprecated here
+//@DEPRECATED://
+^
+deprecated.cpp:22:5: warning: DP01: Call to deprecated function
+    C::k();
+    ^
+In file included from deprecated.cpp:1:
+./deprecated.h:7:9: note: DP01: Deprecated here
+        // !DEPRECATED!:
+        ^
+deprecated.cpp:23:5: warning: DP01: Call to deprecated function
+    C::l();
+    ^
+In file included from deprecated.cpp:1:
+./deprecated.h:1:1: note: DP01: Deprecated here
+//@DEPRECATED://
+^
+deprecated.cpp:24:5: warning: DP01: Call to deprecated function
+    D<int>::j();
+    ^
+In file included from deprecated.cpp:1:
+./deprecated.h:1:1: note: DP01: Deprecated here
+//@DEPRECATED://
+^
+deprecated.cpp:25:5: warning: DP01: Call to deprecated function
+    D<void>::k();
+    ^
+In file included from deprecated.cpp:1:
+./deprecated.h:14:9: note: DP01: Deprecated here
+        // !DEPRECATED!:
+        ^
+deprecated.cpp:26:5: warning: DP01: Call to deprecated function
+    D<C>::l();
+    ^
+In file included from deprecated.cpp:1:
+./deprecated.h:1:1: note: DP01: Deprecated here
+//@DEPRECATED://
+^
+deprecated.cpp:28:5: warning: DP01: Call to deprecated function
+    E::k();
+    ^
+deprecated.cpp:7:9: note: DP01: Deprecated here
+        // !DEPRECATED!:
+        ^
+deprecated.cpp:31:5: warning: DP01: Call to deprecated function
+    F<void>::k();
+    ^
+deprecated.cpp:14:9: note: DP01: Deprecated here
+        // !DEPRECATED!:
+        ^
+11 warnings generated.

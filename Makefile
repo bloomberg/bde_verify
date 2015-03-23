@@ -78,6 +78,7 @@ CXXFILES =                                                                    \
         groups/csa/csabbg/csabbg_assertassign.cpp                             \
         groups/csa/csabbg/csabbg_bslovrdstl.cpp                               \
         groups/csa/csabbg/csabbg_cmporder.cpp                                 \
+        groups/csa/csabbg/csabbg_deprecated.cpp                               \
         groups/csa/csabbg/csabbg_enumvalue.cpp                                \
         groups/csa/csabbg/csabbg_functioncontract.cpp                         \
         groups/csa/csabbg/csabbg_midreturn.cpp                                \
@@ -264,12 +265,8 @@ install-dev:
 
 clean:
 	@echo cleaning files
-	$(VERBOSE) $(RM) $(OFILES)
-	$(VERBOSE) $(RM) $(OBJ)/$(TARGET)
-	$(VERBOSE) $(RM) $(OBJ)/make.depend
-	$(VERBOSE) $(RM) -r $(OBJ)
-	$(VERBOSE) $(RM) mkerr olderr *~
 	$(VERBOSE) $(MAKE) -C $(CSABASEDIR) clean
+	$(VERBOSE) $(RM) -rf $(OBJ)
 
 # -----------------------------------------------------------------------------
 
@@ -319,10 +316,6 @@ depend $(OBJ)/make.depend:
 ifneq "$(MAKECMDGOALS)" "clean"
     include $(OBJ)/make.depend
 endif
-
-# -----------------------------------------------------------------------------
-
-.EXPORT_ALL_VARIABLES:
 
 ## ----------------------------------------------------------------------------
 ## Copyright (C) 2014 Bloomberg Finance L.P.
