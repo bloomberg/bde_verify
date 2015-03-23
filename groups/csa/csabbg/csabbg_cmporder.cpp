@@ -31,17 +31,29 @@ struct report : Report<data>
     using Report<data>::Report;
 
     bool carefullyIsModifiable(const Expr *e);
+    bool carefullyIsEvaluatable(const Expr *e);
 
     void operator()(const BinaryOperator *op);
 };
 
 bool report::carefullyIsModifiable(const Expr *e)
     // We want to just call isModifiableLvalue, but that triggers an assertion
-    // on calls to dependent members.  We'll just treat call expressions as
-    // non-modifiable, which they usually are anyway.
+    // on dependent expressions.
 {
-    return !llvm::dyn_cast<CallExpr>(e) &&
+    return !e->isValueDependent() &&
+           !e->isTypeDependent() &&
+           //!e->isInstantiationDependent() &&
            e->isModifiableLvalue(*a.context()) == Expr::MLV_Valid;
+}
+
+bool report::carefullyIsEvaluatable(const Expr *e)
+    // We want to just call isEvaluatable, but that triggers an assertion on
+    // dependent expressions.
+{
+    return !e->isValueDependent() &&
+           !e->isTypeDependent() &&
+           //!e->isInstantiationDependent() &&
+           e->isEvaluatable(*a.context());
 }
 
 void report::operator()(const BinaryOperator *op)
@@ -56,8 +68,7 @@ void report::operator()(const BinaryOperator *op)
                      "Non-modifiable operand should be on the left")
                 << op->getSourceRange();
         }
-        else if (!lhs->isEvaluatable(*a.context()) &&
-                  rhs->isEvaluatable(*a.context())) {
+        else if (!carefullyIsEvaluatable(lhs) && carefullyIsEvaluatable(rhs)) {
             tag = "CR02";
             a.report(op->getOperatorLoc(), check_name, tag,
                      "Constant operand should be on the left")
