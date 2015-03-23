@@ -59,11 +59,17 @@ struct data
     typedef std::map<SourceLocation, SourceLocation> DeprecatedComments;
     DeprecatedComments d_dep_comms;
 
-    typedef std::map<const FunctionDecl*, SourceLocation> Deprecated;
-    Deprecated d_deprecated;
+    typedef std::map<const FunctionDecl*, SourceLocation> DeprecatedFunctions;
+    DeprecatedFunctions d_dep_funcs;
+
+    typedef std::map<const CXXRecordDecl*, SourceLocation> DeprecatedRecords;
+    DeprecatedRecords d_dep_recs;
 
     typedef std::vector<std::pair<const FunctionDecl*, SourceRange>> FunDecls;
-    FunDecls d_fundecls;  // FunDecl, comment
+    FunDecls d_fundecls;  // FunctionDecl, comment
+
+    typedef std::vector<std::pair<const CXXRecordDecl*, SourceRange>> RecDecls;
+    RecDecls d_recdecls;  // CXXRecordDecl, comment
 
     typedef std::map<Location, const FunctionDecl*> Calls;
     Calls d_calls;
@@ -77,6 +83,8 @@ struct report : Report<data>
     void operator()();
         // Invoked to process reports.
 
+    void operator()(const CXXRecordDecl *rec);
+    void operator()(const ClassTemplateDecl *rec);
     void operator()(const FunctionDecl *func);
     void operator()(const FunctionTemplateDecl *func);
     void operator()(const CallExpr *call);
@@ -85,12 +93,19 @@ struct report : Report<data>
         // The specified 'range', representing a comment, is either appended to
         // the previous comment or added separately to the comments list.
 
-    SourceRange getContract(const FunctionDecl *func,
-                            data::Ranges::iterator comments_begin,
-                            data::Ranges::iterator comments_end);
+    SourceRange getContract(const FunctionDecl     *func,
+                            data::Ranges::iterator  comments_begin,
+                            data::Ranges::iterator  comments_end);
         // Return the 'SourceRange' of the function contract of the specified
         // 'func' if it is present in the specified range of 'comments_begin'
         // up to 'comments_end', and return an invalid 'SourceRange' otherwise.
+
+    SourceRange getContract(const CXXRecordDecl    *rec,
+                            data::Ranges::iterator  comments_begin,
+                            data::Ranges::iterator  comments_end);
+        // Return the 'SourceRange' of the class contract of the specified
+        // 'rec' if it is present in the specified range of 'comments_begin' up
+        // to 'comments_end', and return an invalid 'SourceRange' otherwise.
 };
 
 void report::operator()(SourceRange range)
@@ -129,26 +144,40 @@ void report::operator()(const CallExpr *call)
 
 void report::operator()()
 {
-    for (auto& p : d.d_fundecls) {
+    for (auto& p : d.d_recdecls) {
         Location location(a.get_location(p.first->getLocStart()));
         data::Ranges& c = d.d_comments[location.file()];
         p.second = getContract(p.first, c.begin(), c.end());
         auto j = d.d_dep_comms.find(p.second.getBegin());
         if (j != d.d_dep_comms.end()) {
-            d.d_deprecated[p.first] = j->second;
+            d.d_dep_recs[p.first] = j->second;
         }
-        else {
-            auto i =
-                d.d_dep_files.find(Location(m, p.first->getLocation()).file());
-            if (i != d.d_dep_files.end()) {
-                d.d_deprecated[p.first] = i->second;
+    }
+
+    for (auto& p : d.d_fundecls) {
+        Location location(a.get_location(p.first->getLocStart()));
+        data::Ranges& c = d.d_comments[location.file()];
+        p.second = getContract(p.first, c.begin(), c.end());
+        auto i = d.d_dep_files.find(location.file());
+        if (i != d.d_dep_files.end()) {
+            d.d_dep_funcs[p.first] = i->second;
+        }
+        auto m = llvm::dyn_cast<CXXMethodDecl>(p.first);
+        if (m) {
+            auto k = d.d_dep_recs.find(m->getParent()->getDefinition());
+            if (k != d.d_dep_recs.end()) {
+                d.d_dep_funcs[p.first] = k->second;
             }
+        }
+        auto j = d.d_dep_comms.find(p.second.getBegin());
+        if (j != d.d_dep_comms.end()) {
+            d.d_dep_funcs[p.first] = j->second;
         }
     }
 
     for (auto& p : d.d_calls) {
-        auto i = d.d_deprecated.find(p.second);
-        if (i != d.d_deprecated.end()) {
+        auto i = d.d_dep_funcs.find(p.second);
+        if (i != d.d_dep_funcs.end()) {
             a.report(p.first.location(), check_name, "DP01",
                      "Call to deprecated function");
             a.report(i->second, check_name, "DP01",
@@ -175,6 +204,22 @@ void report::operator()(const FunctionDecl* func)
             ) {
         d.d_fundecls.push_back(
             std::make_pair(func->getCanonicalDecl(), SourceRange()));
+    }
+}
+
+void report::operator()(const ClassTemplateDecl* rec)
+{
+    (*this)(rec->getTemplatedDecl());
+}
+
+void report::operator()(const CXXRecordDecl* rec)
+{
+    // Don't process template instantiations or macro expansions
+    if (   !rec->getLocation().isMacroID()
+        && !rec->getTemplateInstantiationPattern()
+        && rec->hasDefinition()) {
+        d.d_recdecls.push_back(
+            std::make_pair(rec->getDefinition(), SourceRange()));
     }
 }
 
@@ -264,12 +309,49 @@ SourceRange report::getContract(const FunctionDecl     *func,
     return contract;
 }
 
+SourceRange report::getContract(const CXXRecordDecl    *rec,
+                                data::Ranges::iterator  comments_begin,
+                                data::Ranges::iterator  comments_end)
+{
+    SourceRange contract;
+
+    if (rec->hasDefinition()) {
+        rec = rec->getDefinition();
+        SourceRange range = rec->getSourceRange();
+        auto b = rec->decls_begin();
+        for (; b != rec->decls_end(); ++b) {
+            if (b->getLocStart() != range.getBegin()) {
+                break;
+            }
+        }
+        if (b != rec->decls_end()) {
+            range.setEnd(b->getLocStart());
+        }
+
+        data::Ranges::iterator it;
+        for (it = comments_begin; it != comments_end; ++it) {
+            if (m.isBeforeInTranslationUnit(range.getEnd(), it->getBegin())) {
+                break;
+            }
+            if (m.isBeforeInTranslationUnit(it->getEnd(), range.getBegin())) {
+               continue;
+            }
+            contract = *it;
+            break;
+        }
+    }
+
+    return contract;
+}
+
 void subscribe(Analyser& analyser, Visitor& visitor, PPObserver& observer)
     // Hook up the callback functions.
 {
     analyser.onTranslationUnitDone += report(analyser);
     visitor.onFunctionDecl += report(analyser);
     visitor.onFunctionTemplateDecl += report(analyser);
+    visitor.onCXXRecordDecl += report(analyser);
+    visitor.onClassTemplateDecl += report(analyser);
     visitor.onCallExpr += report(analyser);
     observer.onComment += report(analyser);
 }

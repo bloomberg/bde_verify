@@ -14,6 +14,21 @@ struct D {
         // !DEPRECATED!:
     static void l();
 };
+struct CC {
+    // !DEPRECATED!:
+    static void j();
+    static void k();
+        // !DEPRECATED!:
+    static void l();
+};
+template <class PP>
+struct DD {
+    // !DEPRECATED!:
+    static void j();
+    static void k();
+        // !DEPRECATED!:
+    static void l();
+};
 
 // ----------------------------------------------------------------------------
 // Copyright (C) 2015 Bloomberg Finance L.P.

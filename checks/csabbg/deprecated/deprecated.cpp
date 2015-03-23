@@ -14,6 +14,21 @@ struct F {
         // !DEPRECATED!:
     static void l();
 };
+struct EE {
+        // !DEPRECATED!:
+    static void j();
+    static void k();
+        // !DEPRECATED!:
+    static void l();
+};
+template <class PP>
+struct FF {
+        // !DEPRECATED!:
+    static void j();
+    static void k();
+        // !DEPRECATED!:
+    static void l();
+};
 void g() {
     f();
     h();
@@ -30,6 +45,18 @@ void g() {
     F<int>::j();
     F<void>::k();
     F<C>::l();
+    CC::j();
+    CC::k();
+    CC::l();
+    DD<int>::j();
+    DD<void>::k();
+    DD<C>::l();
+    EE::j();
+    EE::k();
+    EE::l();
+    FF<int>::j();
+    FF<void>::k();
+    FF<C>::l();
 }
 
 // ----------------------------------------------------------------------------
