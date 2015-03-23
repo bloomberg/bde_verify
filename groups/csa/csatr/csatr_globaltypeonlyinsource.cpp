@@ -60,7 +60,7 @@ global_type_only_in_source(Analyser& analyser, TypeDecl const* decl)
         && !decl->getDeclName().getAsString().empty()
         )
     {
-        auto r = llvm::dyn_cast<RecordDecl>(decl);
+        auto r = llvm::dyn_cast<TagDecl>(decl);
         if (r && r->getDefinition() == decl) {
             analyser.report(decl, check_name, "TR11",
                             "Globally visible type '%0' "
