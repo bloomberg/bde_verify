@@ -79,3 +79,6 @@ template <class T> C E<T>::should_be_runtime_constructed;
 template <class T> int E<T>::should_be_runtime_expression = *pointer;
 template <class T> int E<T>::should_be_static_expression = (9 + 7) * (9 - 7);
 template <class T> int &E<T>::static_should_be_static_reference = integer;
+
+struct Pair { int x, y; const char *z; };
+Pair should_be_static[5] = { { 1, 1, "a" }, { 2, 2, "b" } };

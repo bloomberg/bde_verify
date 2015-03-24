@@ -22,6 +22,29 @@ static std::string const check_name("runtime-initialization");
 namespace
 {
 
+struct BrieflyCPlusPlus11
+    // Guard for turning on C++11 mode, so that EvaluateAsInitializer will do
+    // its work even for arrays and records.
+{
+    LangOptions &victim;
+    bool save;
+
+    BrieflyCPlusPlus11(Analyser& a);
+    ~BrieflyCPlusPlus11();
+};
+
+BrieflyCPlusPlus11::BrieflyCPlusPlus11(Analyser& a)
+: victim(const_cast<LangOptions &>(a.context()->getLangOpts()))
+, save(victim.CPlusPlus11)
+{
+    victim.CPlusPlus11 = true;
+}
+
+BrieflyCPlusPlus11::~BrieflyCPlusPlus11()
+{
+    victim.CPlusPlus11 = save;
+}
+
 struct data
     // Data attached to analyzer for this check.
 {
@@ -36,6 +59,7 @@ struct report : Report<data>
 
 void report::operator()(const VarDecl *decl)
 {
+    BrieflyCPlusPlus11 guard(a);
     SmallVector<PartialDiagnosticAt, 7> n;
     APValue v;
     if (!a.is_test_driver(decl) &&
