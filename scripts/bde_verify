@@ -150,7 +150,10 @@ my @rwd    = ("-plugin-arg-bde_verify", "rewrite-dir=$rwd")  if $rwd;
 print "No such directory $rwd\n" if $rwd and ! -d $rwd;
 my @rwf    = ("-plugin-arg-bde_verify", "rewrite-file=$rwf") if $rwf;
 my @tag    = ("-plugin-arg-bde_verify", "tool=$tag") if $tag;
-my %uf     = ( "no-strict-aliasing" => 1, "PIC" => 1 );
+my %uf     = ( "no-strict-aliasing" => 1,
+               "PIC" => 1,
+               "asynchronous-unwind-tables" => 1,
+             );
 @lflags = map { "-f$_" } grep { not exists $uf{$_} } @lflags;
 @wflags = map { "-W$_" } grep { not /,/ } @wflags;
 unshift @wflags, "-w" if $warnoff;
