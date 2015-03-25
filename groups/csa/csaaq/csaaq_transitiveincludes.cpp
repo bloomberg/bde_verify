@@ -408,6 +408,8 @@ bool reexports(llvm::StringRef outer, llvm::StringRef inner)
 struct data
     // Data attached to analyzer for this check.
 {
+    data();
+
     std::vector<FileID>                                        d_fileid_stack;
     std::string                                                d_guard;
     SourceLocation                                             d_guard_pos;
@@ -424,7 +426,13 @@ struct data
     std::unordered_map<SourceLocation, std::vector<std::pair<FileID, bool>>>
                                                                d_include_stack;
     std::unordered_set<std::pair<FileID, const Decl *>>        d_decls;
+    bool                                                       d_ovr;
 };
+
+data::data()
+: d_ovr(false)
+{
+}
 
 struct report : public RecursiveASTVisitor<report>, Report<data>
 {
@@ -457,11 +465,6 @@ struct report : public RecursiveASTVisitor<report>, Report<data>
         // in the specified 'fid', and in files which include it if not
         // dependent on BSL_OVERRIDES_STD.
 
-    void change_include(FileID fid, llvm::StringRef name);
-        // Change the file name added most recently by push_include for the
-        // specified 'fid', and in files which include it if not dependent on
-        // BSL_OVERRIDES_STD, to the specified 'name'.
-
     void operator()(SourceLocation   where,
                     const Token&     inc,
                     llvm::StringRef  name,
@@ -492,6 +495,10 @@ struct report : public RecursiveASTVisitor<report>, Report<data>
                     MacroArgs const      *);
         // Preprocessor callback for macro expanding.
 
+    void operator()(Token const&          token,
+                    MacroDirective const *md);
+        // Preprocessor callback for macro (un)defined.
+
     void operator()(SourceLocation        where,
                     const Token&          token,
                     const MacroDirective *md);
@@ -519,6 +526,14 @@ struct report : public RecursiveASTVisitor<report>, Report<data>
     void operator()(SourceLocation     where,
                     SourceLocation     ifloc);
         // Preprocessor callback for 'else'.
+
+    bool files_match(llvm::StringRef included_file,
+                     llvm::StringRef wanted_file);
+        // Return 'true' if the specified 'wanted_file' is a match for the
+        // specified 'included_file'.  The files match if they are the same, if
+        // the included file is a forwarded version of the wanted file, or if,
+        // in BSL_OVERRIDES_STD mode, the included file is the standard form of
+        // the wanted file.
 
     void require_file(std::string     name,
                       SourceLocation  srcloc,
@@ -794,6 +809,16 @@ void report::operator()(Token const&          token,
     }
 }
 
+// MacroDefined/MacroUndefined
+void report::operator()(Token const&          token,
+                        MacroDirective const *md)
+{
+    llvm::StringRef macro = token.getIdentifierInfo()->getName();
+    if (macro == "BSL_OVERRIDES_STD") {
+        d.d_ovr = d_type == PPObserver::e_MacroDefined;
+    }
+}
+
 bool report::is_guard(llvm::StringRef guard)
 {
     return guard.startswith("INCLUDED_");
@@ -922,6 +947,14 @@ const NamedDecl *report::look_through_typedef(const Decl *ds)
     return 0;
 }
 
+bool report::files_match(llvm::StringRef included_file,
+                         llvm::StringRef wanted_file)
+{
+    return included_file == wanted_file
+        || included_file == ("bslfwd_" + wanted_file).str()
+        || (d.d_ovr && ("bsl_" + included_file + ".h").str() == wanted_file);
+}
+
 void report::require_file(std::string     name,
                           SourceLocation  srcloc,
                           llvm::StringRef symbol,
@@ -955,7 +988,7 @@ void report::require_file(std::string     name,
     }
 
     for (const auto& s : d_data.d_includes[fid]) {
-        if (llvm::sys::path::filename(s) == name) {
+        if (files_match(llvm::sys::path::filename(s), name)) {
             return;
         }
     }
@@ -1364,6 +1397,10 @@ void subscribe(Analyser& analyser, Visitor&, PPObserver& observer)
                                                        observer.e_FileChanged);
     observer.onPPMacroExpands       += report(analyser,
                                                       observer.e_MacroExpands);
+    observer.onPPMacroDefined       += report(analyser,
+                                                      observer.e_MacroDefined);
+    observer.onPPMacroUndefined     += report(analyser,
+                                                    observer.e_MacroUndefined);
     observer.onPPIfdef              += report(analyser, observer.e_Ifdef);
     observer.onPPIfndef             += report(analyser, observer.e_Ifndef);
     observer.onPPDefined            += report(analyser, observer.e_Defined);
