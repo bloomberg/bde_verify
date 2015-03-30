@@ -82,7 +82,8 @@ bool report::depends(SourceLocation sl, QualType type)
         }
         return false;
     }
-    auto rd = type->getAsCXXRecordDecl();
+    //auto rd = type->getAsCXXRecordDecl();
+    auto rd = type->getAsTagDecl();
     if (auto tspt = type->getAs<TemplateSpecializationType>()) {
         if (auto td = tspt->getTemplateName().getAsTemplateDecl()) {
             unsigned n = tspt->getNumArgs();
