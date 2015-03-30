@@ -35,11 +35,16 @@ static void check(Analyser& analyser, CastExpr const *expr)
     CanQualType source(getType(expr->getSubExpr()->getType()));
     CanQualType target(getType(expr->getType()));
     std::string tt = static_cast<QualType>(target).getAsString();
+    std::string ss = static_cast<QualType>(source).getAsString();
     if ((source != target &&
          tt != "char" &&
          tt != "unsigned char" &&
          tt != "signed char" &&
-         tt != "void") ||
+         tt != "void" &&
+         ss != "char" &&
+         ss != "unsigned char" &&
+         ss != "signed char" &&
+         ss != "void") ||
         (expr->getType()->isPointerType() !=
          expr->getSubExpr()->getType()->isPointerType())) {
         analyser.report(expr, check_name, "AL01",
