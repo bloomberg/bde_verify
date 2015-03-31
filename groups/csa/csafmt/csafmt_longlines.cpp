@@ -6,10 +6,12 @@
 #include <csabase_debug.h>
 #include <csabase_ppobserver.h>
 #include <csabase_registercheck.h>
+#include <csabase_report.h>
 #include <llvm/ADT/StringRef.h>
 #include <stddef.h>
 #include <utils/event.hpp>
 #include <utils/function.hpp>
+#include <set>
 #include <string>
 
 namespace csabase { class Visitor; }
@@ -26,13 +28,15 @@ static std::string const check_name("longlines");
 namespace
 {
 
-struct report
+struct data
+{
+    std::set<FileID> d_files;
+};
+
+struct report : Report<data>
     // Callback object for inspecting report.
 {
-    Analyser& d_analyser;                   // Analyser object.
-
-    report(Analyser& analyser);
-        // Create a 'report' object, accessing the specified 'analyser'.
+    using Report<data>::Report;
 
     void operator()(SourceLocation      loc,
                     std::string const &,
@@ -43,48 +47,42 @@ struct report
         // Called on end of translation unit.
 };
 
-report::report(Analyser& analyser)
-: d_analyser(analyser)
+void report::operator()(SourceLocation     loc,
+                        std::string const&,
+                        std::string const&)
 {
-}
+    d.d_files.insert(m.getFileID(loc));
 
-void report::
-operator()(SourceLocation loc, std::string const&, std::string const&)
-{
-    const SourceManager &m = d_analyser.manager();
-
-    FileID fid = loc.isValid() ? m.getFileID(loc) : m.getMainFileID();
-    if (loc.isValid() && fid == m.getMainFileID()) {
-        return;                                                       // RETURN
-    }
-
-    loc = m.getLocForStartOfFile(fid);
-    llvm::StringRef b = m.getBufferData(fid);
-
-    size_t prev = ~size_t(0);
-    size_t next;
-    do {
-        if ((next = b.find('\n', prev + 1)) == b.npos) {
-            next = b.size();
-        }
-        if (next - prev > 80) {
-            d_analyser.report(loc.getLocWithOffset(prev + 80), check_name,
-                              "LL01",
-                              "Line exceeds 79 characters in length");
-        }
-    } while ((prev = next) < b.size());
 }
 
 void report::operator()()
 {
-    (*this)(SourceLocation(), "", "");
+    d.d_files.insert(m.getMainFileID());
+
+    for (auto fid : d.d_files) {
+        SourceLocation loc = m.getLocForStartOfFile(fid);
+        llvm::StringRef b  = m.getBufferData(fid);
+
+        size_t prev = ~size_t(0);
+        size_t next;
+        do {
+            if ((next = b.find('\n', prev + 1)) == b.npos) {
+                next = b.size();
+            }
+            if (next - prev > 80) {
+                d_analyser.report(loc.getLocWithOffset(prev + 80), check_name,
+                                  "LL01",
+                                  "Line exceeds 79 characters in length");
+            }
+        } while ((prev = next) < b.size());
+    }
 }
 
 void subscribe(Analyser& analyser, Visitor&, PPObserver& observer)
     // Hook up the callback functions.
 {
     observer.onCloseFile += report(analyser);
-    // analyser.onTranslationUnitDone += report(analyser);
+    analyser.onTranslationUnitDone += report(analyser);
 }
 
 }  // close anonymous namespace

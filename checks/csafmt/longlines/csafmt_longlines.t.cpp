@@ -7,6 +7,9 @@
 // csafmt_longlines.t.cpp                                              -*-C++-*-
 // csafmt_longlines.t.cpp                                              -*-C++-*-
 
+// BDE_VERIFY pragma: -LL01
+// csafmt_longlines.t.cpp                                               -*-C++-*-
+
 // ----------------------------------------------------------------------------
 // Copyright (C) 2014 Bloomberg Finance L.P.
 //
