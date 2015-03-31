@@ -174,8 +174,9 @@ struct report : Report<data>
     void note_function(std::string m);
         // Mark the speciied 'm' as a public method of a class in @CLASSES.
 
-    void process_function(CXXMethodDecl *decl);
-        // Handle one public method of the classes in @CLASSES.
+    bool process_function(CXXMethodDecl *decl);
+        // Handle one public method of the classes in @CLASSES.  Return false
+        // if skipped.
 
     void get_function_names();
         // Find the public methods of the classes in @CLASSES.
@@ -366,7 +367,7 @@ void report::note_function(std::string f)
     ++d.d_names_to_test[f];
 }
 
-void report::process_function(CXXMethodDecl *f)
+bool report::process_function(CXXMethodDecl *f)
 {
     if (f->getAccess() == AS_public &&
         f->isUserProvided() &&
@@ -398,7 +399,9 @@ void report::process_function(CXXMethodDecl *f)
             a.report(f, check_name, "TP27",
                      "Method not called in test driver");
         }
+        return true;
     }
+    return false;
 }
 
 void report::get_function_names()
@@ -455,8 +458,9 @@ void report::get_function_names()
                     }
                 }
                 else if (auto *m = llvm::dyn_cast<CXXMethodDecl>(*b)) {
-                    process_function(m);
-                    note_function(m->getNameAsString());
+                    if (process_function(m)) {
+                        note_function(m->getNameAsString());
+                    }
                 }
             }
         }
