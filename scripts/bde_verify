@@ -69,6 +69,8 @@ my $rwd;
 my $rwf;
 my $tag;
 my $ovr = -1;
+my $m32;
+my $m64;
 
 my $command = join " \\\n ", $0, map { join "\\ ", split(/ /, $_, -1) } @ARGV;
 
@@ -139,7 +141,9 @@ GetOptions(
     },
     'tag=s'                        => \$tag,
     'llvm=s'                       => \$dummy,
-    "m32|m64|pipe|pthread|MMD|g|c" => \$dummy,
+    "m32"                          => \$m32,
+    "m64"                          => \$m64,
+    "pipe|pthread|MMD|g|c|S"       => \$dummy,
     "O|MF|o|march|mtune=s"         => \@dummy,
 ) and !$help and $#ARGV >= 0 or usage();
 
@@ -153,6 +157,7 @@ my @tag    = ("-plugin-arg-bde_verify", "tool=$tag") if $tag;
 my %uf     = ( "no-strict-aliasing" => 1,
                "PIC" => 1,
                "asynchronous-unwind-tables" => 1,
+               "diagnostics-color=auto" => 1,
              );
 @lflags = map { "-f$_" } grep { not exists $uf{$_} } @lflags;
 @wflags = map { "-W$_" } grep { not /,/ } @wflags;
@@ -194,14 +199,24 @@ for (@incs) { warn "cannot find directory $_\n" unless -d; }
         map { $_ eq Cwd::cwd() ? "." : $_ }
         map { Cwd::abs_path($_) }
         grep { -d } @incs;
+
+my @pass;
+push(@pass, "-m32") if $m32;
+push(@pass, "-m64") if $m64;
+
 unshift(@incs,
         map { ( "-isystem", $_ ) }
         map { Cwd::abs_path($_) }
         grep { -d }
         map { chomp; $_; }
-        qx{ $cc -xc++ -E -v /dev/null 2>&1 |
+        qx{ $cc -xc++ @pass -E -v /dev/null 2>&1 |
             sed -n '/^#include/,/^End of search list/p' |
             sed -n '/^ [/]/s/ //p'});
+
+my @target = (map { ( "-triple", $_ ) }
+              map { chomp; $_; }
+              qx{ $cc -xc++ @pass -E -v /dev/null 2>&1 |
+                  sed -n '/^Target: /s///p'});
 
 push(@std, "-std=$std") if $std;
 
@@ -211,6 +226,7 @@ my @command = (
     "$exe",
     "-plugin",
     "bde_verify",
+    @target,
     @std,
     @debug,
     @config,
