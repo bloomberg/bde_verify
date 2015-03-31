@@ -398,7 +398,6 @@ void report::process_function(CXXMethodDecl *f)
             a.report(f, check_name, "TP27",
                      "Method not called in test driver");
         }
-        note_function(f->getNameAsString());
     }
 }
 
@@ -446,22 +445,18 @@ void report::get_function_names()
             DeclContext::decl_iterator b = record->decls_begin();
             DeclContext::decl_iterator e = record->decls_end();
             for (; b != e; ++b) {
-                if (auto *t = llvm::dyn_cast<FunctionTemplateDecl>(*b)) {
+                if (auto t = llvm::dyn_cast<FunctionTemplateDecl>(*b)) {
+                    note_function(t->getNameAsString());
                     auto sb = t->spec_begin();
                     auto se = t->spec_end();
                     if (sb == se) {
                         a.report(t, check_name, "TP27",
                                  "Method not called in test driver");
-                        note_function(t->getNameAsString());
-                    }
-                    for (; sb != se; ++sb) {
-                        if (auto *m = llvm::dyn_cast<CXXMethodDecl>(*sb)) {
-                            process_function(m);
-                        }
                     }
                 }
                 else if (auto *m = llvm::dyn_cast<CXXMethodDecl>(*b)) {
                     process_function(m);
+                    note_function(m->getNameAsString());
                 }
             }
         }
