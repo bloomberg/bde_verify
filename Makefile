@@ -36,7 +36,7 @@ ifeq ($(SYSTEM),Linux)
                   $(PREFIX)/lib64                                             \
                   /opt/swt/lib64                                              \
                   /usr/lib64
-    LDFLAGS    += $(foreach L,$(LIBDIRS),-Wl,-L$(L) -Wl,-rpath,$(L))
+    LDFLAGS    += $(foreach L,$(LIBDIRS),-Wl,-L$(L),-rpath,$(L))
 else ifeq ($(SYSTEM),SunOS)
     AR          = /usr/ccs/bin/ar
     CXXFLAGS   += -DBYTE_ORDER=BIG_ENDIAN
@@ -44,7 +44,7 @@ else ifeq ($(SYSTEM),SunOS)
                   $(PREFIX)/lib64                                             \
                   /opt/swt/lib64                                              \
                   /usr/lib/sparcv9
-    LDFLAGS    += $(foreach L,$(LIBDIRS),-Wl,-L$(L) -Wl,-R,$(L))
+    LDFLAGS    += $(foreach L,$(LIBDIRS),-Wl,-L$(L),-R,$(L))
     EXTRALIBS  += -lrt
     ifneq (,$(wildcard $(foreach L,$(LIBDIRS),$(L)/libtinfo.so)))
         EXTRALIBS += -ltinfo
@@ -154,70 +154,61 @@ LDFLAGS  += -m64
 OFILES = $(CXXFILES:%.cpp=$(OBJ)/%.o)
 
 LIBS     =    -l$(LCB)                                                        \
-              -lLLVMX86AsmParser                                              \
-              -lLLVMSparcAsmParser                                            \
+              -lLLVMX86Info                                                   \
+              -lLLVMSparcInfo                                                 \
               -lclangFrontendTool                                             \
               -lclangCodeGen                                                  \
               -lLLVMIRReader                                                  \
               -lLLVMLinker                                                    \
               -lLLVMipo                                                       \
+              -lLLVMX86AsmParser                                              \
+              -lLLVMSparcAsmParser                                            \
               -lLLVMX86CodeGen                                                \
               -lLLVMSparcCodeGen                                              \
               -lLLVMSelectionDAG                                              \
-              -lLLVMAsmPrinter                                                \
-              -lLLVMInterpreter                                               \
               -lLLVMCodeGen                                                   \
               -lLLVMScalarOpts                                                \
-              -lLLVMInstrumentation                                           \
               -lLLVMInstCombine                                               \
               -lLLVMVectorize                                                 \
-              -lclangRewriteFrontend                                          \
-              -lclangRewrite                                                  \
-              -lclangARCMigrate                                               \
-              -lclangStaticAnalyzerFrontend                                   \
-              -lclangIndex                                                    \
-              -lclangFormat                                                   \
-              -lclangTooling                                                  \
-              -lclangToolingCore                                              \
-              -lclangFrontend                                                 \
-              -lclangDriver                                                   \
+              -lLLVMInstrumentation                                           \
               -lLLVMObjCARCOpts                                               \
               -lLLVMTransformUtils                                            \
               -lLLVMipa                                                       \
               -lLLVMAnalysis                                                  \
-              -lLLVMAsmParser                                                 \
+              -lclangStaticAnalyzerFrontend                                   \
+              -lclangRewriteFrontend                                          \
+              -lclangARCMigrate                                               \
+              -lclangFrontend                                                 \
               -lclangSerialization                                            \
-              -lLLVMBitReader                                                 \
-              -lLLVMBitWriter                                                 \
               -lLLVMProfileData                                               \
-              -lLLVMTarget                                                    \
-              -lLLVMExecutionEngine                                           \
-              -lLLVMCore                                                      \
-              -lLLVMDebugInfo                                                 \
-              -lclangParse                                                    \
-              -lLLVMMCParser                                                  \
               -lLLVMX86Desc                                                   \
               -lLLVMSparcDesc                                                 \
-              -lLLVMX86Info                                                   \
-              -lLLVMSparcInfo                                                 \
+              -lLLVMObject                                                    \
+              -lLLVMBitReader                                                 \
+              -lLLVMTarget                                                    \
+              -lLLVMAsmParser                                                 \
+              -lLLVMBitWriter                                                 \
               -lLLVMX86AsmPrinter                                             \
               -lLLVMSparcAsmPrinter                                           \
               -lLLVMX86Utils                                                  \
+              -lLLVMCore                                                      \
+              -lclangParse                                                    \
+              -lLLVMMCParser                                                  \
               -lLLVMMCDisassembler                                            \
               -lclangSema                                                     \
               -lclangStaticAnalyzerCheckers                                   \
               -lclangStaticAnalyzerCore                                       \
-              -lclangDynamicASTMatchers                                       \
               -lclangASTMatchers                                              \
               -lclangEdit                                                     \
               -lclangAnalysis                                                 \
               -lclangAST                                                      \
+              -lclangToolingCore                                              \
+              -lclangRewrite                                                  \
               -lclangLex                                                      \
+              -lclangDriver                                                   \
               -lclangBasic                                                    \
               -lLLVMMC                                                        \
-              -lLLVMObject                                                    \
               -lLLVMOption                                                    \
-              -lLLVMTableGen                                                  \
               -lLLVMSupport                                                   \
               -lncurses                                                       \
               -lpthread                                                       \
