@@ -576,7 +576,7 @@ void report::match_should_return_by_value(const BoundNodes& nodes)
     const PointerType *p1 = nodes.getNodeAs<PointerType>("type");
     if (a.is_component(func) &&
         func->getCanonicalDecl() == func &&
-        !func->isTemplateInstantiation() &&
+        func->getTemplatedKind() == FunctionDecl::TK_NonTemplate &&
         !func->getLocation().isMacroID() &&
         !llvm::dyn_cast<CXXConstructorDecl>(func) &&
         !p1->getPointeeType()->isDependentType() &&
@@ -587,6 +587,9 @@ void report::match_should_return_by_value(const BoundNodes& nodes)
         !func->getParamDecl(0)->hasDefaultArg() &&
         !is_allocator(p1->desugar()) &&
         !takes_allocator(p1->getPointeeType().getCanonicalType()) &&
+        (func->getNumParams() == 1 ||
+                                   func->getParamDecl(0)->getOriginalType() !=
+                                   func->getParamDecl(1)->getOriginalType()) &&
         !hasRVCognate(func)) {
         a.report(func, check_name, "RV01",
                  "Consider returning '%0' by value")
