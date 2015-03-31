@@ -46,6 +46,7 @@ struct Word
     bool            is_preposition   : 1;
     bool            is_that          : 1;
     bool            is_which         : 1;
+    bool            is_of            : 1;
     bool            is_punct         : 1;
 
     Word();
@@ -65,20 +66,21 @@ Word::Word()
 , is_preposition(false)
 , is_that(false)
 , is_which(false)
+, is_of(false)
 , is_punct(false)
 {
 }
 
 void Word::set(llvm::StringRef s, size_t position)
 {
-    static std::unordered_set<llvm::StringRef> prepositions {
+    static std::unordered_set<llvm::StringRef> prepositions{
         "about",   "above",      "across",  "after",   "against", "among",
         "around",  "at",         "before",  "behind",  "below",   "beneath",
         "beside",  "besides",    "between", "beyond",  "by",      "during",
         "for",     "from",       "in",      "inside",  "into",    "near",
         "of",      "on",         "out",     "outside", "over",    "since",
-        "through", "throughout", "till",    "to",      "toward",  "under",
-        "until",   "up",         "upon",    "with",    "without",
+        "through", "throughout", "till",    "to",      "toward",  "unclear",
+        "under",   "until",      "up",      "upon",    "with",    "without",
     };
 
     word             = s;
@@ -92,6 +94,7 @@ void Word::set(llvm::StringRef s, size_t position)
     is_that          = s.equals_lower("that");
     is_which         = s.equals_lower("which");
     is_preposition   = prepositions.count(s) || s.endswith("ing");
+    is_of            = s.equals_lower("of");
     is_punct         = s.size() == 1 && !isalpha(s[0] & 0xFF);
 }
 
@@ -188,7 +191,7 @@ void report::that_which(SourceRange range)
     std::vector<Word> w;
     split(&w, c);
 
-    for (size_t i = 0; i < w.size(); ++i) {
+    for (size_t i = 0; i + 1 < w.size(); ++i) {
         if (w[i].is_copyright) {
             break;
         }
@@ -199,7 +202,8 @@ void report::that_which(SourceRange range)
             !w[i - 1].is_punct &&
             !w[i - 1].is_comma &&
             !w[i - 1].is_that &&
-            !w[i - 1].is_preposition) {
+            !w[i - 1].is_preposition &&
+            !w[i + 1].is_of) {
             a.report(range.getBegin().getLocWithOffset(w[i].offset),
                      check_name, "TW01",
                      "Possibly prefer 'that' over 'which'");
