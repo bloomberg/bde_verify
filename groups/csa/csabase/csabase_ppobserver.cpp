@@ -299,12 +299,14 @@ static llvm::Regex pragma_bdeverify(
     llvm::Regex::NoFlags);
 
 static llvm::Regex comment_bdeverify(
-    "^ *// *B[BD]E?_?VERIFY +pragma *: *"     "("  // 1
-        "(" "push"                           ")|"  // 2
-        "(" "pop"                            ")|"  // 3
-        "(" "[-] *([[:alnum:]]+|[*])" ")|"         // 4 5
-        "(" "[+] *([[:alnum:]]+|[*])" ")|"         // 6 7
-        "(" "set *([_[:alnum:]]+) *(.*[^ ])" ")|"  // 8 9 10
+    "^ *// *B[BD]E?_?VERIFY +pragma *: *"     "("      // 1
+        "(" "push"                           ")|"      // 2
+        "(" "pop"                            ")|"      // 3
+        "(" "[-] *([[:alnum:]]+|[*])" ")|"             // 4 5
+        "(" "[+] *([[:alnum:]]+|[*])" ")|"             // 6 7
+        "(" "set *([_[:alnum:]]+) *(.*[^ ])" ")|"      // 8 9 10
+        "(" "append *([_[:alnum:]]+) *(.*[^ ])" ")|"   // 11 12 13
+        "(" "prepend *([_[:alnum:]]+) *(.*[^ ])" ")|"  // 14 15 16
         "$"
     ")",
     llvm::Regex::NoFlags);
@@ -320,18 +322,26 @@ static void handle_bv_pragma(const SourceManager&  m,
         m.getBufferData(fid).slice(
             m.getFileOffset(m.translateLineCol(fid, line, 1)),
             m.getFileOffset(m.translateLineCol(fid, line, 0)));
-    llvm::SmallVector<llvm::StringRef, 8> matches;
+    llvm::SmallVector<llvm::StringRef, 20> matches;
     if (r.match(directive, &matches)) {
-        if (!matches[2].empty()) {
+        if (!matches[2].empty()) {                        // push
             c->push_suppress(l);
-        } else if (!matches[3].empty()) {
+        } else if (!matches[3].empty()) {                 // pop
             c->pop_suppress(l);
-        } else if (!matches[5].empty()) {
+        } else if (!matches[5].empty()) {                 // suppress
             c->suppress(matches[5], l, true);
-        } else if (!matches[7].empty()) {
+        } else if (!matches[7].empty()) {                 // unsuppress
             c->suppress(matches[7], l, false);
-        } else if (!matches[8].empty()) {
+        } else if (!matches[8].empty()) {                 // set
             c->set_bv_value(l, matches[9], matches[10]);
+        } else if (!matches[11].empty()) {                // append
+            std::string old = c->value(matches[12], l);
+            std::string sp = old.size() > 0 ? " " : "";
+            c->set_bv_value(l, matches[12], old + sp + matches[13].str());
+        } else if (!matches[14].empty()) {                // prepend
+            std::string old = c->value(matches[12], l);
+            std::string sp = old.size() > 0 ? " " : "";
+            c->set_bv_value(l, matches[15], matches[16].str() + old + sp);
         }
     }
 }
