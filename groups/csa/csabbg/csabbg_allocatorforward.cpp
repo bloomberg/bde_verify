@@ -588,8 +588,8 @@ void report::match_should_return_by_value(const BoundNodes& nodes)
         !is_allocator(p1->desugar()) &&
         !takes_allocator(p1->getPointeeType().getCanonicalType()) &&
         (func->getNumParams() == 1 ||
-                                   func->getParamDecl(0)->getOriginalType() !=
-                                   func->getParamDecl(1)->getOriginalType()) &&
+            func->getParamDecl(0)->getOriginalType().getUnqualifiedType() !=
+            func->getParamDecl(1)->getOriginalType().getUnqualifiedType()) &&
         !hasRVCognate(func)) {
         a.report(func, check_name, "RV01",
                  "Consider returning '%0' by value")
