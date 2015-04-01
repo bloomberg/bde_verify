@@ -27,6 +27,7 @@ class DiagnosticFilter : public clang::TextDiagnosticPrinter
 private:
     Analyser const*                          d_analyser;
     std::string                              d_diagnose;
+    bool                                     d_prev_handle;
 };
 }
 

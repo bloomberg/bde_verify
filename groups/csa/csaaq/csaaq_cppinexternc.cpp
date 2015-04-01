@@ -87,8 +87,6 @@ struct report : Report<data>
 
     void operator()(const LinkageSpecDecl *decl);
 
-    void operator()(const Stmt *stmt);
-
     void operator()();
 };
 
@@ -162,35 +160,6 @@ void report::operator()(SourceRange Range)
     }
 }
 
-// Ifdef/Ifndef
-void report::operator()(SourceLocation        Loc,
-                        const Token&          MacroNameTok,
-                        const MacroDirective *MD)
-{
-#if 0
-    llvm::StringRef name = llvm::sys::path::filename(m.getFilename(Loc));
-    if (MacroNameTok.getIdentifierInfo()->getName() == "__cplusplus" &&
-        d_data.d_types[name].second != LinkageSpecDecl::lang_c) {
-        d_data.d_types[name] = std::make_pair(Loc, LinkageSpecDecl::lang_c);
-    }
-#endif
-}
-
-// Defined
-void report::operator()(const Token&          MacroNameTok,
-                        const MacroDirective *MD,
-                        SourceRange           Range)
-{
-#if 0
-    SourceLocation Loc = Range.getBegin();
-    llvm::StringRef name = llvm::sys::path::filename(m.getFilename(Loc));
-    if (MacroNameTok.getIdentifierInfo()->getName() == "__cplusplus" &&
-        d_data.d_types[name].second != LinkageSpecDecl::lang_c) {
-        d_data.d_types[name] = std::make_pair(Loc, LinkageSpecDecl::lang_c);
-    }
-#endif
-}
-
 void report::set_lang(SourceLocation sl, LinkageSpecDecl::LanguageIDs lang)
 {
     SourceLocation osl = sl;
@@ -230,56 +199,16 @@ void report::operator()(const LinkageSpecDecl *decl)
     if (decl->hasBraces()) {
         d_data.d_linkages[decl->getSourceRange()] = decl;
     }
-#if 0
-    if (decl->getLanguage() == LinkageSpecDecl::lang_cxx) {
-        SourceLocation sl = m.getExpansionLoc(decl->getLocation());
-        set_lang(sl, LinkageSpecDecl::lang_cxx);
-    }
-#endif
 }
-
-#if 0
-void report::operator()(const FunctionDecl *decl)
-{
-    if (decl->isOverloadedOperator() ||
-        decl->isInlined() ||
-        decl->getTemplatedKind() != FunctionDecl::TK_NonTemplate) {
-        SourceLocation sl = m.getExpansionLoc(decl->getLocation());
-        set_lang(sl, LinkageSpecDecl::lang_cxx);
-    }
-}
-#endif
 
 void report::operator()(const Decl *decl)
 {
     switch (decl->getKind()) {
-      //case Decl::AccessSpec:
-      //case Decl::ClassScopeFunctionSpecialization:
-      //case Decl::Friend:
-      //case Decl::FriendTemplate:
-      //case Decl::Namespace:
-      //case Decl::NamespaceAlias:
       case Decl::ClassTemplate:
       case Decl::FunctionTemplate:
-      //case Decl::TypeAliasTemplate:
       case Decl::VarTemplate:
-      //case Decl::TemplateTemplateParm:
-      //case Decl::CXXRecord:
       case Decl::ClassTemplateSpecialization:
       case Decl::ClassTemplatePartialSpecialization:
-      //case Decl::TemplateTypeParm:
-      //case Decl::TypeAlias:
-      //case Decl::UnresolvedUsingTypename:
-      //case Decl::Using:
-      //case Decl::UsingDirective:
-      //case Decl::UsingShadow:
-      //case Decl::CXXMethod:
-      //case Decl::CXXConstructor:
-      //case Decl::CXXConversion:
-      //case Decl::CXXDestructor:
-      //case Decl::NonTypeTemplateParm:
-      //case Decl::VarTemplateSpecialization:
-      //case Decl::UnresolvedUsingValue:
       {
         SourceLocation sl = m.getExpansionLoc(decl->getLocation());
         set_lang(sl, LinkageSpecDecl::lang_cxx);
@@ -287,57 +216,6 @@ void report::operator()(const Decl *decl)
       default:
         ;
     }
-}
-
-void report::operator()(const Stmt *stmt)
-{
-#if 0
-    switch (stmt->getStmtClass()) {
-      case Stmt::CXXCatchStmtClass:
-      case Stmt::CXXForRangeStmtClass:
-      case Stmt::CXXTryStmtClass:
-      case Stmt::CXXBindTemporaryExprClass:
-      case Stmt::CXXBoolLiteralExprClass:
-      case Stmt::CXXConstructExprClass:
-      case Stmt::CXXTemporaryObjectExprClass:
-      case Stmt::CXXDefaultArgExprClass:
-      case Stmt::CXXDefaultInitExprClass:
-      case Stmt::CXXDeleteExprClass:
-      case Stmt::CXXDependentScopeMemberExprClass:
-      case Stmt::CXXNewExprClass:
-      case Stmt::CXXNoexceptExprClass:
-      case Stmt::CXXNullPtrLiteralExprClass:
-      case Stmt::CXXPseudoDestructorExprClass:
-      case Stmt::CXXScalarValueInitExprClass:
-      case Stmt::CXXStdInitializerListExprClass:
-      case Stmt::CXXThisExprClass:
-      case Stmt::CXXThrowExprClass:
-      case Stmt::CXXTypeidExprClass:
-      case Stmt::CXXUnresolvedConstructExprClass:
-      case Stmt::CXXUuidofExprClass:
-      case Stmt::CXXMemberCallExprClass:
-      case Stmt::CXXOperatorCallExprClass:
-      case Stmt::UserDefinedLiteralClass:
-      case Stmt::CXXFunctionalCastExprClass:
-      case Stmt::CXXConstCastExprClass:
-      case Stmt::CXXDynamicCastExprClass:
-      case Stmt::CXXReinterpretCastExprClass:
-      case Stmt::CXXStaticCastExprClass:
-      case Stmt::FunctionParmPackExprClass:
-      case Stmt::LambdaExprClass:
-      case Stmt::UnresolvedLookupExprClass:
-      case Stmt::UnresolvedMemberExprClass:
-      case Stmt::PackExpansionExprClass:
-      case Stmt::SizeOfPackExprClass:
-      case Stmt::SubstNonTypeTemplateParmExprClass:
-      case Stmt::SubstNonTypeTemplateParmPackExprClass: {
-        SourceLocation sl = m.getExpansionLoc(stmt->getLocStart());
-        set_lang(sl, LinkageSpecDecl::lang_cxx);
-      }
-      default:
-        ;
-    }
-#endif
 }
 
 // TranslationUnitDone
@@ -360,21 +238,20 @@ void report::operator()()
             continue;
         }
         d_analyser.report(f.first, check_name, "PC01",
-                      "C++ header included within C linkage specification",
-                          true);
+                         "C++ header included within C linkage specification");
         d_analyser.report(lsd->getLocation(), check_name, "PC01",
                           "C linkage specification here",
-                          true, DiagnosticIDs::Note);
+                          false, DiagnosticIDs::Note);
         if (sl.isValid() && sl != f.first) {
             d_data.d_done.insert(sl);
             d_analyser.report(sl, check_name, "PC01",
                               "Top level include within C linkage here",
-                              true, DiagnosticIDs::Note);
+                              false, DiagnosticIDs::Note);
         }
         d_analyser.report(d_data.d_types[f.second.first].first,
                           check_name, "PC01",
                           "Declaration with C++ linkage here",
-                          true, DiagnosticIDs::Note);
+                          false, DiagnosticIDs::Note);
     }
 }
 
@@ -387,14 +264,10 @@ void subscribe(Analyser& analyser, Visitor& visitor, PPObserver& observer)
                                                 observer.e_FileSkipped);
     observer.onPPSourceRangeSkipped += report(analyser,
                                                 observer.e_SourceRangeSkipped);
-    observer.onPPIfdef              += report(analyser, observer.e_Ifdef);
-    observer.onPPIfndef             += report(analyser, observer.e_Ifndef);
-    observer.onPPDefined            += report(analyser, observer.e_Defined);
     analyser.onTranslationUnitDone  += report(analyser);
     visitor.onDecl                  += report(analyser);
     visitor.onFunctionDecl          += report(analyser);
     visitor.onLinkageSpecDecl       += report(analyser);
-    visitor.onStmt                  += report(analyser);
 }
 
 }  // close anonymous namespace

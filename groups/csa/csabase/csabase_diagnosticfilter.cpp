@@ -32,6 +32,7 @@ csabase::DiagnosticFilter::DiagnosticFilter(Analyser const&    analyser,
 : TextDiagnosticPrinter(llvm::errs(), &options)
 , d_analyser(&analyser)
 , d_diagnose(diagnose)
+, d_prev_handle(false)
 {
 }
 
@@ -42,28 +43,34 @@ csabase::DiagnosticFilter::HandleDiagnostic(DiagnosticsEngine::Level level,
                                             Diagnostic const&        info)
 {
     bool handle = false;
-    if (!handle) {
-        handle = level >= DiagnosticsEngine::Error;
+    if (level == DiagnosticsEngine::Note) {
+        handle = d_prev_handle;
     }
-    if (!handle) {
-        handle = !info.getLocation().isFileID() &&
-                 info.getID() != diag::pp_pragma_once_in_main_file;
-    }
-    if (!handle) {
-        handle = d_diagnose == "all";
-    }
-    if (!handle) {
-        handle = d_diagnose == "nogen" &&
-                 !d_analyser->is_generated(info.getLocation());
-    }
-    if (!handle) {
-        handle = d_diagnose == "component" &&
-                 d_analyser->is_component(info.getLocation());
-    }
-    if (!handle) {
-        handle = d_diagnose == "main" &&
-                 d_analyser->manager().getMainFileID() ==
-                 d_analyser->manager().getFileID(info.getLocation());
+    else {
+        if (!handle) {
+            handle = level >= DiagnosticsEngine::Error;
+        }
+        if (!handle) {
+            handle = !info.getLocation().isFileID() &&
+                     info.getID() != diag::pp_pragma_once_in_main_file;
+        }
+        if (!handle) {
+            handle = d_diagnose == "all";
+        }
+        if (!handle) {
+            handle = d_diagnose == "nogen" &&
+                     !d_analyser->is_generated(info.getLocation());
+        }
+        if (!handle) {
+            handle = d_diagnose == "component" &&
+                     d_analyser->is_component(info.getLocation());
+        }
+        if (!handle) {
+            handle = d_diagnose == "main" &&
+                     d_analyser->manager().getMainFileID() ==
+                     d_analyser->manager().getFileID(info.getLocation());
+        }
+        d_prev_handle = handle;
     }
     if (handle) {
         TextDiagnosticPrinter::HandleDiagnostic(level, info);

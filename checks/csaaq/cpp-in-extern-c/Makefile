@@ -3,6 +3,7 @@ FILES := $(wildcard *.cpp)
 CHECKNAME := $(notdir $(realpath .))
 
 BDE_VERIFY_DIR ?= ../../..
+BDE_VERIFY_ARGS = -nodefinc -nodefdef -cc=/opt/swt/install/gcc-4.9.2/bin/g++
 include $(BDE_VERIFY_DIR)/checks/Makefile.inc
 
 ## ----------------------------------------------------------------------------
