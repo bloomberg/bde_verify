@@ -441,6 +441,17 @@ void files::check_wrapped(SourceRange range)
         size_t ll = banner.match(text, &banners) ? banners[1].size() - 3 :
                                                    77 - (c - n);
 
+        size_t sp = c;
+        while ((sp = text.find(". ", sp)) != text.npos) {
+            if (text[sp + 2] != ' ' && text[sp + 2] != '\n') {
+                d_analyser.report(
+                    range.getBegin().getLocWithOffset(matchpos + sp),
+                    check_name, "PSS01",
+                    "Use two spaces after a period - consider using bdewrap");
+            }
+            sp += 2;
+        }
+
         std::pair<size_t, size_t> bad_pos =
             bad_wrap_pos(text, ll - wrap_slack);
         if (bad_pos.first != text.npos) {
