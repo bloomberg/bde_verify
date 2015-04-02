@@ -400,6 +400,8 @@ void report::match_nested_allocator_trait(const BoundNodes& nodes)
                   "NestedTraitDeclaration<") == 0 ||
         type.find("bslalg_TypeTraitUsesBslmaAllocator::"
                   "NestedTraitDeclaration<") == 0 ||
+        type.find("bdealg_TypeTraitUsesBdemaAllocator::"
+                  "NestedTraitDeclaration<") == 0 ||
         (type.find("BloombergLP::bslmf::NestedTraitDeclaration<") == 0 &&
          (type.find(", bslma::UsesBslmaAllocator, true>") != type.npos ||
           type.find(", bslma::UsesBslmaAllocator>") != type.npos))) {
