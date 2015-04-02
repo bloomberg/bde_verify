@@ -71,7 +71,7 @@ void report::operator()(const BinaryOperator *op)
         else if (!carefullyIsEvaluatable(lhs) && carefullyIsEvaluatable(rhs)) {
             tag = "CR02";
             a.report(op->getOperatorLoc(), check_name, tag,
-                     "Constant operand should be on the left")
+                     "Constant-expression operand should be on the left")
                 << op->getSourceRange();
         }
         if (tag) {

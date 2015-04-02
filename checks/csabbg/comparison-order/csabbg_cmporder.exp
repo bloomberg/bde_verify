@@ -22,25 +22,25 @@ csabbg_cmporder.cpp:21:14: warning: CR01: Non-modifiable operand should be on th
 csabbg_cmporder.cpp:21:14: note: CR01: Replace with 1. == d
     if (   d == 1.) return 1; if (   d < 1.) return 1;
            ~~^~~~~
-csabbg_cmporder.cpp:22:14: warning: CR02: Constant operand should be on the left
+csabbg_cmporder.cpp:22:14: warning: CR02: Constant-expression operand should be on the left
     if (  ca == 1 ) return 1; if (  ca < 1 ) return 1;
           ~~~^~~~
 csabbg_cmporder.cpp:22:14: note: CR02: Replace with 1 == ca
     if (  ca == 1 ) return 1; if (  ca < 1 ) return 1;
           ~~~^~~~
-csabbg_cmporder.cpp:23:14: warning: CR02: Constant operand should be on the left
+csabbg_cmporder.cpp:23:14: warning: CR02: Constant-expression operand should be on the left
     if (  ca == 1.) return 1; if (  ca < 1.) return 1;
           ~~~^~~~~
 csabbg_cmporder.cpp:23:14: note: CR02: Replace with 1. == ca
     if (  ca == 1.) return 1; if (  ca < 1.) return 1;
           ~~~^~~~~
-csabbg_cmporder.cpp:24:14: warning: CR02: Constant operand should be on the left
+csabbg_cmporder.cpp:24:14: warning: CR02: Constant-expression operand should be on the left
     if (  cd == 1 ) return 1; if (  cd < 1 ) return 1;
           ~~~^~~~
 csabbg_cmporder.cpp:24:14: note: CR02: Replace with 1 == cd
     if (  cd == 1 ) return 1; if (  cd < 1 ) return 1;
           ~~~^~~~
-csabbg_cmporder.cpp:25:14: warning: CR02: Constant operand should be on the left
+csabbg_cmporder.cpp:25:14: warning: CR02: Constant-expression operand should be on the left
     if (  cd == 1.) return 1; if (  cd < 1.) return 1;
           ~~~^~~~~
 csabbg_cmporder.cpp:25:14: note: CR02: Replace with 1. == cd
@@ -70,25 +70,25 @@ csabbg_cmporder.cpp:29:14: warning: CR01: Non-modifiable operand should be on th
 csabbg_cmporder.cpp:29:14: note: CR01: Replace with 1. == *pd
     if ( *pd == 1.) return 1; if ( *pd < 1.) return 1;
          ~~~~^~~~~
-csabbg_cmporder.cpp:30:14: warning: CR02: Constant operand should be on the left
+csabbg_cmporder.cpp:30:14: warning: CR02: Constant-expression operand should be on the left
     if (*pca == 1 ) return 1; if (*pca < 1 ) return 1;
         ~~~~~^~~~
 csabbg_cmporder.cpp:30:14: note: CR02: Replace with 1 == *pca
     if (*pca == 1 ) return 1; if (*pca < 1 ) return 1;
         ~~~~~^~~~
-csabbg_cmporder.cpp:31:14: warning: CR02: Constant operand should be on the left
+csabbg_cmporder.cpp:31:14: warning: CR02: Constant-expression operand should be on the left
     if (*pca == 1.) return 1; if (*pca < 1.) return 1;
         ~~~~~^~~~~
 csabbg_cmporder.cpp:31:14: note: CR02: Replace with 1. == *pca
     if (*pca == 1.) return 1; if (*pca < 1.) return 1;
         ~~~~~^~~~~
-csabbg_cmporder.cpp:32:14: warning: CR02: Constant operand should be on the left
+csabbg_cmporder.cpp:32:14: warning: CR02: Constant-expression operand should be on the left
     if (*pcd == 1 ) return 1; if (*pcd < 1 ) return 1;
         ~~~~~^~~~
 csabbg_cmporder.cpp:32:14: note: CR02: Replace with 1 == *pcd
     if (*pcd == 1 ) return 1; if (*pcd < 1 ) return 1;
         ~~~~~^~~~
-csabbg_cmporder.cpp:33:14: warning: CR02: Constant operand should be on the left
+csabbg_cmporder.cpp:33:14: warning: CR02: Constant-expression operand should be on the left
     if (*pcd == 1.) return 1; if (*pcd < 1.) return 1;
         ~~~~~^~~~~
 csabbg_cmporder.cpp:33:14: note: CR02: Replace with 1. == *pcd
@@ -118,25 +118,25 @@ csabbg_cmporder.cpp:37:14: warning: CR01: Non-modifiable operand should be on th
 csabbg_cmporder.cpp:37:14: note: CR01: Replace with 1. == rd
     if (  rd == 1.) return 1; if (  rd < 1.) return 1;
           ~~~^~~~~
-csabbg_cmporder.cpp:38:14: warning: CR02: Constant operand should be on the left
+csabbg_cmporder.cpp:38:14: warning: CR02: Constant-expression operand should be on the left
     if ( rca == 1 ) return 1; if ( rca < 1 ) return 1;
          ~~~~^~~~
 csabbg_cmporder.cpp:38:14: note: CR02: Replace with 1 == rca
     if ( rca == 1 ) return 1; if ( rca < 1 ) return 1;
          ~~~~^~~~
-csabbg_cmporder.cpp:39:14: warning: CR02: Constant operand should be on the left
+csabbg_cmporder.cpp:39:14: warning: CR02: Constant-expression operand should be on the left
     if ( rca == 1.) return 1; if ( rca < 1.) return 1;
          ~~~~^~~~~
 csabbg_cmporder.cpp:39:14: note: CR02: Replace with 1. == rca
     if ( rca == 1.) return 1; if ( rca < 1.) return 1;
          ~~~~^~~~~
-csabbg_cmporder.cpp:40:14: warning: CR02: Constant operand should be on the left
+csabbg_cmporder.cpp:40:14: warning: CR02: Constant-expression operand should be on the left
     if ( rcd == 1 ) return 1; if ( rcd < 1 ) return 1;
          ~~~~^~~~
 csabbg_cmporder.cpp:40:14: note: CR02: Replace with 1 == rcd
     if ( rcd == 1 ) return 1; if ( rcd < 1 ) return 1;
          ~~~~^~~~
-csabbg_cmporder.cpp:41:14: warning: CR02: Constant operand should be on the left
+csabbg_cmporder.cpp:41:14: warning: CR02: Constant-expression operand should be on the left
     if ( rcd == 1.) return 1; if ( rcd < 1.) return 1;
          ~~~~^~~~~
 csabbg_cmporder.cpp:41:14: note: CR02: Replace with 1. == rcd
@@ -166,25 +166,25 @@ csabbg_cmporder.cpp:69:15: warning: CR01: Non-modifiable operand should be on th
 csabbg_cmporder.cpp:69:15: note: CR01: Replace with 1. == d
     if ((   d == 1.) << (   d < 1.)) return 1;
             ~~^~~~~
-csabbg_cmporder.cpp:70:15: warning: CR02: Constant operand should be on the left
+csabbg_cmporder.cpp:70:15: warning: CR02: Constant-expression operand should be on the left
     if ((  ca == 1 ) << (  ca < 1 )) return 1;
            ~~~^~~~
 csabbg_cmporder.cpp:70:15: note: CR02: Replace with 1 == ca
     if ((  ca == 1 ) << (  ca < 1 )) return 1;
            ~~~^~~~
-csabbg_cmporder.cpp:71:15: warning: CR02: Constant operand should be on the left
+csabbg_cmporder.cpp:71:15: warning: CR02: Constant-expression operand should be on the left
     if ((  ca == 1.) << (  ca < 1.)) return 1;
            ~~~^~~~~
 csabbg_cmporder.cpp:71:15: note: CR02: Replace with 1. == ca
     if ((  ca == 1.) << (  ca < 1.)) return 1;
            ~~~^~~~~
-csabbg_cmporder.cpp:72:15: warning: CR02: Constant operand should be on the left
+csabbg_cmporder.cpp:72:15: warning: CR02: Constant-expression operand should be on the left
     if ((  cd == 1 ) << (  cd < 1 )) return 1;
            ~~~^~~~
 csabbg_cmporder.cpp:72:15: note: CR02: Replace with 1 == cd
     if ((  cd == 1 ) << (  cd < 1 )) return 1;
            ~~~^~~~
-csabbg_cmporder.cpp:73:15: warning: CR02: Constant operand should be on the left
+csabbg_cmporder.cpp:73:15: warning: CR02: Constant-expression operand should be on the left
     if ((  cd == 1.) << (  cd < 1.)) return 1;
            ~~~^~~~~
 csabbg_cmporder.cpp:73:15: note: CR02: Replace with 1. == cd
@@ -214,25 +214,25 @@ csabbg_cmporder.cpp:77:15: warning: CR01: Non-modifiable operand should be on th
 csabbg_cmporder.cpp:77:15: note: CR01: Replace with 1. == *pd
     if (( *pd == 1.) << ( *pd < 1.)) return 1;
           ~~~~^~~~~
-csabbg_cmporder.cpp:78:15: warning: CR02: Constant operand should be on the left
+csabbg_cmporder.cpp:78:15: warning: CR02: Constant-expression operand should be on the left
     if ((*pca == 1 ) << (*pca < 1 )) return 1;
          ~~~~~^~~~
 csabbg_cmporder.cpp:78:15: note: CR02: Replace with 1 == *pca
     if ((*pca == 1 ) << (*pca < 1 )) return 1;
          ~~~~~^~~~
-csabbg_cmporder.cpp:79:15: warning: CR02: Constant operand should be on the left
+csabbg_cmporder.cpp:79:15: warning: CR02: Constant-expression operand should be on the left
     if ((*pca == 1.) << (*pca < 1.)) return 1;
          ~~~~~^~~~~
 csabbg_cmporder.cpp:79:15: note: CR02: Replace with 1. == *pca
     if ((*pca == 1.) << (*pca < 1.)) return 1;
          ~~~~~^~~~~
-csabbg_cmporder.cpp:80:15: warning: CR02: Constant operand should be on the left
+csabbg_cmporder.cpp:80:15: warning: CR02: Constant-expression operand should be on the left
     if ((*pcd == 1 ) << (*pcd < 1 )) return 1;
          ~~~~~^~~~
 csabbg_cmporder.cpp:80:15: note: CR02: Replace with 1 == *pcd
     if ((*pcd == 1 ) << (*pcd < 1 )) return 1;
          ~~~~~^~~~
-csabbg_cmporder.cpp:81:15: warning: CR02: Constant operand should be on the left
+csabbg_cmporder.cpp:81:15: warning: CR02: Constant-expression operand should be on the left
     if ((*pcd == 1.) << (*pcd < 1.)) return 1;
          ~~~~~^~~~~
 csabbg_cmporder.cpp:81:15: note: CR02: Replace with 1. == *pcd
@@ -262,25 +262,25 @@ csabbg_cmporder.cpp:85:15: warning: CR01: Non-modifiable operand should be on th
 csabbg_cmporder.cpp:85:15: note: CR01: Replace with 1. == rd
     if ((  rd == 1.) << (  rd < 1.)) return 1;
            ~~~^~~~~
-csabbg_cmporder.cpp:86:15: warning: CR02: Constant operand should be on the left
+csabbg_cmporder.cpp:86:15: warning: CR02: Constant-expression operand should be on the left
     if (( rca == 1 ) << ( rca < 1 )) return 1;
           ~~~~^~~~
 csabbg_cmporder.cpp:86:15: note: CR02: Replace with 1 == rca
     if (( rca == 1 ) << ( rca < 1 )) return 1;
           ~~~~^~~~
-csabbg_cmporder.cpp:87:15: warning: CR02: Constant operand should be on the left
+csabbg_cmporder.cpp:87:15: warning: CR02: Constant-expression operand should be on the left
     if (( rca == 1.) << ( rca < 1.)) return 1;
           ~~~~^~~~~
 csabbg_cmporder.cpp:87:15: note: CR02: Replace with 1. == rca
     if (( rca == 1.) << ( rca < 1.)) return 1;
           ~~~~^~~~~
-csabbg_cmporder.cpp:88:15: warning: CR02: Constant operand should be on the left
+csabbg_cmporder.cpp:88:15: warning: CR02: Constant-expression operand should be on the left
     if (( rcd == 1 ) << ( rcd < 1 )) return 1;
           ~~~~^~~~
 csabbg_cmporder.cpp:88:15: note: CR02: Replace with 1 == rcd
     if (( rcd == 1 ) << ( rcd < 1 )) return 1;
           ~~~~^~~~
-csabbg_cmporder.cpp:89:15: warning: CR02: Constant operand should be on the left
+csabbg_cmporder.cpp:89:15: warning: CR02: Constant-expression operand should be on the left
     if (( rcd == 1.) << ( rcd < 1.)) return 1;
           ~~~~^~~~~
 csabbg_cmporder.cpp:89:15: note: CR02: Replace with 1. == rcd
@@ -310,25 +310,25 @@ csabbg_cmporder.cpp:93:15: warning: CR01: Non-modifiable operand should be on th
 csabbg_cmporder.cpp:93:15: note: CR01: Replace with 1. == d
     if ((   d == 1.) != (   d < 1.)) return 1;
             ~~^~~~~
-csabbg_cmporder.cpp:94:15: warning: CR02: Constant operand should be on the left
+csabbg_cmporder.cpp:94:15: warning: CR02: Constant-expression operand should be on the left
     if ((  ca == 1 ) != (  ca < 1 )) return 1;
            ~~~^~~~
 csabbg_cmporder.cpp:94:15: note: CR02: Replace with 1 == ca
     if ((  ca == 1 ) != (  ca < 1 )) return 1;
            ~~~^~~~
-csabbg_cmporder.cpp:95:15: warning: CR02: Constant operand should be on the left
+csabbg_cmporder.cpp:95:15: warning: CR02: Constant-expression operand should be on the left
     if ((  ca == 1.) != (  ca < 1.)) return 1;
            ~~~^~~~~
 csabbg_cmporder.cpp:95:15: note: CR02: Replace with 1. == ca
     if ((  ca == 1.) != (  ca < 1.)) return 1;
            ~~~^~~~~
-csabbg_cmporder.cpp:96:15: warning: CR02: Constant operand should be on the left
+csabbg_cmporder.cpp:96:15: warning: CR02: Constant-expression operand should be on the left
     if ((  cd == 1 ) != (  cd < 1 )) return 1;
            ~~~^~~~
 csabbg_cmporder.cpp:96:15: note: CR02: Replace with 1 == cd
     if ((  cd == 1 ) != (  cd < 1 )) return 1;
            ~~~^~~~
-csabbg_cmporder.cpp:97:15: warning: CR02: Constant operand should be on the left
+csabbg_cmporder.cpp:97:15: warning: CR02: Constant-expression operand should be on the left
     if ((  cd == 1.) != (  cd < 1.)) return 1;
            ~~~^~~~~
 csabbg_cmporder.cpp:97:15: note: CR02: Replace with 1. == cd
@@ -358,25 +358,25 @@ csabbg_cmporder.cpp:101:15: warning: CR01: Non-modifiable operand should be on t
 csabbg_cmporder.cpp:101:15: note: CR01: Replace with 1. == *pd
     if (( *pd == 1.) != ( *pd < 1.)) return 1;
           ~~~~^~~~~
-csabbg_cmporder.cpp:102:15: warning: CR02: Constant operand should be on the left
+csabbg_cmporder.cpp:102:15: warning: CR02: Constant-expression operand should be on the left
     if ((*pca == 1 ) != (*pca < 1 )) return 1;
          ~~~~~^~~~
 csabbg_cmporder.cpp:102:15: note: CR02: Replace with 1 == *pca
     if ((*pca == 1 ) != (*pca < 1 )) return 1;
          ~~~~~^~~~
-csabbg_cmporder.cpp:103:15: warning: CR02: Constant operand should be on the left
+csabbg_cmporder.cpp:103:15: warning: CR02: Constant-expression operand should be on the left
     if ((*pca == 1.) != (*pca < 1.)) return 1;
          ~~~~~^~~~~
 csabbg_cmporder.cpp:103:15: note: CR02: Replace with 1. == *pca
     if ((*pca == 1.) != (*pca < 1.)) return 1;
          ~~~~~^~~~~
-csabbg_cmporder.cpp:104:15: warning: CR02: Constant operand should be on the left
+csabbg_cmporder.cpp:104:15: warning: CR02: Constant-expression operand should be on the left
     if ((*pcd == 1 ) != (*pcd < 1 )) return 1;
          ~~~~~^~~~
 csabbg_cmporder.cpp:104:15: note: CR02: Replace with 1 == *pcd
     if ((*pcd == 1 ) != (*pcd < 1 )) return 1;
          ~~~~~^~~~
-csabbg_cmporder.cpp:105:15: warning: CR02: Constant operand should be on the left
+csabbg_cmporder.cpp:105:15: warning: CR02: Constant-expression operand should be on the left
     if ((*pcd == 1.) != (*pcd < 1.)) return 1;
          ~~~~~^~~~~
 csabbg_cmporder.cpp:105:15: note: CR02: Replace with 1. == *pcd
@@ -406,25 +406,25 @@ csabbg_cmporder.cpp:109:15: warning: CR01: Non-modifiable operand should be on t
 csabbg_cmporder.cpp:109:15: note: CR01: Replace with 1. == rd
     if ((  rd == 1.) != (  rd < 1.)) return 1;
            ~~~^~~~~
-csabbg_cmporder.cpp:110:15: warning: CR02: Constant operand should be on the left
+csabbg_cmporder.cpp:110:15: warning: CR02: Constant-expression operand should be on the left
     if (( rca == 1 ) != ( rca < 1 )) return 1;
           ~~~~^~~~
 csabbg_cmporder.cpp:110:15: note: CR02: Replace with 1 == rca
     if (( rca == 1 ) != ( rca < 1 )) return 1;
           ~~~~^~~~
-csabbg_cmporder.cpp:111:15: warning: CR02: Constant operand should be on the left
+csabbg_cmporder.cpp:111:15: warning: CR02: Constant-expression operand should be on the left
     if (( rca == 1.) != ( rca < 1.)) return 1;
           ~~~~^~~~~
 csabbg_cmporder.cpp:111:15: note: CR02: Replace with 1. == rca
     if (( rca == 1.) != ( rca < 1.)) return 1;
           ~~~~^~~~~
-csabbg_cmporder.cpp:112:15: warning: CR02: Constant operand should be on the left
+csabbg_cmporder.cpp:112:15: warning: CR02: Constant-expression operand should be on the left
     if (( rcd == 1 ) != ( rcd < 1 )) return 1;
           ~~~~^~~~
 csabbg_cmporder.cpp:112:15: note: CR02: Replace with 1 == rcd
     if (( rcd == 1 ) != ( rcd < 1 )) return 1;
           ~~~~^~~~
-csabbg_cmporder.cpp:113:15: warning: CR02: Constant operand should be on the left
+csabbg_cmporder.cpp:113:15: warning: CR02: Constant-expression operand should be on the left
     if (( rcd == 1.) != ( rcd < 1.)) return 1;
           ~~~~^~~~~
 csabbg_cmporder.cpp:113:15: note: CR02: Replace with 1. == rcd
@@ -598,25 +598,25 @@ csabbg_cmporder.cpp:237:9: warning: CR01: Non-modifiable operand should be on th
 csabbg_cmporder.cpp:237:9: note: CR01: Replace with 1.==d
     if(d==1.)return 1;if(d<1.)return 1;
        ~^~~~
-csabbg_cmporder.cpp:238:10: warning: CR02: Constant operand should be on the left
+csabbg_cmporder.cpp:238:10: warning: CR02: Constant-expression operand should be on the left
     if(ca==1)return 1;if(ca<1)return 1;
        ~~^~~
 csabbg_cmporder.cpp:238:10: note: CR02: Replace with 1==ca
     if(ca==1)return 1;if(ca<1)return 1;
        ~~^~~
-csabbg_cmporder.cpp:239:10: warning: CR02: Constant operand should be on the left
+csabbg_cmporder.cpp:239:10: warning: CR02: Constant-expression operand should be on the left
     if(ca==1.)return 1;if(ca<1.)return 1;
        ~~^~~~
 csabbg_cmporder.cpp:239:10: note: CR02: Replace with 1.==ca
     if(ca==1.)return 1;if(ca<1.)return 1;
        ~~^~~~
-csabbg_cmporder.cpp:240:10: warning: CR02: Constant operand should be on the left
+csabbg_cmporder.cpp:240:10: warning: CR02: Constant-expression operand should be on the left
     if(cd==1)return 1;if(cd<1)return 1;
        ~~^~~
 csabbg_cmporder.cpp:240:10: note: CR02: Replace with 1==cd
     if(cd==1)return 1;if(cd<1)return 1;
        ~~^~~
-csabbg_cmporder.cpp:241:10: warning: CR02: Constant operand should be on the left
+csabbg_cmporder.cpp:241:10: warning: CR02: Constant-expression operand should be on the left
     if(cd==1.)return 1;if(cd<1.)return 1;
        ~~^~~~
 csabbg_cmporder.cpp:241:10: note: CR02: Replace with 1.==cd
@@ -646,25 +646,25 @@ csabbg_cmporder.cpp:245:11: warning: CR01: Non-modifiable operand should be on t
 csabbg_cmporder.cpp:245:11: note: CR01: Replace with 1.==*pd
     if(*pd==1.)return 1;if(*pd<1.)return 1;
        ~~~^~~~
-csabbg_cmporder.cpp:246:12: warning: CR02: Constant operand should be on the left
+csabbg_cmporder.cpp:246:12: warning: CR02: Constant-expression operand should be on the left
     if(*pca==1)return 1;if(*pca<1)return 1;
        ~~~~^~~
 csabbg_cmporder.cpp:246:12: note: CR02: Replace with 1==*pca
     if(*pca==1)return 1;if(*pca<1)return 1;
        ~~~~^~~
-csabbg_cmporder.cpp:247:12: warning: CR02: Constant operand should be on the left
+csabbg_cmporder.cpp:247:12: warning: CR02: Constant-expression operand should be on the left
     if(*pca==1.)return 1;if(*pca<1.)return 1;
        ~~~~^~~~
 csabbg_cmporder.cpp:247:12: note: CR02: Replace with 1.==*pca
     if(*pca==1.)return 1;if(*pca<1.)return 1;
        ~~~~^~~~
-csabbg_cmporder.cpp:248:12: warning: CR02: Constant operand should be on the left
+csabbg_cmporder.cpp:248:12: warning: CR02: Constant-expression operand should be on the left
     if(*pcd==1)return 1;if(*pcd<1)return 1;
        ~~~~^~~
 csabbg_cmporder.cpp:248:12: note: CR02: Replace with 1==*pcd
     if(*pcd==1)return 1;if(*pcd<1)return 1;
        ~~~~^~~
-csabbg_cmporder.cpp:249:12: warning: CR02: Constant operand should be on the left
+csabbg_cmporder.cpp:249:12: warning: CR02: Constant-expression operand should be on the left
     if(*pcd==1.)return 1;if(*pcd<1.)return 1;
        ~~~~^~~~
 csabbg_cmporder.cpp:249:12: note: CR02: Replace with 1.==*pcd
@@ -694,25 +694,25 @@ csabbg_cmporder.cpp:253:10: warning: CR01: Non-modifiable operand should be on t
 csabbg_cmporder.cpp:253:10: note: CR01: Replace with 1.==rd
     if(rd==1.)return 1;if(rd<1.)return 1;
        ~~^~~~
-csabbg_cmporder.cpp:254:11: warning: CR02: Constant operand should be on the left
+csabbg_cmporder.cpp:254:11: warning: CR02: Constant-expression operand should be on the left
     if(rca==1)return 1;if(rca<1)return 1;
        ~~~^~~
 csabbg_cmporder.cpp:254:11: note: CR02: Replace with 1==rca
     if(rca==1)return 1;if(rca<1)return 1;
        ~~~^~~
-csabbg_cmporder.cpp:255:11: warning: CR02: Constant operand should be on the left
+csabbg_cmporder.cpp:255:11: warning: CR02: Constant-expression operand should be on the left
     if(rca==1.)return 1;if(rca<1.)return 1;
        ~~~^~~~
 csabbg_cmporder.cpp:255:11: note: CR02: Replace with 1.==rca
     if(rca==1.)return 1;if(rca<1.)return 1;
        ~~~^~~~
-csabbg_cmporder.cpp:256:11: warning: CR02: Constant operand should be on the left
+csabbg_cmporder.cpp:256:11: warning: CR02: Constant-expression operand should be on the left
     if(rcd==1)return 1;if(rcd<1)return 1;
        ~~~^~~
 csabbg_cmporder.cpp:256:11: note: CR02: Replace with 1==rcd
     if(rcd==1)return 1;if(rcd<1)return 1;
        ~~~^~~
-csabbg_cmporder.cpp:257:11: warning: CR02: Constant operand should be on the left
+csabbg_cmporder.cpp:257:11: warning: CR02: Constant-expression operand should be on the left
     if(rcd==1.)return 1;if(rcd<1.)return 1;
        ~~~^~~~
 csabbg_cmporder.cpp:257:11: note: CR02: Replace with 1.==rcd
@@ -742,25 +742,25 @@ csabbg_cmporder.cpp:285:10: warning: CR01: Non-modifiable operand should be on t
 csabbg_cmporder.cpp:285:10: note: CR01: Replace with 1.==d
     if((d==1.)<<(d<1.))return 1;
         ~^~~~
-csabbg_cmporder.cpp:286:11: warning: CR02: Constant operand should be on the left
+csabbg_cmporder.cpp:286:11: warning: CR02: Constant-expression operand should be on the left
     if((ca==1)<<(ca<1))return 1;
         ~~^~~
 csabbg_cmporder.cpp:286:11: note: CR02: Replace with 1==ca
     if((ca==1)<<(ca<1))return 1;
         ~~^~~
-csabbg_cmporder.cpp:287:11: warning: CR02: Constant operand should be on the left
+csabbg_cmporder.cpp:287:11: warning: CR02: Constant-expression operand should be on the left
     if((ca==1.)<<(ca<1.))return 1;
         ~~^~~~
 csabbg_cmporder.cpp:287:11: note: CR02: Replace with 1.==ca
     if((ca==1.)<<(ca<1.))return 1;
         ~~^~~~
-csabbg_cmporder.cpp:288:11: warning: CR02: Constant operand should be on the left
+csabbg_cmporder.cpp:288:11: warning: CR02: Constant-expression operand should be on the left
     if((cd==1)<<(cd<1))return 1;
         ~~^~~
 csabbg_cmporder.cpp:288:11: note: CR02: Replace with 1==cd
     if((cd==1)<<(cd<1))return 1;
         ~~^~~
-csabbg_cmporder.cpp:289:11: warning: CR02: Constant operand should be on the left
+csabbg_cmporder.cpp:289:11: warning: CR02: Constant-expression operand should be on the left
     if((cd==1.)<<(cd<1.))return 1;
         ~~^~~~
 csabbg_cmporder.cpp:289:11: note: CR02: Replace with 1.==cd
@@ -790,25 +790,25 @@ csabbg_cmporder.cpp:293:12: warning: CR01: Non-modifiable operand should be on t
 csabbg_cmporder.cpp:293:12: note: CR01: Replace with 1.==*pd
     if((*pd==1.)<<(*pd<1.))return 1;
         ~~~^~~~
-csabbg_cmporder.cpp:294:13: warning: CR02: Constant operand should be on the left
+csabbg_cmporder.cpp:294:13: warning: CR02: Constant-expression operand should be on the left
     if((*pca==1)<<(*pca<1))return 1;
         ~~~~^~~
 csabbg_cmporder.cpp:294:13: note: CR02: Replace with 1==*pca
     if((*pca==1)<<(*pca<1))return 1;
         ~~~~^~~
-csabbg_cmporder.cpp:295:13: warning: CR02: Constant operand should be on the left
+csabbg_cmporder.cpp:295:13: warning: CR02: Constant-expression operand should be on the left
     if((*pca==1.)<<(*pca<1.))return 1;
         ~~~~^~~~
 csabbg_cmporder.cpp:295:13: note: CR02: Replace with 1.==*pca
     if((*pca==1.)<<(*pca<1.))return 1;
         ~~~~^~~~
-csabbg_cmporder.cpp:296:13: warning: CR02: Constant operand should be on the left
+csabbg_cmporder.cpp:296:13: warning: CR02: Constant-expression operand should be on the left
     if((*pcd==1)<<(*pcd<1))return 1;
         ~~~~^~~
 csabbg_cmporder.cpp:296:13: note: CR02: Replace with 1==*pcd
     if((*pcd==1)<<(*pcd<1))return 1;
         ~~~~^~~
-csabbg_cmporder.cpp:297:13: warning: CR02: Constant operand should be on the left
+csabbg_cmporder.cpp:297:13: warning: CR02: Constant-expression operand should be on the left
     if((*pcd==1.)<<(*pcd<1.))return 1;
         ~~~~^~~~
 csabbg_cmporder.cpp:297:13: note: CR02: Replace with 1.==*pcd
@@ -838,25 +838,25 @@ csabbg_cmporder.cpp:301:11: warning: CR01: Non-modifiable operand should be on t
 csabbg_cmporder.cpp:301:11: note: CR01: Replace with 1.==rd
     if((rd==1.)<<(rd<1.))return 1;
         ~~^~~~
-csabbg_cmporder.cpp:302:12: warning: CR02: Constant operand should be on the left
+csabbg_cmporder.cpp:302:12: warning: CR02: Constant-expression operand should be on the left
     if((rca==1)<<(rca<1))return 1;
         ~~~^~~
 csabbg_cmporder.cpp:302:12: note: CR02: Replace with 1==rca
     if((rca==1)<<(rca<1))return 1;
         ~~~^~~
-csabbg_cmporder.cpp:303:12: warning: CR02: Constant operand should be on the left
+csabbg_cmporder.cpp:303:12: warning: CR02: Constant-expression operand should be on the left
     if((rca==1.)<<(rca<1.))return 1;
         ~~~^~~~
 csabbg_cmporder.cpp:303:12: note: CR02: Replace with 1.==rca
     if((rca==1.)<<(rca<1.))return 1;
         ~~~^~~~
-csabbg_cmporder.cpp:304:12: warning: CR02: Constant operand should be on the left
+csabbg_cmporder.cpp:304:12: warning: CR02: Constant-expression operand should be on the left
     if((rcd==1)<<(rcd<1))return 1;
         ~~~^~~
 csabbg_cmporder.cpp:304:12: note: CR02: Replace with 1==rcd
     if((rcd==1)<<(rcd<1))return 1;
         ~~~^~~
-csabbg_cmporder.cpp:305:12: warning: CR02: Constant operand should be on the left
+csabbg_cmporder.cpp:305:12: warning: CR02: Constant-expression operand should be on the left
     if((rcd==1.)<<(rcd<1.))return 1;
         ~~~^~~~
 csabbg_cmporder.cpp:305:12: note: CR02: Replace with 1.==rcd
