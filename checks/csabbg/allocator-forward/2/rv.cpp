@@ -40,3 +40,15 @@ struct C {
     void g(int *);
     int g();
 };
+
+void f1(int *, int *);
+void f2(int *, const int *);
+void f3(int *, short *);
+void f4(int *, double *);
+
+struct D {
+    void f1(int *, int *);
+    void f2(int *, const int *);
+    void f3(int *, short *);
+    void f4(int *, double *);
+};

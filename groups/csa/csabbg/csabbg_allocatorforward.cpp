@@ -533,7 +533,6 @@ static internal::DynTypedMatcher should_return_by_value_matcher()
                 hasParameter(1, unless(anyOf(
                     hasType(isInteger()),
                     hasType(pointerType(
-                        unless(pointee(isConstQualified())),
                         unless(pointee(asString("void"))),
                         unless(pointee(functionType())),
                         unless(pointee(memberPointerType()))
