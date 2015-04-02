@@ -15,3 +15,6 @@ template <typename T> void t5(T (&a)[]);
 template <typename T> void t6(T (&a)[10]);
 template <typename T> void t7(T (&)[]);
 template <typename T> void t8(T (&)[10]);
+
+#include <stdarg.h>
+void f9(int first, va_list rest);

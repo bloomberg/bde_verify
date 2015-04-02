@@ -2,6 +2,7 @@
 
 #include <clang/AST/DeclTemplate.h>
 #include <csabase_analyser.h>
+#include <csabase_debug.h>
 #include <csabase_report.h>
 #include <csabase_registercheck.h>
 #include <csabase_visitor.h>
@@ -33,7 +34,8 @@ struct report : Report<data>
 void report::operator()(FunctionDecl const *decl)
 {
     for (auto p : decl->params()) {
-        if (p->getOriginalType()->isConstantArrayType()) {
+        QualType pt = p->getOriginalType();
+        if (pt->isConstantArrayType() && pt.getAsString() != "va_list") {
             a.report(p, check_name, "AA01",
                      "Pointer parameter disguised as sized array");
         }
