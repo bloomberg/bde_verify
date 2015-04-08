@@ -21,7 +21,6 @@ INCFLAGS   += -I$(PREFIX)/include -I/opt/swt/include
 # Set up locations and flags for the compiler that will build bde_verify.
 ifeq ($(notdir $(CXX)),clang++)
     CXXFLAGS   += --gcc-toolchain=$(GCCDIR) -Wno-mismatched-tags
-    LDFLAGS    += --gcc-toolchain=$(GCCDIR)
 endif
 
 ifeq ($(SYSTEM),Linux)

@@ -254,7 +254,8 @@ if ($nsa) {
     close $fh;
 }
 
-eval "use BSD::Resource; setrlimit(RLIMIT_CORE, 0, 0);";
+#eval "use BSD::Resource; setrlimit(RLIMIT_CORE, 0, 0);";
+syscall($system eq 'Linux' ? 160 : 128, 4, pack('LL', 0, 0));
 exec @command;
 
 ## ----------------------------------------------------------------------------

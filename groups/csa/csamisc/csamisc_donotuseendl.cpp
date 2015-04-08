@@ -29,10 +29,10 @@ struct report : Report<data>
 {
     using Report<data>::Report;
 
-    void operator()(const CXXOperatorCallExpr *call);
+    void operator()();
 };
 
-void report::operator()(const CXXOperatorCallExpr *call)
+void report::operator()()
 {
     if (a.is_test_driver()) {
         return;                                                       // RETURN
@@ -45,19 +45,19 @@ void report::operator()(const CXXOperatorCallExpr *call)
                  "Prefer ... << '\\n', and ... << flush if needed");
     });
     mf.addDynamicMatcher(
-        operatorCallExpr(
+        decl(forEachDescendant(operatorCallExpr(
             hasOverloadedOperatorName("<<"),
             hasAnyArgument(ignoringImpCasts(declRefExpr(
                 to(namedDecl(hasName("std::endl")))
             )))
-        ).bind("c"), &m1);
-    mf.match(*call, *a.context());
+        ).bind("c"))), &m1);
+    mf.match(*a.context()->getTranslationUnitDecl(), *a.context());
 }
 
 void subscribe(Analyser& analyser, Visitor& visitor, PPObserver& observer)
     // Hook up the callback functions.
 {
-    visitor.onCXXOperatorCallExpr += report(analyser);
+    analyser.onTranslationUnitDone += report(analyser);
 }
 
 }  // close anonymous namespace

@@ -27,7 +27,6 @@ INCFLAGS   += -I$(PREFIX)/include -I/opt/swt/include
 # Set up locations and flags for the compiler that will build bde_verify.
 ifeq ($(notdir $(CXX)),clang++)
     CXXFLAGS   += --gcc-toolchain=$(GCCDIR) -Wno-mismatched-tags
-    LDFLAGS    += --gcc-toolchain=$(GCCDIR)
 endif
 
 ifeq ($(SYSTEM),Linux)
@@ -149,7 +148,6 @@ TODO =                                                                        \
 DEFFLAGS += -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS
 INCFLAGS += -I. -I$(CSABASEDIR) -Igroups/csa/csadep
 CXXFLAGS += -fno-common -fno-strict-aliasing -fno-exceptions -fno-rtti
-LDFLAGS  += -m64
 
 OFILES = $(CXXFILES:%.cpp=$(OBJ)/%.o)
 
@@ -226,7 +224,7 @@ $(CSABASEDIR)/$(OBJ)/$(LIBCSABASE): csabase
 
 $(OBJ)/$(TARGET): $(CSABASEDIR)/$(OBJ)/$(LIBCSABASE) $(OFILES)
 	@echo linking executable
-	$(VERBOSE) $(CXX) $(LDFLAGS) -o $@.$$ $(OFILES) $(LIBS)
+	$(VERBOSE) $(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@.$$ $(OFILES) $(LIBS)
 	mv $@.$$ $@
 
 $(OBJ)/%.o: %.cpp
@@ -244,9 +242,9 @@ install-bin: $(OBJ)/$(TARGET)
 	mkdir -p $(DESTDIR)/libexec/bde-verify
 	cp $(OBJ)/$(TARGET) $(DESTDIR)/libexec/bde-verify
 	mkdir -p $(DESTDIR)/bin
-	cp scripts/bde_verify scripts/bb_verify $(DESTDIR)/bin
+	cp scripts/bde_verify scripts/bb_cppverify $(DESTDIR)/bin
 	mkdir -p $(DESTDIR)/etc/bde-verify
-	cp bde_verify.cfg bb_verify.cfg $(DESTDIR)/etc/bde-verify
+	cp bde_verify.cfg bb_cppverify.cfg $(DESTDIR)/etc/bde-verify
 
 install-dev:
 	$(VERBOSE) $(MAKE) -C $(CSABASEDIR) install-dev

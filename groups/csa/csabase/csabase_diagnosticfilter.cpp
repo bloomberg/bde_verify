@@ -50,10 +50,12 @@ csabase::DiagnosticFilter::HandleDiagnostic(DiagnosticsEngine::Level level,
         if (!handle) {
             handle = level >= DiagnosticsEngine::Error;
         }
+#if 0
         if (!handle) {
             handle = !info.getLocation().isFileID() &&
                      info.getID() != diag::pp_pragma_once_in_main_file;
         }
+#endif
         if (!handle) {
             handle = d_diagnose == "all";
         }

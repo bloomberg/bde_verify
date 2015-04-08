@@ -40,6 +40,7 @@ static bool is_addition(Analyser& analyser,
 static void check(Analyser& analyser, BinaryOperator const* expr)
 {
     if ((expr->getOpcode() == BO_Add || expr->getOpcode() == BO_Sub) &&
+        !expr->getType()->isDependentType() &&
         (is_addition(
              analyser, expr->getLHS(), expr->getRHS(), expr->getOpcode()) ||
          is_addition(

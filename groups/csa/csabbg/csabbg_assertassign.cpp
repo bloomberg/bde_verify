@@ -35,10 +35,10 @@ struct report : Report<data>
 {
     using Report<data>::Report;
 
-    void operator()(const UnaryOperator *op);
+    void operator()();
 };
 
-void report::operator()(const UnaryOperator *op)
+void report::operator()()
 {
     MatchFinder mf;
     OnMatch<> m1([&](const BoundNodes &nodes) {
@@ -54,20 +54,20 @@ void report::operator()(const UnaryOperator *op)
                                assign->getLocEnd());
         }
     });
-    mf.addDynamicMatcher(unaryOperator(
+    mf.addDynamicMatcher(decl(forEachDescendant(unaryOperator(
         hasOperatorName("!"),
         hasUnaryOperand(ignoringParenImpCasts(
             binaryOperator(hasOperatorName("=")).bind("=")
         )),
         hasAncestor(decl(functionDecl()).bind("parent"))
-    ).bind("!"), &m1);
-    mf.match(*op, *a.context());
+    ).bind("!"))), &m1);
+    mf.match(*a.context()->getTranslationUnitDecl(), *a.context());
 }
 
 void subscribe(Analyser& analyser, Visitor& visitor, PPObserver& observer)
     // Hook up the callback functions.
 {
-    visitor.onUnaryOperator += report(analyser);
+    analyser.onTranslationUnitDone += report(analyser);
 }
 
 }  // close anonymous namespace

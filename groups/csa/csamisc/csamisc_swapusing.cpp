@@ -41,10 +41,10 @@ struct report : Report<data>
 {
     using Report<data>::Report;
 
-    void operator()(const CallExpr *call);
+    void operator()();
 };
 
-void report::operator()(const CallExpr *call)
+void report::operator()()
 {
     MatchFinder mf;
     OnMatch<> m1([&](const BoundNodes &nodes) {
@@ -52,20 +52,20 @@ void report::operator()(const CallExpr *call)
                  "Prefer 'using std::swap; swap(...);'");
     });
     mf.addDynamicMatcher(
-        callExpr(
+        decl(forEachDescendant(callExpr(
             callee(namedDecl(hasName("std::swap"))),
             callee(stmt(expr(ignoringImpCasts(declRefExpr(
                 qualifier(specifiesNamespace(anything()))
             ))))),
             unless(hasAnyArgument(hasType(qualType(builtinType()))))
-        ).bind("c"), &m1);
-    mf.match(*call, *a.context());
+        ).bind("c"))), &m1);
+    mf.match(*a.context()->getTranslationUnitDecl(), *a.context());
 }
 
 void subscribe(Analyser& analyser, Visitor& visitor, PPObserver& observer)
     // Hook up the callback functions.
 {
-    visitor.onCallExpr += report(analyser);
+    analyser.onTranslationUnitDone += report(analyser);
 }
 
 }  // close anonymous namespace

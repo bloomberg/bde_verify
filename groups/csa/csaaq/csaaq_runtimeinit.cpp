@@ -65,6 +65,7 @@ void report::operator()(const VarDecl *decl)
     if (!a.is_test_driver(decl) &&
         decl->isFileVarDecl() &&
         decl->hasInit() &&
+        !decl->getType()->isDependentType() &&
         !decl->getInit()->isValueDependent() &&
         !decl->checkInitIsICE() &&
         !decl->getInit()->EvaluateAsInitializer(v, *a.context(), decl, n)) {
