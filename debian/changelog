@@ -1,3 +1,35 @@
+bde-verify (1.1.0.1) unstable; urgency=low
+
+  * b7b2740 Add documentation files.
+  * 50afd6b Rename bb_verify to bb_cppverify.
+  * c11ce30 Yet another trait version: bdealg_TypeTraitUsesBdemaAllocator.
+  * 8c5e4d5 Don't warn that va_list parameters are array types.
+  * 489e3d5 Clarify constant-on-the-left warning for comparison order check.
+  * 2cb223e A bit more scope reduction for RV01 - second parameter pointer.
+  * 0a2dd45 Suppress RV01 when second parameter is also a pointer.
+  * ebb2fb4 Tie emission of notes to emission of their warning. Fix up CP01 tests to use this.
+  * e2a19d4 Allow append and prepend as well as set in pragmas.
+  * d58b36d Check for two spaces after period in comments.
+  * 0d3eede Don't note ignored functions.
+  * d9f8707 Delay processing so pragmas can kick in.
+  * acbe247 Sort libraries (based on map file).
+  * 9c00b01 Pass -m32/64 when gathering include paths.  Pass triple to binary.
+  * c1d58a0 Add 'unclear' as a preposition and don't warn about 'which of'.
+  * 458dfde Properly distinguish instantiations in test drivers.
+  * 68b4bbc Be slightly more conservative about RV01 warnings.
+  * 04313a8 Strict aliasing false positive (cast from void *).
+  * 4dd4cfc Free functions can depend on locally-defined enums.
+  * afdc688 Ignore -fasynchronous-unwind-tables
+  * 977150d Make transitive check more lenient wrt bsl/non-bsl/fwd versions.
+  * 8b23181 Force C++11 mode while initializers are checked for evaluatability.
+  * c8cbe06 Fix the comparison order assertion problem (again).
+  * bf1b93a Add methods of deprecated classes to deprecation check.
+  * e5578d4 Include deprecated check in bb_verify.
+  * f0a6662 Include enum in must-be-defined-in-header check.
+  * a151f7e Add check for calls to deprecated functions.
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Thu, 9 Apr 2015 17:41:56 -0400
+
 bde-verify (1.1.0.0) unstable; urgency=low
 
   * 5f1be98 Update to canonicalize names and directories for packaging.
