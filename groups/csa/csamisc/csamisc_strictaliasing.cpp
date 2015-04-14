@@ -2,9 +2,11 @@
 
 #include <clang/AST/ExprCXX.h>
 #include <csabase_analyser.h>
+#include <csabase_debug.h>
 #include <csabase_registercheck.h>
 #include <csabase_report.h>
 #include <string>
+#include <map>
 
 using namespace csabase;
 using namespace clang;
@@ -17,36 +19,142 @@ static std::string const check_name("strict-alias");
 
 CanQualType getType(QualType type)
 {
-    return (type->isPointerType() ? type->getPointeeType() : type)
-        ->getCanonicalTypeUnqualified();
+    QualType pt = type->getPointeeType();
+    if (!pt.isNull()) {
+        type = pt;
+    }
+    if (type->isArrayType()) {
+        type = QualType(type->getBaseElementTypeUnsafe(), 0);
+    }
+    return type->getCanonicalTypeUnqualified();
 }
 
-static void check(Analyser& analyser, CastExpr const *expr)
+bool is_gen(QualType type)
 {
+    if (const BuiltinType *bt = type->getAs<BuiltinType>())
+    {
+        switch (bt->getKind()) {
+          case BuiltinType::Void:
+          case BuiltinType::Char_U:
+          case BuiltinType::Char_S:
+          case BuiltinType::UChar:
+            return true;                                              // RETURN
+          default:
+            break;
+        }
+    }
+    return false;
+}
+
+bool are_signed_variations(QualType q1, QualType q2)
+{
+#undef  KK
+#define KK(a, b) ((a) * (BuiltinType::LastKind + 1) + (b))
+#undef  caseKK
+#define caseKK(a, b) \
+    case KK(BuiltinType::a, BuiltinType::b): \
+    case KK(BuiltinType::b, BuiltinType::a)
+
+    auto bt1 = q1->getAs<BuiltinType>();
+    auto bt2 = q2->getAs<BuiltinType>();
+    if (bt1 && bt2) {
+        if (bt1->getKind() == bt2->getKind()) {
+            return true;                                              // RETURN
+        }
+        switch (KK(bt1->getKind(), bt2->getKind())) {
+          caseKK(Char_U, UChar):
+          caseKK(Char_U, Char_S):
+          caseKK(Char_U, SChar):
+          caseKK(UChar, Char_S):
+          caseKK(UChar, SChar):
+          caseKK(Char_S, SChar):
+          caseKK(WChar_U, WChar_S):
+          caseKK(UShort, Short):
+          caseKK(UInt, Int):
+          caseKK(ULong, Long):
+          caseKK(ULongLong, LongLong):
+          caseKK(UInt128, Int128):
+            return true;                                              // RETURN
+          default:
+            break;
+        }
+    }
+    return false;
+
+#undef  KK
+#undef  caseKK
+}
+
+static void check(Analyser& analyser, ExplicitCastExpr const *expr)
+{
+    //ERRS(); expr->getExprLoc().dump(analyser.manager());
+    //llvm::errs() << " "; expr->dump(); ERNL();
+
+    if (expr->getCastKind() != CK_BitCast &&
+        expr->getCastKind() != CK_LValueBitCast &&
+        expr->getCastKind() != CK_NoOp) {
+        return;                                                       // RETURN
+    }
+
     if (expr->getSubExpr()->isNullPointerConstant(
             *analyser.context(), Expr::NPC_ValueDependentIsNotNull)) {
         return;                                                       // RETURN
     }
-    if (expr->getCastKind() != CK_BitCast &&
-        expr->getCastKind() != CK_LValueBitCast &&
-        expr->getCastKind() != CK_IntegralToPointer) {
-        return;                                                       // RETURN
+
+    QualType qs = expr->getSubExpr()->IgnoreParenImpCasts()->getType();
+    QualType qt = expr->getTypeAsWritten();
+
+    QualType qns(qs.getNonReferenceType()->getBaseElementTypeUnsafe(), 0);
+    QualType qnt(qt.getNonReferenceType()->getBaseElementTypeUnsafe(), 0);
+
+    QualType cqs = qns->getCanonicalTypeUnqualified();
+    QualType cqt = qnt->getCanonicalTypeUnqualified();
+
+    QualType pqs = cqs->getPointeeType();
+    if (!pqs.isNull()) {
+        pqs = QualType(pqs->getBaseElementTypeUnsafe(), 0);
     }
-    CanQualType source(getType(expr->getSubExpr()->getType()));
-    CanQualType target(getType(expr->getType()));
-    std::string tt = static_cast<QualType>(target).getAsString();
-    std::string ss = static_cast<QualType>(source).getAsString();
-    if ((source != target &&
-         tt != "char" &&
-         tt != "unsigned char" &&
-         tt != "signed char" &&
-         tt != "void" &&
-         ss != "char" &&
-         ss != "unsigned char" &&
-         ss != "signed char" &&
-         ss != "void") ||
-        (expr->getType()->isPointerType() !=
-         expr->getSubExpr()->getType()->isPointerType())) {
+    QualType pqt = cqt->getPointeeType();
+    if (!pqt.isNull()) {
+        pqt = QualType(pqt->getBaseElementTypeUnsafe(), 0);
+    }
+
+    bool target_is_ref =
+        qt->isReferenceType() || expr->getCastKind() == CK_LValueBitCast;
+
+    //ERRS() << "Ref: " << target_is_ref << "\n" << "src: ";
+    //cqs.dump(); llvm::errs() << "\ntgt: "; cqt.dump(); ERNL();
+
+    bool bad = false;
+
+    if (cqs == cqt) {
+        //ERRS() << bad; ERNL();
+    }
+    else if (target_is_ref) {
+        if (cqt->isPointerType()) {
+            bad = !is_gen(pqt) &&
+                  (!cqs->isPointerType() || !are_signed_variations(pqs, pqt));
+            //ERRS() << bad; ERNL();
+        }
+        else if (cqs->isPointerType()) {
+            bad = !is_gen(cqt);
+            //ERRS() << bad; ERNL();
+        }
+        else {
+            bad = !are_signed_variations(cqs, cqt) &&
+                  !is_gen(cqs) && !is_gen(cqt);
+            //ERRS() << bad; ERNL();
+        }
+    }
+    else if (cqt->isPointerType() && cqs->isPointerType()) {
+        bad = !are_signed_variations(pqs, pqt) && !is_gen(pqs) && !is_gen(pqt);
+        //ERRS() << bad; ERNL(); pqs.dump(); ERNL(); pqt.dump(); ERNL();
+    }
+    else {
+        //ERRS() << bad; ERNL();
+    }
+
+    if (bad) {
         analyser.report(expr, check_name, "AL01",
                         "Possible strict-aliasing violation")
             << expr->getSourceRange();
