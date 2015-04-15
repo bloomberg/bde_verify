@@ -86,46 +86,81 @@ Config Entry                    Description
 ``namespace`` *name*            Enterprise namespace.
 ``all on``                      Turn all checks on.
 ``all off``                     Turn all checks off.
-``group`` *groupname* *name*... Make *groupname* a synonym for the list of *name*\ s (which may themselves be group names).
+``group`` *groupname* *name*... Make *groupname* a synonym for the list of
+                                *name*\ s (which may themselves be group
+                                names).
 ``check`` *name* ``on``         Turn specific check or group on.
 ``check`` *name* ``off``        Turn specific check or group off.
-``load`` *file*                 Read and process configuration lines from the *file*.
+``load`` *file*                 Read and process configuration lines from the
+                                *file*.
 ``set`` *parameter* *value*     Set a parameter used by a check.
 ``append`` *parameter* *value*  Append to a parameter used by a check.
 ``prepend`` *parameter* *value* Prepend to a parameter used by a check.
-``suppress`` *tag* *files*...   Messages with the specified *tag* are suppressed for the specified *files*. Either *tag* or *files* (but not both) may be ``*``. The *tag* may be a group *name*, suppressing all members (including subgroups).
+``suppress`` *tag* *files*...   Messages with the specified *tag* are
+                                suppressed for the specified *files*. Either
+                                *tag* or *files* (but not both) may be ``*``.
+                                The *tag* may be a group *name*, suppressing
+                                all members (including subgroups).
 =============================== ===============================================
 
-If the configuration file attempts to name a non-existent check, the tool will report a list of all known checks and then exit. Do this deliberately to obtain an accurate list of checks if you suspect this documentation is out of date.
+If the configuration file attempts to name a non-existent check, the tool will 
+report a list of all known checks and then exit. Do this deliberately to 
+obtain an accurate list of checks if you suspect this documentation is out of 
+date.
 
 Local Suppressions
 ------------------
-The |bv| command can locally suppress or enable individual message tags within a source file region, using ``#pragma`` |bv| constructs or ``//`` |BV| ``pragma:`` structured comments.
+The |bv| command can locally suppress or enable individual message tags within 
+a source file region, using ``#pragma`` |bv| constructs or ``//`` |BV| 
+``pragma:`` structured comments.
 
-Note that programs are often compiled with options that generate warnings for unknown pragmas; |bv| defines the macro |BV| to enable enclosing these pragmas within ``#ifdef`` |BV| blocks.
+Note that programs are often compiled with options that generate warnings for 
+unknown pragmas; |bv| defines the macro |BV| to enable enclosing these pragmas 
+within ``#ifdef`` |BV| blocks.
 
-Local suppressions operate within a single file, and will not have any effect on warnings in files that this file includes or in files that include this one.
+Local suppressions operate within a single file, and will not have any effect 
+on warnings in files that this file includes or in files that include this one.
 
-Note that this cannot enable a check which was disabled by ``check name off`` in the configuration.
+Note that this cannot enable a check which was disabled by ``check name off`` 
+in the configuration.
 
-=============================================== ===============================
-Pragma                                          Effect
-=============================================== ===============================
-``#pragma`` |bv| ``-TAG``
-``//`` |BV| ``pragma: -TAG``                    From this point forward in the file, do not report *TAG* messages. *TAG* may be a group *name*.
-``#pragma`` |bv| ``+TAG``
-``//`` |BV| ``pragma: +TAG``                    From this point forward in the file, report *TAG* messages. *TAG* may be a group *name*.
-``#pragma`` |bv| ``push``
-``//`` |BV| ``pragma: push``                    Save the suppressions and parameters state of the current file.
-``#pragma`` |bv| ``pop``
-``//`` |BV| ``pragma: pop``                     Restore the suppressions and parameters state of the current file as of the most recent un-``pop``ped ``push``.
-``#pragma`` |bv| ``set parameter value``
-``//`` |BV| ``pragma: set parameter value``     Set the configuration *parameter* to *value*.
-``#pragma`` |bv| ``append parameter value``
-``//`` |BV| ``pragma: append parameter value``  Append *value* to the configuration *parameter*.
-``#pragma`` |bv| ``prepend parameter value``
-``//`` |BV| ``pragma: prepend parameter value`` Prepend *value* to the configuration *parameter*.
-=============================================== ===============================
++------------------------------+----------------------------------------------+
+| Pragma                       | Effect                                       |
++==============================+==============================================+
+| ``#pragma`` |bv| ``-TAG``    | From this point forward in the file, do not  |
++------------------------------+ report *TAG* messages. *TAG* may be a group  |
+| ``//`` |BV| ``pragma: -TAG`` | *name*.                                      |
++------------------------------+----------------------------------------------+
+| ``#pragma`` |bv| ``+TAG``    | From this point forward in the file, report  |
++------------------------------+ *TAG* messages. *TAG* may be a group *name*. |
+| ``//`` |BV| ``pragma: +TAG`` |                                              |
++------------------------------+----------------------------------------------+
+| ``#pragma`` |bv| ``push``    | Save the suppressions and parameters state   |
++------------------------------+ of the current file.                         |
+| ``//`` |BV| ``pragma: push`` |                                              |
++------------------------------+----------------------------------------------+
+| ``#pragma`` |bv| ``pop``     | Restore the suppressions and parameters      |
++------------------------------+ state of the current file as of the most     |
+| ``//`` |BV| ``pragma: pop``  | recent active ``push``.                      |
++------------------------------+----------------------------------------------+
+| ``#pragma`` |bv|             | Set the configuration *parameter* to         |
+| ``set parameter value``      | *value*.                                     |
++------------------------------+                                              |
+| ``//`` |BV| ``pragma:``      |                                              |
+| ``set parameter value``      |                                              |
++------------------------------+----------------------------------------------+
+| ``#pragma`` |bv|             | Append *value* to the configuration          |
+| ``append parameter value``   | *parameter*.                                 |
++------------------------------+                                              |
+| ``//`` |BV| ``pragma:``      |                                              |
+| ``append parameter value``   |                                              |
++------------------------------+----------------------------------------------+
+| ``#pragma`` |bv|             | Prepend *value* to the configuration         |
+| ``prepend parameter value``  | *parameter*.                                 |
++------------------------------+                                              |
+| ``//`` |BV| ``pragma:``      |                                              |
+| ``prepend parameter value``  |                                              |
++------------------------------+----------------------------------------------+
 
 Checks
 ------
@@ -140,57 +175,86 @@ for additional checks.
    +++++++++++++++++++++
    Checks dealing with allocator forwarding and traits.
 
-   * ``AT01`` Class does not use allocators but has an affirmative allocator trait.
-   * ``AT02`` Class uses allocators but has no affirmative or negative allocator trait.
-   * ``AC01`` A class which uses allocators has a constructor with no variant that can be called with an allocator.
-   * ``AC02`` A class which uses allocators has an implicit copy constructor that cannot be called with an allocator.
-   * ``MA01`` A constructor of a class that uses allocators and takes an allocator does not pass the allocator to constructors of base classes that take allocators.
-   * ``MA02`` A constructor of a class that uses allocators and takes an allocator does not pass the allocator to constructors of class members that take allocators.
-   * ``AM01`` An explicit allocator argument to a constructor expression initializes a non-allocator parameter of that constructor.
-   * ``AR01`` An object of a type with an affirmative allocator trait is returned by value.
-   * ``GA01`` A variable with global storage must be initialized with a non-default allocator.
-   * ``BT01`` A class trait declaration does not mention its class name.
-   * ``RV01`` Function should return by value rather than through pointer parameter.
+   * ``AT01``
+     Class does not use allocators but has an affirmative allocator trait.
+   * ``AT02``
+     Class uses allocators but has no affirmative or negative allocator trait.
+   * ``AC01``
+     A class which uses allocators has a constructor with no variant that can
+     be called with an allocator.
+   * ``AC02``
+     A class which uses allocators has an implicit copy constructor that cannot
+     be called with an allocator.
+   * ``MA01``
+     A constructor of a class that uses allocators and takes an allocator does
+     not pass the allocator to constructors of base classes that take
+     allocators.
+   * ``MA02``
+     A constructor of a class that uses allocators and takes an allocator does
+     not pass the allocator to constructors of class members that take
+     allocators.
+   * ``AM01``
+     An explicit allocator argument to a constructor expression initializes a
+     non-allocator parameter of that constructor.
+   * ``AR01``
+     An object of a type with an affirmative allocator trait is returned by
+     value.
+   * ``GA01``
+     A variable with global storage must be initialized with a non-default
+     allocator.
+   * ``BT01``
+     A class trait declaration does not mention its class name.
+   * ``RV01``
+     Function should return by value rather than through pointer parameter.
 
 .. only:: bde_verify or bb_cppverify
 
    ``allocator-new``
    +++++++++++++++++
-   * ``ANP01`` Calls to placement new with an argument that is a pointer to an allocator.
+   * ``ANP01``
+     Calls to placement new with an argument that is a pointer to an allocator.
 
 .. only:: bde_verify
 
    ``alphabetical-functions``
    ++++++++++++++++++++++++++
-   * ``FABC01`` Functions in a component section that are not in alphanumeric order.
+   * ``FABC01``
+     Functions in a component section that are not in alphanumeric order.
 
-   Note that the ordering resets in certain cases, such as when a pair of functions are not from the same context.
+   Note that the ordering resets in certain cases, such as when a pair of
+   functions are not from the same context.
 
-   Ordering also resets across single-line comments such as ``// CLASS METHODS`` and line banners.
+   Ordering also resets across single-line comments such as
+   ``// CLASS METHODS`` and line banners.
 
 .. only:: bde_verify or bb_cppverify
 
    ``anon-namespace``
    ++++++++++++++++++
-   * ``ANS01`` Anonymous namespace in header.
+   * ``ANS01``
+     Anonymous namespace in header.
 
 .. only:: bde_verify or bb_cppverify
 
    ``array-argument``
    ++++++++++++++++++
-   * ``AA01`` Sized array parameter is really a pointer.
+   * ``AA01``
+     Sized array parameter is really a pointer.
 
 .. only:: bde_verify
 
    ``array-initialization``
    ++++++++++++++++++++++++
-   * ``II01`` Incomplete array initialization in which the last value is not the default member value.
+   * ``II01``
+     Incomplete array initialization in which the last value is not the default
+     member value.
 
 .. only:: bde_verify or bb_cppverify
 
    ``assert-assign``
    ++++++++++++++++++++++++
-   * ``AE01`` Top-level macro condintion is an assignment.
+   * ``AE01``
+     Top-level macro condintion is an assignment.
 
 .. only:: bde_verify
 
@@ -198,59 +262,85 @@ for additional checks.
    ++++++++++
    Malformed banners.
 
-   * ``BAN02`` Banner rule lines do not extend to column 79.
-   * ``BAN03`` Banner text is not centered properly within configuration file parameter ``banner_slack`` spaces left or right (default 5).
-   * ``BAN04`` Banner text underlining is not centered properly.
-   * ``FB01`` Inline functions in header require ``// INLINE DEFINITIONS`` banner.
+   * ``BAN02``
+     Banner rule lines do not extend to column 79.
+   * ``BAN03``
+     Banner text is not centered properly within configuration file parameter
+     ``banner_slack`` spaces left or right (default 5).
+   * ``BAN04``
+     Banner text underlining is not centered properly.
+   * ``FB01``
+     Inline functions in header require ``// INLINE DEFINITIONS`` banner.
 
 .. only:: bde_verify
 
    ``base``
    ++++++++
-   * ``PR01`` ``#pragma`` |bv| ``pop`` when stack is empty.
-   * ``PR02`` ``#pragma`` |bv| ``push`` is never popped.
+   * ``PR01``
+     ``#pragma`` |bv| ``pop`` when stack is empty.
+   * ``PR02``
+     ``#pragma`` |bv| ``push`` is never popped.
 
 .. only:: bde_verify
 
    ``boolcomparison``
    ++++++++++++++++++
-    * ``BC01`` Comparison of a Boolean expression with literal ``true`` or ``false``.
+    * ``BC01``
+      Comparison of a Boolean expression with literal ``true`` or ``false``.
 
 .. only:: bde_verify
 
    ``bsl-overrides-std``
    +++++++++++++++++++++
-   Rewrite code which compiles with ``BSL_OVERRIDES_STD`` defined to not require that.
+   Rewrite code which compiles with ``BSL_OVERRIDES_STD`` defined to not
+   require that.
    Use the ``-rewrite`` option to generate the rewritten file.
 
-   * ``IS01`` Include of header is needed to declare a symbol.
-   * ``IS02`` Inserting include of header.
-   * ``SB01`` Replacing one header with another.
-   * ``SB02`` Replacing one include guard with another.
-   * ``SB03`` Removing include guard definition.
-   * ``SB04`` Replacing use of macro ``std`` with ``bsl``.
-   * ``SB05`` Removing namespace qualification.
-   * ``SB07`` Replacing ``std`` with ``bsl`` in macro definition.
+   * ``IS01``
+     Include of header is needed to declare a symbol.
+   * ``IS02``
+     Inserting include of header.
+   * ``SB01``
+     Replacing one header with another.
+   * ``SB02``
+     Replacing one include guard with another.
+   * ``SB03``
+     Removing include guard definition.
+   * ``SB04``
+     Replacing use of macro ``std`` with ``bsl``.
+   * ``SB05``
+     Removing namespace qualification.
+   * ``SB07``
+     Replacing ``std`` with ``bsl`` in macro definition.
 
 .. only:: bde_verify or bb_cppverify
 
    ``c-cast``
    ++++++++++
-   * ``CC01`` C-style cast expression. (Dispensation is granted to ``(void)expr``.)
+   * ``CC01``
+     C-style cast expression. (Dispensation is granted to ``(void)expr``.)
 
 .. only:: bde_verify or bb_cppverify
 
    ``char-classification-range``
    +++++++++++++++++++++++++++++
-   * ``ISC01`` ``char`` variable passed to ``is...`` function may sign-extend, causing undefined behavior.
-   * ``ISC02`` ``char`` constant passed to ``is...`` function may sign-extend, causing undefined behavior.
-   * ``ISC03`` Out-of-range value passed to ``is...`` function may cause undefined behavior.
+   * ``ISC01``
+     ``char`` variable passed to ``is...`` function may sign-extend, causing
+     undefined behavior.
+   * ``ISC02``
+     ``char`` constant passed to ``is...`` function may sign-extend, causing
+     undefined behavior.
+   * ``ISC03``
+     Out-of-range value passed to ``is...`` function may cause undefined
+     behavior.
 
 .. only:: bde_verify or bb_cppverify
 
    ``char-vs-string``
    ++++++++++++++++++
-   * ``ADC01`` Passing the address of a single character as an argument to a ``const char *`` parameter.
+   * ``ADC01``
+     Passing the address of a single character as an argument to a
+     ``const char *`` parameter.
 
 .. only:: bde_verify
 
@@ -258,53 +348,81 @@ for additional checks.
    ++++++++++++
    Comments containing erroneous or deprecated text.
 
-   * ``FVS01`` Deprecate the phrase *fully value semantic*.
-   * ``BADB01`` Single-line inheritance bubbles in comments.
-   * ``AD01`` Bubble display picture should begin in column 5.
-   * ``BW01`` Comment text could fit at end of previous comment line, leaving it less than 80 - parameter ``wrap_slack`` (default 1) characters long.
-   * ``PRP01`` ``//@PURPOSE:`` line is recognizable but malformed.
-   * ``PP01`` Deprecate the phrase *pure procedure*.
-   * ``DC01`` ``//@DESCRIPTION:`` should contain single-quoted class name.
-   * ``CLS01`` ``//@CLASSES:`` should not contain class names on that line.
-   * ``CLS02`` ``//@CLASSES:`` classes should be followed by colon and description.
-   * ``MOR01`` Deprecate the phrase *(non-)modifiable reference*.
+   * ``FVS01``
+     Deprecate the phrase *fully value semantic*.
+   * ``BADB01``
+     Single-line inheritance bubbles in comments.
+   * ``AD01``
+     Bubble display picture should begin in column 5.
+   * ``BW01``
+     Comment text could fit at end of previous comment line, leaving it less
+     than 80 - parameter ``wrap_slack`` (default 1) characters long.
+   * ``PRP01``
+     ``//@PURPOSE:`` line is recognizable but malformed.
+   * ``PP01``
+     Deprecate the phrase *pure procedure*.
+   * ``DC01``
+     ``//@DESCRIPTION:`` should contain single-quoted class name.
+   * ``CLS01``
+     ``//@CLASSES:`` should not contain class names on that line.
+   * ``CLS02``
+     ``//@CLASSES:`` classes should be followed by colon and description.
+   * ``MOR01``
+     Deprecate the phrase *(non-)modifiable reference*.
 
 .. only:: bde_verify or bb_cppverify
 
    ``component-header``
    ++++++++++++++++++++
-   * ``TR09`` Component implementation file does not include its header file ahead of other includes or declarations.
+   * ``TR09``
+     Component implementation file does not include its header file ahead of
+     other includes or declarations.
 
 .. only:: bde_verify or bb_cppverify
 
    ``component-prefix``
    ++++++++++++++++++++
-   * ``CP01`` Globally visible name is not prefixed by component name.
+   * ``CP01``
+     Globally visible name is not prefixed by component name.
 
-   Will not warn about packages included in parameter ``global_packages`` (default ``bslmf bslstl``).
+   Will not warn about packages included in parameter ``global_packages``
+   (default ``bslmf bslstl``).
 
 .. only:: bde_verify
 
    ``constant-return``
    +++++++++++++++++++
-   * ``CR01`` Single statement function returns a constant value.
+   * ``CR01``
+     Single statement function returns a constant value.
 
 .. only:: bde_verify
 
    ``contiguous-switch``
    +++++++++++++++++++++
-   Switch statements in ``main`` with case labels that do not match BDE-standard test-driver order (0 with no ``break;`` then contiguous values in descending order each with a ``break;``, then ``default``).
+   Switch statements in ``main`` with case labels that do not match
+   BDE-standard test-driver order (0 with no ``break;`` then contiguous values
+   in descending order each with a ``break;``, then ``default``).
 
-   * ``ES01`` Empty ``switch`` statement.
-   * ``SD01`` The first case is ``default``.
-   * ``SZ01`` The first case is not ``0``.
-   * ``MD01`` The ``default`` case is not last.
-   * ``LO01`` Case labels are out of order.
-   * ``ED01`` No ``default`` case at end of ``switch``.
-   * ``CS01`` Test case code is not inside braces.
-   * ``CS02`` Test case code is not inside single set of braces.
-   * ``MB01`` Missing ``break`` before ``case``.
-   * ``ZF02`` ``case 0`` does not just fall through to next case.
+   * ``ES01``
+     Empty ``switch`` statement.
+   * ``SD01``
+     The first case is ``default``.
+   * ``SZ01``
+     The first case is not ``0``.
+   * ``MD01``
+     The ``default`` case is not last.
+   * ``LO01``
+     Case labels are out of order.
+   * ``ED01``
+     No ``default`` case at end of ``switch``.
+   * ``CS01``
+     Test case code is not inside braces.
+   * ``CS02``
+     Test case code is not inside single set of braces.
+   * ``MB01``
+     Missing ``break`` before ``case``.
+   * ``ZF02``
+     ``case 0`` does not just fall through to next case.
 
 .. only:: bde_verify
 
@@ -316,7 +434,8 @@ for additional checks.
 
    ``do-not-use-endl``
    +++++++++++++++++++++++
-   * ``NE01`` Prefer using ``'\\n'`` over ``endl``.
+   * ``NE01``
+     Prefer using ``'\\n'`` over ``endl``.
 
 .. only:: bde_verify
 
@@ -328,13 +447,15 @@ for additional checks.
 
    ``entity-restrictions``
    +++++++++++++++++++++++
-   * ``TR17`` Items declared in global scope.
+   * ``TR17``
+     Items declared in global scope.
 
 .. only:: bde_verify
 
    ``enum-value``
    ++++++++++++++
-   * ``EV01`` Component enumeration tag is ``Value``.
+   * ``EV01``
+     Component enumeration tag is ``Value``.
 
 .. only:: bde_verify or bb_cppverify
 
@@ -342,9 +463,12 @@ for additional checks.
    +++++++++++++++++++
    Incorrect or missing use of external header guards.
 
-   * ``SEG01`` Include guard without include file.
-   * ``SEG02`` Include guard does not match include file.
-   * ``SEG03`` File included in header without include guard test.
+   * ``SEG01``
+     Include guard without include file.
+   * ``SEG02``
+     Include guard does not match include file.
+   * ``SEG03``
+     File included in header without include guard test.
 
 .. only:: bde_verify
 
@@ -352,22 +476,26 @@ for additional checks.
    +++++++++
    Missing or inaccessible component header file or test driver.
 
-   * ``FI01`` Component header file is missing.
-   * ``FI02`` Component test driver file is missing.
+   * ``FI01``
+     Component header file is missing.
+   * ``FI02``
+     Component test driver file is missing.
 
 .. only:: bde_verify or bb_cppverify
 
    ``free-functions-depend``
    +++++++++++++++++++++++++
 
-   * ``AQS01`` Free function parameter must depend on a local definition.
+   * ``AQS01``
+     Free function parameter must depend on a local definition.
 
 .. only:: bde_verify or bb_cppverify
 
    ``friends-in-headers``
    ++++++++++++++++++++++
 
-   * ``AQP01`` Friends must be declared in the same header.
+   * ``AQP01``
+     Friends must be declared in the same header.
 
 .. only:: bde_verify
 
@@ -375,25 +503,35 @@ for additional checks.
    +++++++++++++++++++++
    Incorrect or missing function contracts.
 
-   * ``FD01`` Missing contract.
-   * ``FD02`` Contract indented incorrectly.
-   * ``FD03`` Parameter is not documented.
-   * ``FD04`` Parameter name is not single-quoted.
-   * ``FD05`` Parameters with default values are not called out with *optionally specify*.
-   * ``FD06`` Parameters are not called out with *specified*.
-   * ``FD07`` Parameter called out with *specified* more than once.
+   * ``FD01``
+     Missing contract.
+   * ``FD02``
+     Contract indented incorrectly.
+   * ``FD03``
+     Parameter is not documented.
+   * ``FD04``
+     Parameter name is not single-quoted.
+   * ``FD05``
+     Parameters with default values are not called out with
+     *optionally specify*.
+   * ``FD06``
+     Parameters are not called out with *specified*.
+   * ``FD07``
+     Parameter called out with *specified* more than once.
 
 .. only:: bde_verify or bb_cppverify
 
    ``global-function-only-in-source``
    ++++++++++++++++++++++++++++++++++
-   * ``TR10`` Globally visible function not declared in header.
+   * ``TR10``
+     Globally visible function not declared in header.
 
 .. only:: bde_verify or bb_cppverify
 
    ``global-type-only-in-source``
    ++++++++++++++++++++++++++++++
-   * ``TR10`` Globally visible type not declared in header.
+   * ``TR10``
+     Globally visible type not declared in header.
 
 .. only:: bde_verify
 
@@ -401,44 +539,55 @@ for additional checks.
    +++++++++++++
    Component is not properly named or located.
 
-   * ``GN01`` Component does not have a distinguishable correctly formed package group name.
-   * ``GN02`` Component is not located within its correct package group directory.
+   * ``GN01``
+     Component does not have a distinguishable correctly formed package group
+     name.
+   * ``GN02``
+     Component is not located within its correct package group directory.
 
 .. only:: bde_verify or bb_cppverify
 
    ``hash-pointer``
    ++++++++++++++++
-   * ``HC01`` Warn that use of ``std::hash<TYPE*>()(``*ptr*``)`` uses only the value and not the contents of *ptr*.
+   * ``HC01``
+     Warn that use of ``std::hash<TYPE*>()(ptr)`` uses only the value and not
+     the contents of *ptr*.
 
 .. only:: bde_verify
 
    ``headline``
    ++++++++++++
-   * ``HL01`` The headline of the file is incorrect.
+   * ``HL01``
+     The headline of the file is incorrect.
 
 .. only:: bde_verify
 
    ``implicit-ctor``
    +++++++++++++++++
-   * ``IC01`` Non-``explicit`` constructor which may be invoked implicitly and not marked with ``// IMPLICIT``
+   * ``IC01``
+     Non-``explicit`` constructor which may be invoked implicitly and
+     not marked with ``// IMPLICIT``
 
 .. only:: bde_verify or bb_cppverify
 
    ``in-enterprise-namespace``
    +++++++++++++++++++++++++++
-   * ``AQQ01`` Declaration not in enterprise namespace.
+   * ``AQQ01``
+     Declaration not in enterprise namespace.
 
 .. only:: bde_verify or bb_cppverify
 
    ``include-guard``
    +++++++++++++++++
-   * ``TR14`` Header file does not set up or use its include guard macro properly.
+   * ``TR14``
+     Header file does not set up or use its include guard macro properly.
 
 .. only:: bde_verify
 
    ``include-in-extern-c``
    +++++++++++++++++++++++
-   * ``IC01`` Header file included within C linkage specification.
+   * ``IC01``
+     Header file included within C linkage specification.
 
 .. only:: bde_verify
 
@@ -446,25 +595,38 @@ for additional checks.
    +++++++++++++++++
    Header files are not included in BDE-standard order.
 
-   * ``SHO01`` Headers out of order.
-   * ``SHO02`` Header comes too late in order.
-   * ``SHO03`` Component does not include its header.
-   * ``SHO04`` Component does not include its header first.
-   * ``SHO06`` ``_...__ident.h`` file not included.
-   * ``SHO07`` ``_...*scm*version.h`` file not included.
-   * ``SHO08`` Header and source use ``bdes_ident.h`` inconsistently.
-   * ``SHO09`` ``bsls`` components should not include ``_...__ident.h``.
+   * ``SHO01``
+     Headers out of order.
+   * ``SHO02``
+     Header comes too late in order.
+   * ``SHO03``
+     Component does not include its header.
+   * ``SHO04``
+     Component does not include its header first.
+   * ``SHO06``
+     ``_...__ident.h`` file not included.
+   * ``SHO07``
+     ``_..._scm_version.h`` file not included.
+   * ``SHO08``
+     Header and source use ``bdes_ident.h`` inconsistently.
+   * ``SHO09``
+     ``bsls`` components should not include ``_...__ident.h``.
 
 .. only:: bde_verify
 
    ``indentation``
    +++++++++++++++
-   * ``IND01`` Line is (possibly) mis-indented.
-   * ``IND02`` Function parameters should be all or each on one line.
-   * ``IND03`` Function parameters on multiple lines should align vertically.
-   * ``IND04`` Declarators on multiple lines should align vertically.
+   * ``IND01``
+     Line is (possibly) mis-indented.
+   * ``IND02``
+     Function parameters should be all or each on one line.
+   * ``IND03``
+     Function parameters on multiple lines should align vertically.
+   * ``IND04``
+     Declarators on multiple lines should align vertically.
 
-   Indentation checking is currently disabled in the default configuration file until more experience is gained, to avoid cascades of warnings.
+   Indentation checking is currently disabled in the default configuration file
+   until more experience is gained, to avoid cascades of warnings.
 
    Code between ``//..`` display elements is not checked.
 
@@ -472,7 +634,9 @@ for additional checks.
 
    ``leaking-macro``
    +++++++++++++++++
-   * ``SLM01`` Component header file macro neither an include guard nor prefixed by component name.
+   * ``SLM01``
+     Component header file macro neither an include guard nor prefixed by
+     component name.
 
 .. only:: bde_verify or bb_cppverify
 
@@ -480,60 +644,74 @@ for additional checks.
    +++++++++++++++++++++++++
    Long-distance friendship.
 
-   * ``TR19`` Friendship granted outside of component.
+   * ``TR19``
+     Friendship granted outside of component.
 
 .. only:: bde_verify
 
    ``long-inline``
    +++++++++++++++
-   * ``LI01`` Inline function is longer than configuration file parameter ``max*inline*lines`` (default 10).
+   * ``LI01``
+     Inline function is longer than configuration file parameter
+     ``max_inline_lines`` (default 10).
 
 .. only:: bde_verify
 
    ``longlines``
    +++++++++++++
-   * ``LL01`` Line exceeds 79 characters.
+   * ``LL01``
+     Line exceeds 79 characters.
 
 .. only:: bde_verify
 
    ``member-definition-in-class-definition``
    +++++++++++++++++++++++++++++++++++++++++
-   * ``CD01`` Method defined directly in class definition.
+   * ``CD01``
+     Method defined directly in class definition.
 
 .. only:: bde_verify
 
    ``mid-return``
    ++++++++++++++
-   * ``MR01`` Non-final ``return`` statement not tagged with ``// RETURN``.
-   * ``MR02`` ``// RETURN`` tag does not end in column 79.
+   * ``MR01``
+     Non-final ``return`` statement not tagged with ``// RETURN``.
+   * ``MR02``
+     ``// RETURN`` tag does not end in column 79.
 
 .. only:: bde_verify
 
    ``namespace-tags``
    ++++++++++++++++++
-   * ``NT01`` Multi-line namespace blocks must end with ``// close ``[`` enterprise ``|`` package ``|`` unnamed ``|`` description ``]`` namespace``.
+   * ``NT01``
+     Multi-line namespace blocks must end with
+     ``// close [ enterprise | package | unnamed | description ] namespace``.
 
 .. only:: bde_verify
 
    ``nested-declarations``
    +++++++++++++++++++++++
-   * ``TR04`` Declarations not properly nested in package namespace.
+   * ``TR04``
+     Declarations not properly nested in package namespace.
 
-   Will not warn about main files unless parameter ``main*namespace*check`` is ``on`` (default ``off``).
+     Will not warn about main files unless parameter ``main_namespace_check``
+     is ``on`` (default ``off``).
 
-   Will not warn about packages included in parameter ``global_packages`` (default ``bslmf bslstl``).
+     Will not warn about packages included in parameter ``global_packages``
+     (default ``bslmf bslstl``).
 
 .. only:: bde_verify or bb_cppverify
 
    ``nonascii``
    ++++++++++++
-   * ``NA01`` Source code contains bytes with value greater than 127.
+   * ``NA01``
+     Source code contains bytes with value greater than 127.
 
 .. only:: bde_verify
 
    ``operator-void-star``
    ++++++++++++++++++++++
-   * ``CB01`` Class contains conversion operator to ``void *`` or ``bool``.
+   * ``CB01``
+     Class contains conversion operator to ``void *`` or ``bool``.
 
 .. only:: bde_verify
 
@@ -541,30 +719,41 @@ for additional checks.
    +++++++++++++++
    Component package name or location does not follow BDE convention.
 
-   * ``PN01`` Only one underscore in standalone component file name.
-   * ``PN02`` Component part of filename should be prefixed by package name.
-   * ``PN03`` Package part of name should be group name followed by 1-4 characters.
-   * ``PN04`` Package and group names must be lower-case and not start with a digit.
-   * ``PN05`` Component is not located within its correct package directory.
+   * ``PN01``
+     Only one underscore in standalone component file name.
+   * ``PN02``
+     Component part of filename should be prefixed by package name.
+   * ``PN03``
+     Package part of name should be group name followed by 1-4 characters.
+   * ``PN04``
+     Package and group names must be lower-case and not start with a digit.
+   * ``PN05``
+     Component is not located within its correct package directory.
 
 .. only:: bde_verify or bb_cppverify
 
    ``runtime-initialization``
    ++++++++++++++++++++++++++
-   * ``AQa01`` Global variable with runtime initialization.
+   * ``AQa01``
+     Global variable with runtime initialization.
 
 .. only:: bde_verify
 
    ``spell-check``
    +++++++++++++++
-   * ``SP01`` Misspelled word in comment.
-   * ``SP03`` Misspelled word in parameter name.
+   * ``SP01``
+     Misspelled word in comment.
+   * ``SP03``
+     Misspelled word in parameter name.
 
-   Spell-checking is disabled by default in the config file (``check spell-check off``) to avoid noise.
+   Spell-checking is disabled by default in the config file
+   (``check spell-check off``) to avoid noise.
 
-   Words in configuration parameter ``dictionary`` (default too numerous to mention - see config file) are assumed correct.
+   Words in configuration parameter ``dictionary`` (default too numerous to
+   mention - see config file) are assumed correct.
 
-   Words that appear at least as many times as non-zero configuration parameter ``spelled*ok*count`` (default 3) are assumed correct.
+   Words that appear at least as many times as non-zero configuration
+   parameter ``spelled_ok_count`` (default 3) are assumed correct.
 
    The spell checker is the library version of `GNU Aspell`_.
 
@@ -574,33 +763,40 @@ for additional checks.
 
    ``strict-alias``
    ++++++++++++++++
-   * ``AL01`` Possible strict-aliasing violation.
+   * ``AL01``
+     Possible strict-aliasing violation.
 
 .. only:: bde_verify or bb_cppverify
 
    ``string-add``
    ++++++++++++++
-   * ``SA01`` Addition of integer and string literal.
+   * ``SA01``
+     Addition of integer and string literal.
 
 .. only:: bde_verify
 
    ``swap-a-b``
    ++++++++++++
-   * ``SWAB01`` Parameters of free *swap* function are not named *a* and *b*.
+   * ``SWAB01``
+     Parameters of free *swap* function are not named *a* and *b*.
 
 .. only:: bde_verify or bb_cppverify
 
    ``swap-using``
    ++++++++++++++
-   * ``SU01`` Prefer ``using std::swap; swap(...);'`` over ``std::swap(...);``.
+   * ``SU01``
+     Prefer ``using std::swap; swap(...);'`` over ``std::swap(...);``.
 
 .. only:: bde_verify
 
    ``template-typename``
    +++++++++++++++++++++
-   * ``TY01`` Use of ``typename`` instead of ``class`` in ``template`` header.
-   * ``TY02`` Use of single-letter template parameter names.
-   * ``TY03`` Use of non ``ALL_CAPS`` template parameter names.
+   * ``TY01``
+     Use of ``typename`` instead of ``class`` in ``template`` header.
+   * ``TY02``
+     Use of single-letter template parameter names.
+   * ``TY03``
+     Use of non ``ALL_CAPS`` template parameter names.
 
 .. only:: bde_verify
 
@@ -608,56 +804,91 @@ for additional checks.
    +++++++++++++++
    Checks for test drivers.
 
-   * ``TP02`` TEST PLAN section is missing ``//-...-`` separator line.
-   * ``TP03`` TEST PLAN item is missing a test number.
-   * ``TP04`` TEST PLAN item test number is zero.
-   * ``TP05`` Test case without comment.
-   * ``TP06`` Test case does not list item from TEST PLAN.
-   * ``TP07`` TEST PLAN item is empty.
-   * ``TP08`` Item is mentioned in test case comment but that number is not in TEST PLAN item.
-   * ``TP09`` Item is mentioned in test case comment but not in TEST PLAN.
-   * ``TP10`` Test driver ``case 0:`` has a test comment.
-   * ``TP11`` Test driver has no ``switch`` statement in ``main()``.
-   * ``TP12`` Test case comment has no ``// Testing:`` line.
-   * ``TP13`` TEST PLAN has no items.
-   * ``TP14`` Test driver has no TEST PLAN.
-   * ``TP15`` ``// Testing:`` line in test comment is recognizable but not exactly correct.
-   * ``TP16`` Extra characters in TEST PLAN items before ``[ ]``.
-   * ``TP17`` Test case does not start with ``if (verbose)`` print banner...
-   * ``TP18`` Test case printed banner is formatted incorrectly.
-   * ``TP19`` Test driver has various missing or malformed boilerplate sections.
-   * ``TP20`` Within loop in test case, action under ``if (verbose)`` rather than a very verbose flag.
-   * ``TP21`` Within loop in test case, no action under a (very) verbose flag.
-   * ``TP22`` Test case title does not match printed banner.
-   * ``TP23`` ``main()`` should end with ``return testStatus;``.
-   * ``TP24`` ``default`` case should set ``testStatus = -1;``.
-   * ``TP25`` Cannot find definition of class mentioned in ``//@CLASSES:``.
-   * ``TP26`` Test plan does not cover all public functions of a class mentioned in ``//@CLASSES:``.
-   * ``TP27`` Public function of a class in ``//@CLASSES:`` is not called from the test driver.
+   * ``TP02``
+     TEST PLAN section is missing ``//-...-`` separator line.
+   * ``TP03``
+     TEST PLAN item is missing a test number.
+   * ``TP04``
+     TEST PLAN item test number is zero.
+   * ``TP05``
+     Test case without comment.
+   * ``TP06``
+     Test case does not list item from TEST PLAN.
+   * ``TP07``
+     TEST PLAN item is empty.
+   * ``TP08``
+     Item is mentioned in test case comment but that number is not in TEST PLAN
+     item.
+   * ``TP09``
+     Item is mentioned in test case comment but not in TEST PLAN.
+   * ``TP10``
+     Test driver ``case 0:`` has a test comment.
+   * ``TP11``
+     Test driver has no ``switch`` statement in ``main()``.
+   * ``TP12``
+     Test case comment has no ``// Testing:`` line.
+   * ``TP13``
+     TEST PLAN has no items.
+   * ``TP14``
+     Test driver has no TEST PLAN.
+   * ``TP15``
+     ``// Testing:`` line in test comment is recognizable but not exactly
+     correct.
+   * ``TP16``
+     Extra characters in TEST PLAN items before ``[ ]``.
+   * ``TP17``
+     Test case does not start with ``if (verbose)`` print banner...
+   * ``TP18``
+     Test case printed banner is formatted incorrectly.
+   * ``TP19``
+     Test driver has various missing or malformed boilerplate sections.
+   * ``TP20``
+     Within loop in test case, action under ``if (verbose)`` rather than a
+     very verbose flag.
+   * ``TP21``
+     Within loop in test case, no action under a (very) verbose flag.
+   * ``TP22``
+     Test case title does not match printed banner.
+   * ``TP23``
+     ``main()`` should end with ``return testStatus;``.
+   * ``TP24``
+     ``default`` case should set ``testStatus = -1;``.
+   * ``TP25``
+     Cannot find definition of class mentioned in ``//@CLASSES:``.
+   * ``TP26``
+     Test plan does not cover all public functions of a class mentioned in
+     ``//@CLASSES:``.
+   * ``TP27``
+     Public function of a class in ``//@CLASSES:`` is not called from the test
+     driver.
 
 .. only:: bde_verify
 
    ``that-which``
    +++++++++++++++++++++++++++
-   * ``TW01`` Prefer ``that`` to ``which``.
+   * ``TW01``
+     Prefer ``that`` to ``which``.
 
 .. only:: bde_verify or bb_cppverify
 
    ``throw-non-std-exception``
    +++++++++++++++++++++++++++
-   * ``FE01`` Throwing exception not derived from ``std::exception``.
+   * ``FE01``
+     Throwing exception not derived from ``std::exception``.
 
 .. only:: bde_verify or bb_cppverify
 
    ``transitive-includes``
    +++++++++++++++++++++++++++
-   * ``AQK01`` Header included transitively should be included directly.
+   * ``AQK01``
+     Header included transitively should be included directly.
 
 .. only:: bde_verify or bb_cppverify
 
    ``unnamed-temporary``
    +++++++++++++++++++++
-   * ``UT01`` Unnamed object will be immediately destroyed.
+   * ``UT01``
+     Unnamed object will be immediately destroyed.
 
    The canonical example of this error is ``mutex m; mutex_guard(&m);``.
 
@@ -665,29 +896,35 @@ for additional checks.
 
    ``upper-case-names``
    ++++++++++++++++++++
-   * ``UC01`` Names of variables and types should not be all upper-case.
+   * ``UC01``
+     Names of variables and types should not be all upper-case.
 
 .. only:: bde_verify or bb_cppverify
 
    ``using-declaration-in-header``
    +++++++++++++++++++++++++++++++
-   * ``TR16`` Header file contains ``using`` declaration.
+   * ``TR16``
+     Header file contains ``using`` declaration.
 
-   Will not warn about packages included in parameter ``global_packages`` (default ``bslmf bslstl``).
+   Will not warn about packages included in parameter ``global_packages``
+   (default ``bslmf bslstl``).
 
 .. only:: bde_verify or bb_cppverify
 
    ``using-directive-in-header``
    +++++++++++++++++++++++++++++
-   * ``TR16`` Header file contains ``using`` directive.
+   * ``TR16``
+     Header file contains ``using`` directive.
 
-   Will not warn about packages included in parameter ``global_packages`` (default ``bslmf bslstl``).
+   Will not warn about packages included in parameter ``global_packages``
+   (default ``bslmf bslstl``).
 
 .. only:: bde_verify or bb_cppverify
 
    ``verify-same-argument-names``
    ++++++++++++++++++++++++++++++
-   * ``AN01`` Function declaration and definition use different parameter names.
+   * ``AN01``
+     Function declaration and definition use different parameter names.
 
 .. only:: bde_verify or bb_cppverify
 
@@ -695,8 +932,10 @@ for additional checks.
    ++++++++++++++
    Whitespace problems.
 
-   * ``TAB01`` File contains tab characters.
-   * ``ESP01`` File contains spaces at end of lines.
+   * ``TAB01``
+     File contains tab characters.
+   * ``ESP01``
+     File contains spaces at end of lines.
 
 Building |bv|
 -------------

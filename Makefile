@@ -257,6 +257,15 @@ clean:
 	$(VERBOSE) $(MAKE) -C $(CSABASEDIR) clean
 	$(VERBOSE) $(RM) -rf $(OBJ)
 
+gh-pages:
+	$(VERBOSE) $(MAKE) -C doc \
+    SPHINXOPTS='-t bb_cppverify' BUILDDIR='../bb_cppverify_build' clean html
+	$(VERBOSE) $(MAKE) -C doc \
+    SPHINXOPTS='-t bde_verify'   BUILDDIR='../bde_verify_build'   clean html
+	cp doc/index.html .
+	touch .nojekyll
+	git checkout gh-pages && git add -A && git commit -m "Generate gh-pages"
+
 # -----------------------------------------------------------------------------
 
 BDE_VERIFY_DIR := $(shell /bin/pwd)
