@@ -264,7 +264,10 @@ gh-pages:
     SPHINXOPTS='-t bde_verify'   BUILDDIR='../bde_verify_build'   clean html
 	cp doc/index.html .
 	touch .nojekyll
-	git checkout gh-pages && git add -A && git commit -m "Generate gh-pages"
+	git checkout gh-pages
+	rm -rf Linux-*g++ SunOS-*g++
+	git add -A
+	git commit -m "Generate gh-pages"
 
 # -----------------------------------------------------------------------------
 
