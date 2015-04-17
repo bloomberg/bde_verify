@@ -36,6 +36,7 @@
 #include <algorithm>
 #include <map>
 #include <utility>
+#include <csabase_debug.h>
 #include <csabase_diagnostic_builder.h>
 #include <utils/event.hpp>
 
@@ -304,21 +305,29 @@ bool csabase::Analyser::is_standard_namespace(std::string const& ns) const
 {
     IsGlobalPackage::iterator in = is_standard_namespace_.find(ns);
     if (in == is_standard_namespace_.end()) {
-        std::string pat = ns;
-        for (size_t i = 0; i < pat.size(); ++i) {
-            if (pat[i] == ':') {
-                pat.insert(i, "(");
-                pat.append(")?");
-                ++i;
+        static const llvm::StringRef id("ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                                        "0123456789"
+                                        "_"
+                                        "abcdefghijklmnopqrstuvwxyz");
+        llvm::StringRef rns(ns);
+        size_t n = rns.find_first_of(id);
+        if (n != rns.npos) {
+            rns = rns.drop_front(n);
+        }
+        llvm::SmallVector<llvm::StringRef, 8> vsns;
+        std::string sns = config()->value("standard_namespaces");
+        llvm::StringRef rsns(sns);
+        rsns.split(vsns, " ", -1, false);
+        bool found = false;
+        for (auto s : vsns) {
+            if (rns.startswith(s) &&
+                (rns.size() == s.size() ||
+                 id.find_first_of(rns[s.size()]) == id.npos)) {
+                found = true;
+                break;
             }
         }
-        llvm::Regex re("(" "^[[:space:]]*" "|" "[^[:alnum:]]" ")" +
-                       pat +
-                       "(" "[^[:alnum:]]" "|" "[[:space:]]*$" ")");
-        in = is_standard_namespace_
-                 .insert(std::make_pair(
-                      ns, re.match(config()->value("standard_namespaces"))))
-                 .first;
+        in = is_standard_namespace_.insert(std::make_pair(ns, found)).first;
     }
     return in->second;
 }

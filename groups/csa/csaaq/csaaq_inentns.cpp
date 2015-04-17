@@ -50,7 +50,12 @@ void report::operator()(const NamedDecl *decl)
         }
     }
     if (const auto *fd = llvm::dyn_cast<FunctionDecl>(decl)) {
-        if (fd->isMain()) {
+        if (fd->isMain() || fd->isExternC()) {
+            return;
+        }
+    }
+    if (const auto *vd = llvm::dyn_cast<VarDecl>(decl)) {
+        if (vd->isExternC()) {
             return;
         }
     }

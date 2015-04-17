@@ -39,7 +39,7 @@ namespace bde_verify
             friend void bde_verify::csatr::BadExtern::f() const;
             friend class bde_verify::csatr::BadExtern::Nested;
             friend class bde_verify::csatr::friendship_GoodDeclared;
-            friend class GoodLocal;
+            friend class friendship_GoodLocal;
             template <class T> friend class BadPackageTemplate;
             template <class T> friend class GoodTemplate;
             friend void bde_verify::csatr::operator+ (BadExtern const&);

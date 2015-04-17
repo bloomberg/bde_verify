@@ -126,7 +126,8 @@ bool report::depends(SourceLocation sl, QualType type)
 
 void report::operator()(const FunctionDecl *decl)
 {
-    if (a.is_test_driver() ||
+    if (decl->isExternC() ||
+        a.is_test_driver() ||
         a.is_global_name(decl)) {
         return;
     }

@@ -46,8 +46,15 @@ component_prefix(Analyser&  analyser,
         return;                                                       // RETURN
     }
 
-    NamedDecl const* named(llvm::dyn_cast<NamedDecl>(decl));
     FunctionDecl const* fd = llvm::dyn_cast<FunctionDecl>(decl);
+    if (fd && fd->isExternC()) {
+        return;
+    }
+    VarDecl const* vd = llvm::dyn_cast<VarDecl>(decl);
+    if (vd && vd->isExternC()) {
+        return;
+    }
+    NamedDecl const* named(llvm::dyn_cast<NamedDecl>(decl));
     if (FunctionTemplateDecl const* ftd =
             llvm::dyn_cast<FunctionTemplateDecl>(decl)) {
         fd = ftd->getTemplatedDecl();

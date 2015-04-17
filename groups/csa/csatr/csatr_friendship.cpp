@@ -8,17 +8,25 @@
 #include <clang/AST/TemplateName.h>
 #include <clang/AST/Type.h>
 #include <clang/AST/TypeLoc.h>
+#include <clang/ASTMatchers/ASTMatchFinder.h>
+#include <clang/ASTMatchers/ASTMatchers.h>
+#include <clang/ASTMatchers/ASTMatchersInternal.h>
 #include <clang/Basic/SourceLocation.h>
 #include <csabase_analyser.h>
+#include <csabase_debug.h>
 #include <csabase_diagnostic_builder.h>
+#include <csabase_filenames.h>
 #include <csabase_format.h>
 #include <csabase_location.h>
 #include <csabase_registercheck.h>
+#include <csabase_report.h>
+#include <csabase_util.h>
 #include <llvm/Support/Casting.h>
 #include <string>
 
-using namespace csabase;
 using namespace clang;
+using namespace clang::ast_matchers;
+using namespace csabase;
 
 // ----------------------------------------------------------------------------
 
@@ -26,91 +34,205 @@ static std::string const check_name("local-friendship-only");
 
 // ----------------------------------------------------------------------------
 
-static bool is_extern_type(Analyser& analyser, Type const* type)
+namespace
 {
-    CXXRecordDecl const* record(type->getAsCXXRecordDecl());
-    Location cloc(analyser.get_location(record));
-    return (type->isIncompleteType()
-            && record->getLexicalDeclContext()->isFileContext())
-        || !analyser.is_component(cloc.file());
+
+struct data
+{
+};
+
+struct report : Report<data>
+{
+    using Report<data>::Report;
+
+    std::string context(const Decl *decl);
+    bool is_extern_type(Type const* type);
+    const Decl *get_definition(const Decl *decl);
+    const Decl *other(const Decl *frend, const Decl *decl);
+    bool is_good_friend(const FriendDecl *frend, const NamedDecl *def);
+    void local_friendship_only(FriendDecl const* decl);
+    void operator()();
+};
+
+std::string report::context(const Decl *decl)
+{
+    return "";
 }
 
-// ----------------------------------------------------------------------------
-
-static void local_friendship_only(Analyser& analyser, FriendDecl const* decl)
+bool report::is_extern_type(Type const* type)
 {
-    const NamedDecl *named = decl->getFriendDecl();
-    const TypeSourceInfo *tsi = decl->getFriendType();
+    CXXRecordDecl const* record(type->getAsCXXRecordDecl());
+    Location cloc(a.get_location(record));
+    return (type->isIncompleteType()
+            && record->getLexicalDeclContext()->isFileContext())
+        || !a.is_component(cloc.file());
+}
+
+const Decl *report::get_definition(const Decl *decl)
+{
+    if (auto d = llvm::dyn_cast<RecordDecl>(decl)) {
+        return d->getDefinition();
+    }
+    if (auto d = llvm::dyn_cast<VarDecl>(decl)) {
+        return d->getDefinition();
+    }
+    if (auto d = llvm::dyn_cast<TagDecl>(decl)) {
+        return d->getDefinition();
+    }
+    if (auto d = llvm::dyn_cast<ClassTemplateDecl>(decl)) {
+        if (d->isThisDeclarationADefinition()) {
+            return d;
+        }
+    }
+    if (auto d = llvm::dyn_cast<FunctionTemplateDecl>(decl)) {
+        if (d->isThisDeclarationADefinition()) {
+            return d;
+        }
+    }
+    if (auto d = llvm::dyn_cast<VarTemplateDecl>(decl)) {
+        if (d->isThisDeclarationADefinition()) {
+            return d;
+        }
+    }
+    return 0;
+}
+
+const Decl *report::other(const Decl *frend, const Decl *decl)
+{
+    for (auto d = decl->redecls_begin(); d != decl->redecls_end(); ++d) {
+        auto def = get_definition(*d);
+        if (def) {
+            return def;
+        }
+    }
+    FileID fid = m.getFileID(frend->getLocation());
+    for (auto d = decl->redecls_begin(); d != decl->redecls_end(); ++d) {
+        if (*d != decl && m.getFileID((*d)->getLocation()) == fid) {
+            return *d;
+        }
+    }
+    for (auto d = decl->redecls_begin(); d != decl->redecls_end(); ++d) {
+        if (*d != decl) {
+            return *d;
+        }
+    }
+    return 0;
+}
+
+bool report::is_good_friend(const FriendDecl *frend, const NamedDecl *def)
+{
+    std::string fn = llvm::dyn_cast<NamedDecl>(frend->getDeclContext())
+                         ->getQualifiedNameAsString();
+    std::string dn = def->getQualifiedNameAsString();
+
+    FileName ff(m.getFilename(frend->getLocation()));
+    FileName df(m.getFilename(def->getLocation()));
+
+    if (auto rd = llvm::dyn_cast<RecordDecl>(def)) {
+        if (rd != rd->getDefinition()) {
+            if (rd->getLexicalDeclContext()->isFileContext()) {
+                return false;
+            }
+        }
+    }
+
+    if (llvm::StringRef(dn).startswith_lower(fn)) {
+        return true;
+    }
+    if (ff.component() == df.component()) {
+        return true;
+    }
+    if (a.is_standard_namespace(fn) || a.is_standard_namespace(dn)) {
+        return true;
+    }
+    return false;
+}
+
+void report::local_friendship_only(FriendDecl const* frend)
+{
+    const Decl *def = frend->getFriendDecl();
+    const TypeSourceInfo *tsi = frend->getFriendType();
     const Type *type = tsi ? tsi->getTypeLoc().getTypePtr() : 0;
     if (type && type->isElaboratedTypeSpecifier()) {
         type = type->getAs<ElaboratedType>()->getNamedType().getTypePtr();
-        if (const TemplateSpecializationType* spec =
-                type->getAs<TemplateSpecializationType>()) {
-            named = spec->getTemplateName().getAsTemplateDecl();
+        if (auto spec = type->getAs<TemplateSpecializationType>()) {
+            def = spec->getTemplateName().getAsTemplateDecl();
         }
     }
 
-    if (named) {
-        if (CXXMethodDecl const* method
-            = llvm::dyn_cast<CXXMethodDecl>(named)) {
-            if (!analyser.is_component(method->getParent())) {
-                analyser.report(decl->getFriendLoc(), check_name, "TR19",
-                                "Friendship to a method "
-                                "can only be granted within a component")
-                    << decl->getSourceRange();
-            }
+    const char *tag;
+
+    if (def) {
+        if (auto method = llvm::dyn_cast<CXXMethodDecl>(def)) {
+            tag = "Friendship to a method";
+            def = method->getParent();
         }
-        else if (FunctionDecl const* function
-                 = llvm::dyn_cast<FunctionDecl>(named)) {
-            if (!analyser.is_component(function->getCanonicalDecl())) {
-                analyser.report(decl->getFriendLoc(), check_name, "TR19",
-                                "Friendship to a function "
-                                "can only be granted within a component")
-                    << decl->getSourceRange();
-            }
+        else if (llvm::dyn_cast<FunctionDecl>(def)) {
+            tag = "Friendship to a function";
         }
-        else if (FunctionTemplateDecl const* function
-                 = llvm::dyn_cast<FunctionTemplateDecl>(named)) {
-            if (!analyser.is_component(function->getCanonicalDecl())) {
-                analyser.report(decl->getFriendLoc(), check_name,  "TR19",
-                                "Friendship to a function template "
-                                "can only be granted within a component")
-                    << decl->getSourceRange();
-            }
+        else if (llvm::dyn_cast<FunctionTemplateDecl>(def)) {
+            tag = "Friendship to a function template";
         }
-        else if (ClassTemplateDecl const* cls
-                 = llvm::dyn_cast<ClassTemplateDecl>(named)) {
-            if (!analyser.is_component(cls->getCanonicalDecl())) {
-                analyser.report(decl->getFriendLoc(), check_name, "TR19",
-                                "Friendship to a class template "
-                                "can only be granted within a component")
-                    << decl->getSourceRange();
-            }
+        else if (llvm::dyn_cast<ClassTemplateDecl>(def)) {
+            tag = "Friendship to a class template";
         }
         else {
-            analyser.report(decl, check_name,  "TR19",
-                            "Unknonwn kind of friendship (%0)")
-                << decl->getSourceRange()
-                << format(named->getKind());
+            tag = "Friendship";
+        }
+        if (auto d = other(frend, def)) {
+            def = d;
         }
     }
     else {
-        TypeSourceInfo const* typeInfo(decl->getFriendType());
-        TypeLoc loc(typeInfo->getTypeLoc());
-        Type const* type(loc.getTypePtr());
-        if (is_extern_type(analyser, type)) {
-            analyser.report(decl, check_name, "TR19",
-                            "Friendship to a class "
-                            "can only be granted within a component"
-                            )
-                << decl->getSourceRange();
+        tag = "Friendship to a class";
+        auto rd = type->getAsCXXRecordDecl();
+        while (rd && !(def = other(frend, rd))) {
+            rd = llvm::dyn_cast<CXXRecordDecl>(rd->getParent());
         }
     }
+
+    if (!def || !is_good_friend(frend, llvm::dyn_cast<NamedDecl>(def))) {
+        a.report(frend->getFriendLoc(), check_name, "TR19",
+                 "%0 can only be granted within a component")
+            << frend->getSourceRange()
+            << tag;
+    }
+}
+
+void report::operator()()
+{
+    MatchFinder mf;
+    OnMatch<> m1([&](const BoundNodes &nodes) {
+        local_friendship_only(nodes.getNodeAs<FriendDecl>("friend"));
+    });
+    mf.addDynamicMatcher(
+        decl(forEachDescendant(recordDecl(
+            unless(classTemplateSpecializationDecl(anything())),
+            forEach(friendDecl(anything()).bind("friend"))
+        ))), &m1);
+    mf.addDynamicMatcher(
+        decl(forEachDescendant(recordDecl(
+            isExplicitTemplateSpecialization(),
+            forEach(friendDecl(anything()).bind("friend"))
+        ))), &m1);
+    mf.addDynamicMatcher(
+        decl(forEachDescendant(classTemplateDecl(
+            forEach(friendDecl(anything()).bind("friend"))
+        ))), &m1);
+    mf.match(*a.context()->getTranslationUnitDecl(), *a.context());
+}
+
+void subscribe(Analyser& analyser, Visitor& visitor, PPObserver& observer)
+    // Hook up the callback functions.
+{
+    analyser.onTranslationUnitDone += report(analyser);
+}
+
 }
 
 // ----------------------------------------------------------------------------
 
-static RegisterCheck check(check_name, &local_friendship_only);
+static RegisterCheck c1(check_name, &subscribe);
 
 // ----------------------------------------------------------------------------
 // Copyright (C) 2014 Bloomberg Finance L.P.
@@ -132,4 +254,4 @@ static RegisterCheck check(check_name, &local_friendship_only);
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
-// ----------------------------- END-OF-FILE ----------------------------------
+// ----------------------------- ENDOF-FILE -----------------------------------
