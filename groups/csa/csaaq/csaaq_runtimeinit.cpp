@@ -52,7 +52,7 @@ struct data
 
 struct report : Report<data>
 {
-    using Report<data>::Report;
+    INHERIT_REPORT_CTOR(report, Report, data);
 
     void operator()(const VarDecl *decl);
 };

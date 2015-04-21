@@ -80,7 +80,7 @@ void data::append(Analyser& analyser, SourceRange range)
 struct report : Report<data>
     // Callback object for inspecting files.
 {
-    using Report<data>::Report;
+    INHERIT_REPORT_CTOR(report, Report, data);
 
     void operator()(SourceRange range);
         // The specified comment 'range' is added to the stored data.

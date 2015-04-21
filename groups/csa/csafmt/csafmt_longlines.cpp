@@ -36,7 +36,7 @@ struct data
 struct report : Report<data>
     // Callback object for inspecting report.
 {
-    using Report<data>::Report;
+    INHERIT_REPORT_CTOR(report, Report, data);
 
     void operator()(SourceLocation      loc,
                     std::string const &,

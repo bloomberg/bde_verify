@@ -120,7 +120,7 @@ struct data
 struct report : public RecursiveASTVisitor<report>, public Report<data>
     // Callback object for indentation checking.
 {
-    using Report<data>::Report;
+    INHERIT_REPORT_CTOR(report, Report, data);
 
     typedef RecursiveASTVisitor<report> Base;
 

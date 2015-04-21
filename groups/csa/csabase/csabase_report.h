@@ -50,6 +50,17 @@ csabase::Report<Data>::Report(csabase::Analyser& analyser,
 {
 }
 
+#if 0 < _MSC_VER && _MSC_VER <= 1800
+#define INHERIT_REPORT_CTOR(ME, REPORT, DATA)                                 \
+    ME(csabase::Analyser& analyser,                                           \
+       csabase::PPObserver::CallbackType type = csabase::PPObserver::e_None)  \
+    : REPORT<DATA>(analyser, type)                                            \
+    {                                                                         \
+    }
+#else
+#define INHERIT_REPORT_CTOR(ME, REPORT, DATA) using REPORT<DATA>::REPORT;
+#endif
+
 // -----------------------------------------------------------------------------
 
 #endif

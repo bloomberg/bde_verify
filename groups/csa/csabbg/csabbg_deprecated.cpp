@@ -78,7 +78,7 @@ struct data
 struct report : Report<data>
     // Callback object invoked upon completion.
 {
-    using Report<data>::Report;
+    INHERIT_REPORT_CTOR(report, Report, data);
 
     void operator()();
         // Invoked to process reports.

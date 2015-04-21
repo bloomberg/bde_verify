@@ -142,7 +142,7 @@ data::data()
 struct report : Report<data>
     // Callback object for inspecting test drivers.
 {
-    using Report<data>::Report;
+    INHERIT_REPORT_CTOR(report, Report, data);
 
     SourceRange get_test_plan();
         // Return the TEST PLAN comment block.

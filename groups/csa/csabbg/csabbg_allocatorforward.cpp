@@ -127,7 +127,7 @@ struct report : Report<data>
     // an allocator parameter.  It also contains a variety of utility methods
     // used in implementing those checks.
 {
-    using Report<data>::Report;
+    INHERIT_REPORT_CTOR(report, Report, data);
 
     const CXXRecordDecl *get_record_decl(QualType type);
         // Return the record declaration for the specified 'type' and a null

@@ -436,7 +436,7 @@ data::data()
 
 struct report : public RecursiveASTVisitor<report>, Report<data>
 {
-    using Report<data>::Report;
+    INHERIT_REPORT_CTOR(report, Report, data);
 
     typedef RecursiveASTVisitor<report> base;
 

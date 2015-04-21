@@ -49,7 +49,7 @@ data::data()
 struct report : Report<data>
     // Detect incorrect guard use in headers.
 {
-    using Report<data>::Report;
+    INHERIT_REPORT_CTOR(report, Report, data);
 
     std::string guard();
         // Return the expected include guard.
