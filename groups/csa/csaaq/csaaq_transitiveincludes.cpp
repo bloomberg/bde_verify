@@ -18,6 +18,7 @@
 
 #include <llvm/Support/Regex.h>
 
+#include <cctype>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -69,7 +70,10 @@ static std::string const check_name("transitive-includes");
 namespace
 {
 
-std::unordered_set<llvm::StringRef> top_level_files {
+std::unordered_set<llvm::StringRef> &top_level_files()
+{
+
+static std::unordered_set<llvm::StringRef> s {
 #undef  X
 #define X(n) #n, "bsl_" #n ".h", "stl_" #n ".h"
 X(algorithm),     X(array),         X(atomic),           X(bitset),
@@ -100,18 +104,27 @@ X(uchar),    X(wchar),   X(wctype),
 "vstring.h",
 };
 
-std::vector<llvm::StringRef> top_level_prefixes {
+    return s;
+}
+
+std::vector<llvm::StringRef> &top_level_prefixes()
+{
+
+static std::vector<llvm::StringRef> s {
     "bdlb_",   "bdldfp_", "bdlma_",  "bdls_",  "bdlscm_", "bdlt_",
     "bslalg_", "bslfwd_", "bslim_",  "bslma_", "bslmf_",  "bsls_",
     "bslscm_", "bsltf_",  "bslx_",
 };
 
+    return s;
+}
+
 bool is_top_level(llvm::StringRef name)
 {
-    if (top_level_files.count(name)) {
+    if (top_level_files().count(name)) {
         return true;
     }
-    for (auto s : top_level_prefixes) {
+    for (auto s : top_level_prefixes()) {
         if (name.startswith(s)) {
             return true;
         }
@@ -119,7 +132,10 @@ bool is_top_level(llvm::StringRef name)
     return false;
 }
 
-std::unordered_map<llvm::StringRef, llvm::StringRef> mapped_files {
+std::unordered_map<llvm::StringRef, llvm::StringRef> &mapped_files()
+{
+
+static std::unordered_map<llvm::StringRef, llvm::StringRef> s {
     { "/bits/algorithmfwd.h",                 "algorithm"           },
     { "/bits/alloc_traits.h",                 "memory"              },
     { "/bits/allocator.h",                    "memory"              },
@@ -295,11 +311,14 @@ std::unordered_map<llvm::StringRef, llvm::StringRef> mapped_files {
     { "/bslstl_allocator.h",                  "bsl_memory.h"        },
 };
 
+    return s;
+}
+
 std::string get_mapped(llvm::StringRef s)
 {
     for (size_t rs = s.rfind('/'); rs != s.npos; rs = s.rfind('/', rs)) {
-        auto i = mapped_files.find(s.substr(rs));
-        if (i != mapped_files.end()) {
+        auto i = mapped_files().find(s.substr(rs));
+        if (i != mapped_files().end()) {
             return i->second;
         }
     }
@@ -311,14 +330,20 @@ bool is_mapped(llvm::StringRef s)
     return !get_mapped(s).empty();
 }
 
-llvm::Regex skipped_files[] = {
+llvm::Regex (&skipped_files())[2]
+{
+
+static llvm::Regex s[2] = {
     { "(^|/)bsl_stdhdrs_(epi|pro)logue(_recursive)?[.]h$" },
     { ".+/(bits|stlport)/[^/.]+([.]h)?$"                  },
 };
 
+    return s;
+}
+
 bool is_skipped(llvm::StringRef name)
 {
-    for (auto& re : skipped_files) {
+    for (auto& re : skipped_files()) {
         if (re.match(name)) {
             return true;
         }
@@ -326,12 +351,22 @@ bool is_skipped(llvm::StringRef name)
     return false;
 }
 
-std::unordered_set<llvm::StringRef> reexporting_files {
+std::unordered_set<llvm::StringRef> &reexporting_files()
+{
+
+static std::unordered_set<llvm::StringRef> s {
     "bael_log.h",
 };
 
+    return s;
+}
+
 std::unordered_map<llvm::StringRef,
-                   std::unordered_set<llvm::StringRef>> if_included_map{
+                   std::unordered_set<llvm::StringRef>> &if_included_map()
+{
+
+static std::unordered_map<llvm::StringRef,
+                          std::unordered_set<llvm::StringRef>> s{
     {"bsl_ios.h", {"bsl_iostream.h", "bsl_streambuf.h", "bsl_strstream.h"}},
     {"bsl_iosfwd.h", {"bsl_ios.h"}},
     {"bsl_istream.h",{"bsl_iostream.h"}},
@@ -344,6 +379,9 @@ std::unordered_map<llvm::StringRef,
     {"ostream",{"bsl_iostream.h"}},
     {"streambuf",{"bsl_iostream.h"}},
 };
+
+    return s;
+}
 
 bool reexports(llvm::StringRef outer, llvm::StringRef inner)
 {
@@ -390,7 +428,7 @@ bool reexports(llvm::StringRef outer, llvm::StringRef inner)
         return true;
     }
 
-    if (reexporting_files.count(outer)) {
+    if (reexporting_files().count(outer)) {
         return true;
     }
 
@@ -612,8 +650,8 @@ std::vector<std::pair<FileID, bool>>& report::include_stack(SourceLocation sl)
 std::string report::map_if_included(FileID fid, std::string name)
 {
     name = llvm::sys::path::filename(name);
-    auto i = if_included_map.find(name);
-    if (i != if_included_map.end()) {
+    auto i = if_included_map().find(name);
+    if (i != if_included_map().end()) {
         for (const auto& m : i->second) {
             if (d_data.d_all_includes.count(m)) {
                 return map_if_included(fid, m);
@@ -981,7 +1019,7 @@ void report::require_file(std::string     name,
         return;
     }
 
-    for (const auto& p : mapped_files) {
+    for (const auto& p : mapped_files()) {
         if (p.first == ff.name() || p.second == ff.name()) {
             return;
         }

@@ -20,7 +20,6 @@
 #include <csabase_util.h>
 #include <csabase_visitor.h>
 #include <ctype.h>
-#include <ext/alloc_traits.h>
 #include <llvm/ADT/SmallVector.h>
 #include <llvm/ADT/StringRef.h>
 #include <llvm/Support/Casting.h>

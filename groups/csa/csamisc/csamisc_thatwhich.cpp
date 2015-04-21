@@ -7,6 +7,7 @@
 #include <csabase_registercheck.h>
 #include <csabase_report.h>
 #include <csabase_util.h>
+#include <cctype>
 #include <string>
 #include <unordered_set>
 #include <vector>
@@ -95,7 +96,7 @@ void Word::set(llvm::StringRef s, size_t position)
     is_which         = s.equals_lower("which");
     is_preposition   = prepositions.count(s) || s.endswith("ing");
     is_of            = s.equals_lower("of");
-    is_punct         = s.size() == 1 && !isalpha(s[0] & 0xFF);
+    is_punct         = s.size() == 1 && !std::isalpha(s[0] & 0xFF);
 }
 
 struct data

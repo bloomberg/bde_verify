@@ -26,7 +26,6 @@
 #include <csabase_registercheck.h>
 #include <csabase_report.h>
 #include <csabase_util.h>
-#include <ext/alloc_traits.h>
 #include <llvm/ADT/SmallVector.h>
 #include <llvm/ADT/StringRef.h>
 #include <llvm/Support/Casting.h>

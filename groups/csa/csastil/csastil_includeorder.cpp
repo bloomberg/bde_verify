@@ -11,7 +11,6 @@
 #include <csabase_ppobserver.h>
 #include <csabase_registercheck.h>
 #include <csabase_util.h>
-#include <ext/alloc_traits.h>
 #include <utils/array.hpp>
 #include <utils/event.hpp>
 #include <utils/function.hpp>

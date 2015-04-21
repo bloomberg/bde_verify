@@ -25,7 +25,6 @@
 #include <csabase_util.h>
 #include <csabase_visitor.h>
 #include <ctype.h>
-#include <ext/alloc_traits.h>
 #include <llvm/ADT/APSInt.h>
 #include <llvm/ADT/Optional.h>
 #include <llvm/ADT/SmallVector.h>
@@ -36,6 +35,7 @@
 #include <stddef.h>
 #include <utils/event.hpp>
 #include <utils/function.hpp>
+#include <cctype>
 #include <limits>
 #include <map>
 #include <set>

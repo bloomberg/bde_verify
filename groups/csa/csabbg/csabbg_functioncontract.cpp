@@ -18,7 +18,6 @@
 #include <csabase_registercheck.h>
 #include <csabase_util.h>
 #include <ctype.h>
-#include <ext/alloc_traits.h>
 #include <llvm/ADT/SmallVector.h>
 #include <llvm/ADT/StringRef.h>
 #include <llvm/Support/Casting.h>
@@ -27,6 +26,7 @@
 #include <stdlib.h>
 #include <utils/event.hpp>
 #include <utils/function.hpp>
+#include <cctype>
 #include <map>
 #include <string>
 #include <utility>

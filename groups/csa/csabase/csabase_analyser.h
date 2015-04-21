@@ -8,8 +8,11 @@
 #include <clang/Basic/SourceLocation.h>
 #include <clang/Tooling/Refactoring.h>
 #include <csabase_attachments.h>
+#include <csabase_config.h>
 #include <csabase_diagnostic_builder.h>
 #include <csabase_location.h>
+#include <csabase_ppobserver.h>
+#include <csabase_visitor.h>
 #include <llvm/ADT/SmallVector.h>
 #include <llvm/ADT/StringRef.h>
 #include <llvm/Support/Casting.h>
@@ -28,9 +31,6 @@ namespace clang { class Sema; }
 namespace clang { class SourceManager; }
 namespace clang { class Stmt; }
 namespace clang { class TypeDecl; }
-namespace csabase { class Config; }
-namespace csabase { class PPObserver; }
-namespace csabase { class Visitor; }
 
 // -----------------------------------------------------------------------------
 

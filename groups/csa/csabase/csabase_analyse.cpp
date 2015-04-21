@@ -110,7 +110,10 @@ AnalyseConsumer::Canon(llvm::StringRef path)
     if (i != canon_.end()) {
         return i->second;
     }
-    char buf[PATH_MAX];
+    char buf[4000];
+#ifdef _MSC_VER
+#define realpath(path, buf) _fullpath(buf, path, sizeof(buf))
+#endif
     const char *pc = realpath(ps.c_str(), buf);
     if (!pc) {
         pc = ps.c_str();
