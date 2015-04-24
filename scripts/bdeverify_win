@@ -1,7 +1,13 @@
-#!/usr/bin/perl -w
+#!/usr/bin/env perl
 # bdeverify_win                                                      -*-perl-*-
 
+# Bde_verify is a static analysis tool that verifies that source code adheres
+# to the BDE coding standards.  Many of the checks are specific to Bloomberg LP
+# and this wrapper script contains default options for the Bloomberg LP
+# environment.
+
 use strict;
+use warnings;
 use Getopt::Long;
 
 my $home     = "w:\\bde_verify";

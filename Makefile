@@ -135,13 +135,15 @@ CXXFILES =                                                                    \
         groups/csa/csatr/csatr_usingdeclarationinheader.cpp                   \
         groups/csa/csatr/csatr_usingdirectiveinheader.cpp                     \
 
-TODO =                                                                        \
+UNUSED =                                                                      \
         groups/csa/csadep/csadep_dependencies.cpp                             \
         groups/csa/csadep/csadep_types.cpp                                    \
+        groups/csa/csamisc/csamisc_auto.cpp                                   \
         groups/csa/csamisc/csamisc_calls.cpp                                  \
         groups/csa/csamisc/csamisc_includeguard.cpp                           \
         groups/csa/csamisc/csamisc_selfinitialization.cpp                     \
         groups/csa/csamisc/csamisc_superfluoustemporary.cpp                   \
+        groups/csa/csamisc/csatr_includefiles.cpp                             \
 
 # -----------------------------------------------------------------------------
 
@@ -248,7 +250,7 @@ install-bin: $(OBJ)/$(TARGET)
 
 install-dev:
 	$(VERBOSE) $(MAKE) -C $(CSABASEDIR) install-dev
-	cp groups/csa/csadep/csadep_*.h $(DESTDIR)/include/bde-verify
+	# cp groups/csa/csadep/csadep_*.h $(DESTDIR)/include/bde-verify
 
 .PHONY: clean
 
