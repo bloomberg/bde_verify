@@ -152,7 +152,7 @@ csabase::Config::process(std::string const& line)
     }
     else if ("load" == command) {
         std::string name;
-        if (args >> name) {
+        if (std::getline(args, name)) {
             load(name);
         }
         else {
