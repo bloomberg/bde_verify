@@ -11,6 +11,7 @@ if(MSVC)
         "/wd4800"
         "/wd4996"
     )
+    set(SCRIPT ".pl")
     set(CPACK_GENERATOR "NSIS")
     set(CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL ON)
     set(CPACK_NSIS_MODIFY_PATH ON)
@@ -194,6 +195,8 @@ add_executable(bde_verify_bin
 
 target_compile_features(bde_verify_bin PUBLIC cxx_auto_type)
 
+set(CMAKE_SKIP_RPATH ON)
+
 set(CMAKE_LIBRARY_PATH
     $ENV{LLVM}/lib
     /opt/swt/lib64
@@ -201,8 +204,6 @@ set(CMAKE_LIBRARY_PATH
     /usr/lib/sparcv9
     /usr/lib64
 )
-
-set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 function(llvmlib name)
     find_library(LIB${name}
@@ -286,7 +287,18 @@ llvmlib(rt)
 llvmlib(tinfo)
 llvmlib(malloc)
 
-set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_SOURCE_DIR}/${CMAKE_SYSTEM_NAME}")
+string(REGEX REPLACE
+    "^.*[/\\]([^/\\]*)$"
+    "${CMAKE_CURRENT_SOURCE_DIR}/${CMAKE_SYSTEM_NAME}-\\1"
+    CMAKE_INSTALL_PREFIX
+    ${CMAKE_CXX_COMPILER}
+)
+string(REGEX REPLACE
+    "[.].*$"
+    ""
+    CMAKE_INSTALL_PREFIX
+    ${CMAKE_INSTALL_PREFIX}
+)
 
 install(TARGETS
     csabase
@@ -296,8 +308,8 @@ install(TARGETS
 )
 
 install(PROGRAMS
-    scripts/bde_verify
-    scripts/bb_cppverify
+    scripts/bde_verify${SCRIPT}
+    scripts/bb_cppverify${SCRIPT}
     DESTINATION bin)
 
 install(FILES
