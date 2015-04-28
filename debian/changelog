@@ -1,3 +1,26 @@
+bde-verify (1.1.1) unstable; urgency=low
+
+  * 8388172 Remove obsolete Windows build files.
+  * a555ff8 Update Windows build and wrapper scripts.
+  * d1de88e Make sure $nsa is not left undefined, for help output.
+  * ca85073 Fancy braced initializers seem to blow up in Windows.
+  * a0d3afc Allow for spaces in load file path name.
+  * b48c627 Files for building and installing on Windows using cmake.
+  * bac2099 Changes for WIndows.
+  * f8f3851 Merge branch 'work' of devgit:bde/bde-verify into work
+  * a54e1d0 Update Windows project file
+  * 69d5378 Don't use inheriting constructors for MSVC.
+  * 4542665 Eliminate some C++-ish warnings for extern "C" declarations. Make the local friendship code be more meaningful (i.e., not just by file). Fix an error in matching the standard_namespaces names.
+  * ea403d5 Clean csabase objects when building gh-pages docs.
+  * 377afdd More changes for docs
+  * 00e063c More doc changes.
+  * 52f6a58 Touch up documentation.
+  * 9b72fae Make the strict aliasing check more precise.
+  * ee53f70 version number change
+  * aebb425 install utils header
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Tue, 28 Apr 2015 18:06:21 -0400
+
 bde-verify (1.1.0.1) unstable; urgency=low
 
   * b7b2740 Add documentation files.
