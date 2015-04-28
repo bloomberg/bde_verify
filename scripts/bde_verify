@@ -49,7 +49,7 @@ my $help     = "";
 my $definc   = 1;
 my $defdef   = 1;
 my $log      = "/home/hrosen4/mbig/${nm}.log";
-my $nsa      = -w $log;
+my $nsa      = -w $log || 0;
 my @incs;
 my @defs;
 my @wflags;
