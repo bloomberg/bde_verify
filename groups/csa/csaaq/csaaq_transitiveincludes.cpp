@@ -19,8 +19,8 @@
 #include <llvm/Support/Regex.h>
 
 #include <cctype>
-#include <unordered_map>
-#include <unordered_set>
+#include <map>
+#include <set>
 
 using namespace csabase;
 using namespace clang;
@@ -70,51 +70,61 @@ static std::string const check_name("transitive-includes");
 namespace
 {
 
-std::unordered_set<llvm::StringRef> &top_level_files()
+std::set<llvm::StringRef> &top_level_files()
 {
-
-static std::unordered_set<llvm::StringRef> s {
+    static std::set<llvm::StringRef> s;
+    if (!s.size()) {
 #undef  X
-#define X(n) #n, "bsl_" #n ".h", "stl_" #n ".h"
-X(algorithm),     X(array),         X(atomic),           X(bitset),
-X(chrono),        X(codecvt),       X(complex),          X(condition_variable),
-X(deque),         X(exception),     X(forward_list),     X(fstream),
-X(functional),    X(future),        X(initializer_list), X(iomanip),
-X(ios),           X(iosfwd),        X(iostream),         X(istream),
-X(iterator),      X(limits),        X(list),             X(locale),
-X(map),           X(memory),        X(mutex),            X(new),
-X(numeric),       X(ostream),       X(queue),            X(random),
-X(ratio),         X(regex),         X(scoped_allocator), X(set),
-X(sstream),       X(stack),         X(stdexcept),        X(streambuf),
-X(string),        X(strstream),     X(system_error),     X(thread),
-X(tuple),         X(type_traits),   X(typeindex),        X(typeinfo),
-X(unordered_map), X(unordered_set), X(utility),          X(valarray),
-X(vector),
-#undef  X
-
-#undef  X
-#define X(n) "c" #n, #n ".h", "bsl_c" #n ".h", "bsl_c_" #n ".h"
-X(assert),   X(complex), X(ctype),    X(errno),  X(fenv),    X(float),
-X(inttypes), X(iso646),  X(iso646),   X(limits), X(locale),  X(math),
-X(setjmp),   X(signal),  X(stdalign), X(stdarg), X(stdbool), X(stddef),
-X(stdint),   X(stdio),   X(stdlib),   X(string), X(tgmath),  X(time),
-X(uchar),    X(wchar),   X(wctype),
+#define X(n)                                                                  \
+    s.insert(#n);                                                             \
+    s.insert("bsl_" #n ".h");                                                 \
+    s.insert("stl_" #n ".h");
+    X(algorithm)     X(array)         X(atomic)           X(bitset)
+    X(chrono)        X(codecvt)       X(complex)          X(condition_variable)
+    X(deque)         X(exception)     X(forward_list)     X(fstream)
+    X(functional)    X(future)        X(initializer_list) X(iomanip)
+    X(ios)           X(iosfwd)        X(iostream)         X(istream)
+    X(iterator)      X(limits)        X(list)             X(locale)
+    X(map)           X(memory)        X(mutex)            X(new)
+    X(numeric)       X(ostream)       X(queue)            X(random)
+    X(ratio)         X(regex)         X(scoped_allocator) X(set)
+    X(sstream)       X(stack)         X(stdexcept)        X(streambuf)
+    X(string)        X(strstream)     X(system_error)     X(thread)
+    X(tuple)         X(type_traits)   X(typeindex)        X(typeinfo)
+    X(unordered_map) X(unordered_set) X(utility)          X(valarray)
+    X(vector)
 #undef  X
 
-"vstring.h",
-};
+#undef  X
+#define X(n)                                                                  \
+    s.insert("c" #n);                                                         \
+    s.insert(#n ".h");                                                        \
+    s.insert("bsl_c" #n ".h");                                                \
+    s.insert("bsl_c_" #n ".h");
+    X(assert)   X(complex) X(ctype)    X(errno)  X(fenv)    X(float)
+    X(inttypes) X(iso646)  X(iso646)   X(limits) X(locale)  X(math)
+    X(setjmp)   X(signal)  X(stdalign) X(stdarg) X(stdbool) X(stddef)
+    X(stdint)   X(stdio)   X(stdlib)   X(string) X(tgmath)  X(time)
+    X(uchar)    X(wchar)   X(wctype)
+#undef  X
+
+    s.insert("vstring.h");
+    }
 
     return s;
 }
 
 std::vector<llvm::StringRef> &top_level_prefixes()
 {
-
-static std::vector<llvm::StringRef> s {
-    "bdlb_",   "bdldfp_", "bdlma_",  "bdls_",  "bdlscm_", "bdlt_",
-    "bslalg_", "bslfwd_", "bslim_",  "bslma_", "bslmf_",  "bsls_",
-    "bslscm_", "bsltf_",  "bslx_",
-};
+    static std::vector<llvm::StringRef> s;
+    if (!s.size()) {
+#undef  X
+#define X(n) s.emplace_back(n);
+        X("bdlb_")  X("bdldfp_") X("bdlma_")  X("bdls_")  X("bdlscm_")
+        X("bdlt_")  X("bslalg_") X("bslfwd_") X("bslim_") X("bslma_")
+        X("bslmf_") X("bsls_")   X("bslscm_") X("bsltf_") X("bslx_")
+#undef X
+    };
 
     return s;
 }
@@ -132,184 +142,186 @@ bool is_top_level(llvm::StringRef name)
     return false;
 }
 
-std::unordered_map<llvm::StringRef, llvm::StringRef> &mapped_files()
+std::map<llvm::StringRef, llvm::StringRef> &mapped_files()
 {
+    static std::map<llvm::StringRef, llvm::StringRef> s;
+    if (!s.size()) {
+#undef  X
+#define X(a, b) s[a] = b;
+    X("/bits/algorithmfwd.h",                 "algorithm"          )
+    X("/bits/alloc_traits.h",                 "memory"             )
+    X("/bits/allocator.h",                    "memory"             )
+    X("/bits/atomic_base.h",                  "atomic"             )
+    X("/bits/atomic_lockfree_defines.h",      "atomic"             )
+    X("/bits/auto_ptr.h",                     "memory"             )
+    X("/bits/backward_warning.h",             "iosfwd"             )
+    X("/bits/basic_file.h",                   "ios"                )
+    X("/bits/basic_ios.h",                    "ios"                )
+    X("/bits/basic_ios.tcc",                  "ios"                )
+    X("/bits/basic_string.h",                 "string"             )
+    X("/bits/basic_string.tcc",               "string"             )
+    X("/bits/bessel_function.tcc",            "cmath"              )
+    X("/bits/beta_function.tcc",              "cmath"              )
+    X("/bits/binders.h",                      "functional"         )
+    X("/bits/boost_concept_check.h",          "iterator"           )
+    X("/bits/c++0x_warning.h",                "iosfwd"             )
+    X("/bits/c++allocator.h",                 "memory"             )
+    X("/bits/c++config.h",                    "iosfwd"             )
+    X("/bits/c++io.h",                        "ios"                )
+    X("/bits/c++locale.h",                    "locale"             )
+    X("/bits/cast.h",                         "pointer.h"          )
+    X("/bits/char_traits.h",                  "string"             )
+    X("/bits/codecvt.h",                      "locale"             )
+    X("/bits/concept_check.h",                "iterator"           )
+    X("/bits/cpp_type_traits.h",              "type_traits"        )
+    X("/bits/cpu_defines.h",                  "iosfwd"             )
+    X("/bits/ctype_base.h",                   "locale"             )
+    X("/bits/ctype_inline.h",                 "locale"             )
+    X("/bits/cxxabi_forced.h",                "cxxabi.h"           )
+    X("/bits/cxxabi_tweaks.h",                "cxxabi.h"           )
+    X("/bits/decimal.h",                      "decimal"            )
+    X("/bits/deque.tcc",                      "deque"              )
+    X("/bits/ell_integral.tcc",               "cmath"              )
+    X("/bits/error_constants.h",              "system_error"       )
+    X("/bits/exception_defines.h",            "exception"          )
+    X("/bits/exception_ptr.h",                "exception"          )
+    X("/bits/exp_integral.tcc",               "cmath"              )
+    X("/bits/forward_list.h",                 "forward_list"       )
+    X("/bits/forward_list.tcc",               "forward_list"       )
+    X("/bits/fstream.tcc",                    "fstream"            )
+    X("/bits/functexcept.h",                  "exception"          )
+    X("/bits/functional_hash.h",              "functional"         )
+    X("/bits/gamma.tcc",                      "cmath"              )
+    X("/bits/gslice.h",                       "valarray"           )
+    X("/bits/gslice_array.h",                 "valarray"           )
+    X("/bits/hash_bytes.h",                   "functional"         )
+    X("/bits/hashtable.h",                    "unordered_map"      )
+    X("/bits/hashtable_policy.h",             "unordered_map"      )
+    X("/bits/hypergeometric.tcc",             "cmath"              )
+    X("/bits/indirect_array.h",               "valarray"           )
+    X("/bits/ios_base.h",                     "ios"                )
+    X("/bits/istream.tcc",                    "istream"            )
+    X("/bits/legendre_function.tcc",          "cmath"              )
+    X("/bits/list.tcc",                       "list"               )
+    X("/bits/locale_classes.h",               "locale"             )
+    X("/bits/locale_classes.tcc",             "locale"             )
+    X("/bits/locale_facets.h",                "locale"             )
+    X("/bits/locale_facets.tcc",              "locale"             )
+    X("/bits/locale_facets_nonio.h",          "locale"             )
+    X("/bits/locale_facets_nonio.tcc",        "locale"             )
+    X("/bits/localefwd.h",                    "locale"             )
+    X("/bits/mask_array.h",                   "valarray"           )
+    X("/bits/memoryfwd.h",                    "memory"             )
+    X("/bits/messages_members.h",             "locale"             )
+    X("/bits/modified_bessel_func.tcc",       "cmath"              )
+    X("/bits/move.h",                         "utility"            )
+    X("/bits/nested_exception.h",             "exception"          )
+    X("/bits/opt_random.h",                   "random"             )
+    X("/bits/os_defines.h",                   "iosfwd"             )
+    X("/bits/ostream.tcc",                    "ostream"            )
+    X("/bits/ostream_insert.h",               "ostream"            )
+    X("/bits/poly_hermite.tcc",               "cmath"              )
+    X("/bits/poly_laguerre.tcc",              "cmath"              )
+    X("/bits/postypes.h",                     "iosfwd"             )
+    X("/bits/ptr_traits.h",                   "memory"             )
+    X("/bits/random.h",                       "random"             )
+    X("/bits/random.tcc",                     "random"             )
+    X("/bits/range_access.h",                 "iterator"           )
+    X("/bits/rc_string_base.h",               "vstring.h"          )
+    X("/bits/regex.h",                        "regex"              )
+    X("/bits/regex_compiler.h",               "regex"              )
+    X("/bits/regex_constants.h",              "regex"              )
+    X("/bits/regex_cursor.h",                 "regex"              )
+    X("/bits/regex_error.h",                  "regex"              )
+    X("/bits/regex_grep_matcher.h",           "regex"              )
+    X("/bits/regex_grep_matcher.tcc",         "regex"              )
+    X("/bits/regex_nfa.h",                    "regex"              )
+    X("/bits/regex_nfa.tcc",                  "regex"              )
+    X("/bits/riemann_zeta.tcc",               "cmath"              )
+    X("/bits/ropeimpl.h",                     "rope"               )
+    X("/bits/shared_ptr.h",                   "memory"             )
+    X("/bits/shared_ptr_base.h",              "memory"             )
+    X("/bits/slice_array.h",                  "valarray"           )
+    X("/bits/special_function_util.h",        "cmath"              )
+    X("/bits/sso_string_base.h",              "vstring.h"          )
+    X("/bits/sstream.tcc",                    "sstream"            )
+    X("/bits/stl_algo.h",                     "algorithm"          )
+    X("/bits/stl_algobase.h",                 "algorithm"          )
+    X("/bits/stl_bvector.h",                  "vector"             )
+    X("/bits/stl_construct.h",                "memory"             )
+    X("/bits/stl_deque.h",                    "deque"              )
+    X("/bits/stl_function.h",                 "functional"         )
+    X("/bits/stl_heap.h",                     "queue"              )
+    X("/bits/stl_iterator.h",                 "iterator"           )
+    X("/bits/stl_iterator_base_funcs.h",      "iterator"           )
+    X("/bits/stl_iterator_base_types.h",      "iterator"           )
+    X("/bits/stl_list.h",                     "list"               )
+    X("/bits/stl_map.h",                      "map"                )
+    X("/bits/stl_multimap.h",                 "map"                )
+    X("/bits/stl_multiset.h",                 "set"                )
+    X("/bits/stl_numeric.h",                  "numeric"            )
+    X("/bits/stl_pair.h",                     "utility"            )
+    X("/bits/stl_queue.h",                    "queue"              )
+    X("/bits/stl_raw_storage_iter.h",         "memory"             )
+    X("/bits/stl_relops.h",                   "utility"            )
+    X("/bits/stl_set.h",                      "set"                )
+    X("/bits/stl_stack.h",                    "stack"              )
+    X("/bits/stl_tempbuf.h",                  "memory"             )
+    X("/bits/stl_tree.h",                     "map"                )
+    X("/bits/stl_uninitialized.h",            "memory"             )
+    X("/bits/stl_vector.h",                   "vector"             )
+    X("/bits/stream_iterator.h",              "iterator"           )
+    X("/bits/streambuf.tcc",                  "streambuf"          )
+    X("/bits/streambuf_iterator.h",           "iterator"           )
+    X("/bits/stringfwd.h",                    "string"             )
+    X("/bits/strstream",                      "sstream"            )
+    X("/bits/time_members.h",                 "locale"             )
+    X("/bits/unique_ptr.h",                   "memory"             )
+    X("/bits/unordered_map.h",                "unordered_map"      )
+    X("/bits/unordered_set.h",                "unordered_set"      )
+    X("/bits/valarray_after.h",               "valarray"           )
+    X("/bits/valarray_array.h",               "valarray"           )
+    X("/bits/valarray_array.tcc",             "valarray"           )
+    X("/bits/valarray_before.h",              "valarray"           )
+    X("/bits/vector.tcc",                     "vector"             )
+    X("/bits/vstring.tcc",                    "vstring.h"          )
+    X("/bits/vstring_fwd.h",                  "vstring.h"          )
+    X("/bits/vstring_util.h",                 "vstring.h"          )
 
-static std::unordered_map<llvm::StringRef, llvm::StringRef> s {
-    { "/bits/algorithmfwd.h",                 "algorithm"           },
-    { "/bits/alloc_traits.h",                 "memory"              },
-    { "/bits/allocator.h",                    "memory"              },
-    { "/bits/atomic_base.h",                  "atomic"              },
-    { "/bits/atomic_lockfree_defines.h",      "atomic"              },
-    { "/bits/auto_ptr.h",                     "memory"              },
-    { "/bits/backward_warning.h",             "iosfwd"              },
-    { "/bits/basic_file.h",                   "ios"                 },
-    { "/bits/basic_ios.h",                    "ios"                 },
-    { "/bits/basic_ios.tcc",                  "ios"                 },
-    { "/bits/basic_string.h",                 "string"              },
-    { "/bits/basic_string.tcc",               "string"              },
-    { "/bits/bessel_function.tcc",            "cmath"               },
-    { "/bits/beta_function.tcc",              "cmath"               },
-    { "/bits/binders.h",                      "functional"          },
-    { "/bits/boost_concept_check.h",          "iterator"            },
-    { "/bits/c++0x_warning.h",                "iosfwd"              },
-    { "/bits/c++allocator.h",                 "memory"              },
-    { "/bits/c++config.h",                    "iosfwd"              },
-    { "/bits/c++io.h",                        "ios"                 },
-    { "/bits/c++locale.h",                    "locale"              },
-    { "/bits/cast.h",                         "pointer.h"           },
-    { "/bits/char_traits.h",                  "string"              },
-    { "/bits/codecvt.h",                      "locale"              },
-    { "/bits/concept_check.h",                "iterator"            },
-    { "/bits/cpp_type_traits.h",              "type_traits"         },
-    { "/bits/cpu_defines.h",                  "iosfwd"              },
-    { "/bits/ctype_base.h",                   "locale"              },
-    { "/bits/ctype_inline.h",                 "locale"              },
-    { "/bits/cxxabi_forced.h",                "cxxabi.h"            },
-    { "/bits/cxxabi_tweaks.h",                "cxxabi.h"            },
-    { "/bits/decimal.h",                      "decimal"             },
-    { "/bits/deque.tcc",                      "deque"               },
-    { "/bits/ell_integral.tcc",               "cmath"               },
-    { "/bits/error_constants.h",              "system_error"        },
-    { "/bits/exception_defines.h",            "exception"           },
-    { "/bits/exception_ptr.h",                "exception"           },
-    { "/bits/exp_integral.tcc",               "cmath"               },
-    { "/bits/forward_list.h",                 "forward_list"        },
-    { "/bits/forward_list.tcc",               "forward_list"        },
-    { "/bits/fstream.tcc",                    "fstream"             },
-    { "/bits/functexcept.h",                  "exception"           },
-    { "/bits/functional_hash.h",              "functional"          },
-    { "/bits/gamma.tcc",                      "cmath"               },
-    { "/bits/gslice.h",                       "valarray"            },
-    { "/bits/gslice_array.h",                 "valarray"            },
-    { "/bits/hash_bytes.h",                   "functional"          },
-    { "/bits/hashtable.h",                    "unordered_map"       },
-    { "/bits/hashtable_policy.h",             "unordered_map"       },
-    { "/bits/hypergeometric.tcc",             "cmath"               },
-    { "/bits/indirect_array.h",               "valarray"            },
-    { "/bits/ios_base.h",                     "ios"                 },
-    { "/bits/istream.tcc",                    "istream"             },
-    { "/bits/legendre_function.tcc",          "cmath"               },
-    { "/bits/list.tcc",                       "list"                },
-    { "/bits/locale_classes.h",               "locale"              },
-    { "/bits/locale_classes.tcc",             "locale"              },
-    { "/bits/locale_facets.h",                "locale"              },
-    { "/bits/locale_facets.tcc",              "locale"              },
-    { "/bits/locale_facets_nonio.h",          "locale"              },
-    { "/bits/locale_facets_nonio.tcc",        "locale"              },
-    { "/bits/localefwd.h",                    "locale"              },
-    { "/bits/mask_array.h",                   "valarray"            },
-    { "/bits/memoryfwd.h",                    "memory"              },
-    { "/bits/messages_members.h",             "locale"              },
-    { "/bits/modified_bessel_func.tcc",       "cmath"               },
-    { "/bits/move.h",                         "utility"             },
-    { "/bits/nested_exception.h",             "exception"           },
-    { "/bits/opt_random.h",                   "random"              },
-    { "/bits/os_defines.h",                   "iosfwd"              },
-    { "/bits/ostream.tcc",                    "ostream"             },
-    { "/bits/ostream_insert.h",               "ostream"             },
-    { "/bits/poly_hermite.tcc",               "cmath"               },
-    { "/bits/poly_laguerre.tcc",              "cmath"               },
-    { "/bits/postypes.h",                     "iosfwd"              },
-    { "/bits/ptr_traits.h",                   "memory"              },
-    { "/bits/random.h",                       "random"              },
-    { "/bits/random.tcc",                     "random"              },
-    { "/bits/range_access.h",                 "iterator"            },
-    { "/bits/rc_string_base.h",               "vstring.h"           },
-    { "/bits/regex.h",                        "regex"               },
-    { "/bits/regex_compiler.h",               "regex"               },
-    { "/bits/regex_constants.h",              "regex"               },
-    { "/bits/regex_cursor.h",                 "regex"               },
-    { "/bits/regex_error.h",                  "regex"               },
-    { "/bits/regex_grep_matcher.h",           "regex"               },
-    { "/bits/regex_grep_matcher.tcc",         "regex"               },
-    { "/bits/regex_nfa.h",                    "regex"               },
-    { "/bits/regex_nfa.tcc",                  "regex"               },
-    { "/bits/riemann_zeta.tcc",               "cmath"               },
-    { "/bits/ropeimpl.h",                     "rope"                },
-    { "/bits/shared_ptr.h",                   "memory"              },
-    { "/bits/shared_ptr_base.h",              "memory"              },
-    { "/bits/slice_array.h",                  "valarray"            },
-    { "/bits/special_function_util.h",        "cmath"               },
-    { "/bits/sso_string_base.h",              "vstring.h"           },
-    { "/bits/sstream.tcc",                    "sstream"             },
-    { "/bits/stl_algo.h",                     "algorithm"           },
-    { "/bits/stl_algobase.h",                 "algorithm"           },
-    { "/bits/stl_bvector.h",                  "vector"              },
-    { "/bits/stl_construct.h",                "memory"              },
-    { "/bits/stl_deque.h",                    "deque"               },
-    { "/bits/stl_function.h",                 "functional"          },
-    { "/bits/stl_heap.h",                     "queue"               },
-    { "/bits/stl_iterator.h",                 "iterator"            },
-    { "/bits/stl_iterator_base_funcs.h",      "iterator"            },
-    { "/bits/stl_iterator_base_types.h",      "iterator"            },
-    { "/bits/stl_list.h",                     "list"                },
-    { "/bits/stl_map.h",                      "map"                 },
-    { "/bits/stl_multimap.h",                 "map"                 },
-    { "/bits/stl_multiset.h",                 "set"                 },
-    { "/bits/stl_numeric.h",                  "numeric"             },
-    { "/bits/stl_pair.h",                     "utility"             },
-    { "/bits/stl_queue.h",                    "queue"               },
-    { "/bits/stl_raw_storage_iter.h",         "memory"              },
-    { "/bits/stl_relops.h",                   "utility"             },
-    { "/bits/stl_set.h",                      "set"                 },
-    { "/bits/stl_stack.h",                    "stack"               },
-    { "/bits/stl_tempbuf.h",                  "memory"              },
-    { "/bits/stl_tree.h",                     "map"                 },
-    { "/bits/stl_uninitialized.h",            "memory"              },
-    { "/bits/stl_vector.h",                   "vector"              },
-    { "/bits/stream_iterator.h",              "iterator"            },
-    { "/bits/streambuf.tcc",                  "streambuf"           },
-    { "/bits/streambuf_iterator.h",           "iterator"            },
-    { "/bits/stringfwd.h",                    "string"              },
-    { "/bits/strstream",                      "sstream"             },
-    { "/bits/time_members.h",                 "locale"              },
-    { "/bits/unique_ptr.h",                   "memory"              },
-    { "/bits/unordered_map.h",                "unordered_map"       },
-    { "/bits/unordered_set.h",                "unordered_set"       },
-    { "/bits/valarray_after.h",               "valarray"            },
-    { "/bits/valarray_array.h",               "valarray"            },
-    { "/bits/valarray_array.tcc",             "valarray"            },
-    { "/bits/valarray_before.h",              "valarray"            },
-    { "/bits/vector.tcc",                     "vector"              },
-    { "/bits/vstring.tcc",                    "vstring.h"           },
-    { "/bits/vstring_fwd.h",                  "vstring.h"           },
-    { "/bits/vstring_util.h",                 "vstring.h"           },
-
-    { "/bslstl_algorithmworkaround.h",        "bsl_algorithm.h"     },
-    { "/bslstl_allocator.h",                  "bsl_memory.h"        },
-    { "/bslstl_allocatortraits.h",            "bsl_memory.h"        },
-    { "/bslstl_badweakptr.h",                 "bsl_memory.h"        },
-    { "/bslstl_bidirectionaliterator.h",      "bsl_iterator.h"      },
-    { "/bslstl_bitset.h",                     "bsl_bitset.h"        },
-    { "/bslstl_deque.h",                      "bsl_deque.h"         },
-    { "/bslstl_equalto.h",                    "bsl_functional.h"    },
-    { "/bslstl_forwarditerator.h",            "bsl_iterator.h"      },
-    { "/bslstl_hash.h",                       "bsl_functional.h"    },
-    { "/bslstl_istringstream.h",              "bsl_sstream.h"       },
-    { "/bslstl_iterator.h",                   "bsl_iterator.h"      },
-    { "/bslstl_list.h",                       "bsl_list.h"          },
-    { "/bslstl_map.h",                        "bsl_map.h"           },
-    { "/bslstl_multimap.h",                   "bsl_map.h"           },
-    { "/bslstl_multiset.h",                   "bsl_set.h"           },
-    { "/bslstl_ostringstream.h",              "bsl_sstream.h"       },
-    { "/bslstl_pair.h",                       "bsl_utility.h"       },
-    { "/bslstl_randomaccessiterator.h",       "bsl_iterator.h"      },
-    { "/bslstl_set.h",                        "bsl_set.h"           },
-    { "/bslstl_sharedptr.h",                  "bsl_memory.h"        },
-    { "/bslstl_sstream.h",                    "bsl_sstream.h"       },
-    { "/bslstl_stack.h",                      "bsl_stack.h"         },
-    { "/bslstl_stdexceptutil.h",              "bsl_stdexcept.h"     },
-    { "/bslstl_string.h",                     "bsl_string.h"        },
-    { "/bslstl_stringbuf.h",                  "bsl_sstream.h"       },
-    { "/bslstl_stringstream.h",               "bsl_sstream.h"       },
-    { "/bslstl_unorderedmap.h",               "bsl_unordered_map.h" },
-    { "/bslstl_unorderedmultimap.h",          "bsl_unordered_map.h" },
-    { "/bslstl_unorderedmultiset.h",          "bsl_unordered_set.h" },
-    { "/bslstl_unorderedset.h",               "bsl_unordered_set.h" },
-    { "/bslstl_vector.h",                     "bsl_vector.h"        },
-    { "/bslstl_allocator.h",                  "bsl_memory.h"        },
-};
+    X("/bslstl_algorithmworkaround.h",        "bsl_algorithm.h"    )
+    X("/bslstl_allocator.h",                  "bsl_memory.h"       )
+    X("/bslstl_allocatortraits.h",            "bsl_memory.h"       )
+    X("/bslstl_badweakptr.h",                 "bsl_memory.h"       )
+    X("/bslstl_bidirectionaliterator.h",      "bsl_iterator.h"     )
+    X("/bslstl_bitset.h",                     "bsl_bitset.h"       )
+    X("/bslstl_deque.h",                      "bsl_deque.h"        )
+    X("/bslstl_equalto.h",                    "bsl_functional.h"   )
+    X("/bslstl_forwarditerator.h",            "bsl_iterator.h"     )
+    X("/bslstl_hash.h",                       "bsl_functional.h"   )
+    X("/bslstl_istringstream.h",              "bsl_sstream.h"      )
+    X("/bslstl_iterator.h",                   "bsl_iterator.h"     )
+    X("/bslstl_list.h",                       "bsl_list.h"         )
+    X("/bslstl_map.h",                        "bsl_map.h"          )
+    X("/bslstl_multimap.h",                   "bsl_map.h"          )
+    X("/bslstl_multiset.h",                   "bsl_set.h"          )
+    X("/bslstl_ostringstream.h",              "bsl_sstream.h"      )
+    X("/bslstl_pair.h",                       "bsl_utility.h"      )
+    X("/bslstl_randomaccessiterator.h",       "bsl_iterator.h"     )
+    X("/bslstl_set.h",                        "bsl_set.h"          )
+    X("/bslstl_sharedptr.h",                  "bsl_memory.h"       )
+    X("/bslstl_sstream.h",                    "bsl_sstream.h"      )
+    X("/bslstl_stack.h",                      "bsl_stack.h"        )
+    X("/bslstl_stdexceptutil.h",              "bsl_stdexcept.h"    )
+    X("/bslstl_string.h",                     "bsl_string.h"       )
+    X("/bslstl_stringbuf.h",                  "bsl_sstream.h"      )
+    X("/bslstl_stringstream.h",               "bsl_sstream.h"      )
+    X("/bslstl_unorderedmap.h",               "bsl_unordered_map.h")
+    X("/bslstl_unorderedmultimap.h",          "bsl_unordered_map.h")
+    X("/bslstl_unorderedmultiset.h",          "bsl_unordered_set.h")
+    X("/bslstl_unorderedset.h",               "bsl_unordered_set.h")
+    X("/bslstl_vector.h",                     "bsl_vector.h"       )
+    X("/bslstl_allocator.h",                  "bsl_memory.h"       )
+    }
 
     return s;
 }
@@ -351,34 +363,37 @@ bool is_skipped(llvm::StringRef name)
     return false;
 }
 
-std::unordered_set<llvm::StringRef> &reexporting_files()
+std::set<llvm::StringRef> &reexporting_files()
 {
 
-static std::unordered_set<llvm::StringRef> s {
+static auto &s = *new std::set<llvm::StringRef>({
     "bael_log.h",
-};
+});
 
     return s;
 }
 
-std::unordered_map<llvm::StringRef,
-                   std::unordered_set<llvm::StringRef>> &if_included_map()
+std::map<llvm::StringRef,
+                   std::set<llvm::StringRef>> &if_included_map()
 {
-
-static std::unordered_map<llvm::StringRef,
-                          std::unordered_set<llvm::StringRef>> s{
-    {"bsl_ios.h", {"bsl_iostream.h", "bsl_streambuf.h", "bsl_strstream.h"}},
-    {"bsl_iosfwd.h", {"bsl_ios.h"}},
-    {"bsl_istream.h",{"bsl_iostream.h"}},
-    {"bsl_ostream.h",{"bsl_iostream.h"}},
-    {"bsl_streambuf.h",{"bsl_iostream.h"}},
-    {"ios", {"bsl_iostream.h", "bsl_streambuf.h", "bsl_strstream.h"}},
-    {"iosfwd", {"bsl_ios.h"}},
-    {"istream",{"bsl_iostream.h"}},
-    {"math.h",{"bsl_cmath.h"}},
-    {"ostream",{"bsl_iostream.h"}},
-    {"streambuf",{"bsl_iostream.h"}},
-};
+    static std::map<llvm::StringRef, std::set<llvm::StringRef>> s;
+    if (!s.size()) {
+        s["bsl_ios.h"].insert("bsl_iostream.h");
+        s["bsl_ios.h"].insert("bsl_streambuf.h");
+        s["bsl_ios.h"].insert("bsl_strstream.h");
+        s["bsl_iosfwd.h"].insert("bsl_ios.h");
+        s["bsl_istream.h"].insert("bsl_iostream.h");
+        s["bsl_ostream.h"].insert("bsl_iostream.h");
+        s["bsl_streambuf.h"].insert("bsl_iostream.h");
+        s["ios.h"].insert("bsl_iostream.h");
+        s["ios.h"].insert("bsl_streambuf.h");
+        s["ios.h"].insert("bsl_strstream.h");
+        s["iosfwd"].insert("bsl_ios.h");
+        s["istream"].insert("bsl_iostream.h");
+        s["math.h"].insert("bsl_cmath.h");
+        s["ostream"].insert("bsl_iostream.h");
+        s["streambuf"].insert("bsl_iostream.h");
+    }
 
     return s;
 }
@@ -451,19 +466,19 @@ struct data
     std::vector<FileID>                                        d_fileid_stack;
     std::string                                                d_guard;
     SourceLocation                                             d_guard_pos;
-    std::unordered_map<FileID, std::unordered_map<std::string, SourceLocation>>
+    std::map<FileID, std::map<std::string, SourceLocation>>
                                                                d_once;
-    std::unordered_map<FileID, std::unordered_set<std::string>>
+    std::map<FileID, std::set<std::string>>
                                                                d_includes;
-    std::unordered_set<std::string>                            d_all_includes;
-    std::unordered_map<FileID, std::string>                    d_guards;
-    std::unordered_map<std::tuple<FileID, FileID, SourceLocation>,
+    std::set<std::string>                            d_all_includes;
+    std::map<FileID, std::string>                    d_guards;
+    std::map<std::tuple<FileID, FileID, SourceLocation>,
                        SourceLocation>                         d_fid_map;
-    std::unordered_map<std::pair<SourceLocation, SourceLocation>,
+    std::map<std::pair<SourceLocation, SourceLocation>,
                        std::string>                            d_file_for_loc;
-    std::unordered_map<SourceLocation, std::vector<std::pair<FileID, bool>>>
+    std::map<SourceLocation, std::vector<std::pair<FileID, bool>>>
                                                                d_include_stack;
-    std::unordered_set<std::pair<FileID, const Decl *>>        d_decls;
+    std::set<std::pair<FileID, const Decl *>>        d_decls;
     bool                                                       d_ovr;
 };
 
