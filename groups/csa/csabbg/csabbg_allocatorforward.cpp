@@ -58,13 +58,6 @@ AST_MATCHER_P(TemplateArgument, equalsIntegral, unsigned, N) {
          Node.getAsIntegral() == N;
 }
 
-#if 0
-AST_MATCHER_P(ClassTemplateSpecializationDecl, templateArgumentCountIs,
-              unsigned, N) {
-    return Node.getTemplateArgs().size() == N;
-}
-#endif
-
 AST_MATCHER_P(FunctionDecl, hasLastParameter,
                internal::Matcher<ParmVarDecl>, InnerMatcher) {
     return Node.getNumParams() > 0 &&
@@ -274,6 +267,10 @@ const CXXRecordDecl *report::get_record_decl(QualType type)
         if (tdecl) {
             rdecl = tdecl;
         }
+    }
+
+    if (rdecl) {
+        rdecl = rdecl->getCanonicalDecl();
     }
 
     return rdecl;
