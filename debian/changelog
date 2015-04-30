@@ -1,3 +1,9 @@
+bde-verify (1.1.2) unstable; urgency=low
+
+  * 2dc87f4 Missed a "getCanonicalDecl" causing spurious shared_ptr warnings.
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Thu, 30 Apr 2015 12:49:18 -0400
+
 bde-verify (1.1.1) unstable; urgency=low
 
   * 8388172 Remove obsolete Windows build files.
