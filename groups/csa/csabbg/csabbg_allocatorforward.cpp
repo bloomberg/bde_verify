@@ -127,7 +127,7 @@ struct report : Report<data>
         // pointer if it does not have one.
 
     bool is_allocator(QualType type);
-        // Return 'true' iff the specified 'type' is pointer to
+        // Return 'true' iff the specified 'type' is pointer or reference to
         // 'bslma::Allocator'.
 
     bool last_arg_is_explicit(const CXXConstructExpr* call);
@@ -280,7 +280,7 @@ bool report::is_allocator(QualType type)
     // Return 'true' iff the specified 'type' is pointer to
     // 'bslma::Allocator'.
 {
-    return type->isPointerType()
+    return (type->isPointerType() || type->isReferenceType())
         && type->getPointeeType()->getCanonicalTypeInternal() ==
            d.bslma_allocator_;
 }
@@ -413,8 +413,8 @@ void report::match_nested_allocator_trait(const BoundNodes& nodes)
 
 static internal::DynTypedMatcher class_using_allocator_matcher()
     // Matcher for classes that have constructors with a final parameter that
-    // is a pointer to an allocator or a reference to a class that has such a
-    // constructor.
+    // is a pointer or reference to an allocator or a reference to a class that
+    // has such a constructor.
 {
     return decl(forEachDescendant(recordDecl(
         has(constructorDecl(
@@ -422,16 +422,30 @@ static internal::DynTypedMatcher class_using_allocator_matcher()
                 hasType(referenceType(
                     pointee(hasDeclaration(decl(has(constructorDecl(
                         isPublic(),
-                        hasLastParameter(parmVarDecl(
-                            hasType(pointerType(pointee(hasDeclaration(
-                                recordDecl(isSameOrDerivedFrom(
-                                    "::BloombergLP::bslma::Allocator"
-                                ))
-                            ))))
-                        ))
+                        anyOf(
+                            hasLastParameter(parmVarDecl(
+                                hasType(pointerType(pointee(hasDeclaration(
+                                    recordDecl(isSameOrDerivedFrom(
+                                        "::BloombergLP::bslma::Allocator"
+                                    ))
+                                ))))
+                            )),
+                            hasLastParameter(parmVarDecl(
+                                hasType(referenceType(pointee(hasDeclaration(
+                                    recordDecl(isSameOrDerivedFrom(
+                                        "::BloombergLP::bslma::Allocator"
+                                    ))
+                                ))))
+                            ))
+                        )
                     )))))
                 )),
                 hasType(pointerType(pointee(hasDeclaration(
+                    recordDecl(isSameOrDerivedFrom(
+                        "::BloombergLP::bslma::Allocator"
+                    ))
+                )))),
+                hasType(referenceType(pointee(hasDeclaration(
                     recordDecl(isSameOrDerivedFrom(
                         "::BloombergLP::bslma::Allocator"
                     ))
