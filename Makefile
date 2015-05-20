@@ -35,6 +35,7 @@ ifeq ($(SYSTEM),Linux)
                   $(PREFIX)/lib64                                             \
                   /opt/swt/lib64                                              \
                   /usr/lib64
+    LDFLAGS    += -Wl,--enable-new-dtags
     LDFLAGS    += $(foreach L,$(LIBDIRS),-Wl,-L$(L),-rpath,$(L))
 else ifeq ($(SYSTEM),SunOS)
     AR          = /usr/ccs/bin/ar
