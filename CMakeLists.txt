@@ -19,6 +19,23 @@ if(MSVC)
         "${CMAKE_CURRENT_SOURCE_DIR}/Windows/BDE_Verify.ico")
     set(CPACK_NSIS_DISPLAY_NAME "BDE Verify")
     set(CPACK_NSIS_PACKAGE_NAME "BDE Verify")
+    set(APREGKEY
+        "Software\\\\Microsoft\\\\Windows\\\\CurrentVersion\\\\App Paths\\\\")
+    set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "
+        WriteRegStr SHCTX '${APREGKEY}bde_verify.pl'      '' \\
+                    '$INSTDIR\\\\bin\\\\bde_verify.pl'
+        WriteRegStr SHCTX '${APREGKEY}bb_cppverify.pl'    '' \\
+                    '$INSTDIR\\\\bin\\\\bb_cppverify.pl'
+        WriteRegStr SHCTX '${APREGKEY}bde_verify_bin.exe' '' \\
+                    '$INSTDIR\\\\libexec\\\\bde-verify\\\\bde_verify_bin.exe'
+        System::Call 'Shell32::SHChangeNotify(i 0x8000000, i 0, i 0, i 0)'
+    ")
+    set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "
+        DeleteRegKey SHCTX '${APREGKEY}bde_verify.pl'
+        DeleteRegKey SHCTX '${APREGKEY}bb_cppverify.pl'
+        DeleteRegKey SHCTX '${APREGKEY}bde_verify_bin.exe'
+        System::Call 'Shell32::SHChangeNotify(i 0x8000000, i 0, i 0, i 0)'
+    ")
 else()
     if(NOT $ENV{PREFIX})
         if(IS_DIRECTORY /opt/bb)
