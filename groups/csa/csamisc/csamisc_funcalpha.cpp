@@ -75,6 +75,9 @@ comments::comments(Analyser& analyser)
 
 bool comments::isReset(SourceRange range)
 {
+    if (d_manager.getPresumedLineNumber(range.getBegin()) == 1) {
+        return false;                                                 // RETURN
+    }
     llvm::StringRef comment = d_analyser.get_source(
         SourceRange(d_analyser.get_line_range(range.getBegin())
                         .getBegin()

@@ -65,11 +65,15 @@ void report::operator()()
 
         size_t prev = ~size_t(0);
         size_t next;
+        size_t cr;
         do {
-            if ((next = b.find('\n', prev + 1)) == b.npos) {
-                next = b.size();
+            if ((cr = next = b.find('\n', prev + 1)) == b.npos) {
+                cr = next = b.size();
             }
-            if (next - prev > 80) {
+            else if (b.find('\r', prev + 1) == cr - 1) {
+                --cr;
+            }
+            if (cr - prev > 80) {
                 d_analyser.report(loc.getLocWithOffset(prev + 80), check_name,
                                   "LL01",
                                   "Line exceeds 79 characters in length");
