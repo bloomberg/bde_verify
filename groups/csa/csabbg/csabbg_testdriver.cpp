@@ -240,6 +240,16 @@ llvm::Regex testing(
     "//[[:blank:]]*Test(ing|ed|s)?[[:blank:]]*:?[[:blank:]]*\n",
     llvm::Regex::IgnoreCase);  // Loosely match 'Testing:' in a case comment.
 
+llvm::Regex concerns(
+    "(//[[:blank:]]*Concerns?[[:blank:]]*:?[[:blank:]]*\n)[[:blank:]]*"
+    "(//:[[:blank:]]+[[:digit:]]+[[:blank:]])?",
+    llvm::Regex::IgnoreCase);  // Loosely match 'Concerns:' in a case comment.
+
+llvm::Regex plansec(
+    "(//[[:blank:]]*Plan?[[:blank:]]*:?[[:blank:]]*\n)[[:blank:]]*"
+    "(//:[[:blank:]]+[[:digit:]]+[[:blank:]])?",
+    llvm::Regex::IgnoreCase);  // Loosely match 'Plan:' in a case comment.
+
 llvm::Regex test_item(
     "^[^.;]*[[:alpha:]][^.;]*;?[^.;]*$",
     llvm::Regex::Newline);  // Loosely match a test item; at least one letter,
@@ -737,12 +747,51 @@ void report::operator()()
             }
         }
 
+        if (concerns.match(comment, &matches)) {
+            llvm::StringRef t = matches[1];
+            testing_pos = comment.find(t);
+            line_pos = testing_pos + t.size();
+            std::pair<size_t, size_t> m = mid_mismatch(t, "// Concerns:\n");
+            if (m.first != t.size()) {
+                a.report(cr.getBegin().getLocWithOffset(testing_pos + m.first),
+                         check_name, "TP28",
+                         "Correct format is '// Concerns:'");
+            }
+            if (matches[2].size() == 0) {
+                a.report(cr.getBegin().getLocWithOffset(testing_pos + m.first +
+                                                        t.size()),
+                         check_name, "TP29",
+                         "Concerns should be numbered like so: //: 1 ...");
+            }
+        } else if (!negative) {
+            a.report(cr.getBegin(), check_name, "TP30",
+                     "Comment should contain a 'Concerns:' section");
+        }
+        if (plansec.match(comment, &matches)) {
+            llvm::StringRef t = matches[1];
+            testing_pos = comment.find(t);
+            line_pos = testing_pos + t.size();
+            std::pair<size_t, size_t> m = mid_mismatch(t, "// Plan:\n");
+            if (m.first != t.size()) {
+                a.report(cr.getBegin().getLocWithOffset(testing_pos + m.first),
+                         check_name, "TP31",
+                         "Correct format is '// Plan:'");
+            }
+            if (matches[2].size() == 0) {
+                a.report(cr.getBegin().getLocWithOffset(testing_pos + m.first +
+                                                        t.size()),
+                         check_name, "TP32",
+                         "Plans should be numbered like so: //: 1 ...");
+            }
+        } else if (!negative) {
+            a.report(cr.getBegin(), check_name, "TP33",
+                     "Comment should contain a 'Concerns:' section");
+        }
         if (testing.match(comment, &matches)) {
             llvm::StringRef t = matches[0];
             testing_pos = comment.find(t);
             line_pos = testing_pos + t.size();
-            std::pair<size_t, size_t> m =
-                mid_mismatch(t, "// Testing:\n");
+            std::pair<size_t, size_t> m = mid_mismatch(t, "// Testing:\n");
             if (m.first != t.size()) {
                 a.report(cr.getBegin().getLocWithOffset(testing_pos + m.first),
                          check_name, "TP15",

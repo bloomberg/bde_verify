@@ -180,6 +180,9 @@ csabbg_testdriver.t.cpp:263:13: warning: TP21: Loops must contain very verbose a
 csabbg_testdriver.t.cpp:264:13: warning: TP21: Loops must contain very verbose action
             do          { F(); } while (b);
             ^
+csabbg_testdriver.t.cpp:165:10: warning: TP32: Plans should be numbered like so: //: 1 ...
+        //
+         ^
 csabbg_testdriver.t.cpp:167:9: warning: TP08: Test plan does not have case number 1 for this item
         //   BREATHING TEST
         ^
@@ -198,6 +201,12 @@ csabbg_testdriver.t.cpp:138:20: warning: TP22: Mismatch between title in comment
 csabbg_testdriver.t.cpp:151:21: note: TP22: Printed title is
             cout << endl << "'f' AND 'setf'" << endl << "==========" << '\n';
                     ^
+csabbg_testdriver.t.cpp:143:3: warning: TP29: Concerns should be numbered like so: //: 1 ...
+        // Plan:
+  ^
+csabbg_testdriver.t.cpp:144:10: warning: TP32: Plans should be numbered like so: //: 1 ...
+        //
+         ^
 csabbg_testdriver.t.cpp:146:9: warning: TP08: Test plan does not have case number 2 for this item
         //   int F() const;
         ^
@@ -222,10 +231,16 @@ csabbg_testdriver.t.cpp:107:13: warning: TP22: Mismatch between title in comment
 csabbg_testdriver.t.cpp:124:20: note: TP22: Printed title is
             printf("Usage Example\n=============\n");
                    ^
+csabbg_testdriver.t.cpp:110:14: warning: TP29: Concerns should be numbered like so: //: 1 ...
+        //   The usage example provided in the component header file must
+             ^
+csabbg_testdriver.t.cpp:114:10: warning: TP32: Plans should be numbered like so: //: 1 ...
+        //   Incorporate usage example from header into driver, remove leading
+         ^
 csabbg_testdriver.t.cpp:120:9: warning: TP08: Test plan does not have case number 3 for this item
         //   USAGE EXAMPLE
         ^
 csabbg_testdriver.t.cpp:30:6: note: TP08: Test plan item is
 // [  ] USAGE EXAMPLE
      ^
-57 warnings generated.
+62 warnings generated.
