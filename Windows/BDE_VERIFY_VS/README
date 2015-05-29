@@ -1,0 +1,12 @@
+This directory contains the source for a Visual Studio Extension Package that
+runs BDE Verify on the active C++ text buffer within the IDE and places the
+resulting messages into the error list.  These messages can be double-clicked
+to navigate to their corresponding source code.
+
+Building the solution file BDE_VERIFY_VS.sln produces the file
+./BDE_VERIFY_VS/bin/Release/BDE_VERIFY_VS.vsix, which can be double-clicked to
+install the extension into Visual Studio.  Once installed, a BDE Verify section
+appears within the TOOLS/Options... menu, in which custom settings may be
+specified.  If BDE Verify has been installed via the installer package, the
+extension packages will locate the executable and config files automatically.
+They can in any case be set manually.
