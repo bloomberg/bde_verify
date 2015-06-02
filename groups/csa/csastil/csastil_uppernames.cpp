@@ -90,6 +90,7 @@ void report::match_has_name(const BoundNodes& nodes)
         return;                                                       // RETURN
     }
     if (llvm::dyn_cast<TemplateTypeParmDecl>(decl) ||
+        llvm::dyn_cast<TemplateTemplateParmDecl>(decl) ||
         llvm::dyn_cast<NonTypeTemplateParmDecl>(decl)) {
         return;                                                       // RETURN
     }

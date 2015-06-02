@@ -139,15 +139,17 @@ void report::checkTemplateParameters(TemplateParameterList const* parms)
 {
     unsigned n = parms ? parms->size() : 0;
     for (unsigned i = 0; i < n; ++i) {
-        const TemplateTypeParmDecl *parm =
-            llvm::dyn_cast<TemplateTypeParmDecl>(parms->getParam(i));
-        if (parm &&
+        auto parm = parms->getParam(i);
+        auto nparm = llvm::dyn_cast<NonTypeTemplateParmDecl>(parm);
+        auto tparm = llvm::dyn_cast<TemplateTypeParmDecl>(parm);
+        auto ttparm = llvm::dyn_cast<TemplateTemplateParmDecl>(parm);
+        if ((nparm || tparm || ttparm) &&
             !parm->getLocation().isMacroID() &&
             d_analyser.is_component(parm)) {
-            if (parm->wasDeclaredWithTypename()) {
-                 d_analyser.report(parm, check_name, "TY01",
+            if (tparm && tparm->wasDeclaredWithTypename()) {
+                 d_analyser.report(tparm, check_name, "TY01",
                      "Template parameter uses 'typename' instead of 'class'");
-                 SourceRange r = parm->getSourceRange();
+                 SourceRange r = tparm->getSourceRange();
                  llvm::StringRef s = d_analyser.get_source(r);
                  size_t to = s.find("typename");
                  if (to != s.npos) {
