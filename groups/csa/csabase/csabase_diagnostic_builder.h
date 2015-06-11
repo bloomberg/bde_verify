@@ -3,6 +3,7 @@
 #ifndef FRAMEWORK_DIAGNOSTIC_BUILDER_HPP
 #define FRAMEWORK_DIAGNOSTIC_BUILDER_HPP
 
+#include <csabase_debug.h>
 #include <clang/Basic/Diagnostic.h>
 
 // -----------------------------------------------------------------------------
@@ -19,10 +20,26 @@ class diagnostic_builder
     template <typename T>
     diagnostic_builder& operator<<(T const& argument);
 
+    static bool failed();
+    static void failed(bool status);
+
   private:
     bool empty_;
     clang::DiagnosticBuilder builder_;
+    static bool failed_;
 };
+
+inline
+bool diagnostic_builder::failed()
+{
+    return failed_;
+}
+
+inline
+void diagnostic_builder::failed(bool status)
+{
+    failed_ = status;
+}
 
 inline
 diagnostic_builder::diagnostic_builder()
@@ -31,7 +48,7 @@ diagnostic_builder::diagnostic_builder()
 }
 
 inline diagnostic_builder::diagnostic_builder(clang::DiagnosticBuilder other,
-                                              bool always)
+                                              bool                     always)
 : empty_(false), builder_(other)
 {
     if (always) {

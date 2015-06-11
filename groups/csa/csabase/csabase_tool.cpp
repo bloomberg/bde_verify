@@ -1,6 +1,7 @@
 // csabase_tool.cpp                                                   -*-C++-*-
 
 #include <csabase_tool.h>
+#include <csabase_diagnostic_builder.h>
 #include <clang/Basic/Diagnostic.h>
 #include <clang/Basic/DiagnosticIDs.h>
 #include <clang/Basic/DiagnosticOptions.h>
@@ -98,7 +99,7 @@ int csabase::run(int argc_, const char **argv_)
     remove_fatal_error_handler();
     llvm::llvm_shutdown();
 
-    return !Success;
+    return !Success || diagnostic_builder::failed();
 }
 
 // ----------------------------------------------------------------------------

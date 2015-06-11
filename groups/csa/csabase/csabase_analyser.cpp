@@ -23,6 +23,7 @@
 #include <csabase_checkregistry.h>
 #include <csabase_config.h>
 #include <csabase_debug.h>
+#include <csabase_diagnosticfilter.h>
 #include <csabase_filenames.h>
 #include <csabase_location.h>
 #include <csabase_ppobserver.h>
@@ -334,8 +335,14 @@ bool csabase::Analyser::is_standard_namespace(std::string const& ns) const
 
 bool csabase::Analyser::is_component_source(std::string const& file) const
 {
-    std::string::size_type pos(file.find(toplevel()));
-    return pos != file.npos && pos + toplevel().size() == file.size();
+    IsComponent::iterator in = is_component_.find(file);
+    if (in != is_component_.end()) {
+        return in->second;
+    }
+
+    FileName fn(file);
+
+    return is_component_[file] = fn.name() == toplevel();
 }
 
 bool csabase::Analyser::is_component_source(SourceLocation loc) const
@@ -384,11 +391,14 @@ csabase::Analyser::report(SourceLocation where,
                           bool always,
                           DiagnosticIDs::Level level)
 {
-    Location location(get_location(where));
     if (!config()->suppressed(tag, where)) {
         unsigned int id(
             compiler_.getDiagnostics().getDiagnosticIDs()->getCustomDiagID(
                 level, tool_name() + tag + ": " + message));
+        const std::string &fs = config()->value("failstatus", where);
+        if (fs.find(check) != fs.npos || fs.find(tag) != fs.npos) {
+            csabase::DiagnosticFilter::fail_on(id);
+        }
         return csabase::diagnostic_builder(
             compiler_.getDiagnostics().Report(where, id), always);
     }

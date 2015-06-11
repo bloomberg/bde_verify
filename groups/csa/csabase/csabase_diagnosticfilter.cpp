@@ -1,6 +1,7 @@
 // csabase_diagnosticfilter.cpp                                       -*-C++-*-
 
 #include <csabase_diagnosticfilter.h>
+#include <csabase_diagnostic_builder.h>
 #include <csabase_analyser.h>
 #include <csabase_debug.h>
 #include <csabase_registercheck.h>
@@ -25,6 +26,8 @@ using namespace clang;
 static std::string const check_name("diagnostic-filter");
 
 // ----------------------------------------------------------------------------
+
+std::set<unsigned> csabase::DiagnosticFilter::s_fail_ids;
 
 csabase::DiagnosticFilter::DiagnosticFilter(Analyser const&    analyser,
                                             std::string        diagnose,
@@ -76,6 +79,9 @@ csabase::DiagnosticFilter::HandleDiagnostic(DiagnosticsEngine::Level level,
     }
     if (handle) {
         TextDiagnosticPrinter::HandleDiagnostic(level, info);
+        if (csabase::DiagnosticFilter::is_fail(info.getID())) {
+            csabase::diagnostic_builder::failed(true);
+        }
     }
 }
 

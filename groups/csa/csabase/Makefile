@@ -48,6 +48,7 @@ CXXFILES =                                                 \
         csabase_clang.cpp                                  \
         csabase_config.cpp                                 \
         csabase_debug.cpp                                  \
+        csabase_diagnostic_builder.cpp                     \
         csabase_diagnosticfilter.cpp                       \
         csabase_filenames.cpp                              \
         csabase_format.cpp                                 \

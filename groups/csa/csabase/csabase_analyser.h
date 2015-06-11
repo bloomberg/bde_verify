@@ -169,6 +169,8 @@ private:
     std::string                           component_;
     std::string                           rewrite_dir_;
     std::string                           rewrite_file_;
+    typedef std::map<std::string, bool>   IsComponent;
+    mutable IsComponent                   is_component_;
     typedef std::map<std::string, bool>   IsComponentHeader;
     mutable IsComponentHeader             is_component_header_;
     typedef std::map<std::string, bool>   IsGlobalPackage;

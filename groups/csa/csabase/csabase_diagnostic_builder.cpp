@@ -1,4 +1,7 @@
 // csabase_diagnostic_builder.cpp                                     -*-C++-*-
+#include <csabase_diagnostic_builder.h>
+
+bool csabase::diagnostic_builder::failed_;
 
 // ----------------------------------------------------------------------------
 // Copyright (C) 2014 Bloomberg Finance L.P.
