@@ -66,12 +66,7 @@ class AnalyseConsumer : public ASTConsumer
 AnalyseConsumer::AnalyseConsumer(CompilerInstance&   compiler,
                                  std::string const&  source,
                                  PluginAction const& plugin)
-: analyser_(compiler,
-            plugin.debug(),
-            plugin.config(),
-            plugin.tool_name(),
-            plugin.rewrite_dir(),
-            plugin.rewrite_file())
+: analyser_(compiler, plugin)
 , source_(source)
 {
     analyser_.toplevel(source);
@@ -223,7 +218,7 @@ AnalyseConsumer::HandleTranslationUnit(ASTContext&)
             ReadReplacements(rf);
         }
         Rewriter& rw = analyser_.rewriter();
-        SourceManager&m = analyser_.manager();
+        SourceManager& m = analyser_.manager();
         std::set<Replacement, CompareReplacements> sr(
             analyser_.replacements().begin(), analyser_.replacements().end());
         for (const auto &r : sr) {
@@ -235,6 +230,22 @@ AnalyseConsumer::HandleTranslationUnit(ASTContext&)
             const FileEntry *fe = m.getFileEntryForID(b->first);
             if (!fe) {
                 continue;
+            }
+            SourceLocation loc = m.translateFileLineCol(fe, 1, 1);
+            if (analyser_.diagnose() == "component") {
+                if (!analyser_.is_component(loc)) {
+                    continue;
+                }
+            }
+            else if (analyser_.diagnose() == "main") {
+                if (m.getMainFileID() != m.getFileID(loc)) {
+                    continue;
+                }
+            }
+            else if (analyser_.diagnose() == "nogen") {
+                if (analyser_.is_generated(loc)) {
+                    continue;
+                }
             }
             std::string rewritten_file =
                 analyser_.get_rewrite_file(fe->getName());

@@ -47,23 +47,20 @@ using namespace clang;
 // -----------------------------------------------------------------------------
 
 csabase::Analyser::Analyser(CompilerInstance& compiler,
-                            bool debug,
-                            std::vector<std::string> const& config,
-                            std::string const& name,
-                            std::string const& rewrite_dir,
-                            std::string const& rewrite_file)
-: d_config(new Config(
-      config.size() == 0 ? std::vector<std::string>(1, "load .bdeverify") :
-                           config,
-      compiler.getSourceManager()))
-, tool_name_(name)
+                            const PluginAction& plugin)
+: d_config(new Config(plugin.config().size() == 0
+                          ? std::vector<std::string>(1, "load .bdeverify")
+                          : plugin.config(),
+                      compiler.getSourceManager()))
+, tool_name_(plugin.tool_name())
+, diagnose_(plugin.diagnose())
 , compiler_(compiler)
 , d_source_manager(compiler.getSourceManager())
 , visitor_(new Visitor())
 , context_(0)
 , rewriter_(new Rewriter(compiler.getSourceManager(), compiler.getLangOpts()))
-, rewrite_dir_(rewrite_dir)
-, rewrite_file_(rewrite_file)
+, rewrite_dir_(plugin.rewrite_dir())
+, rewrite_file_(plugin.rewrite_file())
 {
     compiler_.getPreprocessor().addPPCallbacks(std::unique_ptr<PPCallbacks>(
         new PPObserver(&d_source_manager, d_config.get())));
@@ -84,6 +81,11 @@ csabase::Config const* csabase::Analyser::config() const
 std::string const& csabase::Analyser::tool_name() const
 {
     return tool_name_;
+}
+
+std::string const& csabase::Analyser::diagnose() const
+{
+    return diagnose_;
 }
 
 // -----------------------------------------------------------------------------

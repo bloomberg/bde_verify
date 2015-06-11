@@ -7,6 +7,7 @@
 #include <clang/Basic/Diagnostic.h>
 #include <clang/Basic/SourceLocation.h>
 #include <clang/Tooling/Refactoring.h>
+#include <csabase_analyse.h>
 #include <csabase_attachments.h>
 #include <csabase_config.h>
 #include <csabase_diagnostic_builder.h>
@@ -39,15 +40,11 @@ namespace csabase
 class Analyser : public Attachments
 {
   public:
-    Analyser(clang::CompilerInstance& compiler,
-             bool debug,
-             std::vector<std::string> const& config,
-             std::string const& name,
-             std::string const& rewrite_dir,
-             std::string const& rewrite_file);
+    Analyser(clang::CompilerInstance& compiler, const PluginAction& plugin);
 
     Config const* config() const;
     std::string const& tool_name() const;
+    std::string const& diagnose() const;
 
     clang::ASTContext                   *context();
     clang::ASTContext const             *context() const;
@@ -156,6 +153,7 @@ private:
         
     std::auto_ptr<Config>                 d_config;
     std::string                           tool_name_;
+    std::string                           diagnose_;
     clang::CompilerInstance&              compiler_;
     clang::SourceManager const&           d_source_manager;
     std::auto_ptr<Visitor>                visitor_;
