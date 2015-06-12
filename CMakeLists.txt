@@ -22,17 +22,20 @@ if(MSVC)
     set(APREGKEY
         "Software\\\\Microsoft\\\\Windows\\\\CurrentVersion\\\\App Paths\\\\")
     set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "
-        WriteRegStr SHCTX '${APREGKEY}bde_verify.pl'      '' \\
-                    '$INSTDIR\\\\bin\\\\bde_verify.pl'
-        WriteRegStr SHCTX '${APREGKEY}bb_cppverify.pl'    '' \\
-                    '$INSTDIR\\\\bin\\\\bb_cppverify.pl'
-        WriteRegStr SHCTX '${APREGKEY}bde_verify_bin.exe' '' \\
+        WriteRegStr SHCTX   '${APREGKEY}bde_verify${SCRIPT}'   '' \\
+                    '$INSTDIR\\\\bin\\\\bde_verify${SCRIPT}'
+        WriteRegStr SHCTX   '${APREGKEY}bb_cppverify${SCRIPT}' '' \\
+                    '$INSTDIR\\\\bin\\\\bb_cppverify${SCRIPT}'
+        WriteRegStr SHCTX   '${APREGKEY}check_bos${SCRIPT}'    '' \\
+                    '$INSTDIR\\\\bin\\\\check_bos${SCRIPT}'
+        WriteRegStr SHCTX   '${APREGKEY}bde_verify_bin.exe'    '' \\
                     '$INSTDIR\\\\libexec\\\\bde-verify\\\\bde_verify_bin.exe'
         System::Call 'Shell32::SHChangeNotify(i 0x8000000, i 0, i 0, i 0)'
     ")
     set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "
-        DeleteRegKey SHCTX '${APREGKEY}bde_verify.pl'
-        DeleteRegKey SHCTX '${APREGKEY}bb_cppverify.pl'
+        DeleteRegKey SHCTX '${APREGKEY}bde_verify${SCRIPT}'
+        DeleteRegKey SHCTX '${APREGKEY}bb_cppverify${SCRIPT}'
+        DeleteRegKey SHCTX '${APREGKEY}check_bos${SCRIPT}'
         DeleteRegKey SHCTX '${APREGKEY}bde_verify_bin.exe'
         System::Call 'Shell32::SHChangeNotify(i 0x8000000, i 0, i 0, i 0)'
     ")
@@ -327,6 +330,7 @@ install(TARGETS
 install(PROGRAMS
     scripts/bde_verify${SCRIPT}
     scripts/bb_cppverify${SCRIPT}
+    scripts/check_bos${SCRIPT}
     DESTINATION bin)
 
 install(FILES

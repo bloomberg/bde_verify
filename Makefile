@@ -245,7 +245,7 @@ install-bin: $(OBJ)/$(TARGET)
 	mkdir -p $(DESTDIR)/libexec/bde-verify
 	cp $(OBJ)/$(TARGET) $(DESTDIR)/libexec/bde-verify
 	mkdir -p $(DESTDIR)/bin
-	cp scripts/bde_verify scripts/bb_cppverify $(DESTDIR)/bin
+	cp scripts/bde_verify scripts/bb_cppverify scripts/check_bos $(DESTDIR)/bin
 	mkdir -p $(DESTDIR)/etc/bde-verify
 	cp bde_verify.cfg bb_cppverify.cfg $(DESTDIR)/etc/bde-verify
 
