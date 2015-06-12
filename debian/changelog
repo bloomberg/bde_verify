@@ -1,3 +1,23 @@
+bde-verify (1.1.3) unstable; urgency=low
+
+  * f820a7a Add check_bos to installation.
+  * 1270780 Add copyright to check_bos.  Modify README to specify clang 3.6. Document check_bos and exit status setting.
+  * 48e7ee9 Script and changes for BSL_OVERRIDES_STD neutrality checker.
+  * b387e06 When rewriting only do files matching the -diagnose option.
+  * 31fd5d8 Add the ability for specified checks to result in a failed exit status.
+  * 1a57036 It is suggested that spaces at the ends of lines is not a useful check.
+  * c7440e5 Fix some errors and missed cases wrt template parameter names.
+  * ce220cb Lightly check for numbered Concerns and Plan.
+  * 49b04f8 Documentation for building on Windows.
+  * 33e4752 Code for Visual Studio Extension Package
+  * f7091da Avoid falling off file beginning. Deal with '\r' at end of lines.
+  * e32402f Set App Paths keys in registry in Windows installer.
+  * 9e388cc Use --enable-new-dtags to linker so RUNPATH (!= RPATH) can be overridden by LD_LIBRARY_PATH.
+  * 65fcfb5 Binary dpkg should depend on gcc to get correct libstdc++.so.
+  * c6ae217 Allow for allocator reference as well as pointer parameters.
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Fri, 12 Jun 2015 15:52:18 -0400
+
 bde-verify (1.1.2) unstable; urgency=low
 
   * 2dc87f4 Missed a "getCanonicalDecl" causing spurious shared_ptr warnings.
