@@ -455,6 +455,7 @@ const file_info include_pairs[] = {
 };
 
 const char *good_bsl[] = {
+#if 0
     "baea_",    "baecs_",   "baedb_",   "baejsn_",  "bael_",    "baelu_",   
     "baem_",    "baenet_",  "baescm_",  "baesu_",   "baet_",    "baetzo_",  
     "baexml_",  "bbedc_",   "bbescm_",  "bcec_",    "bcecs_",   "bcef_",    
@@ -464,10 +465,15 @@ const char *good_bsl[] = {
     "bdef_",    "bdefi_",   "bdefr_",   "bdefu_",   "bdeimp_",  "bdem_",    
     "bdema_",   "bdemf_",   "bdempu_",  "bdepcre_", "bdepu_",   "bdes_",    
     "bdesb_",   "bdescm_",  "bdesu_",   "bdet_",    "bdetst_",  "bdetu_",   
-    "bdeu_",    "bdeut_",   "bdex_",    "bsl_",     "bslalg_",  "bslfwd_",  
+    "bdeu_",    "bdeut_",   "bdex_",
+#endif
+                                        "bsl_",     "bslalg_",  "bslfwd_",  
     "bslh_",    "bslim_",   "bslma_",   "bslmf_",   "bsls_",    "bslscm_",  
-    "bsltf_",   "bsttst_",  "btemt_",   "btes_",    "btes5_",   "btesc_",   
+    "bsltf_",   "bsttst_",
+#if 0
+                            "btemt_",   "btes_",    "btes5_",   "btesc_",   
     "btescm_",  "bteso_",   "btesos_",  
+#endif
 };
 
 // The following files are not rewritten.

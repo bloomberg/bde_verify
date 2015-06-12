@@ -180,6 +180,9 @@ if ($ovr == 1 || $ovr != 0 && $defdef && !grep(m{\bb[sd]l[^/]*$}, @ARGV)) {
     push(@defs, "BSL_OVERRIDES_STD");
 }
 @defs = map { "-D$_" } @defs;
+if ($ovr == 0) {
+    push(@defs, "-UBSL_OVERRIDES_STD");
+}
 
 for (@ARGV) {
     if (! -f) {
