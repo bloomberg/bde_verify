@@ -4,7 +4,7 @@ Bde_verify is a static analysis tool that verifies that source code adheres
 to the BDE coding standards.
 
 The online documentation for bde_verify can be found here:
-    <https://github.com/bloomberg/bde-tools/wiki/bde_verify>
+    <http://bloomberg.github.io/bde_verify/bde_verify_build/html/>
 
 Currently there is no binary distribution for bde_verify.  Bde_verify can be
 built directly from source as described below.
@@ -15,26 +15,30 @@ Build Instructions
 Supported Platforms:
    o Linux x86
    o SunOS sparc
+   o Microsoft Windows Visual Studio
 
 Prerequesites: 
-   o llvm/clang >= 3.6.0 (see below for instructions)
+   o llvm/clang = 3.6 (see below for instructions)
    o gcc >= 4.8.1
    o gnu make
    o aspell
 
-Bde_verify is built with current llvm/clang, available by git as described in
+Bde_verify is built with llvm/clang 3.6, available by git as described in
 <http://llvm.org/docs/GettingStarted.html#git-mirror>.  It, and clang, use
 c++11 constructs, so you will need to build with a sufficiently recent gcc or
-clang. It is known to build with gcc-4.8.1 and gcc-4.9.2 and clang 3.6.0.
+clang.
 
-To build from llvm/clang using git, download only LLVM and Clang:
-    git clone http://llvm.org/git/llvm.git
-    cd llvm/tools
-    git clone http://llvm.org/git/clang.git
-or follow these instructions: <http://clang.llvm.org/get_started.html>
-until you are asked to run "../llvm/configure".  A configuration for
-clang sufficient to build bde_verify on Linux can be specifed with the
-following arguments to configure:
+Note: Bde_verify contains code which subclasses classes from clang, and the
+clang developers have a distressing habit of changing virtual function
+signatures and breaking such code, hence the limitation to a specific version
+of clang.  (But it's not difficult to get the code to work on other versions.)
+
+To build llvm/clang, download 3.6 sources of LLVM and Clang from
+<http://llvm.org/releases/> and then see
+<http://clang.llvm.org/get_started.html>.  Follow directions until
+you are asked to run "../llvm/configure".  A configuration for clang sufficient
+to build bde_verify can be specifed with the following arguments to configure
+(where $GCCDIR is the path to your gcc installation):
 
     --enable-optimized
     --enable-cxx11

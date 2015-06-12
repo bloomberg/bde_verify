@@ -162,6 +162,14 @@ in the configuration.
 | ``prepend parameter value``  |                                              |
 +------------------------------+----------------------------------------------+
 
+Exit Status
+-----------
+Normally, the exit status of a |bv| run is 0 (success) unless the code has
+actual errors.  If a particular check or tag is produced and that check or tag
+is set in the *failstatus* configuration parameter, the exit status will be 1
+(failure).  This allows for the creation of wrapper scripts whose exit status
+indicates that some condition fails to hold.
+
 Checks
 ------
 These are the checks supported by the tool. A few are of dubious value and may
