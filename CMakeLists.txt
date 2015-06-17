@@ -144,6 +144,7 @@ add_executable(bde_verify_bin
     ${G}/csaaq/csaaq_cppinexternc.cpp
     ${G}/csaaq/csaaq_freefunctionsdepend.cpp
     ${G}/csaaq/csaaq_friendsinheaders.cpp
+    ${G}/csaaq/csaaq_globaldata.cpp
     ${G}/csaaq/csaaq_includeinexternc.cpp
     ${G}/csaaq/csaaq_inentns.cpp
     ${G}/csaaq/csaaq_runtimeinit.cpp
