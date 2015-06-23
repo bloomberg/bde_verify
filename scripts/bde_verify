@@ -20,8 +20,7 @@ my @known_hw = ('powerpc', 'ia64', 'x86_64', 'sparc', 'i386');
 chomp (my $hw = `uname -p`);
 $hw = 'x86_64' unless grep(/$hw/, @known_hw);
 
-my $bb       = "/bb/build/$system-$hw-64" .
-               "/release/robolibs/trunk/lib/dpkgroot/opt/bb";
+my $bb       = "/bb/build/$system-$hw-64/release/robolibs/trunk";
 $bb          = '' unless -d $bb;
 
 my $me       = Cwd::abs_path(${0});
@@ -193,11 +192,17 @@ for (@ARGV) {
         push(@incs, ".") unless grep($_ eq ".", @incs);
     }
 }
-push(@incs, (
-    "$bb/include",
-    "$bb/include/stlport",
-)) if $bb and $definc;
 for (@incs) { warn "cannot find directory $_\n" unless -d; }
+push(@incs, (
+    "$bb/include/stlport",
+    "$bb/lib/dpkgroot/opt/bb/include/stlport",
+    "$bb/share/include/00depbuild",
+    "$bb/share/include/00deployed",
+    "$bb/share/include/00offlonly",
+    "/bb/build/share/stp/include/00offlonly",
+    "$bb/include",
+    "$bb/lib/dpkgroot/opt/bb/include",
+)) if $bb and $definc;
 @incs = map { ( "-I", $_ ) }
         map { $_ eq Cwd::cwd() ? "." : $_ }
         map { Cwd::abs_path($_) }
