@@ -103,6 +103,34 @@ sub init_db {
         $db, 'trunk+stp', ARCH_SOLARIS);
 }
 
+sub suss_group_by_dirs {
+    my ( $uor, $dir ) = @_;
+    return map { basename $_ } grep { -d $_ } glob("$dir/$uor*");
+}
+
+sub suss_group_by_mk {
+    my ( $uor, $dir ) = @_;
+    open(my $fh, "<", "$dir/$uor.mk") or return;
+    local $/ = undef;
+    my $line = <$fh>;
+    close $fh;
+    $line =~ s{\\\n}{}g;
+    $line =~ s{.*^ *SRCDIRS *= *([^\n]*).*}{$1}ms;
+    return split ' ', $line if $line;
+}
+
+sub suss_group_by_mem {
+    my ( $uor, $dir ) = @_;
+    open(my $fh, "<", "$dir/group/$uor.mem") or return;
+    my @r;
+    while (<$fh>) {
+        chomp;
+        push(@r, $_) if /^[[:alnum:]]/;
+    }
+    close($fh);
+    return @r;
+}
+
 sub libmap_local {
     my ( $dir ) = @_;
     my %info;
@@ -223,31 +251,36 @@ my $bad = 0;
 for my $arg (@ARGV) {
     my $result = $local ? libmap_local $arg : libmap $arg;
     if ( $result ) {
-        $arg = basename($result->{dir});
+        my $dir = $result->{dir};
+        $arg = basename($dir);
         if ( $result->{type} eq "package" ) {
-            $bad = check($arg, glob "$result->{dir}/*.h") || $bad;
+            $bad = check($arg, glob "$dir/*.h") || $bad;
         } else {
-            my ( $mk ) = glob "$result->{dir}/$arg.mk";
-            if ( -f $mk ) {
-                chomp(my $s = qx{grep '^ *SRCDIRS *=' $mk});
-                if ($s) {
-                    $s =~ s{^ *SRCDIRS *= *}{};
-                    for my $d (split(' ', $s)) {
-                        $bad = check($d, glob "$result->{dir}/$d/*.h") || $bad;
-                    }
-                } else {
-                    warn "No SRCDIRS in '$result->{dir}/$arg.mk'.\n";
-                }
-            } elsif ( -f "$result->{dir}/group/$arg.mem" ) {
-                chomp(my $s = qx{grep '^[^#]' $result->{dir}/group/$arg.mem});
-                if ($s) {
-                    for my $d (split(' ', $s)) {
-                        $bad = check($d, glob "$result->{dir}/$d/*.h") || $bad;
-                    }
-                }
-            } else {
-                warn "Cannot find makefile '$result->{dir}/$arg.mk'.\n";
-                warn "Cannot find mem file '$result->{dir}/group/$arg.mem'.\n";
+            my @r3 = suss_group_by_dirs($arg, $dir);
+            my @r1 = suss_group_by_mem($arg, $dir);
+            for my $d (@r1) {
+                warn "No directory '$dir/$d' for '$d' " .
+                     "in '$dir/group/$arg.mem'\n"
+                unless         grep { $_ eq $d } @r3;
+            }
+            for my $d (@r3) {
+                warn "'$d' not in '$dir/group/$arg.mem' " .
+                     "for directory '$dir/$d'\n"
+                unless !@r1 or grep { $_ eq $d } @r1;
+            }
+            my @r2 = suss_group_by_mk($arg, $dir);
+            for my $d (@r2) {
+                warn "No directory '$dir/$d' for '$d' ".
+                     "in SRCDIRS of '$dir/$arg.mk'\n"
+                unless         grep { $_ eq $d } @r3;
+            }
+            for my $d (@r3) {
+                warn "'$d' not in SRCDIRS of '$dir/$arg.mk' ".
+                     "for directory '$dir/$d'\n"
+                unless !@r2 or grep { $_ eq $d } @r2;
+            }
+            for my $d (@r3) {
+                $bad = check($d, glob "$dir/$d/*.h") || $bad;
             }
         }
     } else {
