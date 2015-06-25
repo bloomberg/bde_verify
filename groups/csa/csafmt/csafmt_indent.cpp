@@ -140,7 +140,7 @@ struct report : public RecursiveASTVisitor<report>, public Report<data>
     bool VisitStmt(Stmt *stmt);
     bool VisitDecl(Decl *decl);
     void get_indent(Location l, int& offset, int& exact, bool& dotdot);
-    void process(Location l, bool greater);
+    int process(Location l, bool greater, int lastdiff);
     void process_parameter_list(PList          *pl,
                                 SourceLocation  sl,
                                 const char     *type,
@@ -637,8 +637,9 @@ void report::get_indent(Location l, int& offset, int& exact, bool& dotdot)
     }
 }
 
-void report::process(Location l, bool greater)
+int report::process(Location l, bool greater, int lastdiff)
 {
+    int diff = 0;
     bool& done = d.d_done[l.file()][l.line()];
     if (!done) {
         done = true;
@@ -657,7 +658,8 @@ void report::process(Location l, bool greater)
                                               exact_offset)),
                             ' ') +
                 line.trim().str();
-            if (line != expect) {
+            diff = expect.size() - line.size();
+            if (line != expect && diff != lastdiff) {
                 a.report(l.location(), check_name, "IND01",
                          "Possibly mis-indented line");
                 a.report(l.location(), check_name, "IND01",
@@ -667,6 +669,7 @@ void report::process(Location l, bool greater)
             }
         }
     }
+    return diff;
 }
 
 void report::operator()()
@@ -676,8 +679,9 @@ void report::operator()()
     // Process remnant declarators.
     add_consecutive(0, SourceRange());
 
+    int lastdiff = 0;
     for (const auto p : d.d_to_process) {
-        process(p.first, p.second);
+        lastdiff = process(p.first, p.second, lastdiff);
     }
 }
 
