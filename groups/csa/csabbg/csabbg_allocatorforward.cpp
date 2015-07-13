@@ -277,12 +277,23 @@ const CXXRecordDecl *report::get_record_decl(QualType type)
 }
 
 bool report::is_allocator(QualType type)
-    // Return 'true' iff the specified 'type' is pointer to
+    // Return 'true' iff the specified 'type' is pointer or reference to
     // 'bslma::Allocator'.
 {
-    return (type->isPointerType() || type->isReferenceType())
-        && type->getPointeeType()->getCanonicalTypeInternal() ==
-           d.bslma_allocator_;
+    if (type->isPointerType()) {
+        type = type->getPointeeType();
+    }
+    else if (type->isReferenceType()) {
+        type = type->getPointeeType();
+        if (type->isPointerType()) {
+            type = type->getPointeeType();
+        }
+    }
+    else {
+        return false;
+    }
+    return type->getAsCXXRecordDecl() ==
+           d.bslma_allocator_->getAsCXXRecordDecl();
 }
 
 bool report::last_arg_is_explicit(const CXXConstructExpr* call)
