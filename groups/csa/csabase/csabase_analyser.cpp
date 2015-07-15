@@ -351,7 +351,9 @@ bool csabase::Analyser::is_component_source(std::string const& file) const
         return in->second;
     }
 
-    return is_component_[file] = is_toplevel(file);
+    FileName fn(file);
+
+    return is_component_[file] = fn.full() == toplevel();
 }
 
 bool csabase::Analyser::is_component_source(SourceLocation loc) const
