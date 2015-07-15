@@ -58,6 +58,10 @@ bool report::carefullyIsEvaluatable(const Expr *e)
 
 void report::operator()(const BinaryOperator *op)
 {
+    if (!a.is_component(op)) {
+        return;                                                       // RETURN
+    }
+
     if (!op->getOperatorLoc().isMacroID() && op->isEqualityOp()) {
         auto lhs = op->getLHS()->IgnoreParenImpCasts();
         auto rhs = op->getRHS()->IgnoreParenImpCasts();
