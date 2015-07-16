@@ -62,6 +62,7 @@ component_prefix(Analyser&  analyser,
     std::string const& name(named ? named->getNameAsString() : std::string());
     if (   !name.empty()
         && !analyser.is_global_package()
+        && !analyser.is_global_name(named)
         && !named->isCXXClassMember()
         && (   named->hasLinkage()
             || (   llvm::dyn_cast<TypedefDecl>(named)

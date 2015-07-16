@@ -62,13 +62,16 @@ static void check(Analyser& analyser, Decl const* decl)
     Location location(analyser.get_location(decl));
     NamedDecl const* named(llvm::dyn_cast<NamedDecl>(decl));
     if (analyser.is_component(location.file()) && named) {
+        if (analyser.is_global_name(named)) {
+            return;                                                   // RETURN
+        }
         if (llvm::dyn_cast<NamespaceDecl>(decl)
             || llvm::dyn_cast<UsingDirectiveDecl>(decl)) {
             // namespace declarations are permissible e.g. for forward
             // declarations.
             return;                                                   // RETURN
         }
-        else if (TagDecl const* tag = llvm::dyn_cast<TagDecl>(decl)) {
+        if (TagDecl const* tag = llvm::dyn_cast<TagDecl>(decl)) {
             // Forward declarations are always permissible but definitions are
             // not.
             if (!tag->isThisDeclarationADefinition()
