@@ -423,7 +423,7 @@ bool report::WalkUpFromCallExpr(CallExpr *call)
         Range tr(m, a.get_trim_line_range(call->getLocStart()));
         size_t level =
             c.line() == l.line() ? l.column() - tr.from().column() : 4;
-        add_indent(c.location().getLocWithOffset(1), level);
+        add_indent(l.location(), level);
         add_indent(call->getRParenLoc(), -level);
     }
     return Base::WalkUpFromCallExpr(call);

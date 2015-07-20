@@ -33,6 +33,9 @@ csabbg_allocatorforward.t.cpp:148:16: warning: AT02: Class 'not_alloc' uses allo
         struct not_alloc {
                ^
 csabbg_allocatorforward.t.cpp:148:16: warning: AC02: Implicit copy constructor cannot be called with an allocator
+csabbg_allocatorforward.t.cpp:154:15: warning: MA02: Allocator not passed to member member
+            : member(na) { }
+              ^~~~~~~~~~
 csabbg_allocatorforward.t.cpp:287:8: warning: AT02: Class 'alloc_p' uses allocators but does not have an allocator trait
 struct alloc_p {
        ^
@@ -75,4 +78,4 @@ bde_verify::csabbg::alloc_a d[2][2];
 csabbg_allocatorforward.t.cpp:318:35: warning: GA01: Variable with global storage must be initialized with non-default allocator
 BloombergLP::bslma::TestAllocator ta;
                                   ^
-26 warnings generated.
+27 warnings generated.
