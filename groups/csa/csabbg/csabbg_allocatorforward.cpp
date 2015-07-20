@@ -130,10 +130,9 @@ struct report : Report<data>
         // Return 'true' iff the specified 'type' is pointer or reference to
         // 'bslma::Allocator'.
 
-    bool last_arg_is_explicit(const CXXConstructExpr* call);
-        // Return 'false' iff the specified 'call' to a constructor has
-        // arguments and the last argument is the default rather than
-        // explicitly passed.
+    bool last_arg_is_explicit_allocator(const CXXConstructExpr* call);
+        // Return 'true' iff the specified 'call' to a constructor has
+        // arguments and the last argument is an explicitly passed allocator.
 
     bool takes_allocator(QualType type);
         // Return 'true' iff the 'specified' type has a constructor which has a
@@ -296,14 +295,11 @@ bool report::is_allocator(QualType type)
            d.bslma_allocator_->getAsCXXRecordDecl();
 }
 
-bool report::last_arg_is_explicit(const CXXConstructExpr* call)
-    // Return 'false' iff the specified 'call' to a constructor has
-    // arguments and the last argument is the default rather than
-    // explicitly passed.
+bool report::last_arg_is_explicit_allocator(const CXXConstructExpr* call)
 {
     unsigned n = call ? call->getNumArgs() : 0;
-
-    return n == 0 || !call->getArg(n - 1)->isDefaultArgument();
+    const Expr *last = n ? call->getArg(n - 1) : 0;
+    return last && !last->isDefaultArgument() && is_allocator(last->getType());
 }
 
 bool report::takes_allocator(QualType type)
@@ -381,7 +377,7 @@ static internal::DynTypedMatcher nested_allocator_trait_matcher()
     // In the second case above, the final boolean parameter may also be false
     // or missing.  The details of the classes involved are too hairy to tease
     // out in the AST matcher; instead the matcher looks for a superset of
-    // methods and the callback look sfor further structure.
+    // methods and the callback looks for further structure.
 {
     return decl(forEachDescendant(
         methodDecl(
@@ -864,7 +860,7 @@ void report::check_not_forwarded(const CXXCtorInitializer* init,
     }
 
     if (takes_allocator(ctor_expr->getConstructor()) &&
-        last_arg_is_explicit(ctor_expr)) {
+        last_arg_is_explicit_allocator(ctor_expr)) {
         // The allocator parameter is passed.
         return;                                                       // RETURN
     }
