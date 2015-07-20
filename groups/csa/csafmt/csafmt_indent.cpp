@@ -420,11 +420,13 @@ bool report::WalkUpFromCallExpr(CallExpr *call)
         !llvm::dyn_cast<CXXOperatorCallExpr>(call)) {
         Location c(m, call->getLocStart());
         Location l(m, call->getArg(0)->getSourceRange().getBegin());
-        Range tr(m, a.get_trim_line_range(call->getLocStart()));
-        size_t level =
-            c.line() == l.line() ? l.column() - tr.from().column() : 4;
-        add_indent(l.location(), level);
-        add_indent(call->getRParenLoc(), -level);
+        if (l) {
+            Range tr(m, a.get_trim_line_range(call->getLocStart()));
+            size_t level =
+                c.line() == l.line() ? l.column() - tr.from().column() : 4;
+            add_indent(l.location(), level);
+            add_indent(call->getRParenLoc(), -level);
+        }
     }
     return Base::WalkUpFromCallExpr(call);
 }

@@ -18,6 +18,9 @@ namespace {
         Functor(const Functor& other, bslma::Allocator *allocator = 0) 
             : d_fields(other.d_fields) {  // <--- allocator not forwarded
         } 
+        Functor(int a, bslma::Allocator *allocator = 0) 
+            : d_fields(a, allocator) {
+        } 
     }; 
 } 
  
