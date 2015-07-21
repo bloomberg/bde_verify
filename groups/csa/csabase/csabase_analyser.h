@@ -88,6 +88,7 @@ class Analyser : public Attachments
     bool               is_global_package(std::string const&) const;
     bool               is_ADL_candidate(clang::Decl const*);
     bool               is_generated(clang::SourceLocation) const;
+    bool               is_toplevel(std::string const&) const;
 
     diagnostic_builder report(clang::SourceLocation       where,
                               std::string const&          check,
@@ -178,6 +179,8 @@ private:
     clang::tooling::Replacements          replacements_;
     typedef std::map<std::string, bool>   IsSystemHeader;
     mutable IsSystemHeader                is_system_header_;
+    typedef std::map<std::string, bool>   IsTopLevel;
+    mutable IsTopLevel                    is_top_level_;
 };
 
 // -----------------------------------------------------------------------------

@@ -231,6 +231,15 @@ void csabase::Analyser::toplevel(std::string const& path)
     component_ = fn.component();
 }
 
+bool csabase::Analyser::is_toplevel(std::string const& name) const
+{
+    IsTopLevel::iterator in = is_top_level_.find(name);
+    if (in != is_top_level_.end()) {
+        return in->second;
+    }
+    return is_top_level_[name] = FileName(name).full() == toplevel_;
+}
+
 bool csabase::Analyser::is_component_header(std::string const& name) const
 {
     IsComponentHeader::iterator in = is_component_header_.find(name);
@@ -342,9 +351,7 @@ bool csabase::Analyser::is_component_source(std::string const& file) const
         return in->second;
     }
 
-    FileName fn(file);
-
-    return is_component_[file] = fn.name() == toplevel();
+    return is_component_[file] = is_toplevel(file);
 }
 
 bool csabase::Analyser::is_component_source(SourceLocation loc) const

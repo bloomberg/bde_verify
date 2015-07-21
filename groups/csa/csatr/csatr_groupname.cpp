@@ -64,7 +64,7 @@ struct on_group_open
         Analyser& analyser(*d_analyser);
         groupname& attachment(analyser.attachment<groupname>());
         FileName fn(name);
-        if (!attachment.d_done && name == analyser.toplevel()) {
+        if (!attachment.d_done && analyser.is_toplevel(name)) {
             attachment.d_done = true;
 
             std::string const& group(analyser.group());

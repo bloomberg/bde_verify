@@ -1,6 +1,7 @@
 // csabase_filenames.cpp                                              -*-C++-*-
 
 #include <csabase_filenames.h>
+#include <llvm/Support/FileSystem.h>
 #include <llvm/Support/Path.h>
 #include <stddef.h>
 
@@ -37,17 +38,26 @@ void csabase::FileName::reset(llvm::StringRef sr)
         tag_ = "<";
     }
     else {
-        full_ = sr;
+        llvm::SmallVector<char, 512> path;
+        path.append(sr.begin(), sr.end());
+        if (llvm::sys::fs::make_absolute(path) == std::error_code()) {
+            full_ = llvm::StringRef(path.begin(), path.size());
+        }
+        else {
+            full_ = sr;
+        }
 
-        directory_ = full_;
+        llvm::StringRef rfull = full_;
+
+        directory_ = rfull;
         while (directory_.size() > 0 &&
                !llvm::sys::path::is_separator(directory_.back())) {
             directory_ = directory_.drop_back(1);
         }
 
-        name_ = sr.drop_front(directory_.size());
+        name_ = rfull.drop_front(directory_.size());
         extension_ = name_.slice(name_.rfind('.'), name_.npos);
-        prefix_ = sr.drop_back(extension_.size());
+        prefix_ = rfull.drop_back(extension_.size());
         extra_ = name_.slice(name_.find('.'), name_.rfind('.'));
         component_ = name_.slice(0, name_.find('.'));
 

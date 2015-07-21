@@ -610,7 +610,7 @@ void report::operator()(SourceRange comment)
         Location loc(m, comment.getBegin());
         llvm::SmallVector<llvm::StringRef, 7> matches;
         if (line == "//..") {
-            if (loc.file() == a.toplevel()) {
+            if (a.is_toplevel(loc.file())) {
                 indent ind((d.d_in_dotdot[loc.file()] ^= 1) ? +4 : -4);
                 ind.d_dotdot = true;
                 add_indent(comment.getEnd(), ind);
