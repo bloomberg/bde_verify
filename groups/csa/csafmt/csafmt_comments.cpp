@@ -444,7 +444,8 @@ void files::check_wrapped(SourceRange range)
         while ((sp = text.find(". ", sp)) != text.npos) {
             if (sp + 2 < text.size() && 
                 text[sp + 2] != ' ' &&
-                text[sp + 2] != '\n') {
+                text[sp + 2] != '\n' &&
+                !(text.slice(0, sp).count('\'') & 1)) {
                 d_analyser.report(
                     range.getBegin().getLocWithOffset(matchpos + sp),
                     check_name, "PSS01",
