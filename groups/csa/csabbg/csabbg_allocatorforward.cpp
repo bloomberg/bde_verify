@@ -74,9 +74,6 @@ namespace
 struct data
     // Data stored for this set of checks.
 {
-    QualType bslma_allocator_;
-        // The type of 'BloombergLP::bslma::Allocator'.
-
     typedef std::vector<const CXXConstructorDecl*> Ctors;
     Ctors ctors_;
         // The set of constructor declarations seen.
@@ -142,9 +139,6 @@ struct report : Report<data>
         // Return 'true' iff the specified 'constructor' has a final allocator
         // pointer paramater.
 
-    void match_allocator_type(const BoundNodes& nodes);
-        // Callback for bslma::Allocator.
-
     void match_nested_allocator_trait(const BoundNodes& nodes);
         // Callback for classes with nested allocator traits.
 
@@ -167,6 +161,18 @@ struct report : Report<data>
     void match_dependent_allocator_trait(const BoundNodes& nodes);
         // Callback for discovered classes with dependent allocator traits
         // contained within the specifed 'nodes'.
+
+    void match_ctor_expr(const BoundNodes& nodes);
+        // Callback for constructor expressions.
+
+    void match_return_stmt(const BoundNodes& nodes);
+        // Callback for return statements.
+
+    void match_var_decl(const BoundNodes& nodes);
+        // Callback for variable declarations.
+
+    void match_ctor_decl(const BoundNodes& nodes);
+        // Callback for constructor declarations.
 
     bool hasRVCognate(const FunctionDecl *func);
         // Return 'true' iff the specified 'func' (which returns 'void' and
@@ -331,6 +337,9 @@ bool report::takes_allocator(CXXConstructorDecl const* constructor)
 
     QualType type = constructor->getParamDecl(n - 1)->getType();
 
+#if 1
+    return d.ctor_takes_allocator_[constructor] = is_allocator(type);
+#else
     if (is_allocator(type)) {
         return d.ctor_takes_allocator_[constructor] = true;           // RETURN
     }
@@ -349,19 +358,7 @@ bool report::takes_allocator(CXXConstructorDecl const* constructor)
     }
 
     return d.ctor_takes_allocator_[constructor] = takes_allocator(type);
-}
-
-static internal::DynTypedMatcher allocator_type_matcher()
-    // Return an AST matcher for BloombergLP::bslma::Allocator.
-{
-    return decl(hasDescendant(recordDecl(
-        hasName("::BloombergLP::bslma::Allocator")).bind("allocator")));
-}
-
-void report::match_allocator_type(const BoundNodes& nodes)
-{
-    d.bslma_allocator_ = QualType(
-        nodes.getNodeAs<CXXRecordDecl>("allocator")->getTypeForDecl(), 0);
+#endif
 }
 
 static internal::DynTypedMatcher nested_allocator_trait_matcher()
@@ -597,8 +594,7 @@ void report::match_should_return_by_value(const BoundNodes& nodes)
 {
     const FunctionDecl *func = nodes.getNodeAs<FunctionDecl>("func");
     const PointerType *p1 = nodes.getNodeAs<PointerType>("type");
-    if (a.is_component(func) &&
-        func->getCanonicalDecl() == func &&
+    if (func->getCanonicalDecl() == func &&
         func->getTemplatedKind() == FunctionDecl::TK_NonTemplate &&
         !func->getLocation().isMacroID() &&
         !llvm::dyn_cast<CXXConstructorDecl>(func) &&
@@ -623,12 +619,57 @@ void report::match_should_return_by_value(const BoundNodes& nodes)
     }
 }
 
+static internal::DynTypedMatcher ctor_expr_matcher()
+{
+    return decl(forEachDescendant(constructExpr(anything()).bind("e")));
+}
+
+void report::match_ctor_expr(const BoundNodes& nodes)
+{
+    auto expr = nodes.getNodeAs<CXXConstructExpr>("e");
+    d.cexprs_.insert(expr);
+}
+
+static internal::DynTypedMatcher return_stmt_matcher()
+{
+    return decl(forEachDescendant(returnStmt(anything()).bind("r")));
+}
+
+void report::match_return_stmt(const BoundNodes& nodes)
+{
+    auto stmt = nodes.getNodeAs<ReturnStmt>("r");
+    d.returns_.insert(stmt);
+}
+
+static internal::DynTypedMatcher var_decl_matcher()
+{
+    return decl(forEachDescendant(varDecl(anything()).bind("v")));
+}
+
+void report::match_var_decl(const BoundNodes& nodes)
+{
+    auto decl = nodes.getNodeAs<VarDecl>("v");
+    if (decl->hasGlobalStorage() &&
+        decl->hasInit() &&
+        llvm::dyn_cast<CXXConstructExpr>(decl->getInit())) {
+        d.globals_.insert(decl);
+    }
+}
+
+static internal::DynTypedMatcher ctor_decl_matcher()
+{
+    return decl(forEachDescendant(constructorDecl(anything()).bind("c")));
+}
+
+void report::match_ctor_decl(const BoundNodes& nodes)
+{
+    auto decl = nodes.getNodeAs<CXXConstructorDecl>("c");
+    d.ctors_.push_back(decl);
+}
+
 void report::operator()()
 {
     MatchFinder mf;
-
-    OnMatch<report, &report::match_allocator_type> m1(this);
-    mf.addDynamicMatcher(allocator_type_matcher(), &m1);
 
     OnMatch<report, &report::match_nested_allocator_trait> m2(this);
     mf.addDynamicMatcher(nested_allocator_trait_matcher(), &m2);
@@ -647,6 +688,18 @@ void report::operator()()
 
     OnMatch<report, &report::match_should_return_by_value> m7(this);
     mf.addDynamicMatcher(should_return_by_value_matcher(), &m7);
+
+    OnMatch<report, &report::match_ctor_expr> m1(this);
+    mf.addDynamicMatcher(ctor_expr_matcher(), &m1);
+
+    OnMatch<report, &report::match_return_stmt> m8(this);
+    mf.addDynamicMatcher(return_stmt_matcher(), &m8);
+
+    OnMatch<report, &report::match_var_decl> m9(this);
+    mf.addDynamicMatcher(var_decl_matcher(), &m9);
+
+    OnMatch<report, &report::match_ctor_decl> m10(this);
+    mf.addDynamicMatcher(ctor_decl_matcher(), &m10);
 
     mf.match(*a.context()->getTranslationUnitDecl(), *a.context());
 
@@ -690,7 +743,7 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
 {
     std::set<std::pair<bool, const CXXRecordDecl *> > records;
 
-    for (data::Ctors::const_iterator itr = begin; itr != end; ++itr) {
+    for (auto itr = begin; itr != end; ++itr) {
         const CXXConstructorDecl *decl = *itr;
         const CXXRecordDecl* record = decl->getParent()->getCanonicalDecl();
         bool uses_allocator = takes_allocator(
@@ -754,6 +807,7 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
         }
 
         if (decl == decl->getCanonicalDecl() &&
+            !decl->isMoveConstructor() &&
             uses_allocator &&
             !takes_allocator(decl)) {
             // Warn if the class does not have a constructor that matches this
@@ -766,8 +820,7 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
                 !decl->hasBody();
 
             unsigned num_parms = decl->getNumParams();
-            for (data::Ctors::const_iterator ci = begin; !found && ci != end;
-                 ++ci) {
+            for (auto ci = begin; !found && ci != end; ++ci) {
                 const CXXConstructorDecl *ctor = *ci;
                 if (ctor == ctor->getCanonicalDecl() &&
                     ctor != decl &&
@@ -809,12 +862,6 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
 
 void report::check_not_forwarded(const CXXConstructorDecl *decl)
 {
-    if (d.bslma_allocator_.isNull()) {
-        // We have not seen the declaration for the allocator yet, so this
-        // constructor cannot be using it.
-        return;                                                       // RETURN
-    }
-
     if (!decl->hasBody()) {
         return;                                                       // RETURN
     }
@@ -1040,62 +1087,9 @@ void subscribe(Analyser& analyser, Visitor&, PPObserver&)
     analyser.onTranslationUnitDone += report(analyser);
 }
 
-// -----------------------------------------------------------------------------
-
-static void
-gather_var_decls(Analyser& analyser, const VarDecl* decl)
-{
-    if (analyser.is_component(decl) &&
-        decl->hasGlobalStorage() &&
-        decl->hasInit() &&
-        llvm::dyn_cast<CXXConstructExpr>(decl->getInit())) {
-        data& info(analyser.attachment<data>());
-        info.globals_.insert(decl);
-    }
-}
-
-// -----------------------------------------------------------------------------
-static void
-gather_ctor_exprs(Analyser& analyser, const CXXConstructExpr* expr)
-    // Accumulate the specified 'expr' within the specified 'analyser'.
-{
-    if (analyser.is_component(expr)) {
-        data& info(analyser.attachment<data>());
-        info.cexprs_.insert(expr);
-    }
-}
-
-// -----------------------------------------------------------------------------
-
-static void
-gather_ctor_decls(Analyser& analyser, CXXConstructorDecl const* decl)
-    // Accumulate the specified 'decl' within the specified 'analyser'.
-{
-    if (analyser.is_component(decl)) {
-        analyser.attachment<data>().ctors_.push_back(decl);
-    }
-}
-
-// -----------------------------------------------------------------------------
-
-static void
-gather_return_stmts(Analyser& analyser, ReturnStmt const* stmt)
-    // Accumulate the specified 'stmt' within the specified 'analyser'.
-{
-    if (analyser.is_component(stmt)) {
-        analyser.attachment<data>().returns_.insert(stmt);
-    }
-}
-
-// -----------------------------------------------------------------------------
-
 }  // close anonymous namespace
 
-static RegisterCheck c2(check_name, &gather_ctor_decls);
-static RegisterCheck c3(check_name, &gather_ctor_exprs);
-static RegisterCheck c4(check_name, &subscribe);
-static RegisterCheck c8(check_name, &gather_return_stmts);
-static RegisterCheck c1(check_name, &gather_var_decls);
+static RegisterCheck c1(check_name, &subscribe);
 
 // ----------------------------------------------------------------------------
 // Copyright (C) 2014 Bloomberg Finance L.P.
