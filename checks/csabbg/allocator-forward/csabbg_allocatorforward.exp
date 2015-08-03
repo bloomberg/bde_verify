@@ -94,7 +94,4 @@ bde_verify::csabbg::alloc_a c[2];
 csabbg_allocatorforward.t.cpp:316:29: warning: GA01: Variable with global storage must be initialized with non-default allocator
 bde_verify::csabbg::alloc_a d[2][2];
                             ^
-csabbg_allocatorforward.t.cpp:318:35: warning: GA01: Variable with global storage must be initialized with non-default allocator
-BloombergLP::bslma::TestAllocator ta;
-                                  ^
-34 warnings generated.
+33 warnings generated.

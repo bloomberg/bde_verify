@@ -285,8 +285,8 @@ bool report::is_allocator(QualType type)
     // Return 'true' iff the specified 'type' is pointer or reference to
     // 'bslma::Allocator'.
 {
-    static std::string a1 = "BloombergLP::bslma::Allocator";
-    static std::string a2 = "bsl::allocator";
+    static const std::string a1 = "BloombergLP::bslma::Allocator";
+    static const std::string a2 = "bsl::allocator";
 
     if (type->isPointerType()) {
         type = type->getPointeeType();
@@ -298,11 +298,15 @@ bool report::is_allocator(QualType type)
         }
     }
     auto r = type->getAsCXXRecordDecl();
+    bool is = false;
     if (r) {
-        std::string t = r->getQualifiedNameAsString();
-        return t == a1 || t == a2;                                    // RETURN
+        auto not_alloc = [](const CXXRecordDecl* decl, void *) {
+            std::string t = decl->getQualifiedNameAsString();
+            return t != a1 && t != a2;
+        };
+        is = !(not_alloc(r, 0) && r->forallBases(not_alloc, 0));
     }
-    return false;
+    return is;
 }
 
 bool report::last_arg_is_explicit_allocator(const CXXConstructExpr* call)
