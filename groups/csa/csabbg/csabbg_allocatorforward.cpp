@@ -428,42 +428,32 @@ static internal::DynTypedMatcher class_using_allocator_matcher()
     // is a pointer or reference to an allocator or a reference to a class that
     // has such a constructor.
 {
+    auto al = []() {
+        return pointee(unless(isConstQualified()),
+                       hasDeclaration(recordDecl(isSameOrDerivedFrom(
+                           "::BloombergLP::bslma::Allocator"
+                       )))
+       );
+    };
+
     return decl(forEachDescendant(recordDecl(
-        has(constructorDecl(
-            hasLastParameter(parmVarDecl(anyOf(
-                hasType(referenceType(
-                    pointee(hasDeclaration(decl(has(constructorDecl(
-                        isPublic(),
-                        anyOf(
-                            hasLastParameter(parmVarDecl(
-                                hasType(pointerType(pointee(hasDeclaration(
-                                    recordDecl(isSameOrDerivedFrom(
-                                        "::BloombergLP::bslma::Allocator"
-                                    ))
-                                ))))
-                            )),
-                            hasLastParameter(parmVarDecl(
-                                hasType(referenceType(pointee(hasDeclaration(
-                                    recordDecl(isSameOrDerivedFrom(
-                                        "::BloombergLP::bslma::Allocator"
-                                    ))
-                                ))))
-                            ))
-                        )
-                    )))))
-                )),
-                hasType(pointerType(pointee(hasDeclaration(
-                    recordDecl(isSameOrDerivedFrom(
-                        "::BloombergLP::bslma::Allocator"
-                    ))
-                )))),
-                hasType(referenceType(pointee(hasDeclaration(
-                    recordDecl(isSameOrDerivedFrom(
-                        "::BloombergLP::bslma::Allocator"
-                    ))
-                ))))
-            )))
-        ))
+        has(constructorDecl(hasLastParameter(parmVarDecl(anyOf(
+            hasType(referenceType(
+                pointee(hasDeclaration(decl(has(constructorDecl(
+                    isPublic(),
+                    anyOf(
+                        hasLastParameter(parmVarDecl(
+                            hasType(pointerType(al()))
+                        )),
+                        hasLastParameter(parmVarDecl(
+                            hasType(referenceType(al()))
+                        ))
+                    )
+                )))))
+            )),
+            hasType(pointerType(al())),
+            hasType(referenceType(al()))
+        )))))
     ).bind("class")));
 }
 
