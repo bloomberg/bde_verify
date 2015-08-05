@@ -304,7 +304,8 @@ bool report::is_allocator(QualType type)
             std::string t = decl->getQualifiedNameAsString();
             return t != a1 && t != a2;
         };
-        is = !(not_alloc(r, 0) && r->forallBases(not_alloc, 0));
+        auto rd = r->getDefinition();
+        is = !not_alloc(r, 0) || (rd && !rd->forallBases(not_alloc, 0));
     }
     return is;
 }
