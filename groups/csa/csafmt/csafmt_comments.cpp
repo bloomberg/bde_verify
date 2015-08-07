@@ -518,8 +518,8 @@ void files::check_purpose(SourceRange range)
 
 llvm::Regex classes(
     "^// *(@CLASSES: *)?" "("
-                     "[[:alpha:]][[:alnum:]_]*"
-               "(" "::[[:alpha:]][[:alnum:]_]*" ")*"
+                     "[[:alpha:]][[:alnum:]<_>]*"
+               "(" "::[[:alpha:]][[:alnum:]<_>]*" ")*"
            ")" "( *: *[^:].*)?");
 
 void files::check_description(SourceRange range)
