@@ -1,3 +1,13 @@
+bde-verify (1.1.5) unstable; urgency=low
+
+  * f0f34c0 No longer require anonymous namespaces to be nested in package ones.
+  * 5dc2f06 Allow <> in @CLASS names (for template specializations).
+  * cb1f70a Don't forallbases on incomplete types.
+  * 516c717 Const allocator parameters aren't allocators.
+  * 855b4d6 Classes are also allocators if they have an allocator as a base class.
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Mon, 10 Aug 2015 17:02:20 -0400
+
 bde-verify (1.1.4) unstable; urgency=low
 
   * 97420c5 Improve detection of missing allocators in constructors.
