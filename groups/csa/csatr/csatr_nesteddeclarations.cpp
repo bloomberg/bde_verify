@@ -104,18 +104,12 @@ static void check(Analyser& analyser, Decl const* decl)
             return;                                                   // RETURN
         }
 
-        NamespaceDecl const* space =
-            llvm::dyn_cast<NamespaceDecl>(context);
-        if (!space) {
+        auto space = llvm::dyn_cast<NamespaceDecl>(context);
+        if (!space || space->isAnonymousNamespace()) {
             return;                                                   // RETURN
         }
 
         std::string pkgns = analyser.package();
-        if (   space->isAnonymousNamespace()
-            && llvm::dyn_cast<NamespaceDecl>(space->getDeclContext())) {
-            space =
-                llvm::dyn_cast<NamespaceDecl>(space->getDeclContext());
-        }
         if (space->getNameAsString() ==
             analyser.config()->toplevel_namespace()) {
             // No package namespace.  This is OK if no package namespace has
