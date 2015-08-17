@@ -233,7 +233,8 @@ report::break_for_spelling(std::vector<SourceRange>* words, SourceRange range)
         } else if (!in_single_quotes && !in_double_quotes) {
             if (c == '/' &&
                 (i == 0 || comment[i - 1] == '\n') &&
-                comment.substr(i).startswith("//@AUTHOR:")) {
+                (comment.substr(i).startswith("//@AUTHOR:") ||
+                 comment.substr(i).startswith("//@CONTACT:"))) {
                 size_t j = comment.substr(i).find("\n//\n");
                 if (j != comment.npos) {
                     i += j;

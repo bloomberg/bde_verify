@@ -185,8 +185,9 @@ void report::add_indent(SourceLocation sloc, indent ind, bool sing)
     sing = sing || !loc.location().isValid();
     d.d_indent[loc.file()].insert(
         std::make_pair(m.getFileOffset(loc.location()), ind));
-    if (sing) {
-        ERRS() << loc.file() << " "
+    if (sing && a.is_component(sloc)) {
+        ERRS() << loc.file() << "\n"
+               << loc.line() << ":" << loc.column() << ":"
                << m.getFileOffset(loc.location()) << " "
                << ind.d_offset << " " << ind.d_right_justified;
         ERNL();
@@ -421,9 +422,7 @@ bool report::WalkUpFromCallExpr(CallExpr *call)
         Location c(m, call->getLocStart());
         Location l(m, call->getArg(0)->getSourceRange().getBegin());
         if (l) {
-            Range tr(m, a.get_trim_line_range(call->getLocStart()));
-            size_t level =
-                c.line() == l.line() ? l.column() - tr.from().column() : 4;
+            size_t level = c.line() == l.line() ? l.column() - c.column() : 4;
             add_indent(l.location(), level);
             add_indent(call->getRParenLoc(), -level);
         }

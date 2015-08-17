@@ -42,6 +42,18 @@ void j(int a,
 {
 }
 
+void abcdefghij(int);
+int klmnopqrst(int, int, int);
+void k()
+{
+    abcdefghij(klmnopqrst(193,
+                          52,
+                          -111111111));
+    (&abcdefghij)((&klmnopqrst)(193,
+                                52,
+                                -111111111));
+}
+
 // ----------------------------------------------------------------------------
 // Copyright (C) 2014 Bloomberg Finance L.P.
 //
