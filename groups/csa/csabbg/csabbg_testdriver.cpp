@@ -869,7 +869,7 @@ llvm::Regex classes(
 void report::operator()(SourceRange range)
 {
     Location location(a.get_location(range.getBegin()));
-    if (location.file() == a.toplevel()) {
+    if (a.is_toplevel(location.file())) {
         data::Comments& c = d.d_comments;
         if (c.size() == 0 ||
             !areConsecutive(m, c.back(), range)) {
@@ -910,7 +910,7 @@ void report::operator()(const FunctionDecl *function)
 void report::mark_ccline(SourceLocation loc)
 {
     Location location(a.get_location(loc));
-    if (location.file() == a.toplevel()) {
+    if (a.is_toplevel(location.file())) {
         d.d_cclines.insert(location.line());
     }
 }

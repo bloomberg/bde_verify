@@ -12,10 +12,10 @@ void bad_global_function() {}
 
 namespace
 {
-    struct bad_anonymous_struct1;
-    struct bad_anonymous_struct2 {};
-    int bad_anonymous_global = 0;
-    void bad_anonymous_function() {}
+    struct bad_anonymous_struct1;     // now ok
+    struct bad_anonymous_struct2 {};  // now ok
+    int bad_anonymous_global = 0;     // now ok
+    void bad_anonymous_function() {}  // now ok
 }
 
 namespace csatr
@@ -27,10 +27,10 @@ namespace csatr
 
     namespace
     {
-        struct bad_csatr_anonymous_struct1;
-        struct bad_csatr_anonymous_struct2 {};
-        int bad_csatr_anonymous_variable = 0;
-        void bad_csatr_anonymous_function() {}
+        struct bad_csatr_anonymous_struct1;     // now ok
+        struct bad_csatr_anonymous_struct2 {};  // now ok
+        int bad_csatr_anonymous_variable = 0;   // now ok
+        void bad_csatr_anonymous_function() {}  // now ok
     }
 }
 
@@ -45,10 +45,10 @@ namespace top
 
         namespace
         {
-            struct bad_top_csatr_anonymous_struct1;
-            struct bad_top_csatr_anonymous_struct2 {};
-            int bad_top_csatr_anonymous_variable = 0;
-            void bad_top_csatr_anonymous_function() {}
+            struct bad_top_csatr_anonymous_struct1;     // now ok
+            struct bad_top_csatr_anonymous_struct2 {};  // now ok
+            int bad_top_csatr_anonymous_variable = 0;   // now ok
+            void bad_top_csatr_anonymous_function() {}  // now ok
         }
     }
 }

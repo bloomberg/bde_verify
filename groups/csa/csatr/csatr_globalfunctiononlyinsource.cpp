@@ -34,8 +34,8 @@ namespace
 
         bool operator()(Decl const* decl) const
         {
-            return analyser_->get_location(decl).file()
-                != analyser_->toplevel();
+            return !analyser_->is_toplevel(
+                analyser_->get_location(decl).file());
         }
 
         Analyser* analyser_;
@@ -50,7 +50,7 @@ global_function_only_in_source(Analyser& analyser, FunctionDecl const* decl)
     if (decl->isGlobal()
         && llvm::dyn_cast<CXXMethodDecl>(decl) == 0
         && !analyser.is_component_header(analyser.toplevel())
-        && analyser.get_location(decl).file() == analyser.toplevel()
+        && analyser.is_toplevel(analyser.get_location(decl).file())
         && std::find_if(decl->redecls_begin(), decl->redecls_end(),
                         decl_not_in_toplevel(&analyser))
             == decl->redecls_end()

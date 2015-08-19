@@ -4,6 +4,7 @@
 #include <clang/Basic/SourceLocation.h>
 #include <csabase_analyser.h>
 #include <csabase_binder.h>
+#include <csabase_filenames.h>
 #include <csabase_location.h>
 #include <csabase_ppobserver.h>
 #include <csabase_registercheck.h>
@@ -80,11 +81,11 @@ static void include_file(Analyser& analyser,
             status.header_seen_ = true;
         }
         else if (!status.header_seen_
-                 && analyser.toplevel() != name
+                 && !analyser.is_main()
+                 && !analyser.is_toplevel(name)
                  && builtin != name
                  && command_line != name
-                 && "bdes_ident.h" != name
-                 && !analyser.is_main())
+                 && "bdes_ident.h" != FileName(name).name())
         {
             analyser.report(where, check_name, "TR09",
                             "Include files precede component header",
@@ -109,14 +110,12 @@ static void declaration(Analyser& analyser, Decl const* decl)
         }
 
         Location loc(analyser.get_location(decl));
-        if ((analyser.toplevel() != loc.file() && status.header_seen_)
-            || (analyser.toplevel() == loc.file()
-                && status.line_ < loc.line()))
-        {
+        bool top = analyser.is_toplevel(loc.file());
+        if ((!top && status.header_seen_) ||
+            (top && status.line_ < loc.line())) {
             status.check_ = false;
         }
-        else if (((analyser.toplevel() != loc.file() && !status.header_seen_)
-                  || loc.line() < status.line_)
+        else if (((!top && !status.header_seen_) || loc.line() < status.line_)
                  && builtin != loc.file() && command_line != loc.file()
                  && (llvm::dyn_cast<NamedDecl>(decl) == 0
                      || utils::end(id_names)

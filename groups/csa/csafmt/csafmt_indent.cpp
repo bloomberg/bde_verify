@@ -185,8 +185,9 @@ void report::add_indent(SourceLocation sloc, indent ind, bool sing)
     sing = sing || !loc.location().isValid();
     d.d_indent[loc.file()].insert(
         std::make_pair(m.getFileOffset(loc.location()), ind));
-    if (sing) {
-        ERRS() << loc.file() << " "
+    if (sing && a.is_component(sloc)) {
+        ERRS() << loc.file() << "\n"
+               << loc.line() << ":" << loc.column() << ":"
                << m.getFileOffset(loc.location()) << " "
                << ind.d_offset << " " << ind.d_right_justified;
         ERNL();
@@ -420,11 +421,11 @@ bool report::WalkUpFromCallExpr(CallExpr *call)
         !llvm::dyn_cast<CXXOperatorCallExpr>(call)) {
         Location c(m, call->getLocStart());
         Location l(m, call->getArg(0)->getSourceRange().getBegin());
-        Range tr(m, a.get_trim_line_range(call->getLocStart()));
-        size_t level =
-            c.line() == l.line() ? l.column() - tr.from().column() : 4;
-        add_indent(c.location().getLocWithOffset(1), level);
-        add_indent(call->getRParenLoc(), -level);
+        if (l) {
+            size_t level = c.line() == l.line() ? l.column() - c.column() : 4;
+            add_indent(l.location(), level);
+            add_indent(call->getRParenLoc(), -level);
+        }
     }
     return Base::WalkUpFromCallExpr(call);
 }
@@ -608,7 +609,7 @@ void report::operator()(SourceRange comment)
         Location loc(m, comment.getBegin());
         llvm::SmallVector<llvm::StringRef, 7> matches;
         if (line == "//..") {
-            if (loc.file() == a.toplevel()) {
+            if (a.is_toplevel(loc.file())) {
                 indent ind((d.d_in_dotdot[loc.file()] ^= 1) ? +4 : -4);
                 ind.d_dotdot = true;
                 add_indent(comment.getEnd(), ind);

@@ -36,23 +36,22 @@ namespace
                         std::string const& name) const
         {
             FileName fn(name);
-            if (fn.name().find("m_") != 0 && name == d_analyser.toplevel()) {
+            if (fn.name().find("m_") != 0 && d_analyser.is_toplevel(name)) {
                 struct stat buffer;
-                std::string prefix =
-                    fn.directory().str() + fn.component().str();
-                std::string pkg_prefix =
-                    fn.pkgdir().str() + fn.component().str();
+                std::string component = fn.component().str();
+                std::string prefix = fn.directory().str() + component;
+                std::string pkg_prefix = fn.pkgdir().str() + component;
                 if (stat((    prefix + ".h").c_str(), &buffer) &&
                     stat((pkg_prefix + ".h").c_str(), &buffer)) {
                     d_analyser.report(where, check_name, "FI01",
-                            "Header file '%0' not accessible", true)
-                        << (pkg_prefix + ".h");
+                            "Header file '%0.h' not accessible", true)
+                        << component;
                 }
                 if (stat((    prefix + ".t.cpp").c_str(), &buffer) &&
                     stat((pkg_prefix + ".t.cpp").c_str(), &buffer)) {
                     d_analyser.report(where, check_name, "FI02",
-                            "Test file '%0' not accessible", true)
-                        << (pkg_prefix + ".t.cpp");
+                            "Test file '%0.t.cpp' not accessible", true)
+                        << component;
                 }
             }
         }

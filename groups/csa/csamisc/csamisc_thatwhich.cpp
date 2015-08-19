@@ -81,7 +81,8 @@ void Word::set(llvm::StringRef s, size_t position)
         "for",     "from",       "in",      "inside",  "into",    "near",
         "of",      "on",         "out",     "outside", "over",    "since",
         "through", "throughout", "till",    "to",      "toward",  "unclear",
-        "under",   "until",      "up",      "upon",    "with",    "without",
+        "under",   "until",      "up",      "upon",    "with",    "within",
+        "without",
     };
 
     word             = s;

@@ -727,12 +727,14 @@ std::string report::file_for_location(SourceLocation sl, SourceLocation in)
             just_found = false;
         }
     }
-    if (is_mapped(result)) {
-        result = get_mapped(result);
-    }
-    result = map_if_included(fid, result);
-    if (is_skipped(result)) {
-        result = "";
+    if (!d_analyser.is_component(result)) {
+        if (is_mapped(result)) {
+            result = get_mapped(result);
+        }
+        result = map_if_included(fid, result);
+        if (is_skipped(result)) {
+            result = "";
+        }
     }
     return d_data.d_file_for_loc[ip] = result;
 }
@@ -1275,6 +1277,8 @@ bool report::VisitNamedDecl(NamedDecl *decl)
     SourceLocation sl = decl->getLocation();
     if (sl.isValid() &&
         !sl.isMacroID() &&
+        !llvm::dyn_cast<TemplateTypeParmDecl>(decl) &&
+        !llvm::dyn_cast<TemplateTemplateParmDecl>(decl) &&
         decl->isExternallyVisible()) {
         std::string name = name_for(decl);
         inc_for_decl(name, sl, decl);

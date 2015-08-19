@@ -57,7 +57,7 @@ namespace
             packagename& attachment(d_analyser->attachment<packagename>());
             FileName fn(name);
 
-            if (!attachment.d_done && name == d_analyser->toplevel()) {
+            if (!attachment.d_done && d_analyser->is_toplevel(name)) {
                 attachment.d_done = true;
                 Analyser& analyser(*d_analyser);
 

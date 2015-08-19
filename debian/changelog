@@ -1,3 +1,32 @@
+bde-verify (1.1.5) unstable; urgency=low
+
+  * f0f34c0 No longer require anonymous namespaces to be nested in package ones.
+  * 5dc2f06 Allow <> in @CLASS names (for template specializations).
+  * cb1f70a Don't forallbases on incomplete types.
+  * 516c717 Const allocator parameters aren't allocators.
+  * 855b4d6 Classes are also allocators if they have an allocator as a base class.
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Mon, 10 Aug 2015 17:02:20 -0400
+
+bde-verify (1.1.4) unstable; urgency=low
+
+  * 97420c5 Improve detection of missing allocators in constructors.
+  * 3df52f5 Don't warn about two spaces after periods inside single quotes.
+  * 6abdb86 When processing a component, don't remap the component header. Don't process template parameters.
+  * 4f6299d Unify toplevel filename checking todeal with full versus relative paths.
+  * 9fd50c1 Another preposition for that-which.
+  * 0f4a19c Fix errors.
+  * ad2bbb8 Fix function argument indentation issue.
+  * ea08d7a Fix allocator forwarding detection error.
+  * 92439ad Check global_names for things not to complain about.
+  * 61855ce handle reference to pointer to allocator paramater types.
+  * 4ec0920 Suppress repeated indentation warnings at the same level.
+  * b765d2d Check for directory inconsistencies.
+  * aeac067 Go back to including BB include dirs.  Add uor_aq_A script.
+  * df4d8ec Check AQ 6 b for global data.
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Wed, 22 Jul 2015 19:36:18 -0400
+
 bde-verify (1.1.3) unstable; urgency=low
 
   * f820a7a Add check_bos to installation.

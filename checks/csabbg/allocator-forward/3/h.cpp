@@ -1,61 +1,36 @@
-// csafmt_indent.t.cpp                                                -*-C++-*-
-#include <assert.h>
-
-#define F() \
-    do { \
-        extern volatile int x; \
-        ++x; \
-    } while (false);
-
-#define G()
-
-int f()
-    {
-  F(); F();
-      assert(
-        2
-      );
-        G();
-    F(
-  );
-        assert(7);
-        return 0;
-}
-
-void g(int a, int b,
-       int c)
-{
-}
-
-void h(int a,
-       int b, int c)
-{
-}
-
-void i(int a, int b, int c)
-{
-}
-
-void j(int a,
-       int b,
-      int c)
-{
-}
-
-void abcdefghij(int);
-int klmnopqrst(int, int, int);
-void k()
-{
-    abcdefghij(klmnopqrst(193,
-                          52,
-                          -111111111));
-    (&abcdefghij)((&klmnopqrst)(193,
-                                52,
-                                -111111111));
+#include <bsl_vector.h> 
+#include <bslma_allocator.h> 
+#include <bslmf_nestedtraitdeclaration.h> 
+#include <bslma_usesbslmaallocator.h> 
+ 
+using namespace BloombergLP; 
+ 
+namespace { 
+    class Functor { 
+        bsl::vector<int> d_fields; 
+    public: 
+        BSLMF_NESTED_TRAIT_DECLARATION(Functor, bslma::UsesBslmaAllocator); 
+ 
+        Functor(const bsl::vector<int>&  fields, 
+                bslma::Allocator        *allocator) 
+            : d_fields(fields) {  // <--- allocator not forwarded
+        } 
+        Functor(const Functor& other, bslma::Allocator *allocator = 0) 
+            : d_fields(other.d_fields) {  // <--- allocator not forwarded
+        } 
+        Functor(int a, bslma::Allocator *allocator = 0) 
+            : d_fields(a, allocator) {
+        } 
+    }; 
+} 
+ 
+void f(bslma::Allocator* alloc) { 
+    bsl::vector<int> fields; 
+    Functor fun(fields, alloc); 
 }
 
 // ----------------------------------------------------------------------------
-// Copyright (C) 2014 Bloomberg Finance L.P.
+// Copyright (C) 2015 Bloomberg Finance L.P.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to

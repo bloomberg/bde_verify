@@ -35,8 +35,8 @@ namespace
 
         bool operator()(Decl const* decl) const
         {
-            return analyser_->get_location(decl).file()
-                != analyser_->toplevel();
+            return !analyser_->is_toplevel(
+                analyser_->get_location(decl).file());
         }
 
         Analyser* analyser_;
@@ -51,8 +51,8 @@ global_type_only_in_source(Analyser& analyser, TypeDecl const* decl)
     if (decl->getDeclContext()->isFileContext()
         && !llvm::dyn_cast<TypedefDecl>(decl)
         && !llvm::dyn_cast<ClassTemplateSpecializationDecl>(decl)
-        && analyser.get_location(decl).file() == analyser.toplevel()
         && !analyser.is_component_header(analyser.toplevel())
+        && analyser.is_toplevel(analyser.get_location(decl).file())
         && !decl->isInAnonymousNamespace()
         && !analyser.is_test_driver()
         && decl->isExternallyVisible()

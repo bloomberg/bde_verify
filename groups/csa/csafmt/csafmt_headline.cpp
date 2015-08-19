@@ -5,6 +5,7 @@
 #include <clang/Basic/SourceManager.h>
 #include <csabase_analyser.h>
 #include <csabase_binder.h>
+#include <csabase_debug.h>
 #include <csabase_diagnostic_builder.h>
 #include <csabase_filenames.h>
 #include <csabase_ppobserver.h>
@@ -36,8 +37,7 @@ static void open_file(Analyser& analyser,
 {
     FileName fn(name);
     std::string filename = fn.name();
-    if (analyser.is_component_header(filename) ||
-        name == analyser.toplevel()) {
+    if (analyser.is_component_header(name) || analyser.is_toplevel(name)) {
         const SourceManager &m = analyser.manager();
         llvm::StringRef buf = m.getBuffer(m.getFileID(where))->getBuffer();
         if (buf.size() == 0) {
