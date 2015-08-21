@@ -1,3 +1,10 @@
+bde-verify (1.1.7) unstable; urgency=low
+
+  * 5e53780 Merge branch 'work'
+  * 8c27daa A class is copyable if it has no user-declared copy constructor. Check friendship by name earlier.
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Fri, 21 Aug 2015 14:58:44 -0400
+
 bde-verify (1.1.6) unstable; urgency=low
 
   * 0f874c8 Fix transitive include stupid error. Don't complain about allocator traits for non-copyable classes. Don't complain about non-visible names.
