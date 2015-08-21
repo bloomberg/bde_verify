@@ -738,11 +738,16 @@ void report::check_globals_use_allocator(data::Globals::const_iterator begin,
 
 bool report::has_public_copy_constructor(const CXXRecordDecl *decl)
 {
+    if (!decl->hasUserDeclaredCopyConstructor()) {
+        return true;                                                  // RETURN
+    }
+
     for (auto c : decl->ctors()) {
         if (c->isCopyConstructor() && c->getAccess() == AS_public) {
             return true;                                              // RETURN
         }
     }
+
     return false;
 }
 
