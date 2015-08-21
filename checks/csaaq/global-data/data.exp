@@ -7,15 +7,6 @@ extern int c;
 data.cpp:5:5: warning: AQb01: Data variable with global visibilty
 int d = 1;
     ^
-data.cpp:17:5: warning: AQb01: Data variable with global visibilty
-int a;
-    ^
-data.cpp:19:12: warning: AQb01: Data variable with global visibilty
-extern int c;
-           ^
-data.cpp:21:5: warning: AQb01: Data variable with global visibilty
-int d = 1;
-    ^
 data.cpp:34:5: warning: AQb01: Data variable with global visibilty
 int a;
     ^
@@ -25,4 +16,4 @@ extern int c;
 data.cpp:38:5: warning: AQb01: Data variable with global visibilty
 int d = 1;
     ^
-9 warnings generated.
+6 warnings generated.
