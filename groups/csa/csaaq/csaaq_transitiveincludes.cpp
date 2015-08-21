@@ -373,8 +373,7 @@ static auto &s = *new std::set<llvm::StringRef>({
     return s;
 }
 
-std::map<llvm::StringRef,
-                   std::set<llvm::StringRef>> &if_included_map()
+std::map<llvm::StringRef, std::set<llvm::StringRef>> &if_included_map()
 {
     static std::map<llvm::StringRef, std::set<llvm::StringRef>> s;
     if (!s.size()) {
@@ -447,10 +446,12 @@ bool reexports(llvm::StringRef outer, llvm::StringRef inner)
         return true;
     }
 
+    buf.clear();
     if (outer == ("bsl_" + inner + ".h").toStringRef(buf)) {
         return true;
     }
 
+    buf.clear();
     if (outer == ("bsl_c_" + inner).toStringRef(buf)) {
         return true;
     }
@@ -466,19 +467,17 @@ struct data
     std::vector<FileID>                                        d_fileid_stack;
     std::string                                                d_guard;
     SourceLocation                                             d_guard_pos;
-    std::map<FileID, std::map<std::string, SourceLocation>>
-                                                               d_once;
-    std::map<FileID, std::set<std::string>>
-                                                               d_includes;
-    std::set<std::string>                            d_all_includes;
-    std::map<FileID, std::string>                    d_guards;
-    std::map<std::tuple<FileID, FileID, SourceLocation>,
-                       SourceLocation>                         d_fid_map;
-    std::map<std::pair<SourceLocation, SourceLocation>,
-                       std::string>                            d_file_for_loc;
+    std::map<FileID, std::map<std::string, SourceLocation>>    d_once;
+    std::map<FileID, std::set<std::string>>                    d_includes;
+    std::set<std::string>                                      d_all_includes;
+    std::map<FileID, std::string>                              d_guards;
+    std::map<std::tuple<FileID, FileID, SourceLocation>, SourceLocation>
+                                                               d_fid_map;
+    std::map<std::pair<SourceLocation, SourceLocation>, std::string>
+                                                               d_file_for_loc;
     std::map<SourceLocation, std::vector<std::pair<FileID, bool>>>
                                                                d_include_stack;
-    std::set<std::pair<FileID, const Decl *>>        d_decls;
+    std::set<std::pair<FileID, const Decl *>>                  d_decls;
     bool                                                       d_ovr;
 };
 

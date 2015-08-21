@@ -36,6 +36,7 @@ void report::operator()(const VarDecl *decl)
     if (!a.is_test_driver(decl) &&
         !llvm::dyn_cast<VarTemplateSpecializationDecl>(decl) &&
         decl->isFileVarDecl() &&
+        decl->isExternallyVisible() &&
         sc != SC_Static &&
         !decl->isStaticDataMember()) {
         a.report(decl, check_name, "AQb01",
