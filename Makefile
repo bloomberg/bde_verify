@@ -106,6 +106,7 @@ CXXFILES =                                                                    \
         groups/csa/csamisc/csamisc_hashptr.cpp                                \
         groups/csa/csamisc/csamisc_longinline.cpp                             \
         groups/csa/csamisc/csamisc_memberdefinitioninclassdefinition.cpp      \
+        groups/csa/csamisc/csamisc_movablerefref.cpp                          \
         groups/csa/csamisc/csamisc_namespacetags.cpp                          \
         groups/csa/csamisc/csamisc_opvoidstar.cpp                             \
         groups/csa/csamisc/csamisc_spellcheck.cpp                             \
