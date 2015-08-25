@@ -120,9 +120,11 @@ std::vector<llvm::StringRef> &top_level_prefixes()
     if (!s.size()) {
 #undef  X
 #define X(n) s.emplace_back(n);
-        X("bdlb_")  X("bdldfp_") X("bdlma_")  X("bdls_")  X("bdlscm_")
-        X("bdlt_")  X("bslalg_") X("bslfwd_") X("bslim_") X("bslma_")
-        X("bslmf_") X("bsls_")   X("bslscm_") X("bsltf_") X("bslx_")
+    X("bdlat_")  X("bdlb_")   X("bdlc_")  X("bdlde_") X("bdldfp_")
+    X("bdlf_")   X("bdlma_")  X("bdlmt_") X("bdlqq_") X("bdls_")
+    X("bdlsb_")  X("bdlscm_") X("bdlsu_") X("bdlt_")  X("bslalg_")
+    X("bslfwd_") X("bslh_")   X("bslim_") X("bslma_") X("bslmf_")
+    X("bsls_")   X("bslscm_") X("bsltf_") X("bslx_")
 #undef X
     };
 
