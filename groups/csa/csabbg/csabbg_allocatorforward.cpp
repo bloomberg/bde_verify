@@ -189,6 +189,9 @@ struct report : Report<data>
     void check_globals_use_allocator(data::Globals::const_iterator begin,
                                      data::Globals::const_iterator end);
 
+    bool has_public_copy_constructor(const CXXRecordDecl *decl);
+        // Whether the class has a publicly accessible copy constructor.
+
     void check_not_forwarded(data::Ctors::const_iterator begin,
                              data::Ctors::const_iterator end);
         // Invoke the forwarding check on the items in the range from the
@@ -733,6 +736,21 @@ void report::check_globals_use_allocator(data::Globals::const_iterator begin,
     }
 }
 
+bool report::has_public_copy_constructor(const CXXRecordDecl *decl)
+{
+    if (!decl->hasUserDeclaredCopyConstructor()) {
+        return true;                                                  // RETURN
+    }
+
+    for (auto c : decl->ctors()) {
+        if (c->isCopyConstructor() && c->getAccess() == AS_public) {
+            return true;                                              // RETURN
+        }
+    }
+
+    return false;
+}
+
 void report::check_not_forwarded(data::Ctors::const_iterator begin,
                                  data::Ctors::const_iterator end)
 {
@@ -786,18 +804,20 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
         if (records.count(rp) == 0) {
             records.insert(rp);
 
-            if (!uses_allocator && has_true_alloc_trait) {
-                a.report(record, check_name, "AT01",
-                         "Class %0 does not use allocators but has a "
-                         "positive allocator trait")
-                    << record;
-            } else if (uses_allocator &&
-                       !has_true_alloc_trait &&
-                       !has_dependent_alloc_trait) {
-                a.report(record, check_name, "AT02",
-                         "Class %0 uses allocators but does not have an "
-                         "allocator trait")
-                    << record;
+            if (has_public_copy_constructor(record)) {
+                if (!uses_allocator && has_true_alloc_trait) {
+                    a.report(record, check_name, "AT01",
+                             "Class %0 does not use allocators but has a "
+                             "positive allocator trait")
+                        << record;
+                } else if (uses_allocator &&
+                           !has_true_alloc_trait &&
+                           !has_dependent_alloc_trait) {
+                    a.report(record, check_name, "AT02",
+                             "Class %0 uses allocators but does not have an "
+                             "allocator trait")
+                        << record;
+                }
             }
         }
 

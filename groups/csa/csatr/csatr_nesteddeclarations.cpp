@@ -95,7 +95,7 @@ static void check(Analyser& analyser, Decl const* decl)
                 name.find("operator new") == std::string::npos &&
                 name.find("operator delete") == std::string::npos &&
                 (analyser.is_component_header(location.file()) ||
-                 named->isExternallyVisible/*hasLinkage*/())) {
+                 named->isExternallyVisible())) {
                 analyser.report(decl, check_name, "TR04",
                                 "Declaration of '%0' at global scope", true)
                     << decl->getSourceRange()
@@ -148,7 +148,7 @@ static void check(Analyser& analyser, Decl const* decl)
                 && name.find("operator delete") == std::string::npos
                 && !isSpecialFunction(named)
                 && (   analyser.is_component_header(named)
-                    || named->hasLinkage()
+                    || named->isExternallyVisible()
                     )
                 && !analyser.is_ADL_candidate(decl)
                 )

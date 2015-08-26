@@ -128,6 +128,10 @@ bool report::is_good_friend(const FriendDecl *frend, const NamedDecl *def)
     FileName ff(m.getFilename(frend->getLocation()));
     FileName df(m.getFilename(def->getLocation()));
 
+    if (llvm::StringRef(dn).startswith_lower(fn)) {
+        return true;
+    }
+
     if (auto rd = llvm::dyn_cast<RecordDecl>(def)) {
         if (rd != rd->getDefinition()) {
             if (rd->getLexicalDeclContext()->isFileContext()) {
@@ -136,15 +140,14 @@ bool report::is_good_friend(const FriendDecl *frend, const NamedDecl *def)
         }
     }
 
-    if (llvm::StringRef(dn).startswith_lower(fn)) {
-        return true;
-    }
     if (ff.component() == df.component()) {
         return true;
     }
+
     if (a.is_standard_namespace(fn) || a.is_standard_namespace(dn)) {
         return true;
     }
+
     return false;
 }
 
@@ -188,6 +191,13 @@ void report::local_friendship_only(FriendDecl const* frend)
         auto rd = type->getAsCXXRecordDecl();
         while (rd && !(def = other(frend, rd))) {
             rd = llvm::dyn_cast<CXXRecordDecl>(rd->getParent());
+        }
+    }
+
+    if (!def) {
+        def = frend->getFriendDecl();
+        if (!def && type) {
+            def = type->getAsCXXRecordDecl();
         }
     }
 

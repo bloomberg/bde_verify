@@ -1,3 +1,17 @@
+bde-verify (1.1.7) unstable; urgency=low
+
+  * 5e53780 Merge branch 'work'
+  * 8c27daa A class is copyable if it has no user-declared copy constructor. Check friendship by name earlier.
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Fri, 21 Aug 2015 14:58:44 -0400
+
+bde-verify (1.1.6) unstable; urgency=low
+
+  * 0f874c8 Fix transitive include stupid error. Don't complain about allocator traits for non-copyable classes. Don't complain about non-visible names.
+  * 793a1c9 Fix function argument indentation and spelling in @CONTACT.
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Fri, 21 Aug 2015 12:16:49 -0400
+
 bde-verify (1.1.5) unstable; urgency=low
 
   * f0f34c0 No longer require anonymous namespaces to be nested in package ones.
