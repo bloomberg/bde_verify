@@ -109,6 +109,7 @@ std::set<llvm::StringRef> &top_level_files()
 #undef  X
 
     s.insert("vstring.h");
+    s.insert("unistd.h");
     }
 
     return s;
