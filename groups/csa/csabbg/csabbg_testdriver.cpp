@@ -459,6 +459,10 @@ void report::get_function_names()
             DeclContext::decl_iterator e = record->decls_end();
             for (; b != e; ++b) {
                 if (auto t = llvm::dyn_cast<FunctionTemplateDecl>(*b)) {
+                    if (llvm::dyn_cast<CXXMethodDecl>(t->getTemplatedDecl())
+                            ->getAccess() != AS_public) {
+                        continue;
+                    }
                     note_function(t->getNameAsString());
                     auto sb = t->spec_begin();
                     auto se = t->spec_end();
