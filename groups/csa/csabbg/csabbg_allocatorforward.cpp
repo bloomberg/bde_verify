@@ -856,7 +856,7 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
                 if (decl->isUserProvided()) {
                     a.report(decl, check_name, "AC01",
                              "This constructor has no version that can be "
-                             "called with an allocator")
+                             "called with an allocator as the final argument")
                         << decl;
                 }
                 else {
@@ -867,7 +867,7 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
 
                     a.report(decl, check_name, "AC02",
                              "Implicit " + type + "constructor cannot be "
-                             "called with an allocator")
+                             "called with an allocator as the final argument")
                         << decl;
                 }
             }
