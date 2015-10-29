@@ -102,6 +102,28 @@ bool csabase::are_numeric_cognates(llvm::StringRef a, llvm::StringRef b)
         bi = b.find_first_not_of(digits, bdi);
     }
     return ai == a.npos && bi == b.npos;
+} 
+
+std::string csabase::on_one_line(llvm::StringRef s, bool explicitNL)
+{
+    std::string ret;
+    while (s.size()) {
+        switch (s.front()) {
+        case ' ': case '\r': case '\t':
+            ret += ' ';
+            s = s.ltrim();
+            break;
+        case '\n':
+            ret += explicitNL ? " \\n " : " ";
+            s = s.ltrim();
+            break;
+        default:
+            ret += s.front();
+            s = s.drop_front();
+            break;
+        }
+    }
+    return ret;
 }
 
 csabase::OnMatch<UseLambda, &UseLambda::NotFunction>::OnMatch(

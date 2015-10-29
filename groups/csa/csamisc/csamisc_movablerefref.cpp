@@ -97,7 +97,7 @@ void report::match_ref_to_movableref(const BoundNodes &nodes)
 
 void report::operator()()
 {
-    d.d_mr = a.config()->value("enterprise") + "::bslmf::MovableRef";
+    d.d_mr = a.config()->toplevel_namespace() + "::bslmf::MovableRef";
     if (a.lookup_name(d.d_mr)) {
         MatchFinder mf;
         OnMatch<report, &report::match_ref_to_movableref> m1(this);
