@@ -183,15 +183,16 @@ void report::operator()()
             }
         }
         if (bad) {
-            a.report(tu, check_name, "RX01",
+            a.report(m.getLocForStartOfFile(m.getMainFileID()),
+                     check_name, "RX01",
                      "Bad refactor option '" + o.str() + "' - "
                      "Use file(old[,new]*) or name(old,new)");
         }
     }
     if (cfg.size()) {
-            a.report(tu, check_name, "RX01",
-                     "Bad refactor option '" + cfg.str() + "' - "
-                     "Use file(old[,new]*) or name(old,new)");
+        a.report(m.getLocForStartOfFile(m.getMainFileID()), check_name, "RX01",
+                 "Bad refactor option '" + cfg.str() + "' - "
+                 "Use file(old[,new]*) or name(old,new)");
     }
 
     for (auto &include_locations : d.d_includes) {
