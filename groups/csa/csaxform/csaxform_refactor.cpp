@@ -8,6 +8,8 @@
 #include "csabase_util.h"
 #include "csabase_visitor.h"
 
+#include <llvm/ADT/Hashing.h>
+#include <llvm/ADT/StringExtras.h>
 #include <llvm/ADT/StringRef.h>
 #include <llvm/Support/Regex.h>
 
@@ -18,9 +20,17 @@
 
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 
 using namespace csabase;
 using namespace clang;
+
+#ifdef DEBUG_RAV
+#include "csabase_debug_rav.h"
+#define RecursiveASTVisitor DebugRecursiveASTVisitor
+#else
+namespace { struct Guard { Guard(...) { } }; }
+#endif
 
 // ----------------------------------------------------------------------------
 
@@ -33,11 +43,13 @@ namespace
 
 struct data
 {
-    struct slh {
+    struct hash {
+        unsigned operator()(llvm::StringRef s) const
+        { return llvm::hash_value(s); }
         unsigned operator()(SourceLocation sl) const
-        {
-            return sl.getRawEncoding();
-        }
+        { return sl.getRawEncoding(); }
+        unsigned operator()(FileID fid) const
+        { return fid.getHashValue(); }
     };
 
     std::unordered_map<std::string              /* original     */,
@@ -48,7 +60,7 @@ struct data
 
     std::unordered_map<SourceLocation /* location */,
                        std::string    /* guard    */,
-                       slh            /* hash     */ > d_ifs;
+                       hash           /* hash     */> d_ifs;
         // Guarded region beginnings.
 
     std::unordered_map<std::string              /* file      */,
@@ -61,8 +73,9 @@ struct data
     std::string d_most_recent_guard;
         // The most recently seen guard in an '#ifndef' condition.
 
-    std::unordered_map<std::string /* old */,
-                       std::string /* new */> d_replacements;
+    std::unordered_map<llvm::StringRef /* old  */,
+                       llvm::StringRef /* new  */,
+                       hash            /* hash */> d_replacements;
         // Mapping of names to their replacements.
 };
 
@@ -73,12 +86,12 @@ struct report : public RecursiveASTVisitor<report>, Report<data>
 
     typedef RecursiveASTVisitor<report> base;
 
-    const std::string guard_for_file(const std::string &file);
+    const std::string guard_for_file(llvm::StringRef file);
         // Return an include guard derived from the specified 'file' name,
         // formulated as "INCLUDED_{STEM}" where "STEM" is the capitalized part
         // of 'file' after path and extension components are removed.
 
-    const std::string file_for_guard(const std::string &guard);
+    const std::string file_for_guard(llvm::StringRef guard);
         // return a file name derived from the specified 'guard'.  It consists
         // of a lower-case version of 'guard' with its "INCLUDE[D]_" prefix
         // removed and ".h" appended.
@@ -110,38 +123,40 @@ struct report : public RecursiveASTVisitor<report>, Report<data>
     void operator()(SourceRange);
         // Callback for skipped region.
 
-    bool TraverseDeclaratorHelper(DeclaratorDecl *);
-    bool VisitDeclRefExpr(DeclRefExpr *);
-    bool VisitElaboratedTypeLoc(ElaboratedTypeLoc);
+    bool TraverseDeclRefExpr(DeclRefExpr *);
+    bool TraverseElaboratedTypeLoc(ElaboratedTypeLoc);
     bool TraverseNestedNameSpecifierLoc(NestedNameSpecifierLoc);
+    bool TraverseQualifiedTypeLoc(QualifiedTypeLoc);
+    bool TraverseTypeLoc(TypeLoc);
 
-    void replace_class(SourceRange sr, QualType t);
+    bool replace_class(SourceRange sr, QualType t);
         // If the type represented by the specified 't' is replaceable, change
-        // the specified range 'sr' to its replacement.
+        // the specified range 'sr' to its replacement.  Return true if a
+        // substitution is made.
 
-    void replace(SourceRange sr, llvm::StringRef e);
+    bool replace(SourceRange sr, llvm::StringRef e);
         // If the name represented by the specified 'e' is replaceable, change
-        // the specified range 'sr' to its replacement.
+        // the specified range 'sr' to its replacement.  Return true if a
+        // substitution is made.
 };
 
-const std::string report::guard_for_file(const std::string &file)
+const std::string report::guard_for_file(llvm::StringRef file)
 {
     return "INCLUDED_" + llvm::sys::path::stem(file).upper();
 }
 
-const std::string report::file_for_guard(const std::string &guard)
+const std::string report::file_for_guard(llvm::StringRef guard)
 {
-    llvm::StringRef g(guard);
-    if (g.startswith("INCLUDED_")) {
-        g = g.drop_front(9);
+    if (guard.startswith("INCLUDED_")) {
+        guard = guard.drop_front(9);
     }
-    else if (g.startswith("INCLUDE_")) {
-        g = g.drop_front(8);
+    else if (guard.startswith("INCLUDE_")) {
+        guard = guard.drop_front(8);
     }
-    if (g.endswith("_H")) {
-        g = g.drop_back(2);
+    if (guard.endswith("_H")) {
+        guard = guard.drop_back(2);
     }
-    return g.lower() + ".h";
+    return guard.lower() + ".h";
 }
 
 bool report::is_guard(llvm::StringRef macro)
@@ -167,9 +182,9 @@ void report::operator()()
             r = r.drop_front(5).drop_back(1).trim();
             SmallVector<llvm::StringRef, 5> fs;
             r.split(fs, ",", -1, false);
-            auto &v = d.d_files[fs[0].trim().str()];
+            auto &v = d.d_files[fs[0].trim()];
             for (unsigned i = 1; i < fs.size(); ++i) {
-                v.emplace_back(fs[i].trim().str());
+                v.emplace_back(fs[i].trim());
             }
             bad = false;
         }
@@ -179,7 +194,7 @@ void report::operator()()
             r.split(ns, ",", -1, false);
             if (ns.size() == 2) {
                 bad = false;
-                d.d_replacements[ns[0].trim().str()] = ns[1].trim().str();
+                d.d_replacements[ns[0].trim()] = ns[1].trim();
             }
         }
         if (bad) {
@@ -195,24 +210,23 @@ void report::operator()()
                  "Use file(old[,new]*) or name(old,new)");
     }
 
+    std::unordered_map<FileID,
+                       std::unordered_set<llvm::StringRef, data::hash>,
+                       data::hash> by_id;
+    for (auto &includes : d.d_includes) {
+        for (auto range : includes.second) {
+            by_id[m.getFileID(range.getBegin())].insert(includes.first);
+        }
+    }
     for (auto &include_locations : d.d_includes) {
         auto replace_iter = d.d_files.find(include_locations.first);
         if (replace_iter != d.d_files.end()) {
             for (auto &replace_range : include_locations.second) {
+                FileID ifid = m.getFileID(replace_range.getBegin());
                 std::string rep_text = "";
                 std::string sep = "";
-                for (std::string &replacement : replace_iter->second) {
-                    bool already_included = false;
-                    auto included_iter = d.d_includes.find(replacement);
-                    if (included_iter != d.d_includes.end()) {
-                        for (auto &included_range : included_iter->second) {
-                            if (m.getFileID(included_range.getBegin()) ==
-                                m.getFileID(replace_range.getBegin())) {
-                                already_included = true;
-                                break;
-                            }
-                        }
-                    }
+                for (const auto& replacement : replace_iter->second) {
+                    bool already_included = by_id[ifid].count(replacement);
                     if (!already_included) {
                         if (replace_range.getBegin() ==
                             replace_range.getEnd()) {
@@ -225,6 +239,7 @@ void report::operator()()
                                         "#endif";
                         }
                         sep = "\n";
+                        by_id[ifid].insert(replacement);
                     }
                 }
                 SourceRange extended_range(
@@ -247,8 +262,7 @@ void report::operator()(SourceLocation        loc,
                         const Token&          token,
                         const MacroDirective *)
 {
-    llvm::SmallString<64> buf;
-    llvm::StringRef may_be_guard = p.getSpelling(token, buf);
+    std::string may_be_guard = p.getSpelling(token);
     if (is_guard(may_be_guard)) {
         d.d_ifs.emplace(loc, may_be_guard);
         d.d_most_recent_guard = may_be_guard;
@@ -290,55 +304,87 @@ void report::operator()(SourceLocation loc, SourceLocation ifloc)
     }
 }
 
-bool report::TraverseDeclaratorHelper(DeclaratorDecl *d)
+bool report::TraverseDeclRefExpr(DeclRefExpr *arg)
 {
-    if (!d->getQualifierLoc() && d->getTypeSourceInfo()) {
-        TypeLoc tl = d->getTypeSourceInfo()->getTypeLoc();
-        replace_class(tl.getSourceRange(), tl.getType());
+    Guard guard(this, __FUNCTION__, arg);
+
+    if (replace(arg->getSourceRange(),
+                arg->getDecl()->getQualifiedNameAsString())) {
+        // Skip calling TraverseNestedNameSpecifierLoc(arg->getQualifierLoc());
+        // Skip calling TraverseDeclarationNameInfo(arg->getNameInfo());
+        // This is TraverseTemplateArgumentLocsHelper, which is private.
+        unsigned tan = arg->getNumTemplateArgs();
+        const TemplateArgumentLoc *tal = arg->getTemplateArgs();
+        for (unsigned i = 0; i < tan; ++i) {
+            if (!TraverseTemplateArgumentLoc(tal[i])) {
+                return false;                                         // RETURN
+            }
+        }
+        return true;                                                  // RETURN
     }
-
-    // Base version of this function is private, so reimplement.
-    return TraverseNestedNameSpecifierLoc(d->getQualifierLoc()) &&
-           (d->getTypeSourceInfo()
-                ? TraverseTypeLoc(d->getTypeSourceInfo()->getTypeLoc())
-                : TraverseType(d->getType()));
+    return base::TraverseDeclRefExpr(arg);
 }
 
-bool report::VisitDeclRefExpr(DeclRefExpr *e)
+bool report::TraverseElaboratedTypeLoc(ElaboratedTypeLoc arg)
 {
-    replace(e->getSourceRange(), e->getDecl()->getQualifiedNameAsString());
-    return base::VisitDeclRefExpr(e);
+    Guard guard(this, __FUNCTION__, arg);
+    if (replace_class(arg.getSourceRange(), arg.getInnerType())) {
+        return true;                                                  // RETURN
+    }
+    return base::TraverseElaboratedTypeLoc(arg);
 }
 
-bool report::VisitElaboratedTypeLoc(ElaboratedTypeLoc el)
+bool report::TraverseQualifiedTypeLoc(QualifiedTypeLoc arg)
 {
-    replace_class(el.getSourceRange(), el.getInnerType());
-    return base::VisitElaboratedTypeLoc(el);
+    Guard guard(this, __FUNCTION__, arg);
+    // Base TraverseQualifiedTypeLoc does not call derived TraverseTypeLoc.
+    return TraverseTypeLoc(arg.getUnqualifiedLoc());
 }
 
-bool report::TraverseNestedNameSpecifierLoc(NestedNameSpecifierLoc nl)
+bool report::TraverseTypeLoc(TypeLoc arg)
 {
-    if (nl) {
-        auto k = nl.getNestedNameSpecifier()->getKind();
+    Guard guard(this, __FUNCTION__, arg);
+    if (replace_class(arg.getSourceRange(), arg.getType())) {
+        return true;                                                  // RETURN
+    }
+    return base::TraverseTypeLoc(arg);
+}
+
+bool report::TraverseNestedNameSpecifierLoc(NestedNameSpecifierLoc arg)
+{
+    if (arg) {
+        Guard guard(this, __FUNCTION__, arg);
+        auto k = arg.getNestedNameSpecifier()->getKind();
         if (k == NestedNameSpecifier::TypeSpec ||
             k == NestedNameSpecifier::TypeSpecWithTemplate) {
-            replace_class(nl.getSourceRange(), nl.getTypeLoc().getType());
+            if (replace_class(
+                    arg.getSourceRange(), arg.getTypeLoc().getType())) {
+                return true;                                          // RETURN
+            }
         }
     }
-    return base::TraverseNestedNameSpecifierLoc(nl);
+    return base::TraverseNestedNameSpecifierLoc(arg);
 }
 
-void report::replace_class(SourceRange sr, QualType t)
+bool report::replace_class(SourceRange sr, QualType t)
 {
     PrintingPolicy pp(a.context()->getLangOpts());
     pp.SuppressTagKeyword = 1;
     pp.SuppressUnwrittenScope = 1;
     pp.TerseOutput = 1;
-    replace(sr, t.getAsString(pp));
+    return replace(sr, t.getAsString(pp));
 }
 
-void report::replace(SourceRange sr, llvm::StringRef e)
+bool report::replace(SourceRange sr, llvm::StringRef e)
 {
+    std::string s;
+    if (e.find("::::") != e.npos) {
+        SmallVector<llvm::StringRef, 5> ns;
+        e.split(ns, "::", -1, false);
+        s = llvm::join(ns.begin(), ns.end(), "::");
+        e = s;
+    }
+
     if (e.startswith("::")) {
         e = e.drop_front(2);
     }
@@ -346,9 +392,10 @@ void report::replace(SourceRange sr, llvm::StringRef e)
     if (e.startswith(blp) && e.drop_front(blp.size()).startswith("::")) {
         e = e.drop_front(blp.size() + 2);
     }
-    auto i = d.d_replacements.find(e.str());
+    auto i = d.d_replacements.find(e);
     if (i != d.d_replacements.end()) {
-        sr = a.get_full_range(sr);
+        sr = a.get_full_range(SourceRange(
+            m.getSpellingLoc(sr.getBegin()), m.getSpellingLoc(sr.getEnd())));
         llvm::StringRef src = a.get_source(sr, true);
         std::string rep = i->second;
         if (src.endswith("::")) {
@@ -358,16 +405,17 @@ void report::replace(SourceRange sr, llvm::StringRef e)
                  "Replacing " + src.str() + " with " + rep)
             << sr;
         a.ReplaceText(sr, rep);
+        return true;
     }
+    return false;
 }
 
 void subscribe(Analyser& analyser, Visitor&, PPObserver& observer)
 {
     analyser.onTranslationUnitDone += report(analyser);
-    observer.onPPIfndef += report(analyser, observer.e_Ifndef);
-    observer.onPPInclusionDirective +=
-        report(analyser, observer.e_InclusionDirective);
-    observer.onPPEndif += report(analyser, observer.e_Endif);
+    observer.onPPIfndef += report(analyser);
+    observer.onPPInclusionDirective += report(analyser);
+    observer.onPPEndif += report(analyser);
 }
 
 }  // close anonymous namespace

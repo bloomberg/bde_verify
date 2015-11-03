@@ -49,6 +49,9 @@ csabase::DiagnosticFilter::HandleDiagnostic(DiagnosticsEngine::Level level,
     if (level == DiagnosticsEngine::Note) {
         handle = d_prev_handle;
     }
+    else if (info.getID() == diag::pp_pragma_once_in_main_file) {
+        d_prev_handle = false;
+    }
     else {
         if (!handle) {
             handle = level >= DiagnosticsEngine::Error;
@@ -69,7 +72,6 @@ csabase::DiagnosticFilter::HandleDiagnostic(DiagnosticsEngine::Level level,
             handle = d_diagnose == "main" &&
                      d_analyser->manager().getMainFileID() ==
                      d_analyser->manager().getFileID(info.getLocation()) &&
-                     info.getID() != diag::pp_pragma_once_in_main_file &&
                      !d_analyser->is_generated(info.getLocation());
         }
         d_prev_handle = handle;
