@@ -78,39 +78,102 @@ version.</p>
 </div>
 <div class="section" id="options">
 <h2>Options<a class="headerlink" href="#options" title="Permalink to this headline">¶</a></h2>
-<p>-config file         configuration file
--cl line             additional configuration lines
--bb dir              base directory for BloombergLP C++ header includes
--exe binary          bde_verify executable file
--cc compiler         C++ compiler used to find system include directories
--definc              set up default include paths
--nodefinc            do not set up default include paths
--defdef              set up default macro definitions
--nodefdef            do not set up default macro definitions
--ovr                 define BSL_OVERRIDES_STD
--noovr               do not define BSL_OVERRIDES_STD
--rewrite-dir dir     place rewritten files (as name-rewritten) in dir
--rewrite dir         (same as &#8211;rewrite-dir)
--rd dir              (same as &#8211;rewrite-dir)
--rewrite-file file   accumulate rewrite specifications into file
--rf file             (same as &#8211;rewrite-file)
--std type            specify C++ version
--tag string          make first line of each warning contain [string]
--diagnose type       report and rewrite only for main, component, nogen, or all
--m32                 process in 32-bit mode
--m64                 process in 64-bit mode
--nsa                 allow logging for purposes of tracking usage
--nonsa               disallow logging for purposes of tracking usage
--debug               display internal information as checks are performed
--verbose             display command line passed to clang
--v                   (same as &#8211;verbose)
--help                display this help message
--?                   (same as &#8211;help)
--I directory         add directory to header search path
--D macro             define macro
--W warning           enable warning
--f flag              specify compiler flag
--w                   disable normal compiler warnings</p>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd><span class="option">--config <var>file</var></span></kbd></td>
+<td>configuration file</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--cl <var>line</var></span></kbd></td>
+<td>additional configuration lines</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--bb <var>dir</var></span></kbd></td>
+<td>base directory for BloombergLP C++ header includes</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--exe <var>binary</var></span></kbd></td>
+<td>bde_verify executable file</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--cc <var>compiler</var></span></kbd></td>
+<td>C++ compiler used to find system include directories</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--definc</span></kbd></td>
+<td>set up default include paths</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--nodefinc</span></kbd></td>
+<td>do not set up default include paths</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--defdef</span></kbd></td>
+<td>set up default macro definitions</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--nodefdef</span></kbd></td>
+<td>do not set up default macro definitions</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--ovr</span></kbd></td>
+<td>define BSL_OVERRIDES_STD</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--noovr</span></kbd></td>
+<td>do not define BSL_OVERRIDES_STD</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd><span class="option">--rewrite-dir <var>dir</var></span></kbd></td>
+</tr>
+<tr><td>&nbsp;</td><td>place rewritten files (as name-rewritten) in dir</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--rewrite <var>dir</var></span></kbd></td>
+<td>(same as &#8211;rewrite-dir)</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--rd <var>dir</var></span></kbd></td>
+<td>(same as &#8211;rewrite-dir)</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd><span class="option">--rewrite-file <var>file</var></span></kbd></td>
+</tr>
+<tr><td>&nbsp;</td><td>accumulate rewrite specifications into file</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--rf <var>file</var></span></kbd></td>
+<td>(same as &#8211;rewrite-file)</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--std <var>type</var></span></kbd></td>
+<td>specify C++ version</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--tag <var>string</var></span></kbd></td>
+<td>make first line of each warning contain [string]</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd><span class="option">--diagnose <var>type</var></span></kbd></td>
+</tr>
+<tr><td>&nbsp;</td><td>report and rewrite only for main, component, nogen, or all</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--m32</span></kbd></td>
+<td>process in 32-bit mode</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--m64</span></kbd></td>
+<td>process in 64-bit mode</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--nsa</span></kbd></td>
+<td>allow logging for purposes of tracking usage</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--nonsa</span></kbd></td>
+<td>disallow logging for purposes of tracking usage</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--debug</span></kbd></td>
+<td>display internal information as checks are performed</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--verbose</span></kbd></td>
+<td>display command line passed to clang</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--v</span></kbd></td>
+<td>(same as &#8211;verbose)</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--help</span></kbd></td>
+<td>display this help message</td></tr>
+</tbody>
+</table>
+<p>&#8211;?                   (same as &#8211;help)
+-I directory          add directory to header search path
+-D macro              define macro
+-W warning            enable warning
+-f flag               specify compiler flag
+&#8211;w                   disable normal compiler warnings</p>
 </div>
 <div class="section" id="configuration">
 <h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h2>
