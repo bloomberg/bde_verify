@@ -69,14 +69,13 @@ Options
 --nonsa               disallow logging for purposes of tracking usage
 --debug               display internal information as checks are performed
 --verbose             display command line passed to clang
---v                   (same as --verbose)
---help                display this help message
---?                   (same as --help)
+-v                    (same as --verbose)
+--help                display this help message (also -?)
 -I directory          add directory to header search path
 -D macro              define macro
 -W warning            enable warning
 -f flag               specify compiler flag
---w                   disable normal compiler warnings
+-w                    disable normal compiler warnings
 
 Configuration
 -------------
