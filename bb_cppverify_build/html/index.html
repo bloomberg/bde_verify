@@ -78,84 +78,39 @@ version.</p>
 </div>
 <div class="section" id="options">
 <h2>Options<a class="headerlink" href="#options" title="Permalink to this headline">¶</a></h2>
-<table class="docutils option-list" frame="void" rules="none">
-<col class="option" />
-<col class="description" />
-<tbody valign="top">
-<tr><td class="option-group">
-<kbd><span class="option">--config <var>file</var></span></kbd></td>
-<td>configuration file</td></tr>
-<tr><td class="option-group">
-<kbd><span class="option">--cl <var>line</var></span></kbd></td>
-<td>additional configuration lines</td></tr>
-<tr><td class="option-group">
-<kbd><span class="option">--bb <var>dir</var></span></kbd></td>
-<td>base directory for BloombergLP C++ header includes</td></tr>
-<tr><td class="option-group">
-<kbd><span class="option">--exe <var>binary</var></span></kbd></td>
-<td>bde_verify executable file</td></tr>
-<tr><td class="option-group">
-<kbd><span class="option">--cc <var>compiler</var></span></kbd></td>
-<td>C++ compiler used to find system include directories</td></tr>
-<tr><td class="option-group">
-<kbd><span class="option">--llvm <var>dir</var></span></kbd></td>
-<td>clang installation directory</td></tr>
-<tr><td class="option-group">
-<kbd><span class="option">--definc</span></kbd></td>
-<td>set up default include paths</td></tr>
-<tr><td class="option-group">
-<kbd><span class="option">--nodefinc</span></kbd></td>
-<td>do not set up default include paths</td></tr>
-<tr><td class="option-group">
-<kbd><span class="option">--defdef</span></kbd></td>
-<td>set up default macro definitions</td></tr>
-<tr><td class="option-group">
-<kbd><span class="option">--nodefdef</span></kbd></td>
-<td>do not set up default macro definitions</td></tr>
-<tr><td class="option-group">
-<kbd><span class="option">--ovr</span></kbd></td>
-<td>define BSL_OVERRIDES_STD</td></tr>
-<tr><td class="option-group">
-<kbd><span class="option">--noovr</span></kbd></td>
-<td>do not define BSL_OVERRIDES_STD</td></tr>
-<tr><td class="option-group">
-<kbd><span class="option">--rewrite <var>dir</var></span></kbd></td>
-<td>place rewritten files (as name-rewritten) in dir</td></tr>
-<tr><td class="option-group">
-<kbd><span class="option">--std <var>type</var></span></kbd></td>
-<td>specify C++ version</td></tr>
-<tr><td class="option-group">
-<kbd><span class="option">--tag <var>string</var></span></kbd></td>
-<td>make first line of each warning contain [string]</td></tr>
-<tr><td class="option-group">
-<kbd><span class="option">--toplevel</span></kbd></td>
-<td>display warnings for specified file only</td></tr>
-<tr><td class="option-group">
-<kbd><span class="option">--debug</span></kbd></td>
-<td>display internal information as checks are performed</td></tr>
-<tr><td class="option-group">
-<kbd><span class="option">--verbose</span></kbd></td>
-<td>display command line passed to clang</td></tr>
-<tr><td class="option-group">
-<kbd><span class="option">--help</span></kbd></td>
-<td>display this help message</td></tr>
-<tr><td class="option-group">
-<kbd><span class="option">-I <var>directory</var></span></kbd></td>
-<td>add directory to header search path</td></tr>
-<tr><td class="option-group">
-<kbd><span class="option">-D <var>macro</var></span></kbd></td>
-<td>define macro</td></tr>
-<tr><td class="option-group">
-<kbd><span class="option">-W <var>warning</var></span></kbd></td>
-<td>enable warning</td></tr>
-<tr><td class="option-group">
-<kbd><span class="option">-f <var>flag</var></span></kbd></td>
-<td>specify compiler flag</td></tr>
-<tr><td class="option-group">
-<kbd><span class="option">-w</span></kbd></td>
-<td>disable normal compiler warnings</td></tr>
-</tbody>
-</table>
+<p>-config file         configuration file
+-cl line             additional configuration lines
+-bb dir              base directory for BloombergLP C++ header includes
+-exe binary          bde_verify executable file
+-cc compiler         C++ compiler used to find system include directories
+-definc              set up default include paths
+-nodefinc            do not set up default include paths
+-defdef              set up default macro definitions
+-nodefdef            do not set up default macro definitions
+-ovr                 define BSL_OVERRIDES_STD
+-noovr               do not define BSL_OVERRIDES_STD
+-rewrite-dir dir     place rewritten files (as name-rewritten) in dir
+-rewrite dir         (same as &#8211;rewrite-dir)
+-rd dir              (same as &#8211;rewrite-dir)
+-rewrite-file file   accumulate rewrite specifications into file
+-rf file             (same as &#8211;rewrite-file)
+-std type            specify C++ version
+-tag string          make first line of each warning contain [string]
+-diagnose type       report and rewrite only for main, component, nogen, or all
+-m32                 process in 32-bit mode
+-m64                 process in 64-bit mode
+-nsa                 allow logging for purposes of tracking usage
+-nonsa               disallow logging for purposes of tracking usage
+-debug               display internal information as checks are performed
+-verbose             display command line passed to clang
+-v                   (same as &#8211;verbose)
+-help                display this help message
+-?                   (same as &#8211;help)
+-I directory         add directory to header search path
+-D macro             define macro
+-W warning           enable warning
+-f flag              specify compiler flag
+-w                   disable normal compiler warnings</p>
 </div>
 <div class="section" id="configuration">
 <h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h2>
@@ -303,6 +258,14 @@ recent active <tt class="docutils literal"><span class="pre">push</span></tt>.</
 </tbody>
 </table>
 </div>
+<div class="section" id="exit-status">
+<h2>Exit Status<a class="headerlink" href="#exit-status" title="Permalink to this headline">¶</a></h2>
+<p>Normally, the exit status of a <tt class="docutils literal"><span class="pre">bb_cppverify</span></tt> run is 0 (success) unless the code has
+actual errors.  If a particular check or tag is produced and that check or tag
+is set in the <em>failstatus</em> configuration parameter, the exit status will be 1
+(failure).  This allows for the creation of wrapper scripts whose exit status
+indicates that some condition fails to hold.</p>
+</div>
 <div class="section" id="checks">
 <h2>Checks<a class="headerlink" href="#checks" title="Permalink to this headline">¶</a></h2>
 <p>These are the checks supported by the tool. A few are of dubious value and may
@@ -420,6 +383,21 @@ Globally visible name is not prefixed by component name.</li>
 <p>Will not warn about packages included in parameter <tt class="docutils literal"><span class="pre">global_packages</span></tt>
 (default <tt class="docutils literal"><span class="pre">bslmf</span> <span class="pre">bslstl</span></tt>).</p>
 </div>
+<div class="section" id="cpp-in-extern-c">
+<h3><tt class="docutils literal"><span class="pre">cpp-in-extern-c</span></tt><a class="headerlink" href="#cpp-in-extern-c" title="Permalink to this headline">¶</a></h3>
+<p>Header files with C++ constructs included within <tt class="docutils literal"><span class="pre">extern</span> <span class="pre">&quot;C&quot;</span></tt> contexts.</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">PC01</span></tt>
+C++ header included within C linkage specification.</li>
+</ul>
+</div>
+<div class="section" id="deprecated">
+<h3><tt class="docutils literal"><span class="pre">deprecated</span></tt><a class="headerlink" href="#deprecated" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">DP01</span></tt>
+Call to deprecated function.</li>
+</ul>
+</div>
 <div class="section" id="do-not-use-endl">
 <h3><tt class="docutils literal"><span class="pre">do-not-use-endl</span></tt><a class="headerlink" href="#do-not-use-endl" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
@@ -460,6 +438,13 @@ Free function parameter must depend on a local definition.</li>
 Friends must be declared in the same header.</li>
 </ul>
 </div>
+<div class="section" id="global-data">
+<h3><tt class="docutils literal"><span class="pre">global-data</span></tt><a class="headerlink" href="#global-data" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">AQb01</span></tt>
+Data variable with global visibilty.</li>
+</ul>
+</div>
 <div class="section" id="global-function-only-in-source">
 <h3><tt class="docutils literal"><span class="pre">global-function-only-in-source</span></tt><a class="headerlink" href="#global-function-only-in-source" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
@@ -472,6 +457,8 @@ Globally visible function not declared in header.</li>
 <ul class="simple">
 <li><tt class="docutils literal"><span class="pre">TR10</span></tt>
 Globally visible type not declared in header.</li>
+<li><tt class="docutils literal"><span class="pre">TR11</span></tt>
+Globally visible type should be defined in header.</li>
 </ul>
 </div>
 <div class="section" id="hash-pointer">
@@ -509,6 +496,13 @@ Friendship granted outside of component.</li>
 <ul class="simple">
 <li><tt class="docutils literal"><span class="pre">NA01</span></tt>
 Source code contains bytes with value greater than 127.</li>
+</ul>
+</div>
+<div class="section" id="ref-to-movableref">
+<h3><tt class="docutils literal"><span class="pre">ref-to-movableref</span></tt><a class="headerlink" href="#ref-to-movableref" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">MRR01</span></tt>
+MovableRef should be passed by value, not reference.</li>
 </ul>
 </div>
 <div class="section" id="runtime-initialization">
@@ -566,6 +560,8 @@ Unnamed object will be immediately destroyed.</li>
 <ul class="simple">
 <li><tt class="docutils literal"><span class="pre">TR16</span></tt>
 Header file contains <tt class="docutils literal"><span class="pre">using</span></tt> declaration.</li>
+<li><tt class="docutils literal"><span class="pre">AQJ01</span></tt>
+Using declaration precedes header inclusion.</li>
 </ul>
 <p>Will not warn about packages included in parameter <tt class="docutils literal"><span class="pre">global_packages</span></tt>
 (default <tt class="docutils literal"><span class="pre">bslmf</span> <span class="pre">bslstl</span></tt>).</p>
@@ -575,6 +571,8 @@ Header file contains <tt class="docutils literal"><span class="pre">using</span>
 <ul class="simple">
 <li><tt class="docutils literal"><span class="pre">TR16</span></tt>
 Header file contains <tt class="docutils literal"><span class="pre">using</span></tt> directive.</li>
+<li><tt class="docutils literal"><span class="pre">AQJ02</span></tt>
+Using directive precedes header inclusion.</li>
 </ul>
 <p>Will not warn about packages included in parameter <tt class="docutils literal"><span class="pre">global_packages</span></tt>
 (default <tt class="docutils literal"><span class="pre">bslmf</span> <span class="pre">bslstl</span></tt>).</p>
@@ -618,6 +616,7 @@ File contains spaces at end of lines.</li>
 <li><a class="reference internal" href="#options">Options</a></li>
 <li><a class="reference internal" href="#configuration">Configuration</a></li>
 <li><a class="reference internal" href="#local-suppressions">Local Suppressions</a></li>
+<li><a class="reference internal" href="#exit-status">Exit Status</a></li>
 <li><a class="reference internal" href="#checks">Checks</a><ul>
 <li><a class="reference internal" href="#allocator-forward"><tt class="docutils literal"><span class="pre">allocator-forward</span></tt></a></li>
 <li><a class="reference internal" href="#allocator-new"><tt class="docutils literal"><span class="pre">allocator-new</span></tt></a></li>
@@ -629,11 +628,14 @@ File contains spaces at end of lines.</li>
 <li><a class="reference internal" href="#char-vs-string"><tt class="docutils literal"><span class="pre">char-vs-string</span></tt></a></li>
 <li><a class="reference internal" href="#component-header"><tt class="docutils literal"><span class="pre">component-header</span></tt></a></li>
 <li><a class="reference internal" href="#component-prefix"><tt class="docutils literal"><span class="pre">component-prefix</span></tt></a></li>
+<li><a class="reference internal" href="#cpp-in-extern-c"><tt class="docutils literal"><span class="pre">cpp-in-extern-c</span></tt></a></li>
+<li><a class="reference internal" href="#deprecated"><tt class="docutils literal"><span class="pre">deprecated</span></tt></a></li>
 <li><a class="reference internal" href="#do-not-use-endl"><tt class="docutils literal"><span class="pre">do-not-use-endl</span></tt></a></li>
 <li><a class="reference internal" href="#entity-restrictions"><tt class="docutils literal"><span class="pre">entity-restrictions</span></tt></a></li>
 <li><a class="reference internal" href="#external-guards"><tt class="docutils literal"><span class="pre">external-guards</span></tt></a></li>
 <li><a class="reference internal" href="#free-functions-depend"><tt class="docutils literal"><span class="pre">free-functions-depend</span></tt></a></li>
 <li><a class="reference internal" href="#friends-in-headers"><tt class="docutils literal"><span class="pre">friends-in-headers</span></tt></a></li>
+<li><a class="reference internal" href="#global-data"><tt class="docutils literal"><span class="pre">global-data</span></tt></a></li>
 <li><a class="reference internal" href="#global-function-only-in-source"><tt class="docutils literal"><span class="pre">global-function-only-in-source</span></tt></a></li>
 <li><a class="reference internal" href="#global-type-only-in-source"><tt class="docutils literal"><span class="pre">global-type-only-in-source</span></tt></a></li>
 <li><a class="reference internal" href="#hash-pointer"><tt class="docutils literal"><span class="pre">hash-pointer</span></tt></a></li>
@@ -641,6 +643,7 @@ File contains spaces at end of lines.</li>
 <li><a class="reference internal" href="#include-guard"><tt class="docutils literal"><span class="pre">include-guard</span></tt></a></li>
 <li><a class="reference internal" href="#local-friendship-only"><tt class="docutils literal"><span class="pre">local-friendship-only</span></tt></a></li>
 <li><a class="reference internal" href="#nonascii"><tt class="docutils literal"><span class="pre">nonascii</span></tt></a></li>
+<li><a class="reference internal" href="#ref-to-movableref"><tt class="docutils literal"><span class="pre">ref-to-movableref</span></tt></a></li>
 <li><a class="reference internal" href="#runtime-initialization"><tt class="docutils literal"><span class="pre">runtime-initialization</span></tt></a></li>
 <li><a class="reference internal" href="#strict-alias"><tt class="docutils literal"><span class="pre">strict-alias</span></tt></a></li>
 <li><a class="reference internal" href="#string-add"><tt class="docutils literal"><span class="pre">string-add</span></tt></a></li>
