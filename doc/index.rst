@@ -44,39 +44,38 @@ version.
 
 Options
 -------
--config file         configuration file
--cl line             additional configuration lines
--bb dir              base directory for |BDE| header includes
--exe binary          bde_verify executable file
--cc compiler         C++ compiler used to find system include directories
--definc              set up default include paths
--nodefinc            do not set up default include paths
--defdef              set up default macro definitions
--nodefdef            do not set up default macro definitions
--ovr                 define BSL_OVERRIDES_STD
--noovr               do not define BSL_OVERRIDES_STD
--rewrite-dir dir     place rewritten files (as name-rewritten) in dir
--rewrite dir         (same as --rewrite-dir)
--rd dir              (same as --rewrite-dir)
--rewrite-file file   accumulate rewrite specifications into file
--rf file             (same as --rewrite-file)
--std type            specify C++ version
--tag string          make first line of each warning contain [string]
--diagnose type       report and rewrite only for main, component, nogen, or all
--m32                 process in 32-bit mode
--m64                 process in 64-bit mode
--nsa                 allow logging for purposes of tracking usage
--nonsa               disallow logging for purposes of tracking usage
--debug               display internal information as checks are performed
--verbose             display command line passed to clang
--v                   (same as --verbose)
--help                display this help message
--?                   (same as --help)
--I directory         add directory to header search path
--D macro             define macro
--W warning           enable warning
--f flag              specify compiler flag
--w                   disable normal compiler warnings
+--config file         configuration file
+--cl line             additional configuration lines
+--bb dir              base directory for |BDE| header includes
+--exe binary          bde_verify executable file
+--cc compiler         C++ compiler used to find system include directories
+--definc              set up default include paths
+--nodefinc            do not set up default include paths
+--defdef              set up default macro definitions
+--nodefdef            do not set up default macro definitions
+--ovr                 define BSL_OVERRIDES_STD
+--noovr               do not define BSL_OVERRIDES_STD
+--rewrite-dir dir     place rewritten files (as name-rewritten) in dir
+--rewrite dir         (same as --rewrite-dir)
+--rd dir              (same as --rewrite-dir)
+--rewrite-file file   accumulate rewrite specifications into file
+--rf file             (same as --rewrite-file)
+--std type            specify C++ version
+--tag string          make first line of each warning contain [string]
+--diagnose type       report and rewrite only for main, component, nogen, or all
+--m32                 process in 32-bit mode
+--m64                 process in 64-bit mode
+--nsa                 allow logging for purposes of tracking usage
+--nonsa               disallow logging for purposes of tracking usage
+--debug               display internal information as checks are performed
+--verbose             display command line passed to clang
+-v                    (same as --verbose)
+--help                display this help message (also -?)
+-I directory          add directory to header search path
+-D macro              define macro
+-W warning            enable warning
+-f flag               specify compiler flag
+-w                    disable normal compiler warnings
 
 Configuration
 -------------

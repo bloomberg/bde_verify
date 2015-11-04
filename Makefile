@@ -259,11 +259,11 @@ gh-pages:
 	$(VERBOSE) $(MAKE) -C doc \
     SPHINXOPTS='-t bde_verify'   BUILDDIR='../bde_verify_build'   clean html
 	cp doc/index.html .
-	git checkout gh-pages
-	rm -rf Linux-*g++ $(CSABASEDIR)/Linux-*g++ \
-           SunOS-*g++ $(CSABASEDIR)/SunOS-*g++
-	git add -A
-	-git commit -m "Generate gh-pages"
+	# git checkout gh-pages
+	# rm -rf Linux-*g++ $(CSABASEDIR)/Linux-*g++
+	# rm -rf SunOS-*g++ $(CSABASEDIR)/SunOS-*g++
+	# git add -A
+	# git commit -m "Generate gh-pages"
 
 # -----------------------------------------------------------------------------
 
