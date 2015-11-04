@@ -199,8 +199,6 @@ void report::check_switch(SwitchStmt const* stmt)
         if (CaseStmt const* cs = llvm::dyn_cast<CaseStmt>(*it)) {
             long value;
             if (!getValue(cs->getLHS(), value)) {
-                d_analyser.report(cs, check_name, "NC01",
-                                "Can't get value from case label");
                 continue;
             }
             if (previous_label > 0 &&

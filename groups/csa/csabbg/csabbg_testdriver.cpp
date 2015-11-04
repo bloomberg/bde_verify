@@ -771,6 +771,7 @@ void report::operator()()
             a.report(cr.getBegin(), check_name, "TP30",
                      "Comment should contain a 'Concerns:' section");
         }
+
         if (plansec.match(comment, &matches)) {
             llvm::StringRef t = matches[1];
             testing_pos = comment.find(t);
@@ -791,6 +792,7 @@ void report::operator()()
             a.report(cr.getBegin(), check_name, "TP33",
                      "Comment should contain a 'Concerns:' section");
         }
+
         if (testing.match(comment, &matches)) {
             llvm::StringRef t = matches[0];
             testing_pos = comment.find(t);

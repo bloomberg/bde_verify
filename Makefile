@@ -139,16 +139,6 @@ CXXFILES =                                                                    \
         groups/csa/csatr/csatr_usingdirectiveinheader.cpp                     \
         groups/csa/csaxform/csaxform_refactor.cpp                             \
 
-UNUSED =                                                                      \
-        groups/csa/csadep/csadep_dependencies.cpp                             \
-        groups/csa/csadep/csadep_types.cpp                                    \
-        groups/csa/csamisc/csamisc_auto.cpp                                   \
-        groups/csa/csamisc/csamisc_calls.cpp                                  \
-        groups/csa/csamisc/csamisc_includeguard.cpp                           \
-        groups/csa/csamisc/csamisc_selfinitialization.cpp                     \
-        groups/csa/csamisc/csamisc_superfluoustemporary.cpp                   \
-        groups/csa/csamisc/csatr_includefiles.cpp                             \
-
 # -----------------------------------------------------------------------------
 
 DEFFLAGS += -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS

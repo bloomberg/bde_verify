@@ -63,13 +63,13 @@ void report::operator()(const BinaryOperator *op)
         auto rhs = op->getRHS()->IgnoreParenImpCasts();
         const char *tag = 0;
         if (carefullyIsModifiable(lhs) && !carefullyIsModifiable(rhs)) {
-            tag = "CR01";
+            tag = "CO01";
             a.report(op->getOperatorLoc(), check_name, tag,
                      "Non-modifiable operand should be on the left")
                 << op->getSourceRange();
         }
         else if (!carefullyIsEvaluatable(lhs) && carefullyIsEvaluatable(rhs)) {
-            tag = "CR02";
+            tag = "CO02";
             a.report(op->getOperatorLoc(), check_name, tag,
                      "Constant-expression operand should be on the left")
                 << op->getSourceRange();
