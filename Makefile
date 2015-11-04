@@ -263,7 +263,7 @@ gh-pages:
 	rm -rf Linux-*g++ $(CSABASEDIR)/Linux-*g++ \
            SunOS-*g++ $(CSABASEDIR)/SunOS-*g++
 	git add -A
-	git commit -m "Generate gh-pages"
+	-git commit -m "Generate gh-pages"
 
 # -----------------------------------------------------------------------------
 
