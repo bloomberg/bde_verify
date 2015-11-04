@@ -570,7 +570,7 @@ for additional checks.
    ``global-data``
    +++++++++++++++
    * ``AQb01``
-   Data variable with global visibilty.
+     Data variable with global visibilty.
 
 .. only:: bde_verify or bb_cppverify
 
@@ -794,7 +794,7 @@ for additional checks.
    ``ref-to-movableref``
    +++++++++++++++++++++
    * ``MRR01``
-   MovableRef should be passed by value, not reference.
+     MovableRef should be passed by value, not reference.
 
 .. only:: bde_verify
 
