@@ -311,7 +311,9 @@ depend $(OBJ)/make.depend:
         | perl -pe 's[^(?! )][$(OBJ)/]' > $(OBJ)/make.depend
 
 ifneq "$(MAKECMDGOALS)" "clean"
+ifneq "$(MAKECMDGOALS)" "gh-pages"
     include $(OBJ)/make.depend
+endif
 endif
 
 ## ----------------------------------------------------------------------------
