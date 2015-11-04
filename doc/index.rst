@@ -461,14 +461,14 @@ for additional checks.
    Header files with C++ constructs included within ``extern "C"`` contexts.
 
    * ``PC01``
-   C++ header included within C linkage specification.
+     C++ header included within C linkage specification.
 
 .. only:: bde_verify or bb_cppverify
 
    ``deprecated``
    ++++++++++++++
    * ``DP01``
-   Call to deprecated function.
+     Call to deprecated function.
 
 .. only:: bde_verify
 
@@ -487,7 +487,7 @@ for additional checks.
 
    ``dump-ast``
    +++++++++++++++++++++++
-   * Not a check.
+   Not a check.
 
 .. only:: bde_verify or bb_cppverify
 
