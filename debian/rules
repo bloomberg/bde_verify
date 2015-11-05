@@ -1,4 +1,4 @@
-#!/usr/bin/gmake -f
+#!/usr/bin/make -f
 # -*- makefile -*-
 
 thisdir := $(shell pwd)
