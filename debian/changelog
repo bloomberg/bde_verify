@@ -1,3 +1,11 @@
+bde-verify (1.1.9) unstable; urgency=low
+
+  * 0a5758c Merge branch 'work'
+  * 2ed44e3 Fix rules shebang line.
+  * f4e29ad Canonicalize debian rules shebang line.
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Thu, 5 Nov 2015 10:34:48 -0500
+
 bde-verify (1.1.8) unstable; urgency=low
 
   * 38bfcb7 Tag change
