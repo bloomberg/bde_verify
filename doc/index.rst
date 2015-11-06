@@ -813,6 +813,7 @@ for additional checks.
    (``BloombergLP``).  Appearances of the old name, elaborated or not, will be
    replaced by the specified new value.  E.g.,
    ``append refactor name(bdetu_DayOfWeek::Day::BDET_WEDNESDAY,e_WEDNESDAY)``.
+   Macro names may also be replaced this way; just specify the old and the new.
 
    * ``RX01``
      Errors in the refactor specification (not in the examined files).
