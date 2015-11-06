@@ -140,6 +140,13 @@ struct report : public RecursiveASTVisitor<report>, Report<data>
     bool TraverseNestedNameSpecifierLoc(NestedNameSpecifierLoc);
     bool TraverseQualifiedTypeLoc(QualifiedTypeLoc);
     bool TraverseTypeLoc(TypeLoc);
+    bool TraverseTemplateSpecializationTypeLoc(TemplateSpecializationTypeLoc);
+    bool VisitCXXRecordDecl(CXXRecordDecl *);
+
+    llvm::StringRef clean_for_replace(llvm::StringRef s, std::string& buf);
+        // Clean and return the specified 's' by removing a leading enterprise
+        // name and/or extra '::'s.  The returned reference may point into the
+        // specified 'buf' if sufficient manipulation is needed.
 
     bool replace_class(SourceRange sr, QualType t);
         // If the type represented by the specified 't' is replaceable, change
@@ -374,6 +381,20 @@ bool report::TraverseQualifiedTypeLoc(QualifiedTypeLoc arg)
     return TraverseTypeLoc(arg.getUnqualifiedLoc());
 }
 
+bool report::TraverseTemplateSpecializationTypeLoc(
+                                             TemplateSpecializationTypeLoc arg)
+{
+    TemplateName tn = arg.getTypePtr()->getTemplateName();
+    std::string s;
+    llvm::raw_string_ostream o(s);
+    PrintingPolicy pp(a.context()->getLangOpts());
+    tn.print(o, pp);
+    replace(SourceRange(arg.getTemplateNameLoc(), arg.getTemplateNameLoc()),
+            o.str());
+
+    return base::TraverseTemplateSpecializationTypeLoc(arg);
+}
+
 bool report::TraverseTypeLoc(TypeLoc arg)
 {
     Guard guard(this, __FUNCTION__, arg);
@@ -399,6 +420,66 @@ bool report::TraverseNestedNameSpecifierLoc(NestedNameSpecifierLoc arg)
     return base::TraverseNestedNameSpecifierLoc(arg);
 }
 
+bool report::VisitCXXRecordDecl(CXXRecordDecl *arg)
+{
+    if (!arg->hasDefinition() &&
+        arg->getLexicalDeclContext()->isNamespace() &&
+        llvm::dyn_cast<NamespaceDecl>(arg->getLexicalDeclContext())
+                             ->getName() == a.config()->toplevel_namespace()) {
+        QualType r(arg->getTypeForDecl(), 0);
+        PrintingPolicy pp(a.context()->getLangOpts());
+        pp.SuppressTagKeyword = 1;
+        pp.SuppressUnwrittenScope = 1;
+        pp.TerseOutput = 1;
+        std::string s = r.getAsString(pp);
+        llvm::StringRef e = clean_for_replace(s, s);
+        auto i = d.d_replacements.find(e);
+        if (i != d.d_replacements.end()) {
+            SmallVector<llvm::StringRef, 5> ns;
+            i->second.split(ns, "::", -1, false);
+            std::string rep = "class " + ns.back().str() + ";";
+            for (unsigned i = 0; i < ns.size() - 1; ++i) {
+                rep = "namespace " + ns[i].str() + " { " + rep + " }";
+            }
+            SourceRange sr = a.get_full_range(
+                SourceRange(m.getSpellingLoc(arg->getLocStart()),
+                            m.getSpellingLoc(arg->getLocEnd())));
+            a.report(sr.getBegin(), check_name, "RD01",
+                     "Replacing forward declaration " + e.str() +
+                     " with " + rep)
+                << sr;
+            a.ReplaceText(sr, rep);
+        }
+    }
+
+    return true;
+}
+
+llvm::StringRef report::clean_for_replace(llvm::StringRef s, std::string& buf)
+{
+    if (s.find("::::") != s.npos) {
+        bool bec = s.endswith("::");
+        SmallVector<llvm::StringRef, 5> ns;
+        s.split(ns, "::", -1, false);
+        buf = llvm::join(ns.begin(), ns.end(), "::");
+        if (bec) {
+            buf += "::";
+        }
+        s = buf;
+    }
+
+    if (s.startswith("::")) {
+        s = s.drop_front(2);
+    }
+
+    llvm::StringRef blp(a.config()->toplevel_namespace());
+    if (s.startswith(blp) && s.drop_front(blp.size()).startswith("::")) {
+        s = s.drop_front(blp.size() + 2);
+    }
+
+    return s;
+}
+
 bool report::replace_class(SourceRange sr, QualType t)
 {
     PrintingPolicy pp(a.context()->getLangOpts());
@@ -411,20 +492,7 @@ bool report::replace_class(SourceRange sr, QualType t)
 bool report::replace(SourceRange sr, llvm::StringRef e)
 {
     std::string s;
-    if (e.find("::::") != e.npos) {
-        SmallVector<llvm::StringRef, 5> ns;
-        e.split(ns, "::", -1, false);
-        s = llvm::join(ns.begin(), ns.end(), "::");
-        e = s;
-    }
-
-    if (e.startswith("::")) {
-        e = e.drop_front(2);
-    }
-    llvm::StringRef blp(a.config()->toplevel_namespace());
-    if (e.startswith(blp) && e.drop_front(blp.size()).startswith("::")) {
-        e = e.drop_front(blp.size() + 2);
-    }
+    e = clean_for_replace(e, s);
     auto i = d.d_replacements.find(e);
     if (i != d.d_replacements.end()) {
         sr = a.get_full_range(SourceRange(
