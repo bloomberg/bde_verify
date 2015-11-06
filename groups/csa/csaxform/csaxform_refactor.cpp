@@ -117,11 +117,23 @@ struct report : public RecursiveASTVisitor<report>, Report<data>
                     const Module *);
         // Callback for inclusion directive.
 
+    void operator()(Token const &,
+                    MacroDirective const *,
+                    SourceRange,
+                    MacroArgs const *);
+        // Callback for macro expansion
+    
     void operator()(SourceLocation, SourceLocation);
         // Callback for endif.
 
     void operator()(SourceRange);
         // Callback for skipped region.
+
+    void operator()(SourceLocation,
+                    PPCallbacks::FileChangeReason,
+                    SrcMgr::CharacteristicKind,
+                    FileID);
+        // Callback for file changed.
 
     bool TraverseDeclRefExpr(DeclRefExpr *);
     bool TraverseElaboratedTypeLoc(ElaboratedTypeLoc);
@@ -168,47 +180,6 @@ bool report::is_guard(llvm::StringRef macro)
 void report::operator()()
 {
     auto tu = a.context()->getTranslationUnitDecl();
-
-    llvm::StringRef cfg = a.config()->value("refactor");
-    SmallVector<llvm::StringRef, 5> rs;
-    llvm::Regex rre("^(file|name)[(][^()]+(,[^()]+)*[)]");
-    while (rre.match(cfg, &rs)) {
-        llvm::StringRef r = rs[0].trim();
-        llvm::StringRef o = r;
-        cfg = cfg.drop_front(rs[0].size()).trim();
-        bool bad = true;
-        r = r.trim();
-        if (r.startswith("file")) {
-            r = r.drop_front(5).drop_back(1).trim();
-            SmallVector<llvm::StringRef, 5> fs;
-            r.split(fs, ",", -1, false);
-            auto &v = d.d_files[fs[0].trim()];
-            for (unsigned i = 1; i < fs.size(); ++i) {
-                v.emplace_back(fs[i].trim());
-            }
-            bad = false;
-        }
-        else if (r.startswith("name")) {
-            r = r.drop_front(5).drop_back(1).trim();
-            SmallVector<llvm::StringRef, 2> ns;
-            r.split(ns, ",", -1, false);
-            if (ns.size() == 2) {
-                bad = false;
-                d.d_replacements[ns[0].trim()] = ns[1].trim();
-            }
-        }
-        if (bad) {
-            a.report(m.getLocForStartOfFile(m.getMainFileID()),
-                     check_name, "RX01",
-                     "Bad refactor option '" + o.str() + "' - "
-                     "Use file(old[,new]*) or name(old,new)");
-        }
-    }
-    if (cfg.size()) {
-        a.report(m.getLocForStartOfFile(m.getMainFileID()), check_name, "RX01",
-                 "Bad refactor option '" + cfg.str() + "' - "
-                 "Use file(old[,new]*) or name(old,new)");
-    }
 
     std::unordered_map<FileID,
                        std::unordered_set<llvm::StringRef, data::hash>,
@@ -258,6 +229,59 @@ void report::operator()()
     TraverseDecl(tu);
 }
 
+void report::operator()(SourceLocation loc,
+                        PPCallbacks::FileChangeReason reason,
+                        SrcMgr::CharacteristicKind kind,
+                        FileID prev)
+{
+    if (loc == m.getLocForStartOfFile(m.getMainFileID()) &&
+        reason == PPCallbacks::EnterFile &&
+        kind == SrcMgr::C_User &&
+        prev.isInvalid()) {
+        // First time through.  Configure refactor data.
+        llvm::StringRef cfg = a.config()->value("refactor");
+        SmallVector<llvm::StringRef, 5> rs;
+        llvm::Regex rre("^(file|name)[(][^()]+(,[^()]+)*[)]");
+        while (rre.match(cfg, &rs)) {
+            llvm::StringRef r = rs[0].trim();
+            llvm::StringRef o = r;
+            cfg = cfg.drop_front(rs[0].size()).trim();
+            bool bad = true;
+            r = r.trim();
+            if (r.startswith("file")) {
+                r = r.drop_front(5).drop_back(1).trim();
+                SmallVector<llvm::StringRef, 5> fs;
+                r.split(fs, ",", -1, false);
+                auto &v = d.d_files[fs[0].trim()];
+                for (unsigned i = 1; i < fs.size(); ++i) {
+                    v.emplace_back(fs[i].trim());
+                }
+                bad = false;
+            } else if (r.startswith("name")) {
+                r = r.drop_front(5).drop_back(1).trim();
+                SmallVector<llvm::StringRef, 2> ns;
+                r.split(ns, ",", -1, false);
+                if (ns.size() == 2) {
+                    bad = false;
+                    d.d_replacements[ns[0].trim()] = ns[1].trim();
+                }
+            }
+            if (bad) {
+                a.report(m.getLocForStartOfFile(m.getMainFileID()),
+                         check_name, "RX01",
+                         "Bad refactor option '" + o.str() + "' - "
+                         "Use file(old[,new]*) or name(old,new)");
+            }
+        }
+        if (cfg.size()) {
+            a.report(m.getLocForStartOfFile(m.getMainFileID()),
+            check_name, "RX01",
+            "Bad refactor option '" + cfg.str() + "' - "
+            "Use file(old[,new]*) or name(old,new)");
+        }
+    }
+}
+
 void report::operator()(SourceLocation        loc,
                         const Token&          token,
                         const MacroDirective *)
@@ -302,6 +326,15 @@ void report::operator()(SourceLocation loc, SourceLocation ifloc)
             d.d_includes[file].emplace_back(SourceRange(ifloc, loc));
         }
     }
+}
+
+void report::operator()(Token const& token,
+                        MacroDirective const *,
+                        SourceRange,
+                        MacroArgs const *)
+{
+    std::string name = p.getSpelling(token);
+    replace(SourceRange(token.getLocation(), token.getLastLoc()), name);
 }
 
 bool report::TraverseDeclRefExpr(DeclRefExpr *arg)
@@ -416,6 +449,8 @@ void subscribe(Analyser& analyser, Visitor&, PPObserver& observer)
     observer.onPPIfndef += report(analyser);
     observer.onPPInclusionDirective += report(analyser);
     observer.onPPEndif += report(analyser);
+    observer.onPPMacroExpands += report(analyser);
+    observer.onPPFileChanged += report(analyser);
 }
 
 }  // close anonymous namespace
