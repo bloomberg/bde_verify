@@ -824,6 +824,18 @@ for additional checks.
    * ``RD0111
      Replacing forward class declaration.
 
+.. only:: bde_verify
+
+   ``refactor-config``
+   +++++++++++++++++++
+   Given pairs of old/new header files, generate a configuration file for the
+   ``refactor`` check from corresponding pairs of names appending to the file
+   specified by the configuration file parameter ``refactorfile`` (or the
+   default, "refactor.cfg" if left unspecified).
+
+   * ``DD01``
+     Eligible name for refactoring.
+
 .. only:: bde_verify or bb_cppverify
 
    ``runtime-initialization``

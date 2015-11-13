@@ -18,6 +18,10 @@ LCB         = bde-verify
 LIBCSABASE  = lib$(LCB).a
 CSABASEDIR  = groups/csa/csabase
 
+# Set up location of clang headers and libraries needed by bde_verify.
+INCFLAGS   += -I$(LLVMDIR)/include
+LDFLAGS    += -L$(CSABASEDIR)/$(OBJ)
+
 CXXFLAGS   += -m64 -std=c++11
 CXXFLAGS   += -Wall -Wno-unused-local-typedefs
 
@@ -32,6 +36,7 @@ endif
 ifeq ($(SYSTEM),Linux)
     AR          = /usr/bin/ar
     LIBDIRS     = $(GCCDIR)/lib64                                             \
+                  $(LLVMDIR)/lib64                                            \
                   $(PREFIX)/lib64                                             \
                   /opt/swt/lib64                                              \
                   /usr/lib64
@@ -41,6 +46,7 @@ else ifeq ($(SYSTEM),SunOS)
     AR          = /usr/ccs/bin/ar
     CXXFLAGS   += -DBYTE_ORDER=BIG_ENDIAN
     LIBDIRS     = $(GCCDIR)/lib/sparcv9                                       \
+                  $(LLVMDIR)/lib64                                            \
                   $(PREFIX)/lib64                                             \
                   /opt/swt/lib64                                              \
                   /usr/lib/sparcv9
@@ -55,10 +61,6 @@ else ifeq ($(SYSTEM),SunOS)
 endif
 
 OBJ        := $(SYSTEM)-$(notdir $(CXX))
-
-# Set up location of clang headers and libraries needed by bde_verify.
-INCFLAGS   += -I$(LLVMDIR)/include
-LDFLAGS    += -L$(LLVMDIR)/lib -L$(CSABASEDIR)/$(OBJ)
 
 VERBOSE ?= @
 
@@ -138,6 +140,7 @@ CXXFILES =                                                                    \
         groups/csa/csatr/csatr_usingdeclarationinheader.cpp                   \
         groups/csa/csatr/csatr_usingdirectiveinheader.cpp                     \
         groups/csa/csaxform/csaxform_refactor.cpp                             \
+        groups/csa/csaxform/csaxform_refactor_config.cpp                      \
 
 # -----------------------------------------------------------------------------
 
@@ -182,6 +185,7 @@ LIBS     =    -l$(LCB)                                                        \
               -lLLVMTarget                                                    \
               -lLLVMAsmParser                                                 \
               -lLLVMBitWriter                                                 \
+              -lLLVMAsmPrinter                                                \
               -lLLVMX86AsmPrinter                                             \
               -lLLVMSparcAsmPrinter                                           \
               -lLLVMX86Utils                                                  \

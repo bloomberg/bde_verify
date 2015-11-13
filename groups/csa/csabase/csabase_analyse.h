@@ -33,6 +33,8 @@ class PluginAction : public clang::PluginASTAction
     bool ParseArgs(clang::CompilerInstance const& compiler,
                    std::vector<std::string> const& args) override;
 
+    bool BeginInvocation(clang::CompilerInstance& compiler) override;
+
   private:
     bool debug_;
     std::vector<std::string> config_;

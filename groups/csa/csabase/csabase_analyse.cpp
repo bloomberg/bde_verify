@@ -367,6 +367,13 @@ bool PluginAction::ParseArgs(CompilerInstance const& compiler,
     return true;
 }
 
+bool PluginAction::BeginInvocation(clang::CompilerInstance& compiler)
+{
+    compiler.getDiagnosticClient().clear();
+    compiler.getDiagnostics().Reset();
+    return PluginASTAction::BeginInvocation(compiler);
+}
+
 bool PluginAction::debug() const
 {
     return debug_;
