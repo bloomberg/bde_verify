@@ -371,6 +371,8 @@ bool PluginAction::BeginInvocation(clang::CompilerInstance& compiler)
 {
     compiler.getDiagnosticClient().clear();
     compiler.getDiagnostics().Reset();
+    ProcessWarningOptions(compiler.getDiagnostics(),
+                          compiler.getDiagnosticOpts());
     return PluginASTAction::BeginInvocation(compiler);
 }
 
