@@ -498,8 +498,8 @@ bool report::hasCommentedCognate(const FunctionDecl *func,
                 return true;                                          // RETURN
             }
             if (cfunc != func) {
-                fm.insert(d_manager.getPresumedLineNumber(cfunc->getLocStart()),
-                          d_manager.getPresumedLineNumber(cfunc->getLocEnd()),
+                fm.insert(d_manager.getPresumedLineNumber(decl->getLocStart()),
+                          d_manager.getPresumedLineNumber(decl->getLocEnd()),
                           itr);
             }
         }
