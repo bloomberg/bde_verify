@@ -1,6 +1,6 @@
 # Makefile                                                       -*-makefile-*-
 FILES := joexx_traits.h
-ALL := on
+CHECKNAME := allocator-forward
 BDE_VERIFY_DIR ?= ../../../..
 BDE_VERIFY_ARGS = -cl='namespace BloombergLP' \
                   -cl='set standard_namespaces bsl std'
