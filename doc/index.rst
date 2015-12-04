@@ -727,6 +727,21 @@ for additional checks.
    * ``CD01``
      Method defined directly in class definition.
 
+.. only:: bde_verify or bb_cppverify
+
+   ``member-names``
+   ++++++++++++++++
+   * ``MN01``
+     Class data members must be private.
+   * ``MN02``
+     Non-static class data member names must start with ``d_``.
+   * ``MN03``
+     Static class data member names must start with ``s_``.
+   * ``MN04``
+     Pointer class data member names must end in ``_p``.
+   * ``MN05``
+     Only pointer class data member names should end in ``_p``.
+
 .. only:: bde_verify
 
    ``mid-return``

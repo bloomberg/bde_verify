@@ -85,6 +85,7 @@ CXXFILES =                                                                    \
         groups/csa/csabbg/csabbg_enumvalue.cpp                                \
         groups/csa/csabbg/csabbg_functioncontract.cpp                         \
         groups/csa/csabbg/csabbg_midreturn.cpp                                \
+        groups/csa/csabbg/csabbg_membernames.cpp                              \
         groups/csa/csabbg/csabbg_testdriver.cpp                               \
         groups/csa/csafmt/csafmt_banner.cpp                                   \
         groups/csa/csafmt/csafmt_comments.cpp                                 \
