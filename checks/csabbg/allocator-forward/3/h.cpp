@@ -1,32 +1,32 @@
-#include <bsl_vector.h> 
-#include <bslma_allocator.h> 
-#include <bslmf_nestedtraitdeclaration.h> 
-#include <bslma_usesbslmaallocator.h> 
- 
-using namespace BloombergLP; 
- 
-namespace { 
-    class Functor { 
-        bsl::vector<int> d_fields; 
-    public: 
-        BSLMF_NESTED_TRAIT_DECLARATION(Functor, bslma::UsesBslmaAllocator); 
- 
-        Functor(const bsl::vector<int>&  fields, 
-                bslma::Allocator        *allocator) 
+#include <bsl_vector.h>
+#include <bslma_allocator.h>
+#include <bslmf_nestedtraitdeclaration.h>
+#include <bslma_usesbslmaallocator.h>
+
+using namespace BloombergLP;
+
+namespace {
+    class Functor {
+        bsl::vector<int> d_fields;
+    public:
+        BSLMF_NESTED_TRAIT_DECLARATION(Functor, bslma::UsesBslmaAllocator);
+
+        Functor(const bsl::vector<int>&  fields,
+                bslma::Allocator        *allocator)
             : d_fields(fields) {  // <--- allocator not forwarded
-        } 
-        Functor(const Functor& other, bslma::Allocator *allocator = 0) 
+        }
+        Functor(const Functor& other, bslma::Allocator *allocator = 0)
             : d_fields(other.d_fields) {  // <--- allocator not forwarded
-        } 
-        Functor(int a, bslma::Allocator *allocator = 0) 
+        }
+        Functor(int a, bslma::Allocator *allocator = 0)
             : d_fields(a, allocator) {
-        } 
-    }; 
-} 
- 
-void f(bslma::Allocator* alloc) { 
-    bsl::vector<int> fields; 
-    Functor fun(fields, alloc); 
+        }
+    };
+}
+
+void f(bslma::Allocator* alloc) {
+    bsl::vector<int> fields;
+    Functor fun(fields, alloc);
 }
 
 // ----------------------------------------------------------------------------

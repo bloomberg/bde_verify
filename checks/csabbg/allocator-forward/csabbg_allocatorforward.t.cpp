@@ -119,7 +119,7 @@ bde_verify::csabbg::operator+(allocatorforward_alloc_used)
 }
 
 // -----------------------------------------------------------------------------
-
+namespace bsl { template <class T> struct allocator { }; }
 namespace bde_verify
 {
     namespace csabbg
@@ -128,7 +128,7 @@ namespace bde_verify
         {
             template <class T>
                 struct M { M(BloombergLP::bslma::Allocator*) {} };
-            template <class T, class A = M<T> >
+            template <class T, class A = bsl::allocator/*M*/<T> >
                 struct S { S(const T*) {} S(const T*, const A&) {} };
             template class M<char>;  // TBD should not be needed
             struct C {

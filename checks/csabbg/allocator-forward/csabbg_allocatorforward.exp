@@ -36,15 +36,7 @@ csabbg_allocatorforward.t.cpp:130:24: warning: AT02: Class 'M' uses allocators b
 csabbg_allocatorforward.t.cpp:132:24: warning: AT02: Class 'S' uses allocators but does not have an allocator trait
                 struct S { S(const T*) {} S(const T*, const A&) {} };
                        ^
-csabbg_allocatorforward.t.cpp:132:28: warning: AC01: This constructor has no version that can be called with an allocator as the final argument
-                struct S { S(const T*) {} S(const T*, const A&) {} };
-                           ^
-csabbg_allocatorforward.t.cpp:132:43: warning: AC01: This constructor has no version that can be called with an allocator as the final argument
-                struct S { S(const T*) {} S(const T*, const A&) {} };
-                                          ^
 csabbg_allocatorforward.t.cpp:132:24: warning: AC02: Implicit copy constructor cannot be called with an allocator as the final argument
-                struct S { S(const T*) {} S(const T*, const A&) {} };
-                       ^
 csabbg_allocatorforward.t.cpp:136:53: warning: MA02: Allocator not passed to member s
                 C(BloombergLP::bslma::Allocator*) : s("") { }
                                                     ^~~~~
@@ -94,4 +86,4 @@ bde_verify::csabbg::alloc_a c[2];
 csabbg_allocatorforward.t.cpp:316:29: warning: GA01: Variable with global storage must be initialized with non-default allocator
 bde_verify::csabbg::alloc_a d[2][2];
                             ^
-33 warnings generated.
+31 warnings generated.
