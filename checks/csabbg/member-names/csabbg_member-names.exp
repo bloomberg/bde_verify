@@ -1,0 +1,75 @@
+csabbg_member-names.t.cpp:6:18: warning: MN01: Class data members must be private
+    int          d_i;
+                 ^
+csabbg_member-names.t.cpp:9:18: warning: MN01: Class data members must be private
+    int          d_j;
+                 ^
+csabbg_member-names.t.cpp:14:18: warning: MN02: Non-static data member names must begin with 'd_'
+    int          private_a;
+                 ^
+csabbg_member-names.t.cpp:15:18: warning: MN03: Static data member names must begin with 's_'
+    static int   private_b;
+                 ^
+csabbg_member-names.t.cpp:16:18: warning: MN02: Non-static data member names must begin with 'd_'
+    char        *private_c;
+                 ^
+csabbg_member-names.t.cpp:16:18: warning: MN04: Pointer member names must end in '_p'
+csabbg_member-names.t.cpp:17:18: warning: MN03: Static data member names must begin with 's_'
+    static char *private_d;
+                 ^
+csabbg_member-names.t.cpp:17:18: warning: MN04: Pointer member names must end in '_p'
+csabbg_member-names.t.cpp:19:18: warning: MN02: Non-static data member names must begin with 'd_'
+    int          private_a_p;
+                 ^
+csabbg_member-names.t.cpp:19:18: warning: MN05: Only pointer member names should end in '_p'
+csabbg_member-names.t.cpp:20:18: warning: MN03: Static data member names must begin with 's_'
+    static int   private_b_p;
+                 ^
+csabbg_member-names.t.cpp:20:18: warning: MN05: Only pointer member names should end in '_p'
+csabbg_member-names.t.cpp:21:18: warning: MN02: Non-static data member names must begin with 'd_'
+    char        *private_c_p;
+                 ^
+csabbg_member-names.t.cpp:22:18: warning: MN03: Static data member names must begin with 's_'
+    static char *private_d_p;
+                 ^
+csabbg_member-names.t.cpp:25:18: warning: MN03: Static data member names must begin with 's_'
+    static int   d_private_b;
+                 ^
+csabbg_member-names.t.cpp:26:18: warning: MN04: Pointer member names must end in '_p'
+    char        *d_private_c;
+                 ^
+csabbg_member-names.t.cpp:27:18: warning: MN03: Static data member names must begin with 's_'
+    static char *d_private_d;
+                 ^
+csabbg_member-names.t.cpp:27:18: warning: MN04: Pointer member names must end in '_p'
+csabbg_member-names.t.cpp:29:18: warning: MN02: Non-static data member names must begin with 'd_'
+    int          s_private_a;
+                 ^
+csabbg_member-names.t.cpp:31:18: warning: MN02: Non-static data member names must begin with 'd_'
+    char        *s_private_c;
+                 ^
+csabbg_member-names.t.cpp:31:18: warning: MN04: Pointer member names must end in '_p'
+csabbg_member-names.t.cpp:32:18: warning: MN04: Pointer member names must end in '_p'
+    static char *s_private_d;
+                 ^
+csabbg_member-names.t.cpp:34:18: warning: MN05: Only pointer member names should end in '_p'
+    int          d_private_a_p;
+                 ^
+csabbg_member-names.t.cpp:35:18: warning: MN03: Static data member names must begin with 's_'
+    static int   d_private_b_p;
+                 ^
+csabbg_member-names.t.cpp:35:18: warning: MN05: Only pointer member names should end in '_p'
+csabbg_member-names.t.cpp:37:18: warning: MN03: Static data member names must begin with 's_'
+    static char *d_private_d_p;
+                 ^
+csabbg_member-names.t.cpp:39:18: warning: MN02: Non-static data member names must begin with 'd_'
+    int          s_private_a_p;
+                 ^
+csabbg_member-names.t.cpp:39:18: warning: MN05: Only pointer member names should end in '_p'
+csabbg_member-names.t.cpp:40:18: warning: MN05: Only pointer member names should end in '_p'
+    static int   s_private_b_p;
+                 ^
+csabbg_member-names.t.cpp:41:18: warning: MN02: Non-static data member names must begin with 'd_'
+    char        *s_private_c_p;
+                 ^
+30 warnings generated.

@@ -1,3 +1,33 @@
+bde-verify (1.1.9) unstable; urgency=low
+
+  * 0a5758c Merge branch 'work'
+  * 2ed44e3 Fix rules shebang line.
+  * f4e29ad Canonicalize debian rules shebang line.
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Thu, 5 Nov 2015 10:34:48 -0500
+
+bde-verify (1.1.8) unstable; urgency=low
+
+  * 38bfcb7 Tag change
+  * f0d250c Doc fixes.
+  * 76bcd4e Ignore git return status on gh-pages commit
+  * 9d033fd Don't make depend when building docs.
+  * 7244147 Fix up docs.
+  * 9f32294 Fix up docs a bit.
+  * 6dce042 Catch up documentation.  Kill off unused files.
+  * c2c2f15 Refactoring improvements
+  * 736fa72 Fix bad refactor option message.
+  * 9524c8d Finish the refactoring code.
+  * 535ba87 First cut at refactor tool.
+  * a9e4edb Don't warn about untested private function templates.
+  * e192999 Another test
+  * 5f1da78 Fixes
+  * 92a7286 Fix a clang crash.  Only process generated files on diagnose=all.
+  * 0f27169 Additional top-level transitive-include prefixes.
+  * 6ef0111 Check for passing MovableRef by reference.
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Wed, 4 Nov 2015 16:37:51 -0500
+
 bde-verify (1.1.7) unstable; urgency=low
 
   * 5e53780 Merge branch 'work'

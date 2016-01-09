@@ -197,7 +197,10 @@ void report::operator()(const VarDecl *decl)
 void report::operator()(const LinkageSpecDecl *decl)
 {
     if (decl->hasBraces()) {
-        d_data.d_linkages[decl->getSourceRange()] = decl;
+        SourceRange r = decl->getSourceRange();
+        r = SourceRange(m.getExpansionRange(r.getBegin()).first,
+                        m.getExpansionRange(r.getEnd()).second);
+        d_data.d_linkages[r] = decl;
     }
 }
 

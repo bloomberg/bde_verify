@@ -85,6 +85,15 @@ bool are_signed_variations(QualType q1, QualType q2)
 #undef  caseKK
 }
 
+bool is_derived(QualType qs, QualType qt)
+{
+    auto rs = qs->getAsCXXRecordDecl();
+    auto rt = qt->getAsCXXRecordDecl();
+    return rs && rs->hasDefinition() &&
+           rt && rt->hasDefinition() &&
+           (rt->isDerivedFrom(rs) || rs->isDerivedFrom(rt));
+}
+
 static void check(Analyser& analyser, ExplicitCastExpr const *expr)
 {
     //ERRS(); expr->getExprLoc().dump(analyser.manager());
@@ -147,7 +156,10 @@ static void check(Analyser& analyser, ExplicitCastExpr const *expr)
         }
     }
     else if (cqt->isPointerType() && cqs->isPointerType()) {
-        bad = !are_signed_variations(pqs, pqt) && !is_gen(pqs) && !is_gen(pqt);
+        bad = !are_signed_variations(pqs, pqt) &&
+              !is_gen(pqs) &&
+              !is_gen(pqt) &&
+              !is_derived(pqs, pqt);
         //ERRS() << bad; ERNL(); pqs.dump(); ERNL(); pqt.dump(); ERNL();
     }
     else {

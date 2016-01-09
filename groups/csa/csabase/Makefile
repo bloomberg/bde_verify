@@ -14,6 +14,9 @@ CSABASE     = csabase
 LCB         = bde-verify
 LIBCSABASE  = lib$(LCB).a
 
+# Set up location of clang headers and libraries needed by bde_verify.
+INCFLAGS   += -I$(LLVMDIR)/include
+
 CXXFLAGS   += -m64 -std=c++11
 CXXFLAGS   += -Wall -Wno-unused-local-typedefs
 INCFLAGS   += -I$(PREFIX)/include -I/opt/swt/include
@@ -31,9 +34,6 @@ else ifeq ($(SYSTEM),SunOS)
 endif
 
 OBJ        := $(SYSTEM)-$(notdir $(CXX))
-
-# Set up location of clang headers and libraries needed by bde_verify.
-INCFLAGS   += -I$(LLVMDIR)/include
 
 VERBOSE ?= @
 

@@ -1,9 +1,9 @@
 # Makefile                                                       -*-makefile-*-
-FILES := joexx_traits.h
-CHECKNAME := allocator-forward
-BDE_VERIFY_DIR ?= ../../../..
-BDE_VERIFY_ARGS = -cl='namespace BloombergLP' \
-                  -cl='set standard_namespaces bsl std'
+FILES := $(wildcard *.cpp)
+CHECKNAME := $(notdir $(realpath .))
+BDE_VERIFY_ARGS = -cl='set enterprise bde_verify'
+
+BDE_VERIFY_DIR ?= ../../..
 include $(BDE_VERIFY_DIR)/checks/Makefile.inc
 
 ## ----------------------------------------------------------------------------

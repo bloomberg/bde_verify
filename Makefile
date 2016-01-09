@@ -18,6 +18,10 @@ LCB         = bde-verify
 LIBCSABASE  = lib$(LCB).a
 CSABASEDIR  = groups/csa/csabase
 
+# Set up location of clang headers and libraries needed by bde_verify.
+INCFLAGS   += -I$(LLVMDIR)/include
+LDFLAGS    += -L$(CSABASEDIR)/$(OBJ)
+
 CXXFLAGS   += -m64 -std=c++11
 CXXFLAGS   += -Wall -Wno-unused-local-typedefs
 
@@ -32,6 +36,7 @@ endif
 ifeq ($(SYSTEM),Linux)
     AR          = /usr/bin/ar
     LIBDIRS     = $(GCCDIR)/lib64                                             \
+                  $(LLVMDIR)/lib64                                            \
                   $(PREFIX)/lib64                                             \
                   /opt/swt/lib64                                              \
                   /usr/lib64
@@ -41,6 +46,7 @@ else ifeq ($(SYSTEM),SunOS)
     AR          = /usr/ccs/bin/ar
     CXXFLAGS   += -DBYTE_ORDER=BIG_ENDIAN
     LIBDIRS     = $(GCCDIR)/lib/sparcv9                                       \
+                  $(LLVMDIR)/lib64                                            \
                   $(PREFIX)/lib64                                             \
                   /opt/swt/lib64                                              \
                   /usr/lib/sparcv9
@@ -55,10 +61,6 @@ else ifeq ($(SYSTEM),SunOS)
 endif
 
 OBJ        := $(SYSTEM)-$(notdir $(CXX))
-
-# Set up location of clang headers and libraries needed by bde_verify.
-INCFLAGS   += -I$(LLVMDIR)/include
-LDFLAGS    += -L$(LLVMDIR)/lib -L$(CSABASEDIR)/$(OBJ)
 
 VERBOSE ?= @
 
@@ -83,6 +85,7 @@ CXXFILES =                                                                    \
         groups/csa/csabbg/csabbg_enumvalue.cpp                                \
         groups/csa/csabbg/csabbg_functioncontract.cpp                         \
         groups/csa/csabbg/csabbg_midreturn.cpp                                \
+        groups/csa/csabbg/csabbg_membernames.cpp                              \
         groups/csa/csabbg/csabbg_testdriver.cpp                               \
         groups/csa/csafmt/csafmt_banner.cpp                                   \
         groups/csa/csafmt/csafmt_comments.cpp                                 \
@@ -106,6 +109,7 @@ CXXFILES =                                                                    \
         groups/csa/csamisc/csamisc_hashptr.cpp                                \
         groups/csa/csamisc/csamisc_longinline.cpp                             \
         groups/csa/csamisc/csamisc_memberdefinitioninclassdefinition.cpp      \
+        groups/csa/csamisc/csamisc_movablerefref.cpp                          \
         groups/csa/csamisc/csamisc_namespacetags.cpp                          \
         groups/csa/csamisc/csamisc_opvoidstar.cpp                             \
         groups/csa/csamisc/csamisc_spellcheck.cpp                             \
@@ -136,16 +140,8 @@ CXXFILES =                                                                    \
         groups/csa/csatr/csatr_packagename.cpp                                \
         groups/csa/csatr/csatr_usingdeclarationinheader.cpp                   \
         groups/csa/csatr/csatr_usingdirectiveinheader.cpp                     \
-
-UNUSED =                                                                      \
-        groups/csa/csadep/csadep_dependencies.cpp                             \
-        groups/csa/csadep/csadep_types.cpp                                    \
-        groups/csa/csamisc/csamisc_auto.cpp                                   \
-        groups/csa/csamisc/csamisc_calls.cpp                                  \
-        groups/csa/csamisc/csamisc_includeguard.cpp                           \
-        groups/csa/csamisc/csamisc_selfinitialization.cpp                     \
-        groups/csa/csamisc/csamisc_superfluoustemporary.cpp                   \
-        groups/csa/csamisc/csatr_includefiles.cpp                             \
+        groups/csa/csaxform/csaxform_refactor.cpp                             \
+        groups/csa/csaxform/csaxform_refactor_config.cpp                      \
 
 # -----------------------------------------------------------------------------
 
@@ -190,6 +186,7 @@ LIBS     =    -l$(LCB)                                                        \
               -lLLVMTarget                                                    \
               -lLLVMAsmParser                                                 \
               -lLLVMBitWriter                                                 \
+              -lLLVMAsmPrinter                                                \
               -lLLVMX86AsmPrinter                                             \
               -lLLVMSparcAsmPrinter                                           \
               -lLLVMX86Utils                                                  \
@@ -267,11 +264,11 @@ gh-pages:
 	$(VERBOSE) $(MAKE) -C doc \
     SPHINXOPTS='-t bde_verify'   BUILDDIR='../bde_verify_build'   clean html
 	cp doc/index.html .
-	git checkout gh-pages
-	rm -rf Linux-*g++ $(CSABASEDIR)/Linux-*g++ \
-           SunOS-*g++ $(CSABASEDIR)/SunOS-*g++
-	git add -A
-	git commit -m "Generate gh-pages"
+	# git checkout gh-pages
+	# rm -rf Linux-*g++ $(CSABASEDIR)/Linux-*g++
+	# rm -rf SunOS-*g++ $(CSABASEDIR)/SunOS-*g++
+	# git add -A
+	# git commit -m "Generate gh-pages"
 
 # -----------------------------------------------------------------------------
 
@@ -319,7 +316,9 @@ depend $(OBJ)/make.depend:
         | perl -pe 's[^(?! )][$(OBJ)/]' > $(OBJ)/make.depend
 
 ifneq "$(MAKECMDGOALS)" "clean"
+ifneq "$(MAKECMDGOALS)" "gh-pages"
     include $(OBJ)/make.depend
+endif
 endif
 
 ## ----------------------------------------------------------------------------

@@ -57,6 +57,10 @@ getOffsetRange(clang::SourceRange range, int offset, int size);
     // Return the range of the specified 'size' beginning at the specified
     // 'offset' from the start of the specified 'loc' or 'range'.
 
+std::string on_one_line(llvm::StringRef s, bool explicitNL = false);
+    // Return a one-line representation of the specified input 's'.  Optionally
+    // specify 'explicitNL' to show newlines as '\n'.
+
 struct UseLambda {
     void NotFunction(const clang::ast_matchers::BoundNodes &);
 };

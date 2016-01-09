@@ -459,6 +459,10 @@ void report::get_function_names()
             DeclContext::decl_iterator e = record->decls_end();
             for (; b != e; ++b) {
                 if (auto t = llvm::dyn_cast<FunctionTemplateDecl>(*b)) {
+                    if (llvm::dyn_cast<CXXMethodDecl>(t->getTemplatedDecl())
+                            ->getAccess() != AS_public) {
+                        continue;
+                    }
                     note_function(t->getNameAsString());
                     auto sb = t->spec_begin();
                     auto se = t->spec_end();
@@ -767,6 +771,7 @@ void report::operator()()
             a.report(cr.getBegin(), check_name, "TP30",
                      "Comment should contain a 'Concerns:' section");
         }
+
         if (plansec.match(comment, &matches)) {
             llvm::StringRef t = matches[1];
             testing_pos = comment.find(t);
@@ -787,6 +792,7 @@ void report::operator()()
             a.report(cr.getBegin(), check_name, "TP33",
                      "Comment should contain a 'Concerns:' section");
         }
+
         if (testing.match(comment, &matches)) {
             llvm::StringRef t = matches[0];
             testing_pos = comment.find(t);

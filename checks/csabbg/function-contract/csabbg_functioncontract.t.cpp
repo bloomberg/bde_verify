@@ -325,6 +325,12 @@ namespace bde_verify
         void foraminous(int havoc, int getabl);
             // The specified 'havoc' and 'getabl' are then mentioned without
             // quotes as havoc and getabl.
+
+        template <class TYPE>
+        void theFirstOne();
+        template <class TYPE>
+        void theSecondOne();
+            // One contract to rule them both.
     }
 }
 

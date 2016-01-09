@@ -49,20 +49,28 @@ Options
 --bb dir              base directory for |BDE| header includes
 --exe binary          bde_verify executable file
 --cc compiler         C++ compiler used to find system include directories
---llvm dir            clang installation directory
 --definc              set up default include paths
 --nodefinc            do not set up default include paths
 --defdef              set up default macro definitions
 --nodefdef            do not set up default macro definitions
 --ovr                 define BSL_OVERRIDES_STD
 --noovr               do not define BSL_OVERRIDES_STD
---rewrite dir         place rewritten files (as name-rewritten) in dir
+--rewrite-dir dir     place rewritten files (as name-rewritten) in dir
+--rewrite dir         (same as --rewrite-dir)
+--rd dir              (same as --rewrite-dir)
+--rewrite-file file   accumulate rewrite specifications into file
+--rf file             (same as --rewrite-file)
 --std type            specify C++ version
 --tag string          make first line of each warning contain [string]
---toplevel            display warnings for specified file only
+--diagnose type       report and rewrite only for main, component, nogen, or all
+--m32                 process in 32-bit mode
+--m64                 process in 64-bit mode
+--nsa                 allow logging for purposes of tracking usage
+--nonsa               disallow logging for purposes of tracking usage
 --debug               display internal information as checks are performed
 --verbose             display command line passed to clang
---help                display this help message
+-v                    (same as --verbose)
+--help                display this help message (also -?)
 -I directory          add directory to header search path
 -D macro              define macro
 -W warning            enable warning
@@ -293,8 +301,8 @@ for additional checks.
 
    ``boolcomparison``
    ++++++++++++++++++
-    * ``BC01``
-      Comparison of a Boolean expression with literal ``true`` or ``false``.
+   * ``BC01``
+     Comparison of a Boolean expression with literal ``true`` or ``false``.
 
 .. only:: bde_verify
 
@@ -316,8 +324,6 @@ for additional checks.
      Removing include guard definition.
    * ``SB04``
      Replacing use of macro ``std`` with ``bsl``.
-   * ``SB05``
-     Removing namespace qualification.
    * ``SB07``
      Replacing ``std`` with ``bsl`` in macro definition.
 
@@ -375,8 +381,23 @@ for additional checks.
      ``//@CLASSES:`` should not contain class names on that line.
    * ``CLS02``
      ``//@CLASSES:`` classes should be followed by colon and description.
+   * ``CLS03``
+     Badly formatted class line.
    * ``MOR01``
      Deprecate the phrase *(non-)modifiable reference*.
+   * ``PSS01``
+     Use two spaces after a period.
+
+.. only:: bde_verify
+
+   ``comparison-order``
+   ++++++++++++++++++++
+   Comparisons whose operand order should be reversed.
+
+   * ``CO01``
+     Non-modifiable operand should be on the left.
+   * ``CO02``
+     Constant-expression operand should be on the left.
 
 .. only:: bde_verify or bb_cppverify
 
@@ -432,6 +453,22 @@ for additional checks.
    * ``ZF02``
      ``case 0`` does not just fall through to next case.
 
+.. only:: bde_verify or bb_cppverify
+
+   ``cpp-in-extern-c``
+   +++++++++++++++++++
+   Header files with C++ constructs included within ``extern "C"`` contexts.
+
+   * ``PC01``
+     C++ header included within C linkage specification.
+
+.. only:: bde_verify or bb_cppverify
+
+   ``deprecated``
+   ++++++++++++++
+   * ``DP01``
+     Call to deprecated function.
+
 .. only:: bde_verify
 
    ``diagnostic-filter``
@@ -449,7 +486,7 @@ for additional checks.
 
    ``dump-ast``
    +++++++++++++++++++++++
-   * Not a check.
+   Not a check.
 
 .. only:: bde_verify or bb_cppverify
 
@@ -529,6 +566,13 @@ for additional checks.
 
 .. only:: bde_verify or bb_cppverify
 
+   ``global-data``
+   +++++++++++++++
+   * ``AQb01``
+     Data variable with global visibilty.
+
+.. only:: bde_verify or bb_cppverify
+
    ``global-function-only-in-source``
    ++++++++++++++++++++++++++++++++++
    * ``TR10``
@@ -540,6 +584,8 @@ for additional checks.
    ++++++++++++++++++++++++++++++
    * ``TR10``
      Globally visible type not declared in header.
+   * ``TR11``
+     Globally visible type should be defined in header.
 
 .. only:: bde_verify
 
@@ -594,7 +640,7 @@ for additional checks.
 
    ``include-in-extern-c``
    +++++++++++++++++++++++
-   * ``IC01``
+   * ``IEC01``
      Header file included within C linkage specification.
 
 .. only:: bde_verify
@@ -632,6 +678,10 @@ for additional checks.
      Function parameters on multiple lines should align vertically.
    * ``IND04``
      Declarators on multiple lines should align vertically.
+   * ``IND05``
+     Template parameters should be all or each on one line.
+   * ``IND06``
+     Template parameters on multiple lines should align vertically.
 
    Indentation checking is currently disabled in the default configuration file
    until more experience is gained, to avoid cascades of warnings.
@@ -676,6 +726,21 @@ for additional checks.
    +++++++++++++++++++++++++++++++++++++++++
    * ``CD01``
      Method defined directly in class definition.
+
+.. only:: bde_verify or bb_cppverify
+
+   ``member-names``
+   ++++++++++++++++
+   * ``MN01``
+     Class data members must be private.
+   * ``MN02``
+     Non-static class data member names must start with ``d_``.
+   * ``MN03``
+     Static class data member names must start with ``s_``.
+   * ``MN04``
+     Pointer class data member names must end in ``_p``.
+   * ``MN05``
+     Only pointer class data member names should end in ``_p``.
 
 .. only:: bde_verify
 
@@ -740,6 +805,54 @@ for additional checks.
 
 .. only:: bde_verify or bb_cppverify
 
+   ``ref-to-movableref``
+   +++++++++++++++++++++
+   * ``MRR01``
+     MovableRef should be passed by value, not reference.
+
+.. only:: bde_verify
+
+   ``refactor``
+   ++++++++++++
+   Uses the rewriting facility to change included files and use of names.
+   Specification is done via the parameter ``refactor`` in the configuration
+   file.  Use the ``-rewrite`` option to generate the rewritten file.
+   
+   To replace an included file, specify ``file(old[,new]*)``; the include of
+   the old header file will be removed and replaced by the new ones, if any. If
+   the old header was surrounded by redundant include guards, the replacements
+   will be as well.  E.g., ``append refactor file(bdet_date.h,bdlt_date.h)``.
+
+   To replace a name, specify ``name(old,new)``; the old name should be fully
+   elaborated with namespaces and classes, except for the enterprise namespace
+   (``BloombergLP``).  Appearances of the old name, elaborated or not, will be
+   replaced by the specified new value.  E.g.,
+   ``append refactor name(bdetu_DayOfWeek::Day::BDET_WEDNESDAY,e_WEDNESDAY)``.
+   Macro names may also be replaced this way; just specify the old and the new.
+
+   * ``RX01``
+     Errors in the refactor specification (not in the examined files).
+   * ``RF01``
+     Replacing included files.
+   * ``RC01``
+     Replacing a name.
+   * ``RD0111
+     Replacing forward class declaration.
+
+.. only:: bde_verify
+
+   ``refactor-config``
+   +++++++++++++++++++
+   Given pairs of old/new header files, generate a configuration file for the
+   ``refactor`` check from corresponding pairs of names appending to the file
+   specified by the configuration file parameter ``refactorfile`` (or the
+   default, "refactor.cfg" if left unspecified).
+
+   * ``DD01``
+     Eligible name for refactoring.
+
+.. only:: bde_verify or bb_cppverify
+
    ``runtime-initialization``
    ++++++++++++++++++++++++++
    * ``AQa01``
@@ -751,6 +864,8 @@ for additional checks.
    +++++++++++++++
    * ``SP01``
      Misspelled word in comment.
+   * ``SP02``
+     Cannot start spell checker.  (Not an error in the examined file.)
    * ``SP03``
      Misspelled word in parameter name.
 
@@ -869,6 +984,18 @@ for additional checks.
    * ``TP27``
      Public function of a class in ``//@CLASSES:`` is not called from the test
      driver.
+   * ``TP28``
+     Test case has mis-formatted ``// Concerns:`` line.
+   * ``TP29``
+     Test case has improperly numbered concern.
+   * ``TP30``
+     Test case is missing ``Concerns:`` section.
+   * ``TP31``
+     Test case has mis-formatted ``// Plan:`` line.
+   * ``TP32``
+     Test case has improperly numbered plan.
+   * ``TP33``
+     Test case is missing ``Plan:`` section.
 
 .. only:: bde_verify
 
@@ -876,6 +1003,8 @@ for additional checks.
    +++++++++++++++++++++++++++
    * ``TW01``
      Prefer ``that`` to ``which``.
+   * ``TW02``
+     Possibly incorrect comma before ``that``.
 
 .. only:: bde_verify or bb_cppverify
 
@@ -913,6 +1042,8 @@ for additional checks.
    +++++++++++++++++++++++++++++++
    * ``TR16``
      Header file contains ``using`` declaration.
+   * ``AQJ01``
+     Using declaration precedes header inclusion.
 
    Will not warn about packages included in parameter ``global_packages``
    (default ``bslmf bslstl``).
@@ -923,6 +1054,8 @@ for additional checks.
    +++++++++++++++++++++++++++++
    * ``TR16``
      Header file contains ``using`` directive.
+   * ``AQJ02``
+     Using directive precedes header inclusion.
 
    Will not warn about packages included in parameter ``global_packages``
    (default ``bslmf bslstl``).

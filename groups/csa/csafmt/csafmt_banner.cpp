@@ -279,8 +279,8 @@ void files::operator()(const FunctionDecl *func)
     const CXXMethodDecl *md = llvm::dyn_cast<CXXMethodDecl>(func);
     SourceLocation& id = d_analyser.attachment<comments>().d_inline_definition;
     if (!id.isValid() &&
-        func->hasBody() &&
-        func->getBody() &&
+        !func->getDeclContext()->isRecord() &&
+        func->doesThisDeclarationHaveABody() &&
         func->isInlineSpecified() &&
         (!md || md->isUserProvided()) &&
         d_analyser.is_component_header(func)) {

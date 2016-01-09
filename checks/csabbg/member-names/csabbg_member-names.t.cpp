@@ -1,36 +1,49 @@
-#include <bsl_vector.h>
-#include <bslma_allocator.h>
-#include <bslmf_nestedtraitdeclaration.h>
-#include <bslma_usesbslmaallocator.h>
+// csabbg_member-names.t.cpp                                          -*-C++-*-
 
-using namespace BloombergLP;
+class A
+{
+  public:
+    int          d_i;
 
-namespace {
-    class Functor {
-        bsl::vector<int> d_fields;
-    public:
-        BSLMF_NESTED_TRAIT_DECLARATION(Functor, bslma::UsesBslmaAllocator);
+  protected:
+    int          d_j;
 
-        Functor(const bsl::vector<int>&  fields,
-                bslma::Allocator        *allocator)
-            : d_fields(fields) {  // <--- allocator not forwarded
-        }
-        Functor(const Functor& other, bslma::Allocator *allocator = 0)
-            : d_fields(other.d_fields) {  // <--- allocator not forwarded
-        }
-        Functor(int a, bslma::Allocator *allocator = 0)
-            : d_fields(a, allocator) {
-        }
-    };
-}
+  private:
+    void         private_f();
 
-void f(bslma::Allocator* alloc) {
-    bsl::vector<int> fields;
-    Functor fun(fields, alloc);
-}
+    int          private_a;
+    static int   private_b;
+    char        *private_c;
+    static char *private_d;
+
+    int          private_a_p;
+    static int   private_b_p;
+    char        *private_c_p;
+    static char *private_d_p;
+
+    int          d_private_a;
+    static int   d_private_b;
+    char        *d_private_c;
+    static char *d_private_d;
+
+    int          s_private_a;
+    static int   s_private_b;
+    char        *s_private_c;
+    static char *s_private_d;
+
+    int          d_private_a_p;
+    static int   d_private_b_p;
+    char        *d_private_c_p;
+    static char *d_private_d_p;
+
+    int          s_private_a_p;
+    static int   s_private_b_p;
+    char        *s_private_c_p;
+    static char *s_private_d_p;
+};
 
 // ----------------------------------------------------------------------------
-// Copyright (C) 2015 Bloomberg Finance L.P.
+// Copyright (C) 205 Bloomberg Finance L.P.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to

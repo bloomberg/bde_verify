@@ -3,10 +3,11 @@
 #ifndef INCLUDED_CSABASE_REPORT
 #define INCLUDED_CSABASE_REPORT
 
-#include <clang/Basic/SourceManager.h>
-
 #include <csabase_analyser.h>
 #include <csabase_ppobserver.h>
+
+#include <clang/Basic/SourceManager.h>
+#include <clang/Frontend/CompilerInstance.h>
 
 namespace csabase
 {
@@ -30,8 +31,14 @@ struct Report
     PPObserver::CallbackType d_type;  // 'type' from the constructor
     PPObserver::CallbackType t;
 
-    clang::SourceManager& d_source_manager;  // extracted from 'analyser' for
-    clang::SourceManager& m;                 // convenience due to frequent use
+    clang::SourceManager& d_source_manager;
+    clang::SourceManager& m;
+
+    clang::CompilerInstance& d_compiler;
+    clang::CompilerInstance& c;
+
+    clang::Preprocessor& d_preprocessor;
+    clang::Preprocessor& p;
 };
 
 }  // end package namespace
@@ -47,6 +54,10 @@ csabase::Report<Data>::Report(csabase::Analyser& analyser,
 , t(type)
 , d_source_manager(analyser.manager())
 , m(analyser.manager())
+, d_compiler(analyser.compiler())
+, c(analyser.compiler())
+, d_preprocessor(analyser.compiler().getPreprocessor())
+, p(analyser.compiler().getPreprocessor())
 {
 }
 

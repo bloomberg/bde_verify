@@ -50,6 +50,48 @@ static std::string const check_name("allocator-forward");
 
 // -----------------------------------------------------------------------------
 
+namespace {
+
+bool is_allocator(QualType type, ASTContext& c)
+    // Return 'true' iff the specified 'type' is pointer or reference to
+    // an allocator.
+{
+    static const std::string a1 = "BloombergLP::bslma::Allocator";
+    static const std::string a2 = "bsl::allocator";
+
+    type = type.getDesugaredType(c);
+
+    if (type->isPointerType()) {
+        type = type->getPointeeType().getDesugaredType(c);
+    } else if (type->isReferenceType()) {
+        type = type->getPointeeType().getDesugaredType(c);
+        if (type->isPointerType()) {
+            type = type->getPointeeType().getDesugaredType(c);
+        }
+    }
+    bool is = false;
+    if (auto r = type->getAsCXXRecordDecl()) {
+        auto all_true = [](const CXXRecordDecl *decl, void *) { return true; };
+        auto not_alloc = [](const CXXRecordDecl *decl, void *) {
+            std::string t = decl->getQualifiedNameAsString();
+            return t != a1 && t != a2;
+        };
+        auto rd = r->getDefinition();
+        is = !not_alloc(r, 0) ||
+             (rd &&
+              rd->forallBases(all_true, 0) &&
+              !rd->forallBases(not_alloc, 0));
+    }
+    return is;
+}
+
+bool is_allocator(const Type& type, ASTContext& c)
+{
+    return is_allocator(QualType(&type, 0), c);
+}
+
+}
+
 namespace clang {
 namespace ast_matchers {
 
@@ -63,6 +105,10 @@ AST_MATCHER_P(FunctionDecl, hasLastParameter,
     return Node.getNumParams() > 0 &&
            InnerMatcher.matches(
                *Node.getParamDecl(Node.getNumParams() - 1), Finder, Builder);
+}
+
+AST_MATCHER(Type, isAllocator) {
+    return is_allocator(Node, Finder->getASTContext());
 }
 
 }
@@ -285,32 +331,8 @@ const CXXRecordDecl *report::get_record_decl(QualType type)
 }
 
 bool report::is_allocator(QualType type)
-    // Return 'true' iff the specified 'type' is pointer or reference to
-    // 'bslma::Allocator'.
 {
-    static const std::string a1 = "BloombergLP::bslma::Allocator";
-    static const std::string a2 = "bsl::allocator";
-
-    if (type->isPointerType()) {
-        type = type->getPointeeType();
-    }
-    else if (type->isReferenceType()) {
-        type = type->getPointeeType();
-        if (type->isPointerType()) {
-            type = type->getPointeeType();
-        }
-    }
-    auto r = type->getAsCXXRecordDecl();
-    bool is = false;
-    if (r) {
-        auto not_alloc = [](const CXXRecordDecl* decl, void *) {
-            std::string t = decl->getQualifiedNameAsString();
-            return t != a1 && t != a2;
-        };
-        auto rd = r->getDefinition();
-        is = !not_alloc(r, 0) || (rd && !rd->forallBases(not_alloc, 0));
-    }
-    return is;
+    return ::is_allocator(type, *a.context());
 }
 
 bool report::last_arg_is_explicit_allocator(const CXXConstructExpr* call)
@@ -432,31 +454,10 @@ static internal::DynTypedMatcher class_using_allocator_matcher()
     // is a pointer or reference to an allocator or a reference to a class that
     // has such a constructor.
 {
-    auto al = []() {
-        return pointee(unless(isConstQualified()),
-                       hasDeclaration(recordDecl(isSameOrDerivedFrom(
-                           "::BloombergLP::bslma::Allocator"
-                       )))
-       );
-    };
-
     return decl(forEachDescendant(recordDecl(
         has(constructorDecl(hasLastParameter(parmVarDecl(anyOf(
-            hasType(referenceType(
-                pointee(hasDeclaration(decl(has(constructorDecl(
-                    isPublic(),
-                    anyOf(
-                        hasLastParameter(parmVarDecl(
-                            hasType(pointerType(al()))
-                        )),
-                        hasLastParameter(parmVarDecl(
-                            hasType(referenceType(al()))
-                        ))
-                    )
-                )))))
-            )),
-            hasType(pointerType(al())),
-            hasType(referenceType(al()))
+            hasType(pointerType(isAllocator())),
+            hasType(referenceType(isAllocator()))
         )))))
     ).bind("class")));
 }
@@ -738,7 +739,7 @@ void report::check_globals_use_allocator(data::Globals::const_iterator begin,
 
 bool report::has_public_copy_constructor(const CXXRecordDecl *decl)
 {
-    if (!decl->hasUserDeclaredCopyConstructor()) {
+    if (!decl->hasDefinition() || !decl->hasUserDeclaredCopyConstructor()) {
         return true;                                                  // RETURN
     }
 
@@ -837,9 +838,16 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
             unsigned num_parms = decl->getNumParams();
             for (auto ci = begin; !found && ci != end; ++ci) {
                 const CXXConstructorDecl *ctor = *ci;
+                auto r = ctor->getParent()->getCanonicalDecl();
+                if (auto ts =
+                        llvm::dyn_cast<ClassTemplateSpecializationDecl>(r)) {
+                    r = ts->getSpecializedTemplate()
+                            ->getTemplatedDecl()
+                            ->getCanonicalDecl();
+                }
                 if (ctor == ctor->getCanonicalDecl() &&
                     ctor != decl &&
-                    ctor->getParent() == record &&
+                    r == record &&
                     ctor->getNumParams() == num_parms + 1 &&
                     takes_allocator(ctor)) {
                     found = true;
@@ -853,21 +861,23 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
             }
 
             if (!found) {
+                std::string type =
+                    decl->isDefaultConstructor() ? "default " :
+                    decl->isCopyConstructor()    ? "copy "    :
+                    decl->isMoveConstructor()    ? "move "    :
+                                                   "";
+
                 if (decl->isUserProvided()) {
                     a.report(decl, check_name, "AC01",
-                             "This constructor has no version that can be "
-                             "called with an allocator")
+                             "This " + type + "constructor has no version "
+                             "that can be called with an allocator as the "
+                             "final argument")
                         << decl;
                 }
                 else {
-                    std::string type =
-                        decl->isDefaultConstructor()    ? "default " :
-                        decl->isCopyOrMoveConstructor() ? "copy "    :
-                                                          "";
-
                     a.report(decl, check_name, "AC02",
                              "Implicit " + type + "constructor cannot be "
-                             "called with an allocator")
+                             "called with an allocator as the final argument")
                         << decl;
                 }
             }
