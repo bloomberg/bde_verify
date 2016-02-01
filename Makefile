@@ -4,13 +4,23 @@ PREFIX     ?= $(firstword $(wildcard /opt/bb /usr))
 LLVMDIR    ?= $(PREFIX)
 
 SYSTEM     := $(shell uname -s)
-DESTDIR    ?= $(PREFIX)
 
 ifeq ($(notdir $(CXX)),g++)
 GCCDIR     ?= $(patsubst %/bin/g++,%,$(shell which $(CXX)))
 else
 GCCDIR     ?= $(patsubst %/bin/g++,%,$(shell which g++))
 endif
+
+ifeq ($(notdir $(CXX)),clang++)
+CLANG      ?= $(CXX)
+else
+CLANG      ?= $(shell which clang++)
+endif
+
+CLANG_RES  ?= $(shell \
+        $(CLANG) -xc++ -E -v /dev/null 2>&1 | \
+        grep 'resource-dir' | \
+        sed 's/.*resource-dir *//;s/\([^"][^ ]*\).*/\1/;s/["]\([^"]*\)".*/\1/')
 
 TARGET      = bde_verify_bin
 CSABASE     = csabase
@@ -61,6 +71,7 @@ else ifeq ($(SYSTEM),SunOS)
 endif
 
 OBJ        := $(SYSTEM)-$(notdir $(CXX))
+DESTDIR    ?= $(CURDIR)/$(OBJ)
 
 VERBOSE ?= @
 
@@ -80,6 +91,7 @@ CXXFILES =                                                                    \
         groups/csa/csabbg/csabbg_allocatornewwithpointer.cpp                  \
         groups/csa/csabbg/csabbg_assertassign.cpp                             \
         groups/csa/csabbg/csabbg_bslovrdstl.cpp                               \
+        groups/csa/csabbg/csabbg_classsections.cpp                            \
         groups/csa/csabbg/csabbg_cmporder.cpp                                 \
         groups/csa/csabbg/csabbg_deprecated.cpp                               \
         groups/csa/csabbg/csabbg_enumvalue.cpp                                \
@@ -239,17 +251,18 @@ $(OBJ)/%.o: %.cpp
 install: install-bin install-dev
 
 install-bin: $(OBJ)/$(TARGET)
-	$(VERBOSE) $(MAKE) -C $(CSABASEDIR) install-bin
+	$(VERBOSE) $(MAKE) -C $(CSABASEDIR) DESTDIR=$(DESTDIR) install-bin
 	mkdir -p $(DESTDIR)/libexec/bde-verify
 	cp $(OBJ)/$(TARGET) $(DESTDIR)/libexec/bde-verify
 	mkdir -p $(DESTDIR)/bin
 	cp scripts/bde_verify scripts/bb_cppverify scripts/check_bos $(DESTDIR)/bin
 	mkdir -p $(DESTDIR)/etc/bde-verify
 	cp bde_verify.cfg bb_cppverify.cfg $(DESTDIR)/etc/bde-verify
+	mkdir -p $(DESTDIR)/include/bde-verify/clang
+	cp -r $(CLANG_RES)/include $(DESTDIR)/include/bde-verify/clang
 
 install-dev:
-	$(VERBOSE) $(MAKE) -C $(CSABASEDIR) install-dev
-	# cp groups/csa/csadep/csadep_*.h $(DESTDIR)/include/bde-verify
+	$(VERBOSE) $(MAKE) -C $(CSABASEDIR) DESTDIR=$(DESTDIR) install-dev
 
 .PHONY: clean
 
@@ -292,17 +305,18 @@ RCURNAME := $(foreach N,$(CURM),$(patsubst %,%.run,$(N)))
 
 .PHONY: check-current check $(CNAMES) run-current run $(RNAMES)
 
-check: $(OBJ)/$(TARGET) $(CNAMES)
-check-current: $(OBJ)/$(TARGET) $(CCURNAME)
+check: install $(CNAMES)
+check-current: install $(CCURNAME)
 
 $(CNAMES):
-	$(VERBOSE) $(MAKE) -C $(@D) -k --no-print-directory check
+	$(VERBOSE) $(MAKE) DESTDIR=$(DESTDIR) -C $(@D) \
+            -k --no-print-directory check
 
-run: $(OBJ)/$(TARGET) $(RNAMES)
-run-current: $(OBJ)/$(TARGET) $(RCURNAME)
+run: install $(RNAMES)
+run-current: install $(RCURNAME)
 
 $(RNAMES):
-	$(VERBOSE) $(MAKE) -C $(@D) -k --no-print-directory run
+	$(VERBOSE) $(MAKE) DESTDIR=$(DESTDIR) -C $(@D) -k --no-print-directory run
 
 # -----------------------------------------------------------------------------
 

@@ -57,6 +57,7 @@ my @lflags = (
     "exceptions",
     "diagnostics-show-note-include-stack",
     "diagnostics-show-option",
+    "error-limit=0",
 );
 my $dummy;
 my @dummy;
@@ -146,13 +147,16 @@ GetOptions(
     "O|MF|o|march|mtune=s"         => \@dummy,
 ) and !$help and $#ARGV >= 0 or usage();
 
-my @config = ("-plugin-arg-bde_verify", "config=$config")    if $config ne "";
-my @debug  = ("-plugin-arg-bde_verify", "debug-on")          if $debug;
-my @tlo    = ("-plugin-arg-bde_verify", "diagnose=$diagnose");
-my @rwd    = ("-plugin-arg-bde_verify", "rewrite-dir=$rwd")  if $rwd;
+sub xclang(@) { return map { ( "-Xclang", $_ ) } @_; }
+sub plugin(@) { return xclang( "-plugin-arg-bde_verify", @_ ); }
+
+my @config = plugin("config=$config")      if $config;
+my @debug  = plugin("debug-on")            if $debug;
+my @tlo    = plugin("diagnose=$diagnose");
+my @rwd    = plugin("rewrite-dir=$rwd")    if $rwd;
 print "No such directory $rwd\n" if $rwd and ! -d $rwd;
-my @rwf    = ("-plugin-arg-bde_verify", "rewrite-file=$rwf") if $rwf;
-my @tag    = ("-plugin-arg-bde_verify", "tool=$tag") if $tag;
+my @rwf    = plugin("rewrite-file=$rwf")   if $rwf;
+my @tag    = plugin("tool=$tag")           if $tag;
 my %uf     = ( "no-strict-aliasing" => 1,
                "PIC" => 1,
                "asynchronous-unwind-tables" => 1,
@@ -183,6 +187,9 @@ if ($ovr == 0) {
     push(@defs, "-UBSL_OVERRIDES_STD");
 }
 
+my $gccdir   = Cwd::abs_path($cc);
+$gccdir      =~ s{/(bin/)?[^/]*$}{};
+
 for (@ARGV) {
     if (! -f) {
         warn "Cannot find file $_\n";
@@ -212,29 +219,26 @@ my @pass;
 push(@pass, "-m32") if $m32;
 push(@pass, "-m64") if $m64;
 
-unshift(@incs,
-        map { ( "-isystem", $_ ) }
+unshift(@incs, xclang(
+        map { ( "-internal-isystem", $_ ) }
         map { Cwd::abs_path($_) }
         grep { -d }
         map { chomp; $_; }
         qx{ $cc -xc++ @pass -E -v /dev/null 2>&1 |
             sed -n '/^#include/,/^End of search list/p' |
-            sed -n '/^ [/]/s/ //p'});
-
-my @target = (map { ( "-triple", $_ ) }
-              map { chomp; $_; }
-              qx{ $cc -xc++ @pass -E -v /dev/null 2>&1 |
-                  sed -n '/^Target: /s///p'});
+            sed -n '/^ [/]/s/ //p'}));
 
 push(@std, "-std=$std") if $std;
 
-@cl = map { ("-plugin-arg-bde_verify", "config-line=$_") } @cl;
+@cl = map { plugin("config-line=$_") } @cl;
 
 my @command = (
     "$exe",
-    "-plugin",
-    "bde_verify",
-    @target,
+    xclang("-plugin", "bde_verify",),
+    "-resource-dir", "${pt}include/bde-verify/clang",
+    "-msoft-float",
+    "-fsyntax-only",
+    "-xc++",
     @std,
     @debug,
     @config,
@@ -251,6 +255,7 @@ my @command = (
 
 print join(" \\\n ", map { join "\\ ", split(/ /, $_, -1) } @command), "\n"
                                                                    if $verbose;
+undef $nsa;
 if ($nsa) {
     my ($ss,$mm,$HH,$dd,$MM,$YYYY) = gmtime;
     $YYYY += 1900;

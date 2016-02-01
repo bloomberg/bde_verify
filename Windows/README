@@ -9,7 +9,7 @@ You must have a development installation of LLVM/Clang (with all of the include
 files and libraries needed for building the compiler itself).  Source and
 binaries can be found here: <http://llvm.org/releases/download.html>.  Set the
 LLVM environment variable to the directory in which it is installed; the build
-of BDE VErify looks in $LLVM/include for headers and $LLVM/lib for libraries.
+of BDE Verify looks in $LLVM/include for headers and $LLVM/lib for libraries.
 
 Create a build directory, cd there, and run
     cmake .../path/to/bde-verify/

@@ -240,8 +240,10 @@ void report::operator()()
         if (sl.isValid() && d_data.d_done.count(sl)) {
             continue;
         }
+        bool sys = m.isInSystemHeader(d_data.d_types[f.second.first].first);
         d_analyser.report(f.first, check_name, "PC01",
-                         "C++ header included within C linkage specification");
+                         "C++ %0 included within C linkage specification")
+            << (sys ? "system header" : "header");
         d_analyser.report(lsd->getLocation(), check_name, "PC01",
                           "C linkage specification here",
                           false, DiagnosticIDs::Note);
@@ -251,10 +253,12 @@ void report::operator()()
                               "Top level include within C linkage here",
                               false, DiagnosticIDs::Note);
         }
-        d_analyser.report(d_data.d_types[f.second.first].first,
-                          check_name, "PC01",
-                          "Declaration with C++ linkage here",
-                          false, DiagnosticIDs::Note);
+        if (!sys) {
+            d_analyser.report(d_data.d_types[f.second.first].first,
+                              check_name, "PC01",
+                              "Declaration with C++ linkage here",
+                              false, DiagnosticIDs::Note);
+        }
     }
 }
 
