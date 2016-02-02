@@ -209,7 +209,7 @@ my $inc = $ENV{INCLUDE} ||
     "C:/Program Files (x86)/Windows Kits/8.1/include/shared;" .
     "C:/Program Files (x86)/Windows Kits/8.1/include/um;" .
     "C:/Program Files (x86)/Windows Kits/8.1/include/winrt";
-push(@incs, map { ( "-internal-isystem", $_ ) }
+push(@incs, map { ( "-isystem", $_ ) }
             map { Cwd::abs_path($_) }
             grep { -d } split(/;/, $inc));
 
