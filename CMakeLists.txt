@@ -149,17 +149,19 @@ add_executable(bde_verify_bin
     ${G}/csaaq/csaaq_inentns.cpp
     ${G}/csaaq/csaaq_runtimeinit.cpp
     ${G}/csaaq/csaaq_transitiveincludes.cpp
+    ${G}/csabde/csabde_tool.cpp
     ${G}/csabbg/csabbg_allocatorforward.cpp
     ${G}/csabbg/csabbg_allocatornewwithpointer.cpp
     ${G}/csabbg/csabbg_assertassign.cpp
     ${G}/csabbg/csabbg_bslovrdstl.cpp
+    ${G}/csabbg/csabbg_classsections.cpp
     ${G}/csabbg/csabbg_cmporder.cpp
     ${G}/csabbg/csabbg_deprecated.cpp
     ${G}/csabbg/csabbg_enumvalue.cpp
     ${G}/csabbg/csabbg_functioncontract.cpp
     ${G}/csabbg/csabbg_midreturn.cpp
+    ${G}/csabbg/csabbg_membernames.cpp
     ${G}/csabbg/csabbg_testdriver.cpp
-    ${G}/csabde/csabde_tool.cpp
     ${G}/csafmt/csafmt_banner.cpp
     ${G}/csafmt/csafmt_comments.cpp
     ${G}/csafmt/csafmt_headline.cpp
@@ -182,6 +184,7 @@ add_executable(bde_verify_bin
     ${G}/csamisc/csamisc_hashptr.cpp
     ${G}/csamisc/csamisc_longinline.cpp
     ${G}/csamisc/csamisc_memberdefinitioninclassdefinition.cpp
+    ${G}/csamisc/csamisc_movablerefref.cpp
     ${G}/csamisc/csamisc_namespacetags.cpp
     ${G}/csamisc/csamisc_opvoidstar.cpp
     ${G}/csamisc/csamisc_spellcheck.cpp
@@ -212,6 +215,8 @@ add_executable(bde_verify_bin
     ${G}/csatr/csatr_packagename.cpp
     ${G}/csatr/csatr_usingdeclarationinheader.cpp
     ${G}/csatr/csatr_usingdirectiveinheader.cpp
+    ${G}/csaxform/csaxform_refactor.cpp
+    ${G}/csaxform/csaxform_refactor_config.cpp
 )
 
 target_compile_features(bde_verify_bin PUBLIC cxx_auto_type)
@@ -276,6 +281,7 @@ llvmlib(LLVMBitReader)
 llvmlib(LLVMTarget)
 llvmlib(LLVMAsmParser)
 llvmlib(LLVMBitWriter)
+llvmlib(LLVMAsmPrinter)
 llvmlib(LLVMX86AsmPrinter)
 llvmlib(LLVMSparcAsmPrinter)
 llvmlib(LLVMX86Utils)
