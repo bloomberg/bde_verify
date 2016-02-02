@@ -41,6 +41,7 @@ my @lflags = (
     "exceptions",
     "diagnostics-show-note-include-stack",
     "diagnostics-show-option",
+    "error-limit=0",
     "ms-compatibility",
     "ms-extensions",
    #"msc-version=1800",
@@ -132,13 +133,16 @@ GetOptions(
     "O|MF|o|march|mtune=s"         => \@dummy,
 ) and !$help and $#ARGV >= 0 or usage();
 
-my @config = ("-plugin-arg-bde_verify", "config=$config")    if $config ne "";
-my @debug  = ("-plugin-arg-bde_verify", "debug-on")          if $debug;
-my @tlo    = ("-plugin-arg-bde_verify", "diagnose=$diagnose");
-my @rwd    = ("-plugin-arg-bde_verify", "rewrite-dir=$rwd")  if $rwd;
+sub xclang(@) { return map { ( "-Xclang", $_ ) } @_; }
+sub plugin(@) { return xclang( "-plugin-arg-bde_verify", @_ ); }
+
+my @config = plugin("config=$config")      if $config ne "";
+my @debug  = plugin("debug-on")            if $debug;
+my @tlo    = plugin("diagnose=$diagnose");
+my @rwd    = plugin("rewrite-dir=$rwd")    if $rwd;
 print "No such directory $rwd\n" if $rwd and ! -d $rwd;
-my @rwf    = ("-plugin-arg-bde_verify", "rewrite-file=$rwf") if $rwf;
-my @tag    = ("-plugin-arg-bde_verify", "tool=$tag")         if $tag;
+my @rwf    = plugin("rewrite-file=$rwf")   if $rwf;
+my @tag    = plugin("tool=$tag")           if $tag;
 my %uf     = (
              );
 @lflags = map { "-f$_" } grep { not exists $uf{$_} } @lflags;
@@ -172,6 +176,9 @@ if ($ovr == 1 || $ovr != 0 && $defdef && !grep(m{\bb[sd]l[^/]*$}, @ARGV)) {
     push(@defs, "BSL_OVERRIDES_STD");
 }
 @defs = map { "-D$_" } @defs;
+if ($ovr == 0) {
+    push(@defs, "-UBSL_OVERRIDES_STD");
+}
 
 for (@ARGV) {
     if (! -f) {
@@ -202,18 +209,21 @@ my $inc = $ENV{INCLUDE} ||
     "C:/Program Files (x86)/Windows Kits/8.1/include/shared;" .
     "C:/Program Files (x86)/Windows Kits/8.1/include/um;" .
     "C:/Program Files (x86)/Windows Kits/8.1/include/winrt";
-push(@incs, map { ( "-isystem", $_ ) }
+push(@incs, map { ( "-internal-isystem", $_ ) }
             map { Cwd::abs_path($_) }
             grep { -d } split(/;/, $inc));
 
 push(@std, "-std=$std") if $std;
 
-@cl = map { ("-plugin-arg-bde_verify", "config-line=$_") } @cl;
+@cl = map { plugin("config-line=$_") } @cl;
 
 my @command = (
     "$exe",
-    "-plugin",
-    "bde_verify",
+    xclang("-plugin", "bde_verify"),
+    "-resource-dir", "${pt}include/bde-verify/clang",
+    "-msoft-float",
+    "-fsyntax-only",
+    "-xc++",
     @std,
     @debug,
     @config,
