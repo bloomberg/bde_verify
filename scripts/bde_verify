@@ -234,7 +234,7 @@ push(@std, "-std=$std") if $std;
 
 my @command = (
     "$exe",
-    xclang("-plugin", "bde_verify",),
+    xclang("-plugin", "bde_verify"),
     "-resource-dir", "${pt}include/bde-verify/clang",
     "-msoft-float",
     "-fsyntax-only",
