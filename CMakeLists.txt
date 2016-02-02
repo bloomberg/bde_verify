@@ -2,6 +2,23 @@ cmake_minimum_required(VERSION 3.1)
 
 project(bde_verify)
 
+find_package(LLVM REQUIRED)
+
+set(CLANG_RESOURCE_DIR "" CACHE PATH "Clang resource directory")
+if(NOT CLANG_RESOURCE_DIR)
+    set(v ${LLVM_VERSION_MAJOR}.${LLVM_VERSION_MINOR}.${LLVM_VERSION_PATCH})
+    foreach(d ${LLVM_LIBRARY_DIRS})
+        if(IS_DIRECTORY "${d}/clang/${v}/include")
+            set(CLANG_RESOURCE_DIR ${d}/clang/${v})
+            break()
+        endif()
+    endforeach()
+endif()
+
+file(GLOB CLANG_RESOURCE_FILES
+     LIST_DIRECTORIES false
+     "${CLANG_RESOURCE_DIR}/include/*.*")
+
 if(MSVC)
     add_definitions(
         "/wd4146"
@@ -348,6 +365,8 @@ install(FILES
 file(GLOB headers "${G}/csabase/csabase_*.h")
 
 install(FILES ${headers} DESTINATION include/bde-verify)
+install(FILES ${CLANG_RESOURCE_FILES}
+        DESTINATION include/bde-verify/clang/include)
 
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "BDE Verify - Static C++ code analysis")
 set(PACK_PACKAGE_VENDOR "Bloomberg Finance L.P.")

@@ -18,9 +18,9 @@ CLANG      ?= $(shell which clang++)
 endif
 
 CLANG_RES  ?= $(shell \
-        $(CLANG) -xc++ -E -v /dev/null 2>&1 | \
-        grep 'resource-dir' | \
-        sed 's/.*resource-dir *//;s/\([^"][^ ]*\).*/\1/;s/["]\([^"]*\)".*/\1/')
+      $(CLANG) -xc++ -E -v /dev/null 2>&1 | \
+      grep 'resource-dir' | \
+      sed 's/.*resource-dir *//;s/^\([^"][^ ]*\).*/\1/;s/^["]\([^"]*\)".*/\1/')
 
 TARGET      = bde_verify_bin
 CSABASE     = csabase
