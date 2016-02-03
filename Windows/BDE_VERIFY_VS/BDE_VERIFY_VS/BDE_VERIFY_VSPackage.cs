@@ -240,7 +240,7 @@ namespace BloombergLP.BDE_VERIFY_VS {
                         si.Arguments += " -isystem " + Quote(dir);
                     }
                 }
-                mesage = null;
+                message = null;
                 var defs = new HashSet<string>();
                 defs.Add("");
                 message = "Cannot find preprocessor definitions";
