@@ -53,10 +53,6 @@ else()
         endif()
     endif()
 
-    if(NOT $ENV{LLVMDIR})
-        set($ENV{LLVMDIR} $ENV{PREFIX})
-    endif()
-
     if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
         execute_process(COMMAND "which" "${CMAKE_CXX_COMPILER}"
                         OUTPUT_VARIABLE GCCDIR)
@@ -111,7 +107,7 @@ set(G ${CMAKE_CURRENT_SOURCE_DIR}/groups/csa)
 
 include_directories(
     ${G}/csabase
-    $ENV{LLVM}/include
+    ${LLVM_INCLUDE_DIRS}
     /opt/bb/include
     /opt/swt/include
 )
@@ -229,7 +225,7 @@ target_compile_features(bde_verify_bin PUBLIC cxx_auto_type)
 set(CMAKE_SKIP_RPATH ON)
 
 set(CMAKE_LIBRARY_PATH
-    $ENV{LLVM}/lib
+    ${LLVM_LIBRARY_DIRS}
     /opt/swt/lib64
     /opt/bb/lib64
     /usr/lib/sparcv9
@@ -239,7 +235,7 @@ set(CMAKE_LIBRARY_PATH
 function(llvmlib name)
     find_library(LIB${name}
                  NAMES ${name}
-                 PATHS $ENV{LLVM}/lib
+                 PATHS ${LLVM_LIBRARY_DIRS}
                        /opt/swt/lib64
                        /opt/bb/lib64
                        /usr/lib/sparcv9

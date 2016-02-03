@@ -207,24 +207,25 @@ namespace BloombergLP.BDE_VERIFY_VS {
                 si.RedirectStandardOutput = false;
                 si.RedirectStandardError = true;
                 si.WorkingDirectory = Directory.GetParent(document.FilePath).ToString();
-                si.Arguments += " -plugin bde_verify";
+                si.Arguments += " -Xclang -plugin bde_verify";
                 if (cfg != null) {
-                    si.Arguments += " -plugin-arg-bde_verify config=" + Quote(cfg);
+                    si.Arguments += " -Xclang -plugin-arg-bde_verify -Xclang config=" + Quote(cfg);
                     if (GetConfig() == "") {
                         (GetDialogPage(typeof(OptionPageGrid)) as OptionPageGrid).Config = cfg;
                     }
                 }
                 if (GetOff()) {
-                    si.Arguments += " -plugin-arg-bde_verify config-line=" + Quote("all off");
+                    si.Arguments += " -Xclang -plugin-arg-bde_verify -Xclang config-line=" + Quote("all off");
                 }
                 foreach (string s in GetExtra()) {
-                    si.Arguments += " -plugin-arg-bde_verify config-line=" + Quote(s);
+                    si.Arguments += " -Xclang -plugin-arg-bde_verify -Xclang config-line=" + Quote(s);
                 }
-                si.Arguments += " -plugin-arg-bde_verify diagnose=" + GetDiagnose();
+                si.Arguments += " -Xclang -plugin-arg-bde_verify -Xclang diagnose=" + GetDiagnose();
                 si.Arguments += " -fcxx-exceptions";
                 si.Arguments += " -fexceptions";
                 si.Arguments += " -fdiagnostics-show-note-include-stack";
                 si.Arguments += " -fdiagnostics-show-option";
+                si.Arguments += " -ferror-limit=0";
                 si.Arguments += " -fms-compatibility";
                 si.Arguments += " -fms-extensions";
                 si.Arguments += " -std=c++11";
