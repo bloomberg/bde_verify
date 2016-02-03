@@ -207,24 +207,25 @@ namespace BloombergLP.BDE_VERIFY_VS {
                 si.RedirectStandardOutput = false;
                 si.RedirectStandardError = true;
                 si.WorkingDirectory = Directory.GetParent(document.FilePath).ToString();
-                si.Arguments += " -Xclang -plugin -Xclang bde_verify";
+                si.Arguments += xclang("-plugin") + xclang("bde_verify");
                 if (cfg != null) {
-                    si.Arguments += " -Xclang -plugin-arg-bde_verify -Xclang config=" + Quote(cfg);
+                    si.Arguments += plugin("config=" + Quote(cfg));
                     if (GetConfig() == "") {
                         (GetDialogPage(typeof(OptionPageGrid)) as OptionPageGrid).Config = cfg;
                     }
                 }
                 if (GetOff()) {
-                    si.Arguments += " -Xclang -plugin-arg-bde_verify -Xclang config-line=" + Quote("all off");
+                    si.Arguments += plugin("config-line=" + Quote("all off"));
                 }
                 foreach (string s in GetExtra()) {
-                    si.Arguments += " -Xclang -plugin-arg-bde_verify -Xclang config-line=" + Quote(s);
+                    si.Arguments += plugin("config-line=" + Quote(s));
                 }
-                si.Arguments += " -Xclang -plugin-arg-bde_verify -Xclang diagnose=" + GetDiagnose();
+                si.Arguments += plugin("diagnose=" + GetDiagnose());
                 si.Arguments += " -fcxx-exceptions";
                 si.Arguments += " -fexceptions";
                 si.Arguments += " -fdiagnostics-show-note-include-stack";
                 si.Arguments += " -fdiagnostics-show-option";
+                si.Arguments += " -fsyntax-only";
                 si.Arguments += " -ferror-limit=0";
                 si.Arguments += " -fms-compatibility";
                 si.Arguments += " -fms-extensions";
@@ -349,6 +350,24 @@ namespace BloombergLP.BDE_VERIFY_VS {
                 s = "\"" + s.Replace("\"", "\"\"") + "\"";
             }
             return s;
+        }
+
+        /// <summary>
+        /// Return <paramref name="s"/> prepended with " -Xclang ".
+        /// </summary>
+        /// <param name="s">The string to be prepended with " -Xclang ".</param>
+        /// <returns>The input string prepended with " -Xclang ".</returns>
+        private static string xclang(string s) {
+            return " -Xclang " + s;
+        }
+
+        /// <summary>
+        /// Return <paramref name="s"/> prepended with " -Xclang -plugin-arg-bde_verify -Xclang ".
+        /// </summary>
+        /// <param name="s">The string to be prepended with " -Xclang -plugin-arg-bde_verify -Xclang ".</param>
+        /// <returns>The input string prepended with " -Xclang -plugin-arg-bde_verify -Xclang ".</returns>
+        private static string plugin(string s) {
+            return xclang("-plugin-arg-bde_verify") + xclang(s);
         }
 
         /// <summary>
