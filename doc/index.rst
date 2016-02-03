@@ -358,6 +358,48 @@ for additional checks.
 
 .. only:: bde_verify
 
+   ``class-sections``
+   ++++++++++++++++++
+   BDE coding standards require that class member declarations appear in tagged
+   sections (e.g., ``// MANIPULATORS``, ``// CREATORS``, et al.)
+
+   * ``KS00``
+     Declaration without tag.
+   * ``KS01``
+     Tag requires public declaration.
+   * ``KS02``
+     Tag requires private declaration.
+   * ``KS03``
+     Tag requires function declaration.
+   * ``KS04``
+     Tag requires instance data field declaration.
+   * ``KS05``
+     Tag requires static data field declaration.
+   * ``KS06``
+     Tag requires type declaration.
+   * ``KS07``
+     Tag requires const method declaration.
+   * ``KS08``
+     Tag requires non-const method declaration.
+   * ``KS09``
+     Constructor or destructor requires CREATORS tag.
+   * ``KS10``
+     Tag requires constant data declaration.
+   * ``KS11``
+     Tag requires static method declaration.
+   * ``KS12``
+     Tag requires free operator declaration.
+   * ``KS13``
+     Tag requires free function declaration.
+   * ``KS14``
+     Tag requires conversion operator declaration.
+   * ``KS15``
+     Friend declaration requires FRIENDS tag.
+   * ``KS16``
+     Tag requires friend declaration.
+
+.. only:: bde_verify
+
    ``comments``
    ++++++++++++
    Comments containing erroneous or deprecated text.
