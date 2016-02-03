@@ -207,7 +207,7 @@ namespace BloombergLP.BDE_VERIFY_VS {
                 si.RedirectStandardOutput = false;
                 si.RedirectStandardError = true;
                 si.WorkingDirectory = Directory.GetParent(document.FilePath).ToString();
-                si.Arguments += " -Xclang -plugin bde_verify";
+                si.Arguments += " -Xclang -plugin -Xclang bde_verify";
                 if (cfg != null) {
                     si.Arguments += " -Xclang -plugin-arg-bde_verify -Xclang config=" + Quote(cfg);
                     if (GetConfig() == "") {
