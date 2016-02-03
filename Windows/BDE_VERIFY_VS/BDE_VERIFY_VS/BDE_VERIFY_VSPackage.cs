@@ -324,7 +324,7 @@ namespace BloombergLP.BDE_VERIFY_VS {
                 }
             } catch (NullReferenceException x) {
                 if (message == null) {
-                    message = x.toString();
+                    message = x.Message;
                 }
             }
             if (message != null) {
