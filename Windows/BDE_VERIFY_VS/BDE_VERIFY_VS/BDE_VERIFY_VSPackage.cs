@@ -189,10 +189,12 @@ namespace BloombergLP.BDE_VERIFY_VS {
                 var guidWpfViewHost = DefGuidList.guidIWpfTextViewHost;
                 object host;
                 userData.GetData(ref guidWpfViewHost, out host);
+                message = "File must be part of a project";
                 var document = (host as IWpfTextViewHost).TextView.TextBuffer.Properties.GetProperty(typeof(ITextDocument)) as ITextDocument;
                 var project = dte.Solution.FindProjectItem(document.FilePath).ContainingProject;
                 var vcproject = project.Object as VCProject;
                 var configuration = vcproject.Configurations.Item(dte.Solution.SolutionBuild.ActiveConfiguration.Name);
+                message = null;
                 var vctool = configuration.Tools.Item("VCCLCompilerTool") as VCCLCompilerTool;
                 var process = new System.Diagnostics.Process();
                 var si = process.StartInfo;
@@ -232,18 +234,22 @@ namespace BloombergLP.BDE_VERIFY_VS {
                 si.Arguments += " -std=c++11";
                 var paths = new HashSet<string>();
                 paths.Add("");
+                message = "Cannot find preprocessor include path";
                 foreach (string dir in (".;" + vctool.FullIncludePath).Split(';')) {
                     if (paths.Add(dir)) {
                         si.Arguments += " -isystem " + Quote(dir);
                     }
                 }
+                mesage = null;
                 var defs = new HashSet<string>();
                 defs.Add("");
+                message = "Cannot find preprocessor definitions";
                 foreach (string def in ("BDE_VERIFY;" + vctool.PreprocessorDefinitions).Split(';')) {
                     if (defs.Add(def)) {
                         si.Arguments += " -D" + Quote(def);
                     }
                 }
+                message = null;
                 si.Arguments += " " + Quote(document.FilePath);
                 try {
                     process.Start();
@@ -316,8 +322,10 @@ namespace BloombergLP.BDE_VERIFY_VS {
                 } catch (Exception x) {
                     message = "Error: " + process.StartInfo.FileName + "\n" + x.Message;
                 }
-            } catch (NullReferenceException) {
-                message = "Information Unavailable";
+            } catch (NullReferenceException x) {
+                if (message == null) {
+                    message = x.toString();
+                }
             }
             if (message != null) {
                 IVsUIShell uiShell = GetService(typeof(SVsUIShell)) as IVsUIShell;
