@@ -1,3 +1,35 @@
+bde-verify (1.1.10) unstable; urgency=low
+
+  * bdcdc4f Windows updates
+  * 3f9eb3b Typo
+  * 9b44b4e Message stuff.
+  * 6045769 Add better messages.
+  * c27c09f Shorten the -xclang prefixing code.
+  * de90d21 Missed an Xclang
+  * b2b2afc More Windows command-line updates
+  * dfe3138 Add class-sections docs.
+  * 447eab2 Remove extra comma
+  * 29625fb Use -isystem (not -internal-isystem) for Windows.
+  * 4423f47 New argument passing version.
+  * fa2549f Find Clang resource files.
+  * 149771d Changes for clang resource header files.
+  * 62aaed6 Update CMakeLists with new files and libraries.
+  * 00f2a34 Add class-sections check. Extensively modify csabase_tool.cpp to be more like the clang++ driver. As a consequence, modify how the bde_verify script passes arguments. For the include-in-extern-C check, don't note inside system headers.
+  * 2152e78 Fix determination from constructor of whether class takes allocator.
+  * 6ec9009 Avoid hang when last line of config file is a backslash.
+  * 9e6dc9a Handle linkage specifications in macros.
+  * 661fb0a Add (more) non-English C++ keywords.
+  * fd19748 Add class data member name checks.
+  * 64395e2 Allow consecutive function templates to need only one contract.
+  * f020870 After resetting diagnistics engine, warning options must be reprocessed.
+  * 8a224b8 Just enable the check it wants - was enabling the refactoring check.
+  * b9961b2 Code for generating refactoring configuration files.
+  * 2af5d4b Replace forward class declarations.
+  * 7c25793 Update doc for macro refactor.
+  * 338b6ac Have refactor work with macro names.
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Thu, 4 Feb 2016 15:03:00 -0500
+
 bde-verify (1.1.9) unstable; urgency=low
 
   * 0a5758c Merge branch 'work'
