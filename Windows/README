@@ -1,18 +1,73 @@
-To build BDE Verify for windows, you must have cmake installed.  Source and
-binaries can be found here: <http://www.cmake.org/download/>.
+Prerequisites for building BDE Verify on Windows:
+1) Git Bash           <https://git-scm.com/download/win>
+2) CMake              <https://cmake.org/download>
+3) NSIS               <http://nsis.sourceforge.net/Download>
+4) Visual Studio 2013
 
-If you also wish to create an installer for BDE Verify, you must have NSIS
-(Nullsoft Scriptable Install System) installed.  Source and binaries can be
-found here: <http://nsis.sourceforge.net/Download>.
+Prerequisites for running the command-line BDE Verify on Windows:
+1) Perl               <http://www.activestate.com/activeperl/downloads>
 
-You must have a development installation of LLVM/Clang (with all of the include
-files and libraries needed for building the compiler itself).  Source and
-binaries can be found here: <http://llvm.org/releases/download.html>.  Set the
-LLVM environment variable to the directory in which it is installed; the build
-of BDE Verify looks in $LLVM/include for headers and $LLVM/lib for libraries.
+Prepare a development installation of LLVM/Clang 3.6.x (currently x = 2).
+First, obtain the sources; in a Git Bash shell, do
 
-Create a build directory, cd there, and run
-    cmake .../path/to/bde-verify/
-This will produce a bde_verify.sln solution file.  Open it in Visual Studio
-and build the ALL_BUILD project to produce the bde_verify executable, or build
-the PACKAGE project to build the automatic installer as well.
+    export SRC=/path/to/source/directory
+    mkdir -p $SRC
+    export BLD=/path/to/build/directory
+    mkdir -p $BLD
+
+    cd $SRC
+    git clone http://github.com/llvm-mirror/llvm.git
+    cd llvm
+    git checkout release_36
+    cd tools
+    git clone http://github.com/llvm-mirror/clang.git
+    cd clang
+    git checkout release_36
+    cd tools
+    git clone http://github.com/llvm-mirror/clang-tools-extra.git extra
+    cd extra
+    git checkout release_36
+
+Then build an installation package;
+    export CLSRC=$SRC/llvm
+    export CLBLD=$BLD/llvm
+    mkdir -p $CLBLD
+    cd $CLBLD
+    cmake $CLSRC
+    cmake --build . --target package
+
+This will produce an executable LLVM-3.6.x-win32.exe (currently x = 2).
+Run it to install the development LLVM/Clang.
+
+Now get and build BDE Verify,
+    export BVSRC=$SRC/bde_verify
+    cd $SRC
+    git clone http://github.com/bloomberg/bde_verify.git
+    export BVBLD=$BLD/bde_verify
+    mkdir -p $BVBLD
+    cd $BVBLD
+    cmake $BVSRC
+    cmake --build . --target package
+
+This will produce an executable bde_verify-1.x.0-win32.exe (currently x = 1).
+Run it to install BDE Verify.  The driver script on Windows is bde_verify.pl,
+taking generally the same arguments as the Unix bde_verify driver script.  See
+<http://bloomberg.github.io/bde_verify/bde_verify_build/html/> for full
+documentation.
+
+Then build the Visual Studio plugin:  From Visual Studio, open the solution
+$BVSRC/Windows/BDE_VERIFY_VS/BDE_VERIFY_VS.sln and build it, producing
+$BVSRC/Windows/BDE_VERIFY_VS/BDE_VERIFY_VS/bin/Release/BDE_VERIFY_VS.vsix.
+Run that file to install the BDE Verify extension into Visual Studio.
+
+Once installed, the TOOLS menu will have a BDE Verify entry and there will be a
+property page for BDE Verify under TOOLS/Options where some configuration may
+be set.  Selecting TOOLS/BDE Verify to run on a C++ file that's part of a
+project will run BDE Verify on that file and output the warnings to a message
+window where they can be clicked individually to take you to their
+corresponding source lines.  Note that BDE Verify runs asynchronously, so the
+message window will gradually fill with warnings and the Visual Studio GUI
+will not hang while waiting.  A "BDE Verify done" message will be posted once
+processing is complete.  Messages from multiple runs on different files may be
+displayed simultaneously.  Rerunning BDE Verify on a file replaces just the
+messages for that file.
