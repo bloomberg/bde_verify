@@ -1,3 +1,9 @@
+bde-verify (1.1.11) unstable; urgency=low
+
+  * 71d0331 Log into separate files without locking.
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Mon, 8 Feb 2016 14:08:53 -0500
+
 bde-verify (1.1.10) unstable; urgency=low
 
   * bdcdc4f Windows updates
