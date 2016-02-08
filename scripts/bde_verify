@@ -17,7 +17,7 @@ chomp(my $system   = `uname -s`);
 $system = 'Linux' unless grep(/$system/, @known_systems);
 
 my @known_hw = ('powerpc', 'ia64', 'x86_64', 'sparc', 'i386');
-chomp (my $hw = `uname -p`);
+chomp(my $hw = `uname -p`);
 $hw = 'x86_64' unless grep(/$hw/, @known_hw);
 
 my $bb       = "/bb/build/$system-$hw-64/release/robolibs/trunk";
@@ -47,8 +47,8 @@ my $verbose  = "";
 my $help     = "";
 my $definc   = 1;
 my $defdef   = 1;
-my $log      = "/home/hrosen4/mbig/${nm}.log";
-my $nsa      = -w $log || 0;
+my $logdir   = "/home/hrosen4/mbig/logs/${nm}";
+my $nsa      = -d $logdir | 0;
 my @incs;
 my @defs;
 my @wflags;
@@ -255,16 +255,17 @@ my @command = (
 
 print join(" \\\n ", map { join "\\ ", split(/ /, $_, -1) } @command), "\n"
                                                                    if $verbose;
-undef $nsa;
 if ($nsa) {
     my ($ss,$mm,$HH,$dd,$MM,$YYYY) = gmtime;
     $YYYY += 1900;
     $MM += 1;
     my $now = sprintf('%.4d' . ('%.2d' x 5), $YYYY, $MM, $dd, $HH, $mm, $ss);
-    open my $fh, ">>", $log;
-    flock $fh, LOCK_EX;
-    print $fh $ENV{USER}, " ", $now, map { " $_" } @command, "\n";
-    close $fh;
+    chomp(my $host = `uname -n`);
+    my $log = "${logdir}/${nm}-${now}-${host}-$$.log";
+    if (open my $fh, ">>", $log) {
+        print $fh $ENV{USER}, " ", $now, map { " $_" } @command, "\n";
+        close $fh;
+    }
 }
 
 #eval "use BSD::Resource; setrlimit(RLIMIT_CORE, 0, 0);";
