@@ -14,6 +14,7 @@
 #include <sstream>   // IWYU pragma: keep
 #include <vector>
 #include <csabase_analyser.h>
+#include <csabase_debug.h>
 #include <csabase_filenames.h>
 #include <csabase_location.h>
 
@@ -371,6 +372,23 @@ bool csabase::Config::all() const
     return d_all;
 }
 
+namespace {
+bool glob_match(llvm::StringRef name, llvm::StringRef pattern)
+{
+    while (name.size() != 0 && pattern.size() != 0 && pattern[0] != '*') {
+        if (name[0] != pattern[0] && pattern[0] != '?') { return false; }
+        name = name.drop_front(1);
+        pattern = pattern.drop_front(1);
+    }
+    if (pattern.size() == 1) { return true; }
+    if (pattern.size() == 0) { return name.size() == 0; }
+    for (pattern = pattern.drop_front(1);; name = name.drop_front(1)) {
+        if (glob_match(name, pattern)) { return true; }
+        if (name.size() == 0) { return false; }
+    }
+}
+}
+
 bool csabase::Config::suppressed(const std::string& tag,
                                  SourceLocation where) const
 {
@@ -397,8 +415,7 @@ bool csabase::Config::suppressed(const std::string& tag,
             } else if (   (ls[i].type == '-' || ls[i].type == '+')
                        && pragma_stack.size() <= stack.size()
                        && pragma_stack.back() == stack[pragma_stack.size() - 1]
-                       && (   ls[i].s1 == tag
-                           || ls[i].s1 == "*")) {
+                       && glob_match(tag, ls[i].s1)) {
                 found = ls[i].type;
             }
         }
@@ -407,9 +424,12 @@ bool csabase::Config::suppressed(const std::string& tag,
         }
     }
 
-    return d_suppressions.count(std::make_pair(tag, fn.name())) +
-           d_suppressions.count(std::make_pair("*", fn.name())) +
-           d_suppressions.count(std::make_pair(tag, "*"));
+    for (const auto &sup : d_suppressions) {
+        if (glob_match(tag, sup.first) && glob_match(fn.name(), sup.second)) {
+            return true;
+        }
+    }
+    return false;
 }
 
 void csabase::Config::push_suppress(SourceLocation where)
