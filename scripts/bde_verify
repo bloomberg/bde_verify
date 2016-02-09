@@ -1,0 +1,295 @@
+#!/usr/bin/env perl
+# bde_verify                                                         -*-perl-*-
+
+# Bde_verify is a static analysis tool that verifies that source code adheres 
+# to the BDE coding standards.  Many of the checks are specific to Bloomberg LP
+# and this wrapper script contains default options for the Bloomberg LP
+# environment.
+
+use strict;
+use warnings;
+use Getopt::Long qw(:config no_ignore_case);
+use Cwd;
+use Fcntl qw/ :flock /;
+
+my @known_systems = ('AIX', 'HP-UX', 'Linux', 'SunOS');
+chomp(my $system   = `uname -s`);
+$system = 'Linux' unless grep(/$system/, @known_systems);
+
+my @known_hw = ('powerpc', 'ia64', 'x86_64', 'sparc', 'i386');
+chomp(my $hw = `uname -p`);
+$hw = 'x86_64' unless grep(/$hw/, @known_hw);
+
+my $bb       = "/bb/build/$system-$hw-64/release/robolibs/trunk";
+$bb          = '' unless -d $bb;
+
+my $me       = Cwd::abs_path(${0});
+my $pt       = $me;
+$pt          =~ s{(bin/|scripts/)?[^/]*$}{};
+my $nm       = ${0};
+$nm          =~ s{.*/}{};
+
+my $config   = "${pt}etc/bde-verify/${nm}.cfg";
+$config      = "${pt}${nm}.cfg"                 unless -r $config;
+
+my $enm      = "bde_verify_bin";
+my $exe      = "${pt}libexec/bde-verify/$enm";
+$exe         = "${pt}$system-g++/$enm"          unless -x $exe;
+$exe         = "${pt}$system-clang++/$enm"      unless -x $exe;
+$exe         = "${pt}bin/$enm"                  unless -x $exe;
+$exe         = "${pt}scripts/$enm"              unless -x $exe;
+$exe         = "${pt}$enm"                      unless -x $exe;
+
+my @cl;
+my $cc       = $ENV{CXX} || "g++";
+my $debug    = "";
+my $verbose  = "";
+my $help     = "";
+my $definc   = 1;
+my $defdef   = 1;
+my $logdir   = "/home/hrosen4/mbig/logs/${nm}";
+my $nsa      = -d $logdir | 0;
+my @incs;
+my @defs;
+my @wflags;
+my @lflags = (
+    "cxx-exceptions",
+    "exceptions",
+    "diagnostics-show-note-include-stack",
+    "diagnostics-show-option",
+    "error-limit=0",
+);
+my $dummy;
+my @dummy;
+my $std;
+my @std;
+my $warnoff;
+my $diagnose = "component";
+my $rwd;
+my $rwf;
+my $tag;
+my $ovr = -1;
+my $m32;
+my $m64;
+
+my $command = join " \\\n ", $0, map { join "\\ ", split(/ /, $_, -1) } @ARGV;
+
+sub usage()
+{
+    print "
+usage: $0 [options] [additional compiler options] file.cpp ...
+    -I{directory}
+    -D{macro}
+    -w                       # disable normal compiler warnings
+    -W{warning}
+    -f{flag}
+    --config=config_file     [$config]  
+    --cl=config_line
+    --bb=dir                 [$bb]
+    --exe=bde_verify         [$exe]
+    --cc=/path/to/g++        [$cc]
+    --[no]definc             [$definc]
+    --[no]defdef             [$defdef]
+    --[no]ovr                # whether to define BSL_OVERRIDES_STD
+    --[no]nsa                [$nsa] (command logged for tracking purposes)
+    --rewrite-dir=dir
+    --rewrite-file=file
+    --diagnose={main,component,nogen,all}
+    --std=type
+    --tag=string
+    --debug
+    --verbose
+    --help
+
+For full documentation, see {TEAM BDE:BDE_VERIFY<GO>} or
+<http://cms.prod.bloomberg.com/team/display/bde/bde_verify>.
+
+Invoked as:
+$command
+";
+    exit(1);
+}
+
+@ARGV = map { /^(-+[DIOWf])(.+)/ ? ($1, $2) : $_ } @ARGV;
+
+GetOptions(
+    'bb=s'                         => \$bb,
+    'config=s'                     => \$config,
+    'cl=s'                         => \@cl,
+    'debug'                        => \$debug,
+    'help|?'                       => \$help,
+    'cc=s'                         => \$cc,
+    'exe=s'                        => \$exe,
+    'verbose|v'                    => \$verbose,
+    'definc!'                      => \$definc,
+    'defdef!'                      => \$defdef,
+    'ovr!'                         => \$ovr,
+    'nsa!'                         => \$nsa,
+    'rewrite|rewrite-dir|rd=s'     => \$rwd,
+    'rewrite-file|rf=s'            => \$rwf,
+    'w'                            => \$warnoff,
+    "I=s"                          => \@incs,
+    "D=s"                          => \@defs,
+    "W=s"                          => \@wflags,
+    "f=s"                          => \@lflags,
+    "std=s"                        => \$std,
+    "toplevel"                     => sub { $diagnose = "main" },
+    "diagnose=s"                   => sub {
+        my %opts = ("main" => 1, "component" => 1, "nogen" => 1, "all" => 1);
+        die "Unknown value '$_[1]' for '-$_[0]='\n" unless $opts{$_[1]};
+        $diagnose = $_[1];
+    },
+    'tag=s'                        => \$tag,
+    'llvm=s'                       => \$dummy,
+    "m32"                          => \$m32,
+    "m64"                          => \$m64,
+    "pipe|pthread|MMD|g|c|S"       => \$dummy,
+    "O|MF|o|march|mtune=s"         => \@dummy,
+) and !$help and $#ARGV >= 0 or usage();
+
+sub xclang(@) { return map { ( "-Xclang", $_ ) } @_; }
+sub plugin(@) { return xclang( "-plugin-arg-bde_verify", @_ ); }
+
+my @config = plugin("config=$config")      if $config;
+my @debug  = plugin("debug-on")            if $debug;
+my @tlo    = plugin("diagnose=$diagnose");
+my @rwd    = plugin("rewrite-dir=$rwd")    if $rwd;
+print "No such directory $rwd\n" if $rwd and ! -d $rwd;
+my @rwf    = plugin("rewrite-file=$rwf")   if $rwf;
+my @tag    = plugin("tool=$tag")           if $tag;
+my %uf     = ( "no-strict-aliasing" => 1,
+               "PIC" => 1,
+               "asynchronous-unwind-tables" => 1,
+               "diagnostics-color=auto" => 1,
+             );
+@lflags = map { "-f$_" } grep { not exists $uf{$_} } @lflags;
+@wflags = map { "-W$_" } grep { not /,/ } @wflags;
+unshift @wflags, "-w" if $warnoff;
+
+my $macro = ${nm};
+$macro =~ s{^([^.]*).*}{\U$1\E};
+push(@defs, ($macro));
+push(@defs, (
+    "BB_THREADED",
+    "BDE_BUILD_TARGET_DBG",
+    "BDE_BUILD_TARGET_EXC",
+    "BDE_BUILD_TARGET_MT",
+    "_LINUX_SOURCE",
+    "_REENTRANT",
+    "_SYS_SYSMACROS_H",
+    "_THREAD_SAFE",
+)) if $defdef;
+if ($ovr == 1 || $ovr != 0 && $defdef && !grep(m{\bb[sd]l[^/]*$}, @ARGV)) {
+    push(@defs, "BSL_OVERRIDES_STD");
+}
+@defs = map { "-D$_" } @defs;
+if ($ovr == 0) {
+    push(@defs, "-UBSL_OVERRIDES_STD");
+}
+
+my $gccdir   = Cwd::abs_path($cc);
+$gccdir      =~ s{/(bin/)?[^/]*$}{};
+
+for (@ARGV) {
+    if (! -f) {
+        warn "Cannot find file $_\n";
+    } elsif (m{^(.*)/.*$}) {
+        push(@incs, $1) unless grep($_ eq $1, @incs);
+    } else {
+        push(@incs, ".") unless grep($_ eq ".", @incs);
+    }
+}
+for (@incs) { warn "cannot find directory $_\n" unless -d; }
+push(@incs, (
+    "$bb/include/stlport",
+    "$bb/lib/dpkgroot/opt/bb/include/stlport",
+    "$bb/share/include/00depbuild",
+    "$bb/share/include/00deployed",
+    "$bb/share/include/00offlonly",
+    "/bb/build/share/stp/include/00offlonly",
+    "$bb/include",
+    "$bb/lib/dpkgroot/opt/bb/include",
+)) if $bb and $definc;
+@incs = map { ( "-I", $_ ) }
+        map { $_ eq Cwd::cwd() ? "." : $_ }
+        map { Cwd::abs_path($_) }
+        grep { -d } @incs;
+
+my @pass;
+push(@pass, "-m32") if $m32;
+push(@pass, "-m64") if $m64;
+
+unshift(@incs, xclang(
+        map { ( "-internal-isystem", $_ ) }
+        map { Cwd::abs_path($_) }
+        grep { -d }
+        map { chomp; $_; }
+        qx{ $cc -xc++ @pass -E -v /dev/null 2>&1 |
+            sed -n '/^#include/,/^End of search list/p' |
+            sed -n '/^ [/]/s/ //p'}));
+
+push(@std, "-std=$std") if $std;
+
+@cl = map { plugin("config-line=$_") } @cl;
+
+my @command = (
+    "$exe",
+    xclang("-plugin", "bde_verify"),
+    "-resource-dir", "${pt}include/bde-verify/clang",
+    "-msoft-float",
+    "-fsyntax-only",
+    "-xc++",
+    @std,
+    @debug,
+    @config,
+    @tlo,
+    @rwd,
+    @rwf,
+    @tag,
+    @cl,
+    @defs,
+    @incs,
+    @lflags,
+    @wflags,
+    @ARGV);
+
+print join(" \\\n ", map { join "\\ ", split(/ /, $_, -1) } @command), "\n"
+                                                                   if $verbose;
+if ($nsa) {
+    my ($ss,$mm,$HH,$dd,$MM,$YYYY) = gmtime;
+    $YYYY += 1900;
+    $MM += 1;
+    my $now = sprintf('%.4d' . ('%.2d' x 5), $YYYY, $MM, $dd, $HH, $mm, $ss);
+    chomp(my $host = `uname -n`);
+    my $log = "${logdir}/${nm}-${now}-${host}-$$.log";
+    if (open my $fh, ">>", $log) {
+        print $fh $ENV{USER}, " ", $now, map { " $_" } @command, "\n";
+        close $fh;
+    }
+}
+
+#eval "use BSD::Resource; setrlimit(RLIMIT_CORE, 0, 0);";
+syscall($system eq 'Linux' ? 160 : 128, 4, pack('LL', 0, 0));
+exec @command;
+
+## ----------------------------------------------------------------------------
+## Copyright (C) 2014 Bloomberg Finance L.P.
+##
+## Permission is hereby granted, free of charge, to any person obtaining a copy
+## of this software and associated documentation files (the "Software"), to
+## deal in the Software without restriction, including without limitation the
+## rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+## sell copies of the Software, and to permit persons to whom the Software is
+## furnished to do so, subject to the following conditions:
+##
+## The above copyright notice and this permission notice shall be included in
+## all copies or substantial portions of the Software.
+##
+## THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+## IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+## FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+## AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+## LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+## FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+## IN THE SOFTWARE.
+## ----------------------------- END-OF-FILE ----------------------------------

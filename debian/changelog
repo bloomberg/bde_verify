@@ -1,0 +1,260 @@
+bde-verify (1.1.11) unstable; urgency=low
+
+  * 71d0331 Log into separate files without locking.
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Mon, 8 Feb 2016 14:08:53 -0500
+
+bde-verify (1.1.10) unstable; urgency=low
+
+  * bdcdc4f Windows updates
+  * 3f9eb3b Typo
+  * 9b44b4e Message stuff.
+  * 6045769 Add better messages.
+  * c27c09f Shorten the -xclang prefixing code.
+  * de90d21 Missed an Xclang
+  * b2b2afc More Windows command-line updates
+  * dfe3138 Add class-sections docs.
+  * 447eab2 Remove extra comma
+  * 29625fb Use -isystem (not -internal-isystem) for Windows.
+  * 4423f47 New argument passing version.
+  * fa2549f Find Clang resource files.
+  * 149771d Changes for clang resource header files.
+  * 62aaed6 Update CMakeLists with new files and libraries.
+  * 00f2a34 Add class-sections check. Extensively modify csabase_tool.cpp to be more like the clang++ driver. As a consequence, modify how the bde_verify script passes arguments. For the include-in-extern-C check, don't note inside system headers.
+  * 2152e78 Fix determination from constructor of whether class takes allocator.
+  * 6ec9009 Avoid hang when last line of config file is a backslash.
+  * 9e6dc9a Handle linkage specifications in macros.
+  * 661fb0a Add (more) non-English C++ keywords.
+  * fd19748 Add class data member name checks.
+  * 64395e2 Allow consecutive function templates to need only one contract.
+  * f020870 After resetting diagnistics engine, warning options must be reprocessed.
+  * 8a224b8 Just enable the check it wants - was enabling the refactoring check.
+  * b9961b2 Code for generating refactoring configuration files.
+  * 2af5d4b Replace forward class declarations.
+  * 7c25793 Update doc for macro refactor.
+  * 338b6ac Have refactor work with macro names.
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Thu, 4 Feb 2016 15:03:00 -0500
+
+bde-verify (1.1.9) unstable; urgency=low
+
+  * 0a5758c Merge branch 'work'
+  * 2ed44e3 Fix rules shebang line.
+  * f4e29ad Canonicalize debian rules shebang line.
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Thu, 5 Nov 2015 10:34:48 -0500
+
+bde-verify (1.1.8) unstable; urgency=low
+
+  * 38bfcb7 Tag change
+  * f0d250c Doc fixes.
+  * 76bcd4e Ignore git return status on gh-pages commit
+  * 9d033fd Don't make depend when building docs.
+  * 7244147 Fix up docs.
+  * 9f32294 Fix up docs a bit.
+  * 6dce042 Catch up documentation.  Kill off unused files.
+  * c2c2f15 Refactoring improvements
+  * 736fa72 Fix bad refactor option message.
+  * 9524c8d Finish the refactoring code.
+  * 535ba87 First cut at refactor tool.
+  * a9e4edb Don't warn about untested private function templates.
+  * e192999 Another test
+  * 5f1da78 Fixes
+  * 92a7286 Fix a clang crash.  Only process generated files on diagnose=all.
+  * 0f27169 Additional top-level transitive-include prefixes.
+  * 6ef0111 Check for passing MovableRef by reference.
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Wed, 4 Nov 2015 16:37:51 -0500
+
+bde-verify (1.1.7) unstable; urgency=low
+
+  * 5e53780 Merge branch 'work'
+  * 8c27daa A class is copyable if it has no user-declared copy constructor. Check friendship by name earlier.
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Fri, 21 Aug 2015 14:58:44 -0400
+
+bde-verify (1.1.6) unstable; urgency=low
+
+  * 0f874c8 Fix transitive include stupid error. Don't complain about allocator traits for non-copyable classes. Don't complain about non-visible names.
+  * 793a1c9 Fix function argument indentation and spelling in @CONTACT.
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Fri, 21 Aug 2015 12:16:49 -0400
+
+bde-verify (1.1.5) unstable; urgency=low
+
+  * f0f34c0 No longer require anonymous namespaces to be nested in package ones.
+  * 5dc2f06 Allow <> in @CLASS names (for template specializations).
+  * cb1f70a Don't forallbases on incomplete types.
+  * 516c717 Const allocator parameters aren't allocators.
+  * 855b4d6 Classes are also allocators if they have an allocator as a base class.
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Mon, 10 Aug 2015 17:02:20 -0400
+
+bde-verify (1.1.4) unstable; urgency=low
+
+  * 97420c5 Improve detection of missing allocators in constructors.
+  * 3df52f5 Don't warn about two spaces after periods inside single quotes.
+  * 6abdb86 When processing a component, don't remap the component header. Don't process template parameters.
+  * 4f6299d Unify toplevel filename checking todeal with full versus relative paths.
+  * 9fd50c1 Another preposition for that-which.
+  * 0f4a19c Fix errors.
+  * ad2bbb8 Fix function argument indentation issue.
+  * ea08d7a Fix allocator forwarding detection error.
+  * 92439ad Check global_names for things not to complain about.
+  * 61855ce handle reference to pointer to allocator paramater types.
+  * 4ec0920 Suppress repeated indentation warnings at the same level.
+  * b765d2d Check for directory inconsistencies.
+  * aeac067 Go back to including BB include dirs.  Add uor_aq_A script.
+  * df4d8ec Check AQ 6 b for global data.
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Wed, 22 Jul 2015 19:36:18 -0400
+
+bde-verify (1.1.3) unstable; urgency=low
+
+  * f820a7a Add check_bos to installation.
+  * 1270780 Add copyright to check_bos.  Modify README to specify clang 3.6. Document check_bos and exit status setting.
+  * 48e7ee9 Script and changes for BSL_OVERRIDES_STD neutrality checker.
+  * b387e06 When rewriting only do files matching the -diagnose option.
+  * 31fd5d8 Add the ability for specified checks to result in a failed exit status.
+  * 1a57036 It is suggested that spaces at the ends of lines is not a useful check.
+  * c7440e5 Fix some errors and missed cases wrt template parameter names.
+  * ce220cb Lightly check for numbered Concerns and Plan.
+  * 49b04f8 Documentation for building on Windows.
+  * 33e4752 Code for Visual Studio Extension Package
+  * f7091da Avoid falling off file beginning. Deal with '\r' at end of lines.
+  * e32402f Set App Paths keys in registry in Windows installer.
+  * 9e388cc Use --enable-new-dtags to linker so RUNPATH (!= RPATH) can be overridden by LD_LIBRARY_PATH.
+  * 65fcfb5 Binary dpkg should depend on gcc to get correct libstdc++.so.
+  * c6ae217 Allow for allocator reference as well as pointer parameters.
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Fri, 12 Jun 2015 15:52:18 -0400
+
+bde-verify (1.1.2) unstable; urgency=low
+
+  * 2dc87f4 Missed a "getCanonicalDecl" causing spurious shared_ptr warnings.
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Thu, 30 Apr 2015 12:49:18 -0400
+
+bde-verify (1.1.1) unstable; urgency=low
+
+  * 8388172 Remove obsolete Windows build files.
+  * a555ff8 Update Windows build and wrapper scripts.
+  * d1de88e Make sure $nsa is not left undefined, for help output.
+  * ca85073 Fancy braced initializers seem to blow up in Windows.
+  * a0d3afc Allow for spaces in load file path name.
+  * b48c627 Files for building and installing on Windows using cmake.
+  * bac2099 Changes for WIndows.
+  * f8f3851 Merge branch 'work' of devgit:bde/bde-verify into work
+  * a54e1d0 Update Windows project file
+  * 69d5378 Don't use inheriting constructors for MSVC.
+  * 4542665 Eliminate some C++-ish warnings for extern "C" declarations. Make the local friendship code be more meaningful (i.e., not just by file). Fix an error in matching the standard_namespaces names.
+  * ea403d5 Clean csabase objects when building gh-pages docs.
+  * 377afdd More changes for docs
+  * 00e063c More doc changes.
+  * 52f6a58 Touch up documentation.
+  * 9b72fae Make the strict aliasing check more precise.
+  * ee53f70 version number change
+  * aebb425 install utils header
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Tue, 28 Apr 2015 18:06:21 -0400
+
+bde-verify (1.1.0.1) unstable; urgency=low
+
+  * b7b2740 Add documentation files.
+  * 50afd6b Rename bb_verify to bb_cppverify.
+  * c11ce30 Yet another trait version: bdealg_TypeTraitUsesBdemaAllocator.
+  * 8c5e4d5 Don't warn that va_list parameters are array types.
+  * 489e3d5 Clarify constant-on-the-left warning for comparison order check.
+  * 2cb223e A bit more scope reduction for RV01 - second parameter pointer.
+  * 0a2dd45 Suppress RV01 when second parameter is also a pointer.
+  * ebb2fb4 Tie emission of notes to emission of their warning. Fix up CP01 tests to use this.
+  * e2a19d4 Allow append and prepend as well as set in pragmas.
+  * d58b36d Check for two spaces after period in comments.
+  * 0d3eede Don't note ignored functions.
+  * d9f8707 Delay processing so pragmas can kick in.
+  * acbe247 Sort libraries (based on map file).
+  * 9c00b01 Pass -m32/64 when gathering include paths.  Pass triple to binary.
+  * c1d58a0 Add 'unclear' as a preposition and don't warn about 'which of'.
+  * 458dfde Properly distinguish instantiations in test drivers.
+  * 68b4bbc Be slightly more conservative about RV01 warnings.
+  * 04313a8 Strict aliasing false positive (cast from void *).
+  * 4dd4cfc Free functions can depend on locally-defined enums.
+  * afdc688 Ignore -fasynchronous-unwind-tables
+  * 977150d Make transitive check more lenient wrt bsl/non-bsl/fwd versions.
+  * 8b23181 Force C++11 mode while initializers are checked for evaluatability.
+  * c8cbe06 Fix the comparison order assertion problem (again).
+  * bf1b93a Add methods of deprecated classes to deprecation check.
+  * e5578d4 Include deprecated check in bb_verify.
+  * f0a6662 Include enum in must-be-defined-in-header check.
+  * a151f7e Add check for calls to deprecated functions.
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Thu, 9 Apr 2015 17:41:56 -0400
+
+bde-verify (1.1.0.0) unstable; urgency=low
+
+  * 5f1be98 Update to canonicalize names and directories for packaging.
+  * 47a3b42 Add TR11 checks.
+  * e8f0b9e Don't complain about class template specializations in source files.
+  * 1db963b Complain about global class defined in source file.
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Thu, 19 Mar 2015 18:01:05 -0400
+
+bde-verify (1.0.1.1) unstable; urgency=low
+
+  * c0f029a Change the installation paths to conform to correct /opt/bb usage.
+  * 055743b Allow quoted CLASSES to appear in multiple DESCRIPTION paragraphs. Use the spelled_ok_count for parameters too. Don't complain about line and indentation for numeric cognate parameters.
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Wed, 18 Mar 2015 12:11:19 -0400
+
+bde-verify (1.0.1.0) unstable; urgency=low
+
+  * f2a70d8 Disable comparison order check.
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Mon, 16 Mar 2015 20:54:47 -0400
+
+bde-verify (1.0.0.9) unstable; urgency=low
+
+  * 7bd7a4c Pass -fexceptions to enable them. Fix indentation check for parameters. Avoid crash for comparison order check. Add custom variable abbreviations and ignore case on them. Don't complain about a leading 'which'.
+  * 5847a5a Only check equality comparison order. Weird "shouldn't happen" crash in mid-return.
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Mon, 16 Mar 2015 20:03:53 -0400
+
+bde-verify (1.0.0.8) unstable; urgency=low
+
+  * e104b39 Allow enums to be indented to their first enumerator when on tag line.
+  * 14f894f Check comparison order when rhs is constant.
+  * 82a4d5e Add check for assignment instead of comparison in macros.
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Thu, 12 Mar 2015 14:39:58 -0400
+
+bde-verify (1.0.0.7) unstable; urgency=low
+
+  * 930b167 Accept "bb_verify" pragmas.
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Fri, 6 Mar 2015 15:34:13 -0500
+
+bde-verify (1.0.0.6) unstable; urgency=low
+
+  * 6c5b336 dpkg version increase
+  * f047614 Increase version
+  * 7dd507f Changelog for version 1.0.0.3
+  * 9f1a7ec Bunch o' stuff: 1 - allocator disavowal on class templates 2 - conversion operators in test drivers 3 - using declarations before includes in cpp files 4 - lift common "report" class stuff
+  * a4ee5c4 Distinguish between missing and misplaced version file.
+  * fad6589 Working version of BSL_OVERRIDES_STD cleaner.
+  * 3057625 Check for another version of allocator traits.
+  * 48cb877 Change scm_version output.
+  * c45edb0 Exclude version files from lower level packages.
+  * 834d6d7 Change directory version.
+  * 0d8545e Don't complain about *scm_versions file in files included by them.
+  * 86163b9 Show correct version of test banner printing.
+  * ece0305 Group for a_xxxyy_zzzz should be xxx. Don't complain about version info files in test drivers.
+  * 5f07f04 Look for other version of allocator type trait. Speed up function contract checking by removing schlemiel the painter behavior. Don't define BSL_OVERRIDES_STD in script for bsl* files.
+  * daa5a9a Make a "current" version of check-all. Make banner test and expected files.
+  * 5a8e3ff Don't complain about scm_version.h files not including themselves!
+  * 48d10ba Windows changes. Changes for latest SVN version of LLVM/CLANG.
+  * 89872df updated from the lastest github version.
+  * 571f08d saving the current version.
+  * f4ee97d save the current version.
+  * 5fd1e8c updated version.
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Mon, 2 Mar 2015 17:26:58 -0500

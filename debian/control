@@ -1,0 +1,25 @@
+Source: bde-verify
+Section: unknown
+Priority: extra
+Maintainer: Hyman Rosen <hrosen4@bloomberg.net>
+Build-Depends: build-base,
+               binutils,
+               coreutils,
+               gcc,
+               llvm,
+               aspell,
+               libncurses5-dev,
+               libtinfo5,
+               libz-dev,
+               which
+Standards-Version: 3.8.4
+
+Package: bde-verify
+Architecture: amd64 solaris10-sparc
+Description: bde_verify
+Depends: gcc
+
+Package: libbde-verify-dev
+Depends: llvm
+Architecture: amd64 solaris10-sparc
+Description: bde_verify base library and headers

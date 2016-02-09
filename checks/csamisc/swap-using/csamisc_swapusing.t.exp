@@ -1,0 +1,25 @@
+csamisc_swapusing.t.cpp:20:5: warning: SU01: Prefer 'using std::swap; swap(...);'
+    std::swap(v1, v2);
+    ^
+csamisc_swapusing.t.cpp:21:5: warning: SU01: Prefer 'using std::swap; swap(...);'
+    ::std::swap(v1, v2);
+    ^
+csamisc_swapusing.t.cpp:23:5: warning: SU01: Prefer 'using std::swap; swap(...);'
+    std::swap(w1, w2);
+    ^
+csamisc_swapusing.t.cpp:24:5: warning: SU01: Prefer 'using std::swap; swap(...);'
+    ::std::swap(w1, w2);
+    ^
+csamisc_swapusing.t.cpp:32:5: warning: SU01: Prefer 'using std::swap; swap(...);'
+    std::swap(v1, v2);
+    ^
+csamisc_swapusing.t.cpp:33:5: warning: SU01: Prefer 'using std::swap; swap(...);'
+    ::std::swap(v1, v2);
+    ^
+csamisc_swapusing.t.cpp:35:5: warning: SU01: Prefer 'using std::swap; swap(...);'
+    std::swap(w1, w2);
+    ^
+csamisc_swapusing.t.cpp:36:5: warning: SU01: Prefer 'using std::swap; swap(...);'
+    ::std::swap(w1, w2);
+    ^
+8 warnings generated.

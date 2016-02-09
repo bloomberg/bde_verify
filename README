@@ -1,0 +1,75 @@
+BDE Verify - A Static Checker for C++
+
+Bde_verify is a static analysis tool that verifies that source code adheres
+to the BDE coding standards.
+
+The online documentation for bde_verify can be found here:
+    <http://bloomberg.github.io/bde_verify/bde_verify_build/html/>
+
+Currently there is no binary distribution for bde_verify.  Bde_verify can be
+built directly from source as described below.
+
+Build Instructions
+==================
+
+Supported Platforms:
+   o Linux x86
+   o SunOS sparc
+   o Microsoft Windows Visual Studio
+
+Prerequesites: 
+   o llvm/clang = 3.6 (see below for instructions)
+   o gcc >= 4.8.1
+   o gnu make
+   o aspell
+
+Bde_verify is built with llvm/clang 3.6, available by git as described in
+<http://llvm.org/docs/GettingStarted.html#git-mirror>.  It, and clang, use
+c++11 constructs, so you will need to build with a sufficiently recent gcc or
+clang.
+
+Note: Bde_verify contains code which subclasses classes from clang, and the
+clang developers have a distressing habit of changing virtual function
+signatures and breaking such code, hence the limitation to a specific version
+of clang.  (But it's not difficult to get the code to work on other versions.)
+
+To build llvm/clang, download 3.6 sources of LLVM and Clang from
+<http://llvm.org/releases/> and then see
+<http://clang.llvm.org/get_started.html>.  Follow directions until
+you are asked to run "../llvm/configure".  A configuration for clang sufficient
+to build bde_verify can be specifed with the following arguments to configure
+(where $GCCDIR is the path to your gcc installation):
+
+    --enable-optimized
+    --enable-cxx11
+    --prefix=<path to where you want clang installed>
+    --with-gcc-toolchain=<$GCCDIR>
+    --with-extra-options=--std=gnu++11
+    LDFLAGS=-Wl,-rpath,$GCCDIR/lib64
+    CC=$GCCDIR/bin/gcc
+    CXX=$GCCDIR/bin/g++
+
+For bde_verify itself, there is no autoconf support to create a Makefile.
+The following variables in the Makefiles in the top-level and in the csabase
+directories control aspects of the build, and may be changed if the defaults
+are not adequate.
+
+    CXX       = (g++)      The C++ compiler
+    PREFIX    = (/usr)     Where to find headers and libraries
+    LLVMDIR   = ($PREFIX)  Where to find llvm/clang headers and libraries
+    DESTDIR   = ($PREFIX)  Where to install
+    GCCDIR    = (from g++) Where to find gcc headers and libraries
+    INCFLAGS  =            Extra include flags
+    CXXFLAGS  =            Extra compiler flags
+    LDFLAGS   =            Extra linker flags
+
+The Makefile will derive GCCDIR from `which $CXX` if the final path component
+of CXX is g++, and from `which g++` otherwise.  (When building with clang,
+clang needs to be told where to look for libraries and headers.)
+
+Once you have Clang installed and bde_verify Makefiles set up, build bde_verify
+as follows.
+
+    make -j            # build the code, then
+    make -k check      # run test cases and report differences, or
+    make -k run        # run test cases and show output

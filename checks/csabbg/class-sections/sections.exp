@@ -1,0 +1,4394 @@
+In file included from sections.cpp:1:
+./sections.h:5:10: warning: KS00: Declaration witout tag
+    void accessor_0() const;
+         ^
+./sections.h:6:10: warning: KS00: Declaration witout tag
+    void manipulator_0();
+         ^
+./sections.h:7:10: warning: KS00: Declaration witout tag
+    void aspect_0();
+         ^
+./sections.h:8:16: warning: KS00: Declaration witout tag
+    static int s_class_data_0;
+               ^
+./sections.h:9:17: warning: KS00: Declaration witout tag
+    static void s_class_method_0();
+                ^
+./sections.h:10:22: warning: KS00: Declaration witout tag
+    static const int s_CONSTANT_0 = 7;
+                     ^
+./sections.h:11:5: warning: KS00: Declaration witout tag
+    X(Z<0>);
+    ^
+./sections.h:12:8: warning: KS00: Declaration witout tag
+    X& operator=(Z<0>);
+       ^
+./sections.h:13:9: warning: KS00: Declaration witout tag
+    int d_data_0;
+        ^
+./sections.h:14:17: warning: KS00: Declaration witout tag
+    typedef int Type_0;
+                ^
+./sections.h:15:5: warning: KS00: Declaration witout tag
+    operator Z<0>();
+    ^
+./sections.h:16:5: warning: KS00: Declaration witout tag
+    operator Z<0>() const;
+    ^
+./sections.h:20:5: warning: KS01: Tag requires public declaration
+    X();
+    ^
+./sections.h:18:1: note: KS01: Tag is here
+// CREATORS
+^
+./sections.h:21:5: warning: KS01: Tag requires public declaration
+    ~X();
+    ^
+./sections.h:18:1: note: KS01: Tag is here
+// CREATORS
+^
+./sections.h:31:10: warning: KS01: Tag requires public declaration
+    void accessor_26() const;
+         ^
+./sections.h:29:1: note: KS01: Tag is here
+// ACCESSORS
+^
+./sections.h:32:10: warning: KS07: Tag requires const method declaration
+    void manipulator_26();
+         ^
+./sections.h:29:1: note: KS07: Tag is here
+// ACCESSORS
+^
+./sections.h:33:10: warning: KS07: Tag requires const method declaration
+    void aspect_26();
+         ^
+./sections.h:29:1: note: KS07: Tag is here
+// ACCESSORS
+^
+./sections.h:34:16: warning: KS07: Tag requires const method declaration
+    static int s_class_data_26;
+               ^
+./sections.h:29:1: note: KS07: Tag is here
+// ACCESSORS
+^
+./sections.h:35:17: warning: KS07: Tag requires const method declaration
+    static void s_class_method_26();
+                ^
+./sections.h:29:1: note: KS07: Tag is here
+// ACCESSORS
+^
+./sections.h:36:22: warning: KS07: Tag requires const method declaration
+    static const int s_CONSTANT_26 = 7;
+                     ^
+./sections.h:29:1: note: KS07: Tag is here
+// ACCESSORS
+^
+./sections.h:37:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<26>);
+    ^
+./sections.h:29:1: note: KS09: Tag is here
+// ACCESSORS
+^
+./sections.h:38:8: warning: KS07: Tag requires const method declaration
+    X& operator=(Z<26>);
+       ^
+./sections.h:29:1: note: KS07: Tag is here
+// ACCESSORS
+^
+./sections.h:39:9: warning: KS07: Tag requires const method declaration
+    int d_data_26;
+        ^
+./sections.h:29:1: note: KS07: Tag is here
+// ACCESSORS
+^
+./sections.h:40:17: warning: KS07: Tag requires const method declaration
+    typedef int Type_26;
+                ^
+./sections.h:29:1: note: KS07: Tag is here
+// ACCESSORS
+^
+./sections.h:41:5: warning: KS07: Tag requires const method declaration
+    operator Z<26>();
+    ^
+./sections.h:29:1: note: KS07: Tag is here
+// ACCESSORS
+^
+./sections.h:42:5: warning: KS01: Tag requires public declaration
+    operator Z<26>() const;
+    ^
+./sections.h:29:1: note: KS01: Tag is here
+// ACCESSORS
+^
+./sections.h:45:10: warning: KS07: Tag requires const method declaration
+    void manipulator_25();
+         ^
+./sections.h:29:1: note: KS07: Tag is here
+// ACCESSORS
+^
+./sections.h:46:10: warning: KS07: Tag requires const method declaration
+    void aspect_25();
+         ^
+./sections.h:29:1: note: KS07: Tag is here
+// ACCESSORS
+^
+./sections.h:47:16: warning: KS07: Tag requires const method declaration
+    static int s_class_data_25;
+               ^
+./sections.h:29:1: note: KS07: Tag is here
+// ACCESSORS
+^
+./sections.h:48:17: warning: KS07: Tag requires const method declaration
+    static void s_class_method_25();
+                ^
+./sections.h:29:1: note: KS07: Tag is here
+// ACCESSORS
+^
+./sections.h:49:22: warning: KS07: Tag requires const method declaration
+    static const int s_CONSTANT_25 = 7;
+                     ^
+./sections.h:29:1: note: KS07: Tag is here
+// ACCESSORS
+^
+./sections.h:50:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<25>);
+    ^
+./sections.h:29:1: note: KS09: Tag is here
+// ACCESSORS
+^
+./sections.h:51:8: warning: KS07: Tag requires const method declaration
+    X& operator=(Z<25>);
+       ^
+./sections.h:29:1: note: KS07: Tag is here
+// ACCESSORS
+^
+./sections.h:52:9: warning: KS07: Tag requires const method declaration
+    int d_data_25;
+        ^
+./sections.h:29:1: note: KS07: Tag is here
+// ACCESSORS
+^
+./sections.h:53:17: warning: KS07: Tag requires const method declaration
+    typedef int Type_25;
+                ^
+./sections.h:29:1: note: KS07: Tag is here
+// ACCESSORS
+^
+./sections.h:54:5: warning: KS07: Tag requires const method declaration
+    operator Z<25>();
+    ^
+./sections.h:29:1: note: KS07: Tag is here
+// ACCESSORS
+^
+./sections.h:59:10: warning: KS01: Tag requires public declaration
+    void accessor_24() const;
+         ^
+./sections.h:57:1: note: KS01: Tag is here
+// ASPECTS
+^
+./sections.h:60:10: warning: KS01: Tag requires public declaration
+    void manipulator_24();
+         ^
+./sections.h:57:1: note: KS01: Tag is here
+// ASPECTS
+^
+./sections.h:61:10: warning: KS01: Tag requires public declaration
+    void aspect_24();
+         ^
+./sections.h:57:1: note: KS01: Tag is here
+// ASPECTS
+^
+./sections.h:62:16: warning: KS03: Tag requires function declaration
+    static int s_class_data_24;
+               ^
+./sections.h:57:1: note: KS03: Tag is here
+// ASPECTS
+^
+./sections.h:63:17: warning: KS01: Tag requires public declaration
+    static void s_class_method_24();
+                ^
+./sections.h:57:1: note: KS01: Tag is here
+// ASPECTS
+^
+./sections.h:64:22: warning: KS03: Tag requires function declaration
+    static const int s_CONSTANT_24 = 7;
+                     ^
+./sections.h:57:1: note: KS03: Tag is here
+// ASPECTS
+^
+./sections.h:65:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<24>);
+    ^
+./sections.h:57:1: note: KS09: Tag is here
+// ASPECTS
+^
+./sections.h:66:8: warning: KS01: Tag requires public declaration
+    X& operator=(Z<24>);
+       ^
+./sections.h:57:1: note: KS01: Tag is here
+// ASPECTS
+^
+./sections.h:67:9: warning: KS03: Tag requires function declaration
+    int d_data_24;
+        ^
+./sections.h:57:1: note: KS03: Tag is here
+// ASPECTS
+^
+./sections.h:68:17: warning: KS03: Tag requires function declaration
+    typedef int Type_24;
+                ^
+./sections.h:57:1: note: KS03: Tag is here
+// ASPECTS
+^
+./sections.h:69:5: warning: KS01: Tag requires public declaration
+    operator Z<24>();
+    ^
+./sections.h:57:1: note: KS01: Tag is here
+// ASPECTS
+^
+./sections.h:70:5: warning: KS01: Tag requires public declaration
+    operator Z<24>() const;
+    ^
+./sections.h:57:1: note: KS01: Tag is here
+// ASPECTS
+^
+./sections.h:75:16: warning: KS03: Tag requires function declaration
+    static int s_class_data_23;
+               ^
+./sections.h:57:1: note: KS03: Tag is here
+// ASPECTS
+^
+./sections.h:77:22: warning: KS03: Tag requires function declaration
+    static const int s_CONSTANT_23 = 7;
+                     ^
+./sections.h:57:1: note: KS03: Tag is here
+// ASPECTS
+^
+./sections.h:78:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<23>);
+    ^
+./sections.h:57:1: note: KS09: Tag is here
+// ASPECTS
+^
+./sections.h:80:9: warning: KS03: Tag requires function declaration
+    int d_data_23;
+        ^
+./sections.h:57:1: note: KS03: Tag is here
+// ASPECTS
+^
+./sections.h:81:17: warning: KS03: Tag requires function declaration
+    typedef int Type_23;
+                ^
+./sections.h:57:1: note: KS03: Tag is here
+// ASPECTS
+^
+./sections.h:87:10: warning: KS05: Tag requires static data field declaration
+    void accessor_22() const;
+         ^
+./sections.h:85:1: note: KS05: Tag is here
+// CLASS DATA
+^
+./sections.h:88:10: warning: KS05: Tag requires static data field declaration
+    void manipulator_22();
+         ^
+./sections.h:85:1: note: KS05: Tag is here
+// CLASS DATA
+^
+./sections.h:89:10: warning: KS05: Tag requires static data field declaration
+    void aspect_22();
+         ^
+./sections.h:85:1: note: KS05: Tag is here
+// CLASS DATA
+^
+./sections.h:91:17: warning: KS05: Tag requires static data field declaration
+    static void s_class_method_22();
+                ^
+./sections.h:85:1: note: KS05: Tag is here
+// CLASS DATA
+^
+./sections.h:93:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<22>);
+    ^
+./sections.h:85:1: note: KS09: Tag is here
+// CLASS DATA
+^
+./sections.h:94:8: warning: KS05: Tag requires static data field declaration
+    X& operator=(Z<22>);
+       ^
+./sections.h:85:1: note: KS05: Tag is here
+// CLASS DATA
+^
+./sections.h:95:9: warning: KS05: Tag requires static data field declaration
+    int d_data_22;
+        ^
+./sections.h:85:1: note: KS05: Tag is here
+// CLASS DATA
+^
+./sections.h:96:17: warning: KS05: Tag requires static data field declaration
+    typedef int Type_22;
+                ^
+./sections.h:85:1: note: KS05: Tag is here
+// CLASS DATA
+^
+./sections.h:97:5: warning: KS05: Tag requires static data field declaration
+    operator Z<22>();
+    ^
+./sections.h:85:1: note: KS05: Tag is here
+// CLASS DATA
+^
+./sections.h:98:5: warning: KS05: Tag requires static data field declaration
+    operator Z<22>() const;
+    ^
+./sections.h:85:1: note: KS05: Tag is here
+// CLASS DATA
+^
+./sections.h:100:10: warning: KS05: Tag requires static data field declaration
+    void accessor_21() const;
+         ^
+./sections.h:85:1: note: KS05: Tag is here
+// CLASS DATA
+^
+./sections.h:101:10: warning: KS05: Tag requires static data field declaration
+    void manipulator_21();
+         ^
+./sections.h:85:1: note: KS05: Tag is here
+// CLASS DATA
+^
+./sections.h:102:10: warning: KS05: Tag requires static data field declaration
+    void aspect_21();
+         ^
+./sections.h:85:1: note: KS05: Tag is here
+// CLASS DATA
+^
+./sections.h:103:16: warning: KS02: Tag implicitly requires private declaration
+    static int s_class_data_21;
+               ^
+./sections.h:85:1: note: KS02: Tag is here
+// CLASS DATA
+^
+./sections.h:104:17: warning: KS05: Tag requires static data field declaration
+    static void s_class_method_21();
+                ^
+./sections.h:85:1: note: KS05: Tag is here
+// CLASS DATA
+^
+./sections.h:105:22: warning: KS02: Tag implicitly requires private declaration
+    static const int s_CONSTANT_21 = 7;
+                     ^
+./sections.h:85:1: note: KS02: Tag is here
+// CLASS DATA
+^
+./sections.h:106:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<21>);
+    ^
+./sections.h:85:1: note: KS09: Tag is here
+// CLASS DATA
+^
+./sections.h:107:8: warning: KS05: Tag requires static data field declaration
+    X& operator=(Z<21>);
+       ^
+./sections.h:85:1: note: KS05: Tag is here
+// CLASS DATA
+^
+./sections.h:108:9: warning: KS05: Tag requires static data field declaration
+    int d_data_21;
+        ^
+./sections.h:85:1: note: KS05: Tag is here
+// CLASS DATA
+^
+./sections.h:109:17: warning: KS05: Tag requires static data field declaration
+    typedef int Type_21;
+                ^
+./sections.h:85:1: note: KS05: Tag is here
+// CLASS DATA
+^
+./sections.h:110:5: warning: KS05: Tag requires static data field declaration
+    operator Z<21>();
+    ^
+./sections.h:85:1: note: KS05: Tag is here
+// CLASS DATA
+^
+./sections.h:111:5: warning: KS05: Tag requires static data field declaration
+    operator Z<21>() const;
+    ^
+./sections.h:85:1: note: KS05: Tag is here
+// CLASS DATA
+^
+./sections.h:115:10: warning: KS11: Tag requires static method declaration
+    void accessor_19() const;
+         ^
+./sections.h:113:1: note: KS11: Tag is here
+// CLASS METHODS
+^
+./sections.h:116:10: warning: KS11: Tag requires static method declaration
+    void manipulator_19();
+         ^
+./sections.h:113:1: note: KS11: Tag is here
+// CLASS METHODS
+^
+./sections.h:117:10: warning: KS11: Tag requires static method declaration
+    void aspect_19();
+         ^
+./sections.h:113:1: note: KS11: Tag is here
+// CLASS METHODS
+^
+./sections.h:118:16: warning: KS11: Tag requires static method declaration
+    static int s_class_data_19;
+               ^
+./sections.h:113:1: note: KS11: Tag is here
+// CLASS METHODS
+^
+./sections.h:119:17: warning: KS01: Tag requires public declaration
+    static void s_class_method_19();
+                ^
+./sections.h:113:1: note: KS01: Tag is here
+// CLASS METHODS
+^
+./sections.h:120:22: warning: KS11: Tag requires static method declaration
+    static const int s_CONSTANT_19 = 7;
+                     ^
+./sections.h:113:1: note: KS11: Tag is here
+// CLASS METHODS
+^
+./sections.h:121:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<19>);
+    ^
+./sections.h:113:1: note: KS09: Tag is here
+// CLASS METHODS
+^
+./sections.h:122:8: warning: KS11: Tag requires static method declaration
+    X& operator=(Z<19>);
+       ^
+./sections.h:113:1: note: KS11: Tag is here
+// CLASS METHODS
+^
+./sections.h:123:9: warning: KS11: Tag requires static method declaration
+    int d_data_19;
+        ^
+./sections.h:113:1: note: KS11: Tag is here
+// CLASS METHODS
+^
+./sections.h:124:17: warning: KS11: Tag requires static method declaration
+    typedef int Type_19;
+                ^
+./sections.h:113:1: note: KS11: Tag is here
+// CLASS METHODS
+^
+./sections.h:125:5: warning: KS11: Tag requires static method declaration
+    operator Z<19>();
+    ^
+./sections.h:113:1: note: KS11: Tag is here
+// CLASS METHODS
+^
+./sections.h:126:5: warning: KS11: Tag requires static method declaration
+    operator Z<19>() const;
+    ^
+./sections.h:113:1: note: KS11: Tag is here
+// CLASS METHODS
+^
+./sections.h:128:10: warning: KS11: Tag requires static method declaration
+    void accessor_18() const;
+         ^
+./sections.h:113:1: note: KS11: Tag is here
+// CLASS METHODS
+^
+./sections.h:129:10: warning: KS11: Tag requires static method declaration
+    void manipulator_18();
+         ^
+./sections.h:113:1: note: KS11: Tag is here
+// CLASS METHODS
+^
+./sections.h:130:10: warning: KS11: Tag requires static method declaration
+    void aspect_18();
+         ^
+./sections.h:113:1: note: KS11: Tag is here
+// CLASS METHODS
+^
+./sections.h:131:16: warning: KS11: Tag requires static method declaration
+    static int s_class_data_18;
+               ^
+./sections.h:113:1: note: KS11: Tag is here
+// CLASS METHODS
+^
+./sections.h:133:22: warning: KS11: Tag requires static method declaration
+    static const int s_CONSTANT_18 = 7;
+                     ^
+./sections.h:113:1: note: KS11: Tag is here
+// CLASS METHODS
+^
+./sections.h:134:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<18>);
+    ^
+./sections.h:113:1: note: KS09: Tag is here
+// CLASS METHODS
+^
+./sections.h:135:8: warning: KS11: Tag requires static method declaration
+    X& operator=(Z<18>);
+       ^
+./sections.h:113:1: note: KS11: Tag is here
+// CLASS METHODS
+^
+./sections.h:136:9: warning: KS11: Tag requires static method declaration
+    int d_data_18;
+        ^
+./sections.h:113:1: note: KS11: Tag is here
+// CLASS METHODS
+^
+./sections.h:137:17: warning: KS11: Tag requires static method declaration
+    typedef int Type_18;
+                ^
+./sections.h:113:1: note: KS11: Tag is here
+// CLASS METHODS
+^
+./sections.h:138:5: warning: KS11: Tag requires static method declaration
+    operator Z<18>();
+    ^
+./sections.h:113:1: note: KS11: Tag is here
+// CLASS METHODS
+^
+./sections.h:139:5: warning: KS11: Tag requires static method declaration
+    operator Z<18>() const;
+    ^
+./sections.h:113:1: note: KS11: Tag is here
+// CLASS METHODS
+^
+./sections.h:143:10: warning: KS10: Tag requires constant data declaration
+    void accessor_17() const;
+         ^
+./sections.h:141:1: note: KS10: Tag is here
+// CONSTANTS
+^
+./sections.h:144:10: warning: KS10: Tag requires constant data declaration
+    void manipulator_17();
+         ^
+./sections.h:141:1: note: KS10: Tag is here
+// CONSTANTS
+^
+./sections.h:145:10: warning: KS10: Tag requires constant data declaration
+    void aspect_17();
+         ^
+./sections.h:141:1: note: KS10: Tag is here
+// CONSTANTS
+^
+./sections.h:146:16: warning: KS10: Tag requires constant data declaration
+    static int s_class_data_17;
+               ^
+./sections.h:141:1: note: KS10: Tag is here
+// CONSTANTS
+^
+./sections.h:147:17: warning: KS10: Tag requires constant data declaration
+    static void s_class_method_17();
+                ^
+./sections.h:141:1: note: KS10: Tag is here
+// CONSTANTS
+^
+./sections.h:148:22: warning: KS01: Tag requires public declaration
+    static const int s_CONSTANT_17 = 7;
+                     ^
+./sections.h:141:1: note: KS01: Tag is here
+// CONSTANTS
+^
+./sections.h:149:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<17>);
+    ^
+./sections.h:141:1: note: KS09: Tag is here
+// CONSTANTS
+^
+./sections.h:150:8: warning: KS10: Tag requires constant data declaration
+    X& operator=(Z<17>);
+       ^
+./sections.h:141:1: note: KS10: Tag is here
+// CONSTANTS
+^
+./sections.h:151:9: warning: KS10: Tag requires constant data declaration
+    int d_data_17;
+        ^
+./sections.h:141:1: note: KS10: Tag is here
+// CONSTANTS
+^
+./sections.h:152:17: warning: KS10: Tag requires constant data declaration
+    typedef int Type_17;
+                ^
+./sections.h:141:1: note: KS10: Tag is here
+// CONSTANTS
+^
+./sections.h:153:5: warning: KS10: Tag requires constant data declaration
+    operator Z<17>();
+    ^
+./sections.h:141:1: note: KS10: Tag is here
+// CONSTANTS
+^
+./sections.h:154:5: warning: KS10: Tag requires constant data declaration
+    operator Z<17>() const;
+    ^
+./sections.h:141:1: note: KS10: Tag is here
+// CONSTANTS
+^
+./sections.h:156:10: warning: KS10: Tag requires constant data declaration
+    void accessor_16() const;
+         ^
+./sections.h:141:1: note: KS10: Tag is here
+// CONSTANTS
+^
+./sections.h:157:10: warning: KS10: Tag requires constant data declaration
+    void manipulator_16();
+         ^
+./sections.h:141:1: note: KS10: Tag is here
+// CONSTANTS
+^
+./sections.h:158:10: warning: KS10: Tag requires constant data declaration
+    void aspect_16();
+         ^
+./sections.h:141:1: note: KS10: Tag is here
+// CONSTANTS
+^
+./sections.h:159:16: warning: KS10: Tag requires constant data declaration
+    static int s_class_data_16;
+               ^
+./sections.h:141:1: note: KS10: Tag is here
+// CONSTANTS
+^
+./sections.h:160:17: warning: KS10: Tag requires constant data declaration
+    static void s_class_method_16();
+                ^
+./sections.h:141:1: note: KS10: Tag is here
+// CONSTANTS
+^
+./sections.h:162:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<16>);
+    ^
+./sections.h:141:1: note: KS09: Tag is here
+// CONSTANTS
+^
+./sections.h:163:8: warning: KS10: Tag requires constant data declaration
+    X& operator=(Z<16>);
+       ^
+./sections.h:141:1: note: KS10: Tag is here
+// CONSTANTS
+^
+./sections.h:164:9: warning: KS10: Tag requires constant data declaration
+    int d_data_16;
+        ^
+./sections.h:141:1: note: KS10: Tag is here
+// CONSTANTS
+^
+./sections.h:165:17: warning: KS10: Tag requires constant data declaration
+    typedef int Type_16;
+                ^
+./sections.h:141:1: note: KS10: Tag is here
+// CONSTANTS
+^
+./sections.h:166:5: warning: KS10: Tag requires constant data declaration
+    operator Z<16>();
+    ^
+./sections.h:141:1: note: KS10: Tag is here
+// CONSTANTS
+^
+./sections.h:167:5: warning: KS10: Tag requires constant data declaration
+    operator Z<16>() const;
+    ^
+./sections.h:141:1: note: KS10: Tag is here
+// CONSTANTS
+^
+./sections.h:171:10: warning: KS04: Tag requires instance data field declaration
+    void accessor_15() const;
+         ^
+./sections.h:169:1: note: KS04: Tag is here
+// DATA
+^
+./sections.h:172:10: warning: KS04: Tag requires instance data field declaration
+    void manipulator_15();
+         ^
+./sections.h:169:1: note: KS04: Tag is here
+// DATA
+^
+./sections.h:173:10: warning: KS04: Tag requires instance data field declaration
+    void aspect_15();
+         ^
+./sections.h:169:1: note: KS04: Tag is here
+// DATA
+^
+./sections.h:174:16: warning: KS04: Tag requires instance data field declaration
+    static int s_class_data_15;
+               ^
+./sections.h:169:1: note: KS04: Tag is here
+// DATA
+^
+./sections.h:175:17: warning: KS04: Tag requires instance data field declaration
+    static void s_class_method_15();
+                ^
+./sections.h:169:1: note: KS04: Tag is here
+// DATA
+^
+./sections.h:176:22: warning: KS04: Tag requires instance data field declaration
+    static const int s_CONSTANT_15 = 7;
+                     ^
+./sections.h:169:1: note: KS04: Tag is here
+// DATA
+^
+./sections.h:177:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<15>);
+    ^
+./sections.h:169:1: note: KS09: Tag is here
+// DATA
+^
+./sections.h:178:8: warning: KS04: Tag requires instance data field declaration
+    X& operator=(Z<15>);
+       ^
+./sections.h:169:1: note: KS04: Tag is here
+// DATA
+^
+./sections.h:180:17: warning: KS04: Tag requires instance data field declaration
+    typedef int Type_15;
+                ^
+./sections.h:169:1: note: KS04: Tag is here
+// DATA
+^
+./sections.h:181:5: warning: KS04: Tag requires instance data field declaration
+    operator Z<15>();
+    ^
+./sections.h:169:1: note: KS04: Tag is here
+// DATA
+^
+./sections.h:182:5: warning: KS04: Tag requires instance data field declaration
+    operator Z<15>() const;
+    ^
+./sections.h:169:1: note: KS04: Tag is here
+// DATA
+^
+./sections.h:184:10: warning: KS04: Tag requires instance data field declaration
+    void accessor_14() const;
+         ^
+./sections.h:169:1: note: KS04: Tag is here
+// DATA
+^
+./sections.h:185:10: warning: KS04: Tag requires instance data field declaration
+    void manipulator_14();
+         ^
+./sections.h:169:1: note: KS04: Tag is here
+// DATA
+^
+./sections.h:186:10: warning: KS04: Tag requires instance data field declaration
+    void aspect_14();
+         ^
+./sections.h:169:1: note: KS04: Tag is here
+// DATA
+^
+./sections.h:187:16: warning: KS04: Tag requires instance data field declaration
+    static int s_class_data_14;
+               ^
+./sections.h:169:1: note: KS04: Tag is here
+// DATA
+^
+./sections.h:188:17: warning: KS04: Tag requires instance data field declaration
+    static void s_class_method_14();
+                ^
+./sections.h:169:1: note: KS04: Tag is here
+// DATA
+^
+./sections.h:189:22: warning: KS04: Tag requires instance data field declaration
+    static const int s_CONSTANT_14 = 7;
+                     ^
+./sections.h:169:1: note: KS04: Tag is here
+// DATA
+^
+./sections.h:190:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<14>);
+    ^
+./sections.h:169:1: note: KS09: Tag is here
+// DATA
+^
+./sections.h:191:8: warning: KS04: Tag requires instance data field declaration
+    X& operator=(Z<14>);
+       ^
+./sections.h:169:1: note: KS04: Tag is here
+// DATA
+^
+./sections.h:192:9: warning: KS02: Tag implicitly requires private declaration
+    int d_data_14;
+        ^
+./sections.h:169:1: note: KS02: Tag is here
+// DATA
+^
+./sections.h:193:17: warning: KS04: Tag requires instance data field declaration
+    typedef int Type_14;
+                ^
+./sections.h:169:1: note: KS04: Tag is here
+// DATA
+^
+./sections.h:194:5: warning: KS04: Tag requires instance data field declaration
+    operator Z<14>();
+    ^
+./sections.h:169:1: note: KS04: Tag is here
+// DATA
+^
+./sections.h:195:5: warning: KS04: Tag requires instance data field declaration
+    operator Z<14>() const;
+    ^
+./sections.h:169:1: note: KS04: Tag is here
+// DATA
+^
+./sections.h:199:10: warning: KS04: Tag requires instance data field declaration
+    void accessor_13() const;
+         ^
+./sections.h:197:1: note: KS04: Tag is here
+// DATA MEMBERS
+^
+./sections.h:200:10: warning: KS04: Tag requires instance data field declaration
+    void manipulator_13();
+         ^
+./sections.h:197:1: note: KS04: Tag is here
+// DATA MEMBERS
+^
+./sections.h:201:10: warning: KS04: Tag requires instance data field declaration
+    void aspect_13();
+         ^
+./sections.h:197:1: note: KS04: Tag is here
+// DATA MEMBERS
+^
+./sections.h:202:16: warning: KS04: Tag requires instance data field declaration
+    static int s_class_data_13;
+               ^
+./sections.h:197:1: note: KS04: Tag is here
+// DATA MEMBERS
+^
+./sections.h:203:17: warning: KS04: Tag requires instance data field declaration
+    static void s_class_method_13();
+                ^
+./sections.h:197:1: note: KS04: Tag is here
+// DATA MEMBERS
+^
+./sections.h:204:22: warning: KS04: Tag requires instance data field declaration
+    static const int s_CONSTANT_13 = 7;
+                     ^
+./sections.h:197:1: note: KS04: Tag is here
+// DATA MEMBERS
+^
+./sections.h:205:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<13>);
+    ^
+./sections.h:197:1: note: KS09: Tag is here
+// DATA MEMBERS
+^
+./sections.h:206:8: warning: KS04: Tag requires instance data field declaration
+    X& operator=(Z<13>);
+       ^
+./sections.h:197:1: note: KS04: Tag is here
+// DATA MEMBERS
+^
+./sections.h:208:17: warning: KS04: Tag requires instance data field declaration
+    typedef int Type_13;
+                ^
+./sections.h:197:1: note: KS04: Tag is here
+// DATA MEMBERS
+^
+./sections.h:209:5: warning: KS04: Tag requires instance data field declaration
+    operator Z<13>();
+    ^
+./sections.h:197:1: note: KS04: Tag is here
+// DATA MEMBERS
+^
+./sections.h:210:5: warning: KS04: Tag requires instance data field declaration
+    operator Z<13>() const;
+    ^
+./sections.h:197:1: note: KS04: Tag is here
+// DATA MEMBERS
+^
+./sections.h:212:10: warning: KS04: Tag requires instance data field declaration
+    void accessor_12() const;
+         ^
+./sections.h:197:1: note: KS04: Tag is here
+// DATA MEMBERS
+^
+./sections.h:213:10: warning: KS04: Tag requires instance data field declaration
+    void manipulator_12();
+         ^
+./sections.h:197:1: note: KS04: Tag is here
+// DATA MEMBERS
+^
+./sections.h:214:10: warning: KS04: Tag requires instance data field declaration
+    void aspect_12();
+         ^
+./sections.h:197:1: note: KS04: Tag is here
+// DATA MEMBERS
+^
+./sections.h:215:16: warning: KS04: Tag requires instance data field declaration
+    static int s_class_data_12;
+               ^
+./sections.h:197:1: note: KS04: Tag is here
+// DATA MEMBERS
+^
+./sections.h:216:17: warning: KS04: Tag requires instance data field declaration
+    static void s_class_method_12();
+                ^
+./sections.h:197:1: note: KS04: Tag is here
+// DATA MEMBERS
+^
+./sections.h:217:22: warning: KS04: Tag requires instance data field declaration
+    static const int s_CONSTANT_12 = 7;
+                     ^
+./sections.h:197:1: note: KS04: Tag is here
+// DATA MEMBERS
+^
+./sections.h:218:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<12>);
+    ^
+./sections.h:197:1: note: KS09: Tag is here
+// DATA MEMBERS
+^
+./sections.h:219:8: warning: KS04: Tag requires instance data field declaration
+    X& operator=(Z<12>);
+       ^
+./sections.h:197:1: note: KS04: Tag is here
+// DATA MEMBERS
+^
+./sections.h:220:9: warning: KS02: Tag implicitly requires private declaration
+    int d_data_12;
+        ^
+./sections.h:197:1: note: KS02: Tag is here
+// DATA MEMBERS
+^
+./sections.h:221:17: warning: KS04: Tag requires instance data field declaration
+    typedef int Type_12;
+                ^
+./sections.h:197:1: note: KS04: Tag is here
+// DATA MEMBERS
+^
+./sections.h:222:5: warning: KS04: Tag requires instance data field declaration
+    operator Z<12>();
+    ^
+./sections.h:197:1: note: KS04: Tag is here
+// DATA MEMBERS
+^
+./sections.h:223:5: warning: KS04: Tag requires instance data field declaration
+    operator Z<12>() const;
+    ^
+./sections.h:197:1: note: KS04: Tag is here
+// DATA MEMBERS
+^
+./sections.h:227:10: warning: KS08: Tag requires non-const method declaration
+    void accessor_11() const;
+         ^
+./sections.h:225:1: note: KS08: Tag is here
+// FUNCTIONS
+^
+./sections.h:228:10: warning: KS01: Tag requires public declaration
+    void manipulator_11();
+         ^
+./sections.h:225:1: note: KS01: Tag is here
+// FUNCTIONS
+^
+./sections.h:229:10: warning: KS01: Tag requires public declaration
+    void aspect_11();
+         ^
+./sections.h:225:1: note: KS01: Tag is here
+// FUNCTIONS
+^
+./sections.h:230:16: warning: KS08: Tag requires non-const method declaration
+    static int s_class_data_11;
+               ^
+./sections.h:225:1: note: KS08: Tag is here
+// FUNCTIONS
+^
+./sections.h:231:17: warning: KS01: Tag requires public declaration
+    static void s_class_method_11();
+                ^
+./sections.h:225:1: note: KS01: Tag is here
+// FUNCTIONS
+^
+./sections.h:232:22: warning: KS08: Tag requires non-const method declaration
+    static const int s_CONSTANT_11 = 7;
+                     ^
+./sections.h:225:1: note: KS08: Tag is here
+// FUNCTIONS
+^
+./sections.h:233:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<11>);
+    ^
+./sections.h:225:1: note: KS09: Tag is here
+// FUNCTIONS
+^
+./sections.h:234:8: warning: KS01: Tag requires public declaration
+    X& operator=(Z<11>);
+       ^
+./sections.h:225:1: note: KS01: Tag is here
+// FUNCTIONS
+^
+./sections.h:235:9: warning: KS08: Tag requires non-const method declaration
+    int d_data_11;
+        ^
+./sections.h:225:1: note: KS08: Tag is here
+// FUNCTIONS
+^
+./sections.h:236:17: warning: KS08: Tag requires non-const method declaration
+    typedef int Type_11;
+                ^
+./sections.h:225:1: note: KS08: Tag is here
+// FUNCTIONS
+^
+./sections.h:237:5: warning: KS01: Tag requires public declaration
+    operator Z<11>();
+    ^
+./sections.h:225:1: note: KS01: Tag is here
+// FUNCTIONS
+^
+./sections.h:238:5: warning: KS08: Tag requires non-const method declaration
+    operator Z<11>() const;
+    ^
+./sections.h:225:1: note: KS08: Tag is here
+// FUNCTIONS
+^
+./sections.h:240:10: warning: KS08: Tag requires non-const method declaration
+    void accessor_9() const;
+         ^
+./sections.h:225:1: note: KS08: Tag is here
+// FUNCTIONS
+^
+./sections.h:243:16: warning: KS08: Tag requires non-const method declaration
+    static int s_class_data_9;
+               ^
+./sections.h:225:1: note: KS08: Tag is here
+// FUNCTIONS
+^
+./sections.h:245:22: warning: KS08: Tag requires non-const method declaration
+    static const int s_CONSTANT_9 = 7;
+                     ^
+./sections.h:225:1: note: KS08: Tag is here
+// FUNCTIONS
+^
+./sections.h:246:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<9>);
+    ^
+./sections.h:225:1: note: KS09: Tag is here
+// FUNCTIONS
+^
+./sections.h:248:9: warning: KS08: Tag requires non-const method declaration
+    int d_data_9;
+        ^
+./sections.h:225:1: note: KS08: Tag is here
+// FUNCTIONS
+^
+./sections.h:249:17: warning: KS08: Tag requires non-const method declaration
+    typedef int Type_9;
+                ^
+./sections.h:225:1: note: KS08: Tag is here
+// FUNCTIONS
+^
+./sections.h:251:5: warning: KS08: Tag requires non-const method declaration
+    operator Z<9>() const;
+    ^
+./sections.h:225:1: note: KS08: Tag is here
+// FUNCTIONS
+^
+./sections.h:255:10: warning: KS08: Tag requires non-const method declaration
+    void accessor_8() const;
+         ^
+./sections.h:253:1: note: KS08: Tag is here
+// MANIPULATORS
+^
+./sections.h:256:10: warning: KS01: Tag requires public declaration
+    void manipulator_8();
+         ^
+./sections.h:253:1: note: KS01: Tag is here
+// MANIPULATORS
+^
+./sections.h:257:10: warning: KS01: Tag requires public declaration
+    void aspect_8();
+         ^
+./sections.h:253:1: note: KS01: Tag is here
+// MANIPULATORS
+^
+./sections.h:258:16: warning: KS08: Tag requires non-const method declaration
+    static int s_class_data_8;
+               ^
+./sections.h:253:1: note: KS08: Tag is here
+// MANIPULATORS
+^
+./sections.h:259:17: warning: KS01: Tag requires public declaration
+    static void s_class_method_8();
+                ^
+./sections.h:253:1: note: KS01: Tag is here
+// MANIPULATORS
+^
+./sections.h:260:22: warning: KS08: Tag requires non-const method declaration
+    static const int s_CONSTANT_8 = 7;
+                     ^
+./sections.h:253:1: note: KS08: Tag is here
+// MANIPULATORS
+^
+./sections.h:261:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<8>);
+    ^
+./sections.h:253:1: note: KS09: Tag is here
+// MANIPULATORS
+^
+./sections.h:262:8: warning: KS01: Tag requires public declaration
+    X& operator=(Z<8>);
+       ^
+./sections.h:253:1: note: KS01: Tag is here
+// MANIPULATORS
+^
+./sections.h:263:9: warning: KS08: Tag requires non-const method declaration
+    int d_data_8;
+        ^
+./sections.h:253:1: note: KS08: Tag is here
+// MANIPULATORS
+^
+./sections.h:264:17: warning: KS08: Tag requires non-const method declaration
+    typedef int Type_8;
+                ^
+./sections.h:253:1: note: KS08: Tag is here
+// MANIPULATORS
+^
+./sections.h:265:5: warning: KS01: Tag requires public declaration
+    operator Z<8>();
+    ^
+./sections.h:253:1: note: KS01: Tag is here
+// MANIPULATORS
+^
+./sections.h:266:5: warning: KS08: Tag requires non-const method declaration
+    operator Z<8>() const;
+    ^
+./sections.h:253:1: note: KS08: Tag is here
+// MANIPULATORS
+^
+./sections.h:268:10: warning: KS08: Tag requires non-const method declaration
+    void accessor_7() const;
+         ^
+./sections.h:253:1: note: KS08: Tag is here
+// MANIPULATORS
+^
+./sections.h:271:16: warning: KS08: Tag requires non-const method declaration
+    static int s_class_data_7;
+               ^
+./sections.h:253:1: note: KS08: Tag is here
+// MANIPULATORS
+^
+./sections.h:273:22: warning: KS08: Tag requires non-const method declaration
+    static const int s_CONSTANT_7 = 7;
+                     ^
+./sections.h:253:1: note: KS08: Tag is here
+// MANIPULATORS
+^
+./sections.h:274:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<7>);
+    ^
+./sections.h:253:1: note: KS09: Tag is here
+// MANIPULATORS
+^
+./sections.h:276:9: warning: KS08: Tag requires non-const method declaration
+    int d_data_7;
+        ^
+./sections.h:253:1: note: KS08: Tag is here
+// MANIPULATORS
+^
+./sections.h:277:17: warning: KS08: Tag requires non-const method declaration
+    typedef int Type_7;
+                ^
+./sections.h:253:1: note: KS08: Tag is here
+// MANIPULATORS
+^
+./sections.h:279:5: warning: KS08: Tag requires non-const method declaration
+    operator Z<7>() const;
+    ^
+./sections.h:253:1: note: KS08: Tag is here
+// MANIPULATORS
+^
+./sections.h:286:16: warning: KS03: Tag requires function declaration
+    static int s_class_data_6;
+               ^
+./sections.h:281:1: note: KS03: Tag is here
+// NOT IMPLEMENTED
+^
+./sections.h:288:22: warning: KS03: Tag requires function declaration
+    static const int s_CONSTANT_6 = 7;
+                     ^
+./sections.h:281:1: note: KS03: Tag is here
+// NOT IMPLEMENTED
+^
+./sections.h:291:9: warning: KS03: Tag requires function declaration
+    int d_data_6;
+        ^
+./sections.h:281:1: note: KS03: Tag is here
+// NOT IMPLEMENTED
+^
+./sections.h:292:17: warning: KS03: Tag requires function declaration
+    typedef int Type_6;
+                ^
+./sections.h:281:1: note: KS03: Tag is here
+// NOT IMPLEMENTED
+^
+./sections.h:296:10: warning: KS02: Tag implicitly requires private declaration
+    void accessor_5() const;
+         ^
+./sections.h:281:1: note: KS02: Tag is here
+// NOT IMPLEMENTED
+^
+./sections.h:297:10: warning: KS02: Tag implicitly requires private declaration
+    void manipulator_5();
+         ^
+./sections.h:281:1: note: KS02: Tag is here
+// NOT IMPLEMENTED
+^
+./sections.h:298:10: warning: KS02: Tag implicitly requires private declaration
+    void aspect_5();
+         ^
+./sections.h:281:1: note: KS02: Tag is here
+// NOT IMPLEMENTED
+^
+./sections.h:299:16: warning: KS03: Tag requires function declaration
+    static int s_class_data_5;
+               ^
+./sections.h:281:1: note: KS03: Tag is here
+// NOT IMPLEMENTED
+^
+./sections.h:300:17: warning: KS02: Tag implicitly requires private declaration
+    static void s_class_method_5();
+                ^
+./sections.h:281:1: note: KS02: Tag is here
+// NOT IMPLEMENTED
+^
+./sections.h:301:22: warning: KS03: Tag requires function declaration
+    static const int s_CONSTANT_5 = 7;
+                     ^
+./sections.h:281:1: note: KS03: Tag is here
+// NOT IMPLEMENTED
+^
+./sections.h:302:5: warning: KS02: Tag implicitly requires private declaration
+    X(Z<5>);
+    ^
+./sections.h:281:1: note: KS02: Tag is here
+// NOT IMPLEMENTED
+^
+./sections.h:303:8: warning: KS02: Tag implicitly requires private declaration
+    X& operator=(Z<5>);
+       ^
+./sections.h:281:1: note: KS02: Tag is here
+// NOT IMPLEMENTED
+^
+./sections.h:304:9: warning: KS03: Tag requires function declaration
+    int d_data_5;
+        ^
+./sections.h:281:1: note: KS03: Tag is here
+// NOT IMPLEMENTED
+^
+./sections.h:305:17: warning: KS03: Tag requires function declaration
+    typedef int Type_5;
+                ^
+./sections.h:281:1: note: KS03: Tag is here
+// NOT IMPLEMENTED
+^
+./sections.h:306:5: warning: KS02: Tag implicitly requires private declaration
+    operator Z<5>();
+    ^
+./sections.h:281:1: note: KS02: Tag is here
+// NOT IMPLEMENTED
+^
+./sections.h:307:5: warning: KS02: Tag implicitly requires private declaration
+    operator Z<5>() const;
+    ^
+./sections.h:281:1: note: KS02: Tag is here
+// NOT IMPLEMENTED
+^
+./sections.h:311:10: warning: KS14: Tag requires conversion operator declaration
+    void accessor_4() const;
+         ^
+./sections.h:309:1: note: KS14: Tag is here
+// TRAITS
+^
+./sections.h:312:10: warning: KS14: Tag requires conversion operator declaration
+    void manipulator_4();
+         ^
+./sections.h:309:1: note: KS14: Tag is here
+// TRAITS
+^
+./sections.h:313:10: warning: KS14: Tag requires conversion operator declaration
+    void aspect_4();
+         ^
+./sections.h:309:1: note: KS14: Tag is here
+// TRAITS
+^
+./sections.h:314:16: warning: KS14: Tag requires conversion operator declaration
+    static int s_class_data_4;
+               ^
+./sections.h:309:1: note: KS14: Tag is here
+// TRAITS
+^
+./sections.h:315:17: warning: KS14: Tag requires conversion operator declaration
+    static void s_class_method_4();
+                ^
+./sections.h:309:1: note: KS14: Tag is here
+// TRAITS
+^
+./sections.h:316:22: warning: KS14: Tag requires conversion operator declaration
+    static const int s_CONSTANT_4 = 7;
+                     ^
+./sections.h:309:1: note: KS14: Tag is here
+// TRAITS
+^
+./sections.h:317:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<4>);
+    ^
+./sections.h:309:1: note: KS09: Tag is here
+// TRAITS
+^
+./sections.h:318:8: warning: KS14: Tag requires conversion operator declaration
+    X& operator=(Z<4>);
+       ^
+./sections.h:309:1: note: KS14: Tag is here
+// TRAITS
+^
+./sections.h:319:9: warning: KS14: Tag requires conversion operator declaration
+    int d_data_4;
+        ^
+./sections.h:309:1: note: KS14: Tag is here
+// TRAITS
+^
+./sections.h:320:17: warning: KS14: Tag requires conversion operator declaration
+    typedef int Type_4;
+                ^
+./sections.h:309:1: note: KS14: Tag is here
+// TRAITS
+^
+./sections.h:321:5: warning: KS01: Tag requires public declaration
+    operator Z<4>();
+    ^
+./sections.h:309:1: note: KS01: Tag is here
+// TRAITS
+^
+./sections.h:322:5: warning: KS01: Tag requires public declaration
+    operator Z<4>() const;
+    ^
+./sections.h:309:1: note: KS01: Tag is here
+// TRAITS
+^
+./sections.h:324:10: warning: KS14: Tag requires conversion operator declaration
+    void accessor_3() const;
+         ^
+./sections.h:309:1: note: KS14: Tag is here
+// TRAITS
+^
+./sections.h:325:10: warning: KS14: Tag requires conversion operator declaration
+    void manipulator_3();
+         ^
+./sections.h:309:1: note: KS14: Tag is here
+// TRAITS
+^
+./sections.h:326:10: warning: KS14: Tag requires conversion operator declaration
+    void aspect_3();
+         ^
+./sections.h:309:1: note: KS14: Tag is here
+// TRAITS
+^
+./sections.h:327:16: warning: KS14: Tag requires conversion operator declaration
+    static int s_class_data_3;
+               ^
+./sections.h:309:1: note: KS14: Tag is here
+// TRAITS
+^
+./sections.h:328:17: warning: KS14: Tag requires conversion operator declaration
+    static void s_class_method_3();
+                ^
+./sections.h:309:1: note: KS14: Tag is here
+// TRAITS
+^
+./sections.h:329:22: warning: KS14: Tag requires conversion operator declaration
+    static const int s_CONSTANT_3 = 7;
+                     ^
+./sections.h:309:1: note: KS14: Tag is here
+// TRAITS
+^
+./sections.h:330:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<3>);
+    ^
+./sections.h:309:1: note: KS09: Tag is here
+// TRAITS
+^
+./sections.h:331:8: warning: KS14: Tag requires conversion operator declaration
+    X& operator=(Z<3>);
+       ^
+./sections.h:309:1: note: KS14: Tag is here
+// TRAITS
+^
+./sections.h:332:9: warning: KS14: Tag requires conversion operator declaration
+    int d_data_3;
+        ^
+./sections.h:309:1: note: KS14: Tag is here
+// TRAITS
+^
+./sections.h:333:17: warning: KS14: Tag requires conversion operator declaration
+    typedef int Type_3;
+                ^
+./sections.h:309:1: note: KS14: Tag is here
+// TRAITS
+^
+./sections.h:339:10: warning: KS06: Tag requires type declaration
+    void accessor_2() const;
+         ^
+./sections.h:337:1: note: KS06: Tag is here
+// TYPES
+^
+./sections.h:340:10: warning: KS06: Tag requires type declaration
+    void manipulator_2();
+         ^
+./sections.h:337:1: note: KS06: Tag is here
+// TYPES
+^
+./sections.h:341:10: warning: KS06: Tag requires type declaration
+    void aspect_2();
+         ^
+./sections.h:337:1: note: KS06: Tag is here
+// TYPES
+^
+./sections.h:342:16: warning: KS06: Tag requires type declaration
+    static int s_class_data_2;
+               ^
+./sections.h:337:1: note: KS06: Tag is here
+// TYPES
+^
+./sections.h:343:17: warning: KS06: Tag requires type declaration
+    static void s_class_method_2();
+                ^
+./sections.h:337:1: note: KS06: Tag is here
+// TYPES
+^
+./sections.h:344:22: warning: KS06: Tag requires type declaration
+    static const int s_CONSTANT_2 = 7;
+                     ^
+./sections.h:337:1: note: KS06: Tag is here
+// TYPES
+^
+./sections.h:345:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<2>);
+    ^
+./sections.h:337:1: note: KS09: Tag is here
+// TYPES
+^
+./sections.h:346:8: warning: KS06: Tag requires type declaration
+    X& operator=(Z<2>);
+       ^
+./sections.h:337:1: note: KS06: Tag is here
+// TYPES
+^
+./sections.h:347:9: warning: KS06: Tag requires type declaration
+    int d_data_2;
+        ^
+./sections.h:337:1: note: KS06: Tag is here
+// TYPES
+^
+./sections.h:348:17: warning: KS01: Tag requires public declaration
+    typedef int Type_2;
+                ^
+./sections.h:337:1: note: KS01: Tag is here
+// TYPES
+^
+./sections.h:349:5: warning: KS06: Tag requires type declaration
+    operator Z<2>();
+    ^
+./sections.h:337:1: note: KS06: Tag is here
+// TYPES
+^
+./sections.h:350:5: warning: KS06: Tag requires type declaration
+    operator Z<2>() const;
+    ^
+./sections.h:337:1: note: KS06: Tag is here
+// TYPES
+^
+./sections.h:352:10: warning: KS06: Tag requires type declaration
+    void accessor_1() const;
+         ^
+./sections.h:337:1: note: KS06: Tag is here
+// TYPES
+^
+./sections.h:353:10: warning: KS06: Tag requires type declaration
+    void manipulator_1();
+         ^
+./sections.h:337:1: note: KS06: Tag is here
+// TYPES
+^
+./sections.h:354:10: warning: KS06: Tag requires type declaration
+    void aspect_1();
+         ^
+./sections.h:337:1: note: KS06: Tag is here
+// TYPES
+^
+./sections.h:355:16: warning: KS06: Tag requires type declaration
+    static int s_class_data_1;
+               ^
+./sections.h:337:1: note: KS06: Tag is here
+// TYPES
+^
+./sections.h:356:17: warning: KS06: Tag requires type declaration
+    static void s_class_method_1();
+                ^
+./sections.h:337:1: note: KS06: Tag is here
+// TYPES
+^
+./sections.h:357:22: warning: KS06: Tag requires type declaration
+    static const int s_CONSTANT_1 = 7;
+                     ^
+./sections.h:337:1: note: KS06: Tag is here
+// TYPES
+^
+./sections.h:358:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<1>);
+    ^
+./sections.h:337:1: note: KS09: Tag is here
+// TYPES
+^
+./sections.h:359:8: warning: KS06: Tag requires type declaration
+    X& operator=(Z<1>);
+       ^
+./sections.h:337:1: note: KS06: Tag is here
+// TYPES
+^
+./sections.h:360:9: warning: KS06: Tag requires type declaration
+    int d_data_1;
+        ^
+./sections.h:337:1: note: KS06: Tag is here
+// TYPES
+^
+./sections.h:362:5: warning: KS06: Tag requires type declaration
+    operator Z<1>();
+    ^
+./sections.h:337:1: note: KS06: Tag is here
+// TYPES
+^
+./sections.h:363:5: warning: KS06: Tag requires type declaration
+    operator Z<1>() const;
+    ^
+./sections.h:337:1: note: KS06: Tag is here
+// TYPES
+^
+./sections.h:368:10: warning: KS07: Tag requires const method declaration
+    void manipulator_260();
+         ^
+./sections.h:365:1: note: KS07: Tag is here
+// PRIVATE ACCESSORS
+^
+./sections.h:369:10: warning: KS07: Tag requires const method declaration
+    void aspect_260();
+         ^
+./sections.h:365:1: note: KS07: Tag is here
+// PRIVATE ACCESSORS
+^
+./sections.h:370:16: warning: KS07: Tag requires const method declaration
+    static int s_class_data_260;
+               ^
+./sections.h:365:1: note: KS07: Tag is here
+// PRIVATE ACCESSORS
+^
+./sections.h:371:17: warning: KS07: Tag requires const method declaration
+    static void s_class_method_260();
+                ^
+./sections.h:365:1: note: KS07: Tag is here
+// PRIVATE ACCESSORS
+^
+./sections.h:372:22: warning: KS07: Tag requires const method declaration
+    static const int s_CONSTANT_260 = 70;
+                     ^
+./sections.h:365:1: note: KS07: Tag is here
+// PRIVATE ACCESSORS
+^
+./sections.h:373:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<260>);
+    ^
+./sections.h:365:1: note: KS09: Tag is here
+// PRIVATE ACCESSORS
+^
+./sections.h:374:8: warning: KS07: Tag requires const method declaration
+    X& operator=(Z<260>);
+       ^
+./sections.h:365:1: note: KS07: Tag is here
+// PRIVATE ACCESSORS
+^
+./sections.h:375:9: warning: KS07: Tag requires const method declaration
+    int d_data_260;
+        ^
+./sections.h:365:1: note: KS07: Tag is here
+// PRIVATE ACCESSORS
+^
+./sections.h:376:17: warning: KS07: Tag requires const method declaration
+    typedef int Type_260;
+                ^
+./sections.h:365:1: note: KS07: Tag is here
+// PRIVATE ACCESSORS
+^
+./sections.h:377:5: warning: KS07: Tag requires const method declaration
+    operator Z<260>();
+    ^
+./sections.h:365:1: note: KS07: Tag is here
+// PRIVATE ACCESSORS
+^
+./sections.h:380:10: warning: KS02: Tag requires private declaration
+    void accessor_250() const;
+         ^
+./sections.h:365:1: note: KS02: Tag is here
+// PRIVATE ACCESSORS
+^
+./sections.h:381:10: warning: KS07: Tag requires const method declaration
+    void manipulator_250();
+         ^
+./sections.h:365:1: note: KS07: Tag is here
+// PRIVATE ACCESSORS
+^
+./sections.h:382:10: warning: KS07: Tag requires const method declaration
+    void aspect_250();
+         ^
+./sections.h:365:1: note: KS07: Tag is here
+// PRIVATE ACCESSORS
+^
+./sections.h:383:16: warning: KS07: Tag requires const method declaration
+    static int s_class_data_250;
+               ^
+./sections.h:365:1: note: KS07: Tag is here
+// PRIVATE ACCESSORS
+^
+./sections.h:384:17: warning: KS07: Tag requires const method declaration
+    static void s_class_method_250();
+                ^
+./sections.h:365:1: note: KS07: Tag is here
+// PRIVATE ACCESSORS
+^
+./sections.h:385:22: warning: KS07: Tag requires const method declaration
+    static const int s_CONSTANT_250 = 70;
+                     ^
+./sections.h:365:1: note: KS07: Tag is here
+// PRIVATE ACCESSORS
+^
+./sections.h:386:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<250>);
+    ^
+./sections.h:365:1: note: KS09: Tag is here
+// PRIVATE ACCESSORS
+^
+./sections.h:387:8: warning: KS07: Tag requires const method declaration
+    X& operator=(Z<250>);
+       ^
+./sections.h:365:1: note: KS07: Tag is here
+// PRIVATE ACCESSORS
+^
+./sections.h:388:9: warning: KS07: Tag requires const method declaration
+    int d_data_250;
+        ^
+./sections.h:365:1: note: KS07: Tag is here
+// PRIVATE ACCESSORS
+^
+./sections.h:389:17: warning: KS07: Tag requires const method declaration
+    typedef int Type_250;
+                ^
+./sections.h:365:1: note: KS07: Tag is here
+// PRIVATE ACCESSORS
+^
+./sections.h:390:5: warning: KS07: Tag requires const method declaration
+    operator Z<250>();
+    ^
+./sections.h:365:1: note: KS07: Tag is here
+// PRIVATE ACCESSORS
+^
+./sections.h:391:5: warning: KS02: Tag requires private declaration
+    operator Z<250>() const;
+    ^
+./sections.h:365:1: note: KS02: Tag is here
+// PRIVATE ACCESSORS
+^
+./sections.h:398:16: warning: KS03: Tag requires function declaration
+    static int s_class_data_240;
+               ^
+./sections.h:393:1: note: KS03: Tag is here
+// PRIVATE ASPECTS
+^
+./sections.h:400:22: warning: KS03: Tag requires function declaration
+    static const int s_CONSTANT_240 = 70;
+                     ^
+./sections.h:393:1: note: KS03: Tag is here
+// PRIVATE ASPECTS
+^
+./sections.h:401:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<240>);
+    ^
+./sections.h:393:1: note: KS09: Tag is here
+// PRIVATE ASPECTS
+^
+./sections.h:403:9: warning: KS03: Tag requires function declaration
+    int d_data_240;
+        ^
+./sections.h:393:1: note: KS03: Tag is here
+// PRIVATE ASPECTS
+^
+./sections.h:404:17: warning: KS03: Tag requires function declaration
+    typedef int Type_240;
+                ^
+./sections.h:393:1: note: KS03: Tag is here
+// PRIVATE ASPECTS
+^
+./sections.h:408:10: warning: KS02: Tag requires private declaration
+    void accessor_230() const;
+         ^
+./sections.h:393:1: note: KS02: Tag is here
+// PRIVATE ASPECTS
+^
+./sections.h:409:10: warning: KS02: Tag requires private declaration
+    void manipulator_230();
+         ^
+./sections.h:393:1: note: KS02: Tag is here
+// PRIVATE ASPECTS
+^
+./sections.h:410:10: warning: KS02: Tag requires private declaration
+    void aspect_230();
+         ^
+./sections.h:393:1: note: KS02: Tag is here
+// PRIVATE ASPECTS
+^
+./sections.h:411:16: warning: KS03: Tag requires function declaration
+    static int s_class_data_230;
+               ^
+./sections.h:393:1: note: KS03: Tag is here
+// PRIVATE ASPECTS
+^
+./sections.h:412:17: warning: KS02: Tag requires private declaration
+    static void s_class_method_230();
+                ^
+./sections.h:393:1: note: KS02: Tag is here
+// PRIVATE ASPECTS
+^
+./sections.h:413:22: warning: KS03: Tag requires function declaration
+    static const int s_CONSTANT_230 = 70;
+                     ^
+./sections.h:393:1: note: KS03: Tag is here
+// PRIVATE ASPECTS
+^
+./sections.h:414:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<230>);
+    ^
+./sections.h:393:1: note: KS09: Tag is here
+// PRIVATE ASPECTS
+^
+./sections.h:415:8: warning: KS02: Tag requires private declaration
+    X& operator=(Z<230>);
+       ^
+./sections.h:393:1: note: KS02: Tag is here
+// PRIVATE ASPECTS
+^
+./sections.h:416:9: warning: KS03: Tag requires function declaration
+    int d_data_230;
+        ^
+./sections.h:393:1: note: KS03: Tag is here
+// PRIVATE ASPECTS
+^
+./sections.h:417:17: warning: KS03: Tag requires function declaration
+    typedef int Type_230;
+                ^
+./sections.h:393:1: note: KS03: Tag is here
+// PRIVATE ASPECTS
+^
+./sections.h:418:5: warning: KS02: Tag requires private declaration
+    operator Z<230>();
+    ^
+./sections.h:393:1: note: KS02: Tag is here
+// PRIVATE ASPECTS
+^
+./sections.h:419:5: warning: KS02: Tag requires private declaration
+    operator Z<230>() const;
+    ^
+./sections.h:393:1: note: KS02: Tag is here
+// PRIVATE ASPECTS
+^
+./sections.h:423:10: warning: KS05: Tag requires static data field declaration
+    void accessor_220() const;
+         ^
+./sections.h:421:1: note: KS05: Tag is here
+// PRIVATE CLASS DATA
+^
+./sections.h:424:10: warning: KS05: Tag requires static data field declaration
+    void manipulator_220();
+         ^
+./sections.h:421:1: note: KS05: Tag is here
+// PRIVATE CLASS DATA
+^
+./sections.h:425:10: warning: KS05: Tag requires static data field declaration
+    void aspect_220();
+         ^
+./sections.h:421:1: note: KS05: Tag is here
+// PRIVATE CLASS DATA
+^
+./sections.h:427:17: warning: KS05: Tag requires static data field declaration
+    static void s_class_method_220();
+                ^
+./sections.h:421:1: note: KS05: Tag is here
+// PRIVATE CLASS DATA
+^
+./sections.h:429:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<220>);
+    ^
+./sections.h:421:1: note: KS09: Tag is here
+// PRIVATE CLASS DATA
+^
+./sections.h:430:8: warning: KS05: Tag requires static data field declaration
+    X& operator=(Z<220>);
+       ^
+./sections.h:421:1: note: KS05: Tag is here
+// PRIVATE CLASS DATA
+^
+./sections.h:431:9: warning: KS05: Tag requires static data field declaration
+    int d_data_220;
+        ^
+./sections.h:421:1: note: KS05: Tag is here
+// PRIVATE CLASS DATA
+^
+./sections.h:432:17: warning: KS05: Tag requires static data field declaration
+    typedef int Type_220;
+                ^
+./sections.h:421:1: note: KS05: Tag is here
+// PRIVATE CLASS DATA
+^
+./sections.h:433:5: warning: KS05: Tag requires static data field declaration
+    operator Z<220>();
+    ^
+./sections.h:421:1: note: KS05: Tag is here
+// PRIVATE CLASS DATA
+^
+./sections.h:434:5: warning: KS05: Tag requires static data field declaration
+    operator Z<220>() const;
+    ^
+./sections.h:421:1: note: KS05: Tag is here
+// PRIVATE CLASS DATA
+^
+./sections.h:436:10: warning: KS05: Tag requires static data field declaration
+    void accessor_210() const;
+         ^
+./sections.h:421:1: note: KS05: Tag is here
+// PRIVATE CLASS DATA
+^
+./sections.h:437:10: warning: KS05: Tag requires static data field declaration
+    void manipulator_210();
+         ^
+./sections.h:421:1: note: KS05: Tag is here
+// PRIVATE CLASS DATA
+^
+./sections.h:438:10: warning: KS05: Tag requires static data field declaration
+    void aspect_210();
+         ^
+./sections.h:421:1: note: KS05: Tag is here
+// PRIVATE CLASS DATA
+^
+./sections.h:439:16: warning: KS02: Tag requires private declaration
+    static int s_class_data_210;
+               ^
+./sections.h:421:1: note: KS02: Tag is here
+// PRIVATE CLASS DATA
+^
+./sections.h:440:17: warning: KS05: Tag requires static data field declaration
+    static void s_class_method_210();
+                ^
+./sections.h:421:1: note: KS05: Tag is here
+// PRIVATE CLASS DATA
+^
+./sections.h:441:22: warning: KS02: Tag requires private declaration
+    static const int s_CONSTANT_210 = 70;
+                     ^
+./sections.h:421:1: note: KS02: Tag is here
+// PRIVATE CLASS DATA
+^
+./sections.h:442:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<210>);
+    ^
+./sections.h:421:1: note: KS09: Tag is here
+// PRIVATE CLASS DATA
+^
+./sections.h:443:8: warning: KS05: Tag requires static data field declaration
+    X& operator=(Z<210>);
+       ^
+./sections.h:421:1: note: KS05: Tag is here
+// PRIVATE CLASS DATA
+^
+./sections.h:444:9: warning: KS05: Tag requires static data field declaration
+    int d_data_210;
+        ^
+./sections.h:421:1: note: KS05: Tag is here
+// PRIVATE CLASS DATA
+^
+./sections.h:445:17: warning: KS05: Tag requires static data field declaration
+    typedef int Type_210;
+                ^
+./sections.h:421:1: note: KS05: Tag is here
+// PRIVATE CLASS DATA
+^
+./sections.h:446:5: warning: KS05: Tag requires static data field declaration
+    operator Z<210>();
+    ^
+./sections.h:421:1: note: KS05: Tag is here
+// PRIVATE CLASS DATA
+^
+./sections.h:447:5: warning: KS05: Tag requires static data field declaration
+    operator Z<210>() const;
+    ^
+./sections.h:421:1: note: KS05: Tag is here
+// PRIVATE CLASS DATA
+^
+./sections.h:451:10: warning: KS11: Tag requires static method declaration
+    void accessor_190() const;
+         ^
+./sections.h:449:1: note: KS11: Tag is here
+// PRIVATE CLASS METHODS
+^
+./sections.h:452:10: warning: KS11: Tag requires static method declaration
+    void manipulator_190();
+         ^
+./sections.h:449:1: note: KS11: Tag is here
+// PRIVATE CLASS METHODS
+^
+./sections.h:453:10: warning: KS11: Tag requires static method declaration
+    void aspect_190();
+         ^
+./sections.h:449:1: note: KS11: Tag is here
+// PRIVATE CLASS METHODS
+^
+./sections.h:454:16: warning: KS11: Tag requires static method declaration
+    static int s_class_data_190;
+               ^
+./sections.h:449:1: note: KS11: Tag is here
+// PRIVATE CLASS METHODS
+^
+./sections.h:456:22: warning: KS11: Tag requires static method declaration
+    static const int s_CONSTANT_190 = 70;
+                     ^
+./sections.h:449:1: note: KS11: Tag is here
+// PRIVATE CLASS METHODS
+^
+./sections.h:457:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<190>);
+    ^
+./sections.h:449:1: note: KS09: Tag is here
+// PRIVATE CLASS METHODS
+^
+./sections.h:458:8: warning: KS11: Tag requires static method declaration
+    X& operator=(Z<190>);
+       ^
+./sections.h:449:1: note: KS11: Tag is here
+// PRIVATE CLASS METHODS
+^
+./sections.h:459:9: warning: KS11: Tag requires static method declaration
+    int d_data_190;
+        ^
+./sections.h:449:1: note: KS11: Tag is here
+// PRIVATE CLASS METHODS
+^
+./sections.h:460:17: warning: KS11: Tag requires static method declaration
+    typedef int Type_190;
+                ^
+./sections.h:449:1: note: KS11: Tag is here
+// PRIVATE CLASS METHODS
+^
+./sections.h:461:5: warning: KS11: Tag requires static method declaration
+    operator Z<190>();
+    ^
+./sections.h:449:1: note: KS11: Tag is here
+// PRIVATE CLASS METHODS
+^
+./sections.h:462:5: warning: KS11: Tag requires static method declaration
+    operator Z<190>() const;
+    ^
+./sections.h:449:1: note: KS11: Tag is here
+// PRIVATE CLASS METHODS
+^
+./sections.h:464:10: warning: KS11: Tag requires static method declaration
+    void accessor_180() const;
+         ^
+./sections.h:449:1: note: KS11: Tag is here
+// PRIVATE CLASS METHODS
+^
+./sections.h:465:10: warning: KS11: Tag requires static method declaration
+    void manipulator_180();
+         ^
+./sections.h:449:1: note: KS11: Tag is here
+// PRIVATE CLASS METHODS
+^
+./sections.h:466:10: warning: KS11: Tag requires static method declaration
+    void aspect_180();
+         ^
+./sections.h:449:1: note: KS11: Tag is here
+// PRIVATE CLASS METHODS
+^
+./sections.h:467:16: warning: KS11: Tag requires static method declaration
+    static int s_class_data_180;
+               ^
+./sections.h:449:1: note: KS11: Tag is here
+// PRIVATE CLASS METHODS
+^
+./sections.h:468:17: warning: KS02: Tag requires private declaration
+    static void s_class_method_180();
+                ^
+./sections.h:449:1: note: KS02: Tag is here
+// PRIVATE CLASS METHODS
+^
+./sections.h:469:22: warning: KS11: Tag requires static method declaration
+    static const int s_CONSTANT_180 = 70;
+                     ^
+./sections.h:449:1: note: KS11: Tag is here
+// PRIVATE CLASS METHODS
+^
+./sections.h:470:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<180>);
+    ^
+./sections.h:449:1: note: KS09: Tag is here
+// PRIVATE CLASS METHODS
+^
+./sections.h:471:8: warning: KS11: Tag requires static method declaration
+    X& operator=(Z<180>);
+       ^
+./sections.h:449:1: note: KS11: Tag is here
+// PRIVATE CLASS METHODS
+^
+./sections.h:472:9: warning: KS11: Tag requires static method declaration
+    int d_data_180;
+        ^
+./sections.h:449:1: note: KS11: Tag is here
+// PRIVATE CLASS METHODS
+^
+./sections.h:473:17: warning: KS11: Tag requires static method declaration
+    typedef int Type_180;
+                ^
+./sections.h:449:1: note: KS11: Tag is here
+// PRIVATE CLASS METHODS
+^
+./sections.h:474:5: warning: KS11: Tag requires static method declaration
+    operator Z<180>();
+    ^
+./sections.h:449:1: note: KS11: Tag is here
+// PRIVATE CLASS METHODS
+^
+./sections.h:475:5: warning: KS11: Tag requires static method declaration
+    operator Z<180>() const;
+    ^
+./sections.h:449:1: note: KS11: Tag is here
+// PRIVATE CLASS METHODS
+^
+./sections.h:479:10: warning: KS10: Tag requires constant data declaration
+    void accessor_170() const;
+         ^
+./sections.h:477:1: note: KS10: Tag is here
+// PRIVATE CONSTANTS
+^
+./sections.h:480:10: warning: KS10: Tag requires constant data declaration
+    void manipulator_170();
+         ^
+./sections.h:477:1: note: KS10: Tag is here
+// PRIVATE CONSTANTS
+^
+./sections.h:481:10: warning: KS10: Tag requires constant data declaration
+    void aspect_170();
+         ^
+./sections.h:477:1: note: KS10: Tag is here
+// PRIVATE CONSTANTS
+^
+./sections.h:482:16: warning: KS10: Tag requires constant data declaration
+    static int s_class_data_170;
+               ^
+./sections.h:477:1: note: KS10: Tag is here
+// PRIVATE CONSTANTS
+^
+./sections.h:483:17: warning: KS10: Tag requires constant data declaration
+    static void s_class_method_170();
+                ^
+./sections.h:477:1: note: KS10: Tag is here
+// PRIVATE CONSTANTS
+^
+./sections.h:485:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<170>);
+    ^
+./sections.h:477:1: note: KS09: Tag is here
+// PRIVATE CONSTANTS
+^
+./sections.h:486:8: warning: KS10: Tag requires constant data declaration
+    X& operator=(Z<170>);
+       ^
+./sections.h:477:1: note: KS10: Tag is here
+// PRIVATE CONSTANTS
+^
+./sections.h:487:9: warning: KS10: Tag requires constant data declaration
+    int d_data_170;
+        ^
+./sections.h:477:1: note: KS10: Tag is here
+// PRIVATE CONSTANTS
+^
+./sections.h:488:17: warning: KS10: Tag requires constant data declaration
+    typedef int Type_170;
+                ^
+./sections.h:477:1: note: KS10: Tag is here
+// PRIVATE CONSTANTS
+^
+./sections.h:489:5: warning: KS10: Tag requires constant data declaration
+    operator Z<170>();
+    ^
+./sections.h:477:1: note: KS10: Tag is here
+// PRIVATE CONSTANTS
+^
+./sections.h:490:5: warning: KS10: Tag requires constant data declaration
+    operator Z<170>() const;
+    ^
+./sections.h:477:1: note: KS10: Tag is here
+// PRIVATE CONSTANTS
+^
+./sections.h:492:10: warning: KS10: Tag requires constant data declaration
+    void accessor_160() const;
+         ^
+./sections.h:477:1: note: KS10: Tag is here
+// PRIVATE CONSTANTS
+^
+./sections.h:493:10: warning: KS10: Tag requires constant data declaration
+    void manipulator_160();
+         ^
+./sections.h:477:1: note: KS10: Tag is here
+// PRIVATE CONSTANTS
+^
+./sections.h:494:10: warning: KS10: Tag requires constant data declaration
+    void aspect_160();
+         ^
+./sections.h:477:1: note: KS10: Tag is here
+// PRIVATE CONSTANTS
+^
+./sections.h:495:16: warning: KS10: Tag requires constant data declaration
+    static int s_class_data_160;
+               ^
+./sections.h:477:1: note: KS10: Tag is here
+// PRIVATE CONSTANTS
+^
+./sections.h:496:17: warning: KS10: Tag requires constant data declaration
+    static void s_class_method_160();
+                ^
+./sections.h:477:1: note: KS10: Tag is here
+// PRIVATE CONSTANTS
+^
+./sections.h:497:22: warning: KS02: Tag requires private declaration
+    static const int s_CONSTANT_160 = 70;
+                     ^
+./sections.h:477:1: note: KS02: Tag is here
+// PRIVATE CONSTANTS
+^
+./sections.h:498:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<160>);
+    ^
+./sections.h:477:1: note: KS09: Tag is here
+// PRIVATE CONSTANTS
+^
+./sections.h:499:8: warning: KS10: Tag requires constant data declaration
+    X& operator=(Z<160>);
+       ^
+./sections.h:477:1: note: KS10: Tag is here
+// PRIVATE CONSTANTS
+^
+./sections.h:500:9: warning: KS10: Tag requires constant data declaration
+    int d_data_160;
+        ^
+./sections.h:477:1: note: KS10: Tag is here
+// PRIVATE CONSTANTS
+^
+./sections.h:501:17: warning: KS10: Tag requires constant data declaration
+    typedef int Type_160;
+                ^
+./sections.h:477:1: note: KS10: Tag is here
+// PRIVATE CONSTANTS
+^
+./sections.h:502:5: warning: KS10: Tag requires constant data declaration
+    operator Z<160>();
+    ^
+./sections.h:477:1: note: KS10: Tag is here
+// PRIVATE CONSTANTS
+^
+./sections.h:503:5: warning: KS10: Tag requires constant data declaration
+    operator Z<160>() const;
+    ^
+./sections.h:477:1: note: KS10: Tag is here
+// PRIVATE CONSTANTS
+^
+./sections.h:507:10: warning: KS04: Tag requires instance data field declaration
+    void accessor_150() const;
+         ^
+./sections.h:505:1: note: KS04: Tag is here
+// PRIVATE DATA
+^
+./sections.h:508:10: warning: KS04: Tag requires instance data field declaration
+    void manipulator_150();
+         ^
+./sections.h:505:1: note: KS04: Tag is here
+// PRIVATE DATA
+^
+./sections.h:509:10: warning: KS04: Tag requires instance data field declaration
+    void aspect_150();
+         ^
+./sections.h:505:1: note: KS04: Tag is here
+// PRIVATE DATA
+^
+./sections.h:510:16: warning: KS04: Tag requires instance data field declaration
+    static int s_class_data_150;
+               ^
+./sections.h:505:1: note: KS04: Tag is here
+// PRIVATE DATA
+^
+./sections.h:511:17: warning: KS04: Tag requires instance data field declaration
+    static void s_class_method_150();
+                ^
+./sections.h:505:1: note: KS04: Tag is here
+// PRIVATE DATA
+^
+./sections.h:512:22: warning: KS04: Tag requires instance data field declaration
+    static const int s_CONSTANT_150 = 70;
+                     ^
+./sections.h:505:1: note: KS04: Tag is here
+// PRIVATE DATA
+^
+./sections.h:513:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<150>);
+    ^
+./sections.h:505:1: note: KS09: Tag is here
+// PRIVATE DATA
+^
+./sections.h:514:8: warning: KS04: Tag requires instance data field declaration
+    X& operator=(Z<150>);
+       ^
+./sections.h:505:1: note: KS04: Tag is here
+// PRIVATE DATA
+^
+./sections.h:516:17: warning: KS04: Tag requires instance data field declaration
+    typedef int Type_150;
+                ^
+./sections.h:505:1: note: KS04: Tag is here
+// PRIVATE DATA
+^
+./sections.h:517:5: warning: KS04: Tag requires instance data field declaration
+    operator Z<150>();
+    ^
+./sections.h:505:1: note: KS04: Tag is here
+// PRIVATE DATA
+^
+./sections.h:518:5: warning: KS04: Tag requires instance data field declaration
+    operator Z<150>() const;
+    ^
+./sections.h:505:1: note: KS04: Tag is here
+// PRIVATE DATA
+^
+./sections.h:520:10: warning: KS04: Tag requires instance data field declaration
+    void accessor_140() const;
+         ^
+./sections.h:505:1: note: KS04: Tag is here
+// PRIVATE DATA
+^
+./sections.h:521:10: warning: KS04: Tag requires instance data field declaration
+    void manipulator_140();
+         ^
+./sections.h:505:1: note: KS04: Tag is here
+// PRIVATE DATA
+^
+./sections.h:522:10: warning: KS04: Tag requires instance data field declaration
+    void aspect_140();
+         ^
+./sections.h:505:1: note: KS04: Tag is here
+// PRIVATE DATA
+^
+./sections.h:523:16: warning: KS04: Tag requires instance data field declaration
+    static int s_class_data_140;
+               ^
+./sections.h:505:1: note: KS04: Tag is here
+// PRIVATE DATA
+^
+./sections.h:524:17: warning: KS04: Tag requires instance data field declaration
+    static void s_class_method_140();
+                ^
+./sections.h:505:1: note: KS04: Tag is here
+// PRIVATE DATA
+^
+./sections.h:525:22: warning: KS04: Tag requires instance data field declaration
+    static const int s_CONSTANT_140 = 70;
+                     ^
+./sections.h:505:1: note: KS04: Tag is here
+// PRIVATE DATA
+^
+./sections.h:526:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<140>);
+    ^
+./sections.h:505:1: note: KS09: Tag is here
+// PRIVATE DATA
+^
+./sections.h:527:8: warning: KS04: Tag requires instance data field declaration
+    X& operator=(Z<140>);
+       ^
+./sections.h:505:1: note: KS04: Tag is here
+// PRIVATE DATA
+^
+./sections.h:528:9: warning: KS02: Tag requires private declaration
+    int d_data_140;
+        ^
+./sections.h:505:1: note: KS02: Tag is here
+// PRIVATE DATA
+^
+./sections.h:529:17: warning: KS04: Tag requires instance data field declaration
+    typedef int Type_140;
+                ^
+./sections.h:505:1: note: KS04: Tag is here
+// PRIVATE DATA
+^
+./sections.h:530:5: warning: KS04: Tag requires instance data field declaration
+    operator Z<140>();
+    ^
+./sections.h:505:1: note: KS04: Tag is here
+// PRIVATE DATA
+^
+./sections.h:531:5: warning: KS04: Tag requires instance data field declaration
+    operator Z<140>() const;
+    ^
+./sections.h:505:1: note: KS04: Tag is here
+// PRIVATE DATA
+^
+./sections.h:535:10: warning: KS04: Tag requires instance data field declaration
+    void accessor_130() const;
+         ^
+./sections.h:533:1: note: KS04: Tag is here
+// PRIVATE DATA MEMBERS
+^
+./sections.h:536:10: warning: KS04: Tag requires instance data field declaration
+    void manipulator_130();
+         ^
+./sections.h:533:1: note: KS04: Tag is here
+// PRIVATE DATA MEMBERS
+^
+./sections.h:537:10: warning: KS04: Tag requires instance data field declaration
+    void aspect_130();
+         ^
+./sections.h:533:1: note: KS04: Tag is here
+// PRIVATE DATA MEMBERS
+^
+./sections.h:538:16: warning: KS04: Tag requires instance data field declaration
+    static int s_class_data_130;
+               ^
+./sections.h:533:1: note: KS04: Tag is here
+// PRIVATE DATA MEMBERS
+^
+./sections.h:539:17: warning: KS04: Tag requires instance data field declaration
+    static void s_class_method_130();
+                ^
+./sections.h:533:1: note: KS04: Tag is here
+// PRIVATE DATA MEMBERS
+^
+./sections.h:540:22: warning: KS04: Tag requires instance data field declaration
+    static const int s_CONSTANT_130 = 70;
+                     ^
+./sections.h:533:1: note: KS04: Tag is here
+// PRIVATE DATA MEMBERS
+^
+./sections.h:541:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<130>);
+    ^
+./sections.h:533:1: note: KS09: Tag is here
+// PRIVATE DATA MEMBERS
+^
+./sections.h:542:8: warning: KS04: Tag requires instance data field declaration
+    X& operator=(Z<130>);
+       ^
+./sections.h:533:1: note: KS04: Tag is here
+// PRIVATE DATA MEMBERS
+^
+./sections.h:544:17: warning: KS04: Tag requires instance data field declaration
+    typedef int Type_130;
+                ^
+./sections.h:533:1: note: KS04: Tag is here
+// PRIVATE DATA MEMBERS
+^
+./sections.h:545:5: warning: KS04: Tag requires instance data field declaration
+    operator Z<130>();
+    ^
+./sections.h:533:1: note: KS04: Tag is here
+// PRIVATE DATA MEMBERS
+^
+./sections.h:546:5: warning: KS04: Tag requires instance data field declaration
+    operator Z<130>() const;
+    ^
+./sections.h:533:1: note: KS04: Tag is here
+// PRIVATE DATA MEMBERS
+^
+./sections.h:548:10: warning: KS04: Tag requires instance data field declaration
+    void accessor_120() const;
+         ^
+./sections.h:533:1: note: KS04: Tag is here
+// PRIVATE DATA MEMBERS
+^
+./sections.h:549:10: warning: KS04: Tag requires instance data field declaration
+    void manipulator_120();
+         ^
+./sections.h:533:1: note: KS04: Tag is here
+// PRIVATE DATA MEMBERS
+^
+./sections.h:550:10: warning: KS04: Tag requires instance data field declaration
+    void aspect_120();
+         ^
+./sections.h:533:1: note: KS04: Tag is here
+// PRIVATE DATA MEMBERS
+^
+./sections.h:551:16: warning: KS04: Tag requires instance data field declaration
+    static int s_class_data_120;
+               ^
+./sections.h:533:1: note: KS04: Tag is here
+// PRIVATE DATA MEMBERS
+^
+./sections.h:552:17: warning: KS04: Tag requires instance data field declaration
+    static void s_class_method_120();
+                ^
+./sections.h:533:1: note: KS04: Tag is here
+// PRIVATE DATA MEMBERS
+^
+./sections.h:553:22: warning: KS04: Tag requires instance data field declaration
+    static const int s_CONSTANT_120 = 70;
+                     ^
+./sections.h:533:1: note: KS04: Tag is here
+// PRIVATE DATA MEMBERS
+^
+./sections.h:554:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<120>);
+    ^
+./sections.h:533:1: note: KS09: Tag is here
+// PRIVATE DATA MEMBERS
+^
+./sections.h:555:8: warning: KS04: Tag requires instance data field declaration
+    X& operator=(Z<120>);
+       ^
+./sections.h:533:1: note: KS04: Tag is here
+// PRIVATE DATA MEMBERS
+^
+./sections.h:556:9: warning: KS02: Tag requires private declaration
+    int d_data_120;
+        ^
+./sections.h:533:1: note: KS02: Tag is here
+// PRIVATE DATA MEMBERS
+^
+./sections.h:557:17: warning: KS04: Tag requires instance data field declaration
+    typedef int Type_120;
+                ^
+./sections.h:533:1: note: KS04: Tag is here
+// PRIVATE DATA MEMBERS
+^
+./sections.h:558:5: warning: KS04: Tag requires instance data field declaration
+    operator Z<120>();
+    ^
+./sections.h:533:1: note: KS04: Tag is here
+// PRIVATE DATA MEMBERS
+^
+./sections.h:559:5: warning: KS04: Tag requires instance data field declaration
+    operator Z<120>() const;
+    ^
+./sections.h:533:1: note: KS04: Tag is here
+// PRIVATE DATA MEMBERS
+^
+./sections.h:563:10: warning: KS08: Tag requires non-const method declaration
+    void accessor_110() const;
+         ^
+./sections.h:561:1: note: KS08: Tag is here
+// PRIVATE FUNCTIONS
+^
+./sections.h:566:16: warning: KS08: Tag requires non-const method declaration
+    static int s_class_data_110;
+               ^
+./sections.h:561:1: note: KS08: Tag is here
+// PRIVATE FUNCTIONS
+^
+./sections.h:568:22: warning: KS08: Tag requires non-const method declaration
+    static const int s_CONSTANT_110 = 70;
+                     ^
+./sections.h:561:1: note: KS08: Tag is here
+// PRIVATE FUNCTIONS
+^
+./sections.h:569:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<110>);
+    ^
+./sections.h:561:1: note: KS09: Tag is here
+// PRIVATE FUNCTIONS
+^
+./sections.h:571:9: warning: KS08: Tag requires non-const method declaration
+    int d_data_110;
+        ^
+./sections.h:561:1: note: KS08: Tag is here
+// PRIVATE FUNCTIONS
+^
+./sections.h:572:17: warning: KS08: Tag requires non-const method declaration
+    typedef int Type_110;
+                ^
+./sections.h:561:1: note: KS08: Tag is here
+// PRIVATE FUNCTIONS
+^
+./sections.h:574:5: warning: KS08: Tag requires non-const method declaration
+    operator Z<110>() const;
+    ^
+./sections.h:561:1: note: KS08: Tag is here
+// PRIVATE FUNCTIONS
+^
+./sections.h:576:10: warning: KS08: Tag requires non-const method declaration
+    void accessor_90() const;
+         ^
+./sections.h:561:1: note: KS08: Tag is here
+// PRIVATE FUNCTIONS
+^
+./sections.h:577:10: warning: KS02: Tag requires private declaration
+    void manipulator_90();
+         ^
+./sections.h:561:1: note: KS02: Tag is here
+// PRIVATE FUNCTIONS
+^
+./sections.h:578:10: warning: KS02: Tag requires private declaration
+    void aspect_90();
+         ^
+./sections.h:561:1: note: KS02: Tag is here
+// PRIVATE FUNCTIONS
+^
+./sections.h:579:16: warning: KS08: Tag requires non-const method declaration
+    static int s_class_data_90;
+               ^
+./sections.h:561:1: note: KS08: Tag is here
+// PRIVATE FUNCTIONS
+^
+./sections.h:580:17: warning: KS02: Tag requires private declaration
+    static void s_class_method_90();
+                ^
+./sections.h:561:1: note: KS02: Tag is here
+// PRIVATE FUNCTIONS
+^
+./sections.h:581:22: warning: KS08: Tag requires non-const method declaration
+    static const int s_CONSTANT_90 = 70;
+                     ^
+./sections.h:561:1: note: KS08: Tag is here
+// PRIVATE FUNCTIONS
+^
+./sections.h:582:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<90>);
+    ^
+./sections.h:561:1: note: KS09: Tag is here
+// PRIVATE FUNCTIONS
+^
+./sections.h:583:8: warning: KS02: Tag requires private declaration
+    X& operator=(Z<90>);
+       ^
+./sections.h:561:1: note: KS02: Tag is here
+// PRIVATE FUNCTIONS
+^
+./sections.h:584:9: warning: KS08: Tag requires non-const method declaration
+    int d_data_90;
+        ^
+./sections.h:561:1: note: KS08: Tag is here
+// PRIVATE FUNCTIONS
+^
+./sections.h:585:17: warning: KS08: Tag requires non-const method declaration
+    typedef int Type_90;
+                ^
+./sections.h:561:1: note: KS08: Tag is here
+// PRIVATE FUNCTIONS
+^
+./sections.h:586:5: warning: KS02: Tag requires private declaration
+    operator Z<90>();
+    ^
+./sections.h:561:1: note: KS02: Tag is here
+// PRIVATE FUNCTIONS
+^
+./sections.h:587:5: warning: KS08: Tag requires non-const method declaration
+    operator Z<90>() const;
+    ^
+./sections.h:561:1: note: KS08: Tag is here
+// PRIVATE FUNCTIONS
+^
+./sections.h:591:10: warning: KS08: Tag requires non-const method declaration
+    void accessor_80() const;
+         ^
+./sections.h:589:1: note: KS08: Tag is here
+// PRIVATE MANIPULATORS
+^
+./sections.h:594:16: warning: KS08: Tag requires non-const method declaration
+    static int s_class_data_80;
+               ^
+./sections.h:589:1: note: KS08: Tag is here
+// PRIVATE MANIPULATORS
+^
+./sections.h:596:22: warning: KS08: Tag requires non-const method declaration
+    static const int s_CONSTANT_80 = 70;
+                     ^
+./sections.h:589:1: note: KS08: Tag is here
+// PRIVATE MANIPULATORS
+^
+./sections.h:597:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<80>);
+    ^
+./sections.h:589:1: note: KS09: Tag is here
+// PRIVATE MANIPULATORS
+^
+./sections.h:599:9: warning: KS08: Tag requires non-const method declaration
+    int d_data_80;
+        ^
+./sections.h:589:1: note: KS08: Tag is here
+// PRIVATE MANIPULATORS
+^
+./sections.h:600:17: warning: KS08: Tag requires non-const method declaration
+    typedef int Type_80;
+                ^
+./sections.h:589:1: note: KS08: Tag is here
+// PRIVATE MANIPULATORS
+^
+./sections.h:602:5: warning: KS08: Tag requires non-const method declaration
+    operator Z<80>() const;
+    ^
+./sections.h:589:1: note: KS08: Tag is here
+// PRIVATE MANIPULATORS
+^
+./sections.h:604:10: warning: KS08: Tag requires non-const method declaration
+    void accessor_70() const;
+         ^
+./sections.h:589:1: note: KS08: Tag is here
+// PRIVATE MANIPULATORS
+^
+./sections.h:605:10: warning: KS02: Tag requires private declaration
+    void manipulator_70();
+         ^
+./sections.h:589:1: note: KS02: Tag is here
+// PRIVATE MANIPULATORS
+^
+./sections.h:606:10: warning: KS02: Tag requires private declaration
+    void aspect_70();
+         ^
+./sections.h:589:1: note: KS02: Tag is here
+// PRIVATE MANIPULATORS
+^
+./sections.h:607:16: warning: KS08: Tag requires non-const method declaration
+    static int s_class_data_70;
+               ^
+./sections.h:589:1: note: KS08: Tag is here
+// PRIVATE MANIPULATORS
+^
+./sections.h:608:17: warning: KS02: Tag requires private declaration
+    static void s_class_method_70();
+                ^
+./sections.h:589:1: note: KS02: Tag is here
+// PRIVATE MANIPULATORS
+^
+./sections.h:609:22: warning: KS08: Tag requires non-const method declaration
+    static const int s_CONSTANT_70 = 70;
+                     ^
+./sections.h:589:1: note: KS08: Tag is here
+// PRIVATE MANIPULATORS
+^
+./sections.h:610:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<70>);
+    ^
+./sections.h:589:1: note: KS09: Tag is here
+// PRIVATE MANIPULATORS
+^
+./sections.h:611:8: warning: KS02: Tag requires private declaration
+    X& operator=(Z<70>);
+       ^
+./sections.h:589:1: note: KS02: Tag is here
+// PRIVATE MANIPULATORS
+^
+./sections.h:612:9: warning: KS08: Tag requires non-const method declaration
+    int d_data_70;
+        ^
+./sections.h:589:1: note: KS08: Tag is here
+// PRIVATE MANIPULATORS
+^
+./sections.h:613:17: warning: KS08: Tag requires non-const method declaration
+    typedef int Type_70;
+                ^
+./sections.h:589:1: note: KS08: Tag is here
+// PRIVATE MANIPULATORS
+^
+./sections.h:614:5: warning: KS02: Tag requires private declaration
+    operator Z<70>();
+    ^
+./sections.h:589:1: note: KS02: Tag is here
+// PRIVATE MANIPULATORS
+^
+./sections.h:615:5: warning: KS08: Tag requires non-const method declaration
+    operator Z<70>() const;
+    ^
+./sections.h:589:1: note: KS08: Tag is here
+// PRIVATE MANIPULATORS
+^
+./sections.h:619:10: warning: KS14: Tag requires conversion operator declaration
+    void accessor_40() const;
+         ^
+./sections.h:617:1: note: KS14: Tag is here
+// PRIVATE TRAITS
+^
+./sections.h:620:10: warning: KS14: Tag requires conversion operator declaration
+    void manipulator_40();
+         ^
+./sections.h:617:1: note: KS14: Tag is here
+// PRIVATE TRAITS
+^
+./sections.h:621:10: warning: KS14: Tag requires conversion operator declaration
+    void aspect_40();
+         ^
+./sections.h:617:1: note: KS14: Tag is here
+// PRIVATE TRAITS
+^
+./sections.h:622:16: warning: KS14: Tag requires conversion operator declaration
+    static int s_class_data_40;
+               ^
+./sections.h:617:1: note: KS14: Tag is here
+// PRIVATE TRAITS
+^
+./sections.h:623:17: warning: KS14: Tag requires conversion operator declaration
+    static void s_class_method_40();
+                ^
+./sections.h:617:1: note: KS14: Tag is here
+// PRIVATE TRAITS
+^
+./sections.h:624:22: warning: KS14: Tag requires conversion operator declaration
+    static const int s_CONSTANT_40 = 70;
+                     ^
+./sections.h:617:1: note: KS14: Tag is here
+// PRIVATE TRAITS
+^
+./sections.h:625:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<40>);
+    ^
+./sections.h:617:1: note: KS09: Tag is here
+// PRIVATE TRAITS
+^
+./sections.h:626:8: warning: KS14: Tag requires conversion operator declaration
+    X& operator=(Z<40>);
+       ^
+./sections.h:617:1: note: KS14: Tag is here
+// PRIVATE TRAITS
+^
+./sections.h:627:9: warning: KS14: Tag requires conversion operator declaration
+    int d_data_40;
+        ^
+./sections.h:617:1: note: KS14: Tag is here
+// PRIVATE TRAITS
+^
+./sections.h:628:17: warning: KS14: Tag requires conversion operator declaration
+    typedef int Type_40;
+                ^
+./sections.h:617:1: note: KS14: Tag is here
+// PRIVATE TRAITS
+^
+./sections.h:632:10: warning: KS14: Tag requires conversion operator declaration
+    void accessor_30() const;
+         ^
+./sections.h:617:1: note: KS14: Tag is here
+// PRIVATE TRAITS
+^
+./sections.h:633:10: warning: KS14: Tag requires conversion operator declaration
+    void manipulator_30();
+         ^
+./sections.h:617:1: note: KS14: Tag is here
+// PRIVATE TRAITS
+^
+./sections.h:634:10: warning: KS14: Tag requires conversion operator declaration
+    void aspect_30();
+         ^
+./sections.h:617:1: note: KS14: Tag is here
+// PRIVATE TRAITS
+^
+./sections.h:635:16: warning: KS14: Tag requires conversion operator declaration
+    static int s_class_data_30;
+               ^
+./sections.h:617:1: note: KS14: Tag is here
+// PRIVATE TRAITS
+^
+./sections.h:636:17: warning: KS14: Tag requires conversion operator declaration
+    static void s_class_method_30();
+                ^
+./sections.h:617:1: note: KS14: Tag is here
+// PRIVATE TRAITS
+^
+./sections.h:637:22: warning: KS14: Tag requires conversion operator declaration
+    static const int s_CONSTANT_30 = 70;
+                     ^
+./sections.h:617:1: note: KS14: Tag is here
+// PRIVATE TRAITS
+^
+./sections.h:638:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<30>);
+    ^
+./sections.h:617:1: note: KS09: Tag is here
+// PRIVATE TRAITS
+^
+./sections.h:639:8: warning: KS14: Tag requires conversion operator declaration
+    X& operator=(Z<30>);
+       ^
+./sections.h:617:1: note: KS14: Tag is here
+// PRIVATE TRAITS
+^
+./sections.h:640:9: warning: KS14: Tag requires conversion operator declaration
+    int d_data_30;
+        ^
+./sections.h:617:1: note: KS14: Tag is here
+// PRIVATE TRAITS
+^
+./sections.h:641:17: warning: KS14: Tag requires conversion operator declaration
+    typedef int Type_30;
+                ^
+./sections.h:617:1: note: KS14: Tag is here
+// PRIVATE TRAITS
+^
+./sections.h:642:5: warning: KS02: Tag requires private declaration
+    operator Z<30>();
+    ^
+./sections.h:617:1: note: KS02: Tag is here
+// PRIVATE TRAITS
+^
+./sections.h:643:5: warning: KS02: Tag requires private declaration
+    operator Z<30>() const;
+    ^
+./sections.h:617:1: note: KS02: Tag is here
+// PRIVATE TRAITS
+^
+./sections.h:647:10: warning: KS06: Tag requires type declaration
+    void accessor_20() const;
+         ^
+./sections.h:645:1: note: KS06: Tag is here
+// PRIVATE TYPES
+^
+./sections.h:648:10: warning: KS06: Tag requires type declaration
+    void manipulator_20();
+         ^
+./sections.h:645:1: note: KS06: Tag is here
+// PRIVATE TYPES
+^
+./sections.h:649:10: warning: KS06: Tag requires type declaration
+    void aspect_20();
+         ^
+./sections.h:645:1: note: KS06: Tag is here
+// PRIVATE TYPES
+^
+./sections.h:650:16: warning: KS06: Tag requires type declaration
+    static int s_class_data_20;
+               ^
+./sections.h:645:1: note: KS06: Tag is here
+// PRIVATE TYPES
+^
+./sections.h:651:17: warning: KS06: Tag requires type declaration
+    static void s_class_method_20();
+                ^
+./sections.h:645:1: note: KS06: Tag is here
+// PRIVATE TYPES
+^
+./sections.h:652:22: warning: KS06: Tag requires type declaration
+    static const int s_CONSTANT_20 = 70;
+                     ^
+./sections.h:645:1: note: KS06: Tag is here
+// PRIVATE TYPES
+^
+./sections.h:653:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<20>);
+    ^
+./sections.h:645:1: note: KS09: Tag is here
+// PRIVATE TYPES
+^
+./sections.h:654:8: warning: KS06: Tag requires type declaration
+    X& operator=(Z<20>);
+       ^
+./sections.h:645:1: note: KS06: Tag is here
+// PRIVATE TYPES
+^
+./sections.h:655:9: warning: KS06: Tag requires type declaration
+    int d_data_20;
+        ^
+./sections.h:645:1: note: KS06: Tag is here
+// PRIVATE TYPES
+^
+./sections.h:657:5: warning: KS06: Tag requires type declaration
+    operator Z<20>();
+    ^
+./sections.h:645:1: note: KS06: Tag is here
+// PRIVATE TYPES
+^
+./sections.h:658:5: warning: KS06: Tag requires type declaration
+    operator Z<20>() const;
+    ^
+./sections.h:645:1: note: KS06: Tag is here
+// PRIVATE TYPES
+^
+./sections.h:660:10: warning: KS06: Tag requires type declaration
+    void accessor_10() const;
+         ^
+./sections.h:645:1: note: KS06: Tag is here
+// PRIVATE TYPES
+^
+./sections.h:661:10: warning: KS06: Tag requires type declaration
+    void manipulator_10();
+         ^
+./sections.h:645:1: note: KS06: Tag is here
+// PRIVATE TYPES
+^
+./sections.h:662:10: warning: KS06: Tag requires type declaration
+    void aspect_10();
+         ^
+./sections.h:645:1: note: KS06: Tag is here
+// PRIVATE TYPES
+^
+./sections.h:663:16: warning: KS06: Tag requires type declaration
+    static int s_class_data_10;
+               ^
+./sections.h:645:1: note: KS06: Tag is here
+// PRIVATE TYPES
+^
+./sections.h:664:17: warning: KS06: Tag requires type declaration
+    static void s_class_method_10();
+                ^
+./sections.h:645:1: note: KS06: Tag is here
+// PRIVATE TYPES
+^
+./sections.h:665:22: warning: KS06: Tag requires type declaration
+    static const int s_CONSTANT_10 = 70;
+                     ^
+./sections.h:645:1: note: KS06: Tag is here
+// PRIVATE TYPES
+^
+./sections.h:666:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<10>);
+    ^
+./sections.h:645:1: note: KS09: Tag is here
+// PRIVATE TYPES
+^
+./sections.h:667:8: warning: KS06: Tag requires type declaration
+    X& operator=(Z<10>);
+       ^
+./sections.h:645:1: note: KS06: Tag is here
+// PRIVATE TYPES
+^
+./sections.h:668:9: warning: KS06: Tag requires type declaration
+    int d_data_10;
+        ^
+./sections.h:645:1: note: KS06: Tag is here
+// PRIVATE TYPES
+^
+./sections.h:669:17: warning: KS02: Tag requires private declaration
+    typedef int Type_10;
+                ^
+./sections.h:645:1: note: KS02: Tag is here
+// PRIVATE TYPES
+^
+./sections.h:670:5: warning: KS06: Tag requires type declaration
+    operator Z<10>();
+    ^
+./sections.h:645:1: note: KS06: Tag is here
+// PRIVATE TYPES
+^
+./sections.h:671:5: warning: KS06: Tag requires type declaration
+    operator Z<10>() const;
+    ^
+./sections.h:645:1: note: KS06: Tag is here
+// PRIVATE TYPES
+^
+./sections.h:675:10: warning: KS01: Tag requires public declaration
+    void accessor_2600() const;
+         ^
+./sections.h:673:1: note: KS01: Tag is here
+// PUBLIC ACCESSORS
+^
+./sections.h:676:10: warning: KS07: Tag requires const method declaration
+    void manipulator_2600();
+         ^
+./sections.h:673:1: note: KS07: Tag is here
+// PUBLIC ACCESSORS
+^
+./sections.h:677:10: warning: KS07: Tag requires const method declaration
+    void aspect_2600();
+         ^
+./sections.h:673:1: note: KS07: Tag is here
+// PUBLIC ACCESSORS
+^
+./sections.h:678:16: warning: KS07: Tag requires const method declaration
+    static int s_class_data_2600;
+               ^
+./sections.h:673:1: note: KS07: Tag is here
+// PUBLIC ACCESSORS
+^
+./sections.h:679:17: warning: KS07: Tag requires const method declaration
+    static void s_class_method_2600();
+                ^
+./sections.h:673:1: note: KS07: Tag is here
+// PUBLIC ACCESSORS
+^
+./sections.h:680:22: warning: KS07: Tag requires const method declaration
+    static const int s_CONSTANT_2600 = 7;
+                     ^
+./sections.h:673:1: note: KS07: Tag is here
+// PUBLIC ACCESSORS
+^
+./sections.h:681:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<2600>);
+    ^
+./sections.h:673:1: note: KS09: Tag is here
+// PUBLIC ACCESSORS
+^
+./sections.h:682:8: warning: KS07: Tag requires const method declaration
+    X& operator=(Z<2600>);
+       ^
+./sections.h:673:1: note: KS07: Tag is here
+// PUBLIC ACCESSORS
+^
+./sections.h:683:9: warning: KS07: Tag requires const method declaration
+    int d_data_2600;
+        ^
+./sections.h:673:1: note: KS07: Tag is here
+// PUBLIC ACCESSORS
+^
+./sections.h:684:17: warning: KS07: Tag requires const method declaration
+    typedef int Type_2600;
+                ^
+./sections.h:673:1: note: KS07: Tag is here
+// PUBLIC ACCESSORS
+^
+./sections.h:685:5: warning: KS07: Tag requires const method declaration
+    operator Z<2600>();
+    ^
+./sections.h:673:1: note: KS07: Tag is here
+// PUBLIC ACCESSORS
+^
+./sections.h:686:5: warning: KS01: Tag requires public declaration
+    operator Z<2600>() const;
+    ^
+./sections.h:673:1: note: KS01: Tag is here
+// PUBLIC ACCESSORS
+^
+./sections.h:689:10: warning: KS07: Tag requires const method declaration
+    void manipulator_2500();
+         ^
+./sections.h:673:1: note: KS07: Tag is here
+// PUBLIC ACCESSORS
+^
+./sections.h:690:10: warning: KS07: Tag requires const method declaration
+    void aspect_2500();
+         ^
+./sections.h:673:1: note: KS07: Tag is here
+// PUBLIC ACCESSORS
+^
+./sections.h:691:16: warning: KS07: Tag requires const method declaration
+    static int s_class_data_2500;
+               ^
+./sections.h:673:1: note: KS07: Tag is here
+// PUBLIC ACCESSORS
+^
+./sections.h:692:17: warning: KS07: Tag requires const method declaration
+    static void s_class_method_2500();
+                ^
+./sections.h:673:1: note: KS07: Tag is here
+// PUBLIC ACCESSORS
+^
+./sections.h:693:22: warning: KS07: Tag requires const method declaration
+    static const int s_CONSTANT_2500 = 7;
+                     ^
+./sections.h:673:1: note: KS07: Tag is here
+// PUBLIC ACCESSORS
+^
+./sections.h:694:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<2500>);
+    ^
+./sections.h:673:1: note: KS09: Tag is here
+// PUBLIC ACCESSORS
+^
+./sections.h:695:8: warning: KS07: Tag requires const method declaration
+    X& operator=(Z<2500>);
+       ^
+./sections.h:673:1: note: KS07: Tag is here
+// PUBLIC ACCESSORS
+^
+./sections.h:696:9: warning: KS07: Tag requires const method declaration
+    int d_data_2500;
+        ^
+./sections.h:673:1: note: KS07: Tag is here
+// PUBLIC ACCESSORS
+^
+./sections.h:697:17: warning: KS07: Tag requires const method declaration
+    typedef int Type_2500;
+                ^
+./sections.h:673:1: note: KS07: Tag is here
+// PUBLIC ACCESSORS
+^
+./sections.h:698:5: warning: KS07: Tag requires const method declaration
+    operator Z<2500>();
+    ^
+./sections.h:673:1: note: KS07: Tag is here
+// PUBLIC ACCESSORS
+^
+./sections.h:703:10: warning: KS01: Tag requires public declaration
+    void accessor_2400() const;
+         ^
+./sections.h:701:1: note: KS01: Tag is here
+// PUBLIC ASPECTS
+^
+./sections.h:704:10: warning: KS01: Tag requires public declaration
+    void manipulator_2400();
+         ^
+./sections.h:701:1: note: KS01: Tag is here
+// PUBLIC ASPECTS
+^
+./sections.h:705:10: warning: KS01: Tag requires public declaration
+    void aspect_2400();
+         ^
+./sections.h:701:1: note: KS01: Tag is here
+// PUBLIC ASPECTS
+^
+./sections.h:706:16: warning: KS03: Tag requires function declaration
+    static int s_class_data_2400;
+               ^
+./sections.h:701:1: note: KS03: Tag is here
+// PUBLIC ASPECTS
+^
+./sections.h:707:17: warning: KS01: Tag requires public declaration
+    static void s_class_method_2400();
+                ^
+./sections.h:701:1: note: KS01: Tag is here
+// PUBLIC ASPECTS
+^
+./sections.h:708:22: warning: KS03: Tag requires function declaration
+    static const int s_CONSTANT_2400 = 7;
+                     ^
+./sections.h:701:1: note: KS03: Tag is here
+// PUBLIC ASPECTS
+^
+./sections.h:709:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<2400>);
+    ^
+./sections.h:701:1: note: KS09: Tag is here
+// PUBLIC ASPECTS
+^
+./sections.h:710:8: warning: KS01: Tag requires public declaration
+    X& operator=(Z<2400>);
+       ^
+./sections.h:701:1: note: KS01: Tag is here
+// PUBLIC ASPECTS
+^
+./sections.h:711:9: warning: KS03: Tag requires function declaration
+    int d_data_2400;
+        ^
+./sections.h:701:1: note: KS03: Tag is here
+// PUBLIC ASPECTS
+^
+./sections.h:712:17: warning: KS03: Tag requires function declaration
+    typedef int Type_2400;
+                ^
+./sections.h:701:1: note: KS03: Tag is here
+// PUBLIC ASPECTS
+^
+./sections.h:713:5: warning: KS01: Tag requires public declaration
+    operator Z<2400>();
+    ^
+./sections.h:701:1: note: KS01: Tag is here
+// PUBLIC ASPECTS
+^
+./sections.h:714:5: warning: KS01: Tag requires public declaration
+    operator Z<2400>() const;
+    ^
+./sections.h:701:1: note: KS01: Tag is here
+// PUBLIC ASPECTS
+^
+./sections.h:719:16: warning: KS03: Tag requires function declaration
+    static int s_class_data_2300;
+               ^
+./sections.h:701:1: note: KS03: Tag is here
+// PUBLIC ASPECTS
+^
+./sections.h:721:22: warning: KS03: Tag requires function declaration
+    static const int s_CONSTANT_2300 = 7;
+                     ^
+./sections.h:701:1: note: KS03: Tag is here
+// PUBLIC ASPECTS
+^
+./sections.h:722:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<2300>);
+    ^
+./sections.h:701:1: note: KS09: Tag is here
+// PUBLIC ASPECTS
+^
+./sections.h:724:9: warning: KS03: Tag requires function declaration
+    int d_data_2300;
+        ^
+./sections.h:701:1: note: KS03: Tag is here
+// PUBLIC ASPECTS
+^
+./sections.h:725:17: warning: KS03: Tag requires function declaration
+    typedef int Type_2300;
+                ^
+./sections.h:701:1: note: KS03: Tag is here
+// PUBLIC ASPECTS
+^
+./sections.h:731:10: warning: KS05: Tag requires static data field declaration
+    void accessor_2200() const;
+         ^
+./sections.h:729:1: note: KS05: Tag is here
+// PUBLIC CLASS DATA
+^
+./sections.h:732:10: warning: KS05: Tag requires static data field declaration
+    void manipulator_2200();
+         ^
+./sections.h:729:1: note: KS05: Tag is here
+// PUBLIC CLASS DATA
+^
+./sections.h:733:10: warning: KS05: Tag requires static data field declaration
+    void aspect_2200();
+         ^
+./sections.h:729:1: note: KS05: Tag is here
+// PUBLIC CLASS DATA
+^
+./sections.h:734:16: warning: KS01: Tag requires public declaration
+    static int s_class_data_2200;
+               ^
+./sections.h:729:1: note: KS01: Tag is here
+// PUBLIC CLASS DATA
+^
+./sections.h:735:17: warning: KS05: Tag requires static data field declaration
+    static void s_class_method_2200();
+                ^
+./sections.h:729:1: note: KS05: Tag is here
+// PUBLIC CLASS DATA
+^
+./sections.h:736:22: warning: KS01: Tag requires public declaration
+    static const int s_CONSTANT_2200 = 7;
+                     ^
+./sections.h:729:1: note: KS01: Tag is here
+// PUBLIC CLASS DATA
+^
+./sections.h:737:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<2200>);
+    ^
+./sections.h:729:1: note: KS09: Tag is here
+// PUBLIC CLASS DATA
+^
+./sections.h:738:8: warning: KS05: Tag requires static data field declaration
+    X& operator=(Z<2200>);
+       ^
+./sections.h:729:1: note: KS05: Tag is here
+// PUBLIC CLASS DATA
+^
+./sections.h:739:9: warning: KS05: Tag requires static data field declaration
+    int d_data_2200;
+        ^
+./sections.h:729:1: note: KS05: Tag is here
+// PUBLIC CLASS DATA
+^
+./sections.h:740:17: warning: KS05: Tag requires static data field declaration
+    typedef int Type_2200;
+                ^
+./sections.h:729:1: note: KS05: Tag is here
+// PUBLIC CLASS DATA
+^
+./sections.h:741:5: warning: KS05: Tag requires static data field declaration
+    operator Z<2200>();
+    ^
+./sections.h:729:1: note: KS05: Tag is here
+// PUBLIC CLASS DATA
+^
+./sections.h:742:5: warning: KS05: Tag requires static data field declaration
+    operator Z<2200>() const;
+    ^
+./sections.h:729:1: note: KS05: Tag is here
+// PUBLIC CLASS DATA
+^
+./sections.h:744:10: warning: KS05: Tag requires static data field declaration
+    void accessor_2100() const;
+         ^
+./sections.h:729:1: note: KS05: Tag is here
+// PUBLIC CLASS DATA
+^
+./sections.h:745:10: warning: KS05: Tag requires static data field declaration
+    void manipulator_2100();
+         ^
+./sections.h:729:1: note: KS05: Tag is here
+// PUBLIC CLASS DATA
+^
+./sections.h:746:10: warning: KS05: Tag requires static data field declaration
+    void aspect_2100();
+         ^
+./sections.h:729:1: note: KS05: Tag is here
+// PUBLIC CLASS DATA
+^
+./sections.h:748:17: warning: KS05: Tag requires static data field declaration
+    static void s_class_method_2100();
+                ^
+./sections.h:729:1: note: KS05: Tag is here
+// PUBLIC CLASS DATA
+^
+./sections.h:750:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<2100>);
+    ^
+./sections.h:729:1: note: KS09: Tag is here
+// PUBLIC CLASS DATA
+^
+./sections.h:751:8: warning: KS05: Tag requires static data field declaration
+    X& operator=(Z<2100>);
+       ^
+./sections.h:729:1: note: KS05: Tag is here
+// PUBLIC CLASS DATA
+^
+./sections.h:752:9: warning: KS05: Tag requires static data field declaration
+    int d_data_2100;
+        ^
+./sections.h:729:1: note: KS05: Tag is here
+// PUBLIC CLASS DATA
+^
+./sections.h:753:17: warning: KS05: Tag requires static data field declaration
+    typedef int Type_2100;
+                ^
+./sections.h:729:1: note: KS05: Tag is here
+// PUBLIC CLASS DATA
+^
+./sections.h:754:5: warning: KS05: Tag requires static data field declaration
+    operator Z<2100>();
+    ^
+./sections.h:729:1: note: KS05: Tag is here
+// PUBLIC CLASS DATA
+^
+./sections.h:755:5: warning: KS05: Tag requires static data field declaration
+    operator Z<2100>() const;
+    ^
+./sections.h:729:1: note: KS05: Tag is here
+// PUBLIC CLASS DATA
+^
+./sections.h:759:10: warning: KS11: Tag requires static method declaration
+    void accessor_1900() const;
+         ^
+./sections.h:757:1: note: KS11: Tag is here
+// PUBLIC CLASS METHODS
+^
+./sections.h:760:10: warning: KS11: Tag requires static method declaration
+    void manipulator_1900();
+         ^
+./sections.h:757:1: note: KS11: Tag is here
+// PUBLIC CLASS METHODS
+^
+./sections.h:761:10: warning: KS11: Tag requires static method declaration
+    void aspect_1900();
+         ^
+./sections.h:757:1: note: KS11: Tag is here
+// PUBLIC CLASS METHODS
+^
+./sections.h:762:16: warning: KS11: Tag requires static method declaration
+    static int s_class_data_1900;
+               ^
+./sections.h:757:1: note: KS11: Tag is here
+// PUBLIC CLASS METHODS
+^
+./sections.h:763:17: warning: KS01: Tag requires public declaration
+    static void s_class_method_1900();
+                ^
+./sections.h:757:1: note: KS01: Tag is here
+// PUBLIC CLASS METHODS
+^
+./sections.h:764:22: warning: KS11: Tag requires static method declaration
+    static const int s_CONSTANT_1900 = 7;
+                     ^
+./sections.h:757:1: note: KS11: Tag is here
+// PUBLIC CLASS METHODS
+^
+./sections.h:765:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<1900>);
+    ^
+./sections.h:757:1: note: KS09: Tag is here
+// PUBLIC CLASS METHODS
+^
+./sections.h:766:8: warning: KS11: Tag requires static method declaration
+    X& operator=(Z<1900>);
+       ^
+./sections.h:757:1: note: KS11: Tag is here
+// PUBLIC CLASS METHODS
+^
+./sections.h:767:9: warning: KS11: Tag requires static method declaration
+    int d_data_1900;
+        ^
+./sections.h:757:1: note: KS11: Tag is here
+// PUBLIC CLASS METHODS
+^
+./sections.h:768:17: warning: KS11: Tag requires static method declaration
+    typedef int Type_1900;
+                ^
+./sections.h:757:1: note: KS11: Tag is here
+// PUBLIC CLASS METHODS
+^
+./sections.h:769:5: warning: KS11: Tag requires static method declaration
+    operator Z<1900>();
+    ^
+./sections.h:757:1: note: KS11: Tag is here
+// PUBLIC CLASS METHODS
+^
+./sections.h:770:5: warning: KS11: Tag requires static method declaration
+    operator Z<1900>() const;
+    ^
+./sections.h:757:1: note: KS11: Tag is here
+// PUBLIC CLASS METHODS
+^
+./sections.h:772:10: warning: KS11: Tag requires static method declaration
+    void accessor_1800() const;
+         ^
+./sections.h:757:1: note: KS11: Tag is here
+// PUBLIC CLASS METHODS
+^
+./sections.h:773:10: warning: KS11: Tag requires static method declaration
+    void manipulator_1800();
+         ^
+./sections.h:757:1: note: KS11: Tag is here
+// PUBLIC CLASS METHODS
+^
+./sections.h:774:10: warning: KS11: Tag requires static method declaration
+    void aspect_1800();
+         ^
+./sections.h:757:1: note: KS11: Tag is here
+// PUBLIC CLASS METHODS
+^
+./sections.h:775:16: warning: KS11: Tag requires static method declaration
+    static int s_class_data_1800;
+               ^
+./sections.h:757:1: note: KS11: Tag is here
+// PUBLIC CLASS METHODS
+^
+./sections.h:777:22: warning: KS11: Tag requires static method declaration
+    static const int s_CONSTANT_1800 = 7;
+                     ^
+./sections.h:757:1: note: KS11: Tag is here
+// PUBLIC CLASS METHODS
+^
+./sections.h:778:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<1800>);
+    ^
+./sections.h:757:1: note: KS09: Tag is here
+// PUBLIC CLASS METHODS
+^
+./sections.h:779:8: warning: KS11: Tag requires static method declaration
+    X& operator=(Z<1800>);
+       ^
+./sections.h:757:1: note: KS11: Tag is here
+// PUBLIC CLASS METHODS
+^
+./sections.h:780:9: warning: KS11: Tag requires static method declaration
+    int d_data_1800;
+        ^
+./sections.h:757:1: note: KS11: Tag is here
+// PUBLIC CLASS METHODS
+^
+./sections.h:781:17: warning: KS11: Tag requires static method declaration
+    typedef int Type_1800;
+                ^
+./sections.h:757:1: note: KS11: Tag is here
+// PUBLIC CLASS METHODS
+^
+./sections.h:782:5: warning: KS11: Tag requires static method declaration
+    operator Z<1800>();
+    ^
+./sections.h:757:1: note: KS11: Tag is here
+// PUBLIC CLASS METHODS
+^
+./sections.h:783:5: warning: KS11: Tag requires static method declaration
+    operator Z<1800>() const;
+    ^
+./sections.h:757:1: note: KS11: Tag is here
+// PUBLIC CLASS METHODS
+^
+./sections.h:787:10: warning: KS10: Tag requires constant data declaration
+    void accessor_1700() const;
+         ^
+./sections.h:785:1: note: KS10: Tag is here
+// PUBLIC CONSTANTS
+^
+./sections.h:788:10: warning: KS10: Tag requires constant data declaration
+    void manipulator_1700();
+         ^
+./sections.h:785:1: note: KS10: Tag is here
+// PUBLIC CONSTANTS
+^
+./sections.h:789:10: warning: KS10: Tag requires constant data declaration
+    void aspect_1700();
+         ^
+./sections.h:785:1: note: KS10: Tag is here
+// PUBLIC CONSTANTS
+^
+./sections.h:790:16: warning: KS10: Tag requires constant data declaration
+    static int s_class_data_1700;
+               ^
+./sections.h:785:1: note: KS10: Tag is here
+// PUBLIC CONSTANTS
+^
+./sections.h:791:17: warning: KS10: Tag requires constant data declaration
+    static void s_class_method_1700();
+                ^
+./sections.h:785:1: note: KS10: Tag is here
+// PUBLIC CONSTANTS
+^
+./sections.h:792:22: warning: KS01: Tag requires public declaration
+    static const int s_CONSTANT_1700 = 7;
+                     ^
+./sections.h:785:1: note: KS01: Tag is here
+// PUBLIC CONSTANTS
+^
+./sections.h:793:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<1700>);
+    ^
+./sections.h:785:1: note: KS09: Tag is here
+// PUBLIC CONSTANTS
+^
+./sections.h:794:8: warning: KS10: Tag requires constant data declaration
+    X& operator=(Z<1700>);
+       ^
+./sections.h:785:1: note: KS10: Tag is here
+// PUBLIC CONSTANTS
+^
+./sections.h:795:9: warning: KS10: Tag requires constant data declaration
+    int d_data_1700;
+        ^
+./sections.h:785:1: note: KS10: Tag is here
+// PUBLIC CONSTANTS
+^
+./sections.h:796:17: warning: KS10: Tag requires constant data declaration
+    typedef int Type_1700;
+                ^
+./sections.h:785:1: note: KS10: Tag is here
+// PUBLIC CONSTANTS
+^
+./sections.h:797:5: warning: KS10: Tag requires constant data declaration
+    operator Z<1700>();
+    ^
+./sections.h:785:1: note: KS10: Tag is here
+// PUBLIC CONSTANTS
+^
+./sections.h:798:5: warning: KS10: Tag requires constant data declaration
+    operator Z<1700>() const;
+    ^
+./sections.h:785:1: note: KS10: Tag is here
+// PUBLIC CONSTANTS
+^
+./sections.h:800:10: warning: KS10: Tag requires constant data declaration
+    void accessor_1600() const;
+         ^
+./sections.h:785:1: note: KS10: Tag is here
+// PUBLIC CONSTANTS
+^
+./sections.h:801:10: warning: KS10: Tag requires constant data declaration
+    void manipulator_1600();
+         ^
+./sections.h:785:1: note: KS10: Tag is here
+// PUBLIC CONSTANTS
+^
+./sections.h:802:10: warning: KS10: Tag requires constant data declaration
+    void aspect_1600();
+         ^
+./sections.h:785:1: note: KS10: Tag is here
+// PUBLIC CONSTANTS
+^
+./sections.h:803:16: warning: KS10: Tag requires constant data declaration
+    static int s_class_data_1600;
+               ^
+./sections.h:785:1: note: KS10: Tag is here
+// PUBLIC CONSTANTS
+^
+./sections.h:804:17: warning: KS10: Tag requires constant data declaration
+    static void s_class_method_1600();
+                ^
+./sections.h:785:1: note: KS10: Tag is here
+// PUBLIC CONSTANTS
+^
+./sections.h:806:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<1600>);
+    ^
+./sections.h:785:1: note: KS09: Tag is here
+// PUBLIC CONSTANTS
+^
+./sections.h:807:8: warning: KS10: Tag requires constant data declaration
+    X& operator=(Z<1600>);
+       ^
+./sections.h:785:1: note: KS10: Tag is here
+// PUBLIC CONSTANTS
+^
+./sections.h:808:9: warning: KS10: Tag requires constant data declaration
+    int d_data_1600;
+        ^
+./sections.h:785:1: note: KS10: Tag is here
+// PUBLIC CONSTANTS
+^
+./sections.h:809:17: warning: KS10: Tag requires constant data declaration
+    typedef int Type_1600;
+                ^
+./sections.h:785:1: note: KS10: Tag is here
+// PUBLIC CONSTANTS
+^
+./sections.h:810:5: warning: KS10: Tag requires constant data declaration
+    operator Z<1600>();
+    ^
+./sections.h:785:1: note: KS10: Tag is here
+// PUBLIC CONSTANTS
+^
+./sections.h:811:5: warning: KS10: Tag requires constant data declaration
+    operator Z<1600>() const;
+    ^
+./sections.h:785:1: note: KS10: Tag is here
+// PUBLIC CONSTANTS
+^
+./sections.h:815:10: warning: KS04: Tag requires instance data field declaration
+    void accessor_1500() const;
+         ^
+./sections.h:813:1: note: KS04: Tag is here
+// PUBLIC DATA
+^
+./sections.h:816:10: warning: KS04: Tag requires instance data field declaration
+    void manipulator_1500();
+         ^
+./sections.h:813:1: note: KS04: Tag is here
+// PUBLIC DATA
+^
+./sections.h:817:10: warning: KS04: Tag requires instance data field declaration
+    void aspect_1500();
+         ^
+./sections.h:813:1: note: KS04: Tag is here
+// PUBLIC DATA
+^
+./sections.h:818:16: warning: KS04: Tag requires instance data field declaration
+    static int s_class_data_1500;
+               ^
+./sections.h:813:1: note: KS04: Tag is here
+// PUBLIC DATA
+^
+./sections.h:819:17: warning: KS04: Tag requires instance data field declaration
+    static void s_class_method_1500();
+                ^
+./sections.h:813:1: note: KS04: Tag is here
+// PUBLIC DATA
+^
+./sections.h:820:22: warning: KS04: Tag requires instance data field declaration
+    static const int s_CONSTANT_1500 = 7;
+                     ^
+./sections.h:813:1: note: KS04: Tag is here
+// PUBLIC DATA
+^
+./sections.h:821:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<1500>);
+    ^
+./sections.h:813:1: note: KS09: Tag is here
+// PUBLIC DATA
+^
+./sections.h:822:8: warning: KS04: Tag requires instance data field declaration
+    X& operator=(Z<1500>);
+       ^
+./sections.h:813:1: note: KS04: Tag is here
+// PUBLIC DATA
+^
+./sections.h:823:9: warning: KS01: Tag requires public declaration
+    int d_data_1500;
+        ^
+./sections.h:813:1: note: KS01: Tag is here
+// PUBLIC DATA
+^
+./sections.h:824:17: warning: KS04: Tag requires instance data field declaration
+    typedef int Type_1500;
+                ^
+./sections.h:813:1: note: KS04: Tag is here
+// PUBLIC DATA
+^
+./sections.h:825:5: warning: KS04: Tag requires instance data field declaration
+    operator Z<1500>();
+    ^
+./sections.h:813:1: note: KS04: Tag is here
+// PUBLIC DATA
+^
+./sections.h:826:5: warning: KS04: Tag requires instance data field declaration
+    operator Z<1500>() const;
+    ^
+./sections.h:813:1: note: KS04: Tag is here
+// PUBLIC DATA
+^
+./sections.h:828:10: warning: KS04: Tag requires instance data field declaration
+    void accessor_1400() const;
+         ^
+./sections.h:813:1: note: KS04: Tag is here
+// PUBLIC DATA
+^
+./sections.h:829:10: warning: KS04: Tag requires instance data field declaration
+    void manipulator_1400();
+         ^
+./sections.h:813:1: note: KS04: Tag is here
+// PUBLIC DATA
+^
+./sections.h:830:10: warning: KS04: Tag requires instance data field declaration
+    void aspect_1400();
+         ^
+./sections.h:813:1: note: KS04: Tag is here
+// PUBLIC DATA
+^
+./sections.h:831:16: warning: KS04: Tag requires instance data field declaration
+    static int s_class_data_1400;
+               ^
+./sections.h:813:1: note: KS04: Tag is here
+// PUBLIC DATA
+^
+./sections.h:832:17: warning: KS04: Tag requires instance data field declaration
+    static void s_class_method_1400();
+                ^
+./sections.h:813:1: note: KS04: Tag is here
+// PUBLIC DATA
+^
+./sections.h:833:22: warning: KS04: Tag requires instance data field declaration
+    static const int s_CONSTANT_1400 = 7;
+                     ^
+./sections.h:813:1: note: KS04: Tag is here
+// PUBLIC DATA
+^
+./sections.h:834:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<1400>);
+    ^
+./sections.h:813:1: note: KS09: Tag is here
+// PUBLIC DATA
+^
+./sections.h:835:8: warning: KS04: Tag requires instance data field declaration
+    X& operator=(Z<1400>);
+       ^
+./sections.h:813:1: note: KS04: Tag is here
+// PUBLIC DATA
+^
+./sections.h:837:17: warning: KS04: Tag requires instance data field declaration
+    typedef int Type_1400;
+                ^
+./sections.h:813:1: note: KS04: Tag is here
+// PUBLIC DATA
+^
+./sections.h:838:5: warning: KS04: Tag requires instance data field declaration
+    operator Z<1400>();
+    ^
+./sections.h:813:1: note: KS04: Tag is here
+// PUBLIC DATA
+^
+./sections.h:839:5: warning: KS04: Tag requires instance data field declaration
+    operator Z<1400>() const;
+    ^
+./sections.h:813:1: note: KS04: Tag is here
+// PUBLIC DATA
+^
+./sections.h:843:10: warning: KS04: Tag requires instance data field declaration
+    void accessor_1300() const;
+         ^
+./sections.h:841:1: note: KS04: Tag is here
+// PUBLIC DATA MEMBERS
+^
+./sections.h:844:10: warning: KS04: Tag requires instance data field declaration
+    void manipulator_1300();
+         ^
+./sections.h:841:1: note: KS04: Tag is here
+// PUBLIC DATA MEMBERS
+^
+./sections.h:845:10: warning: KS04: Tag requires instance data field declaration
+    void aspect_1300();
+         ^
+./sections.h:841:1: note: KS04: Tag is here
+// PUBLIC DATA MEMBERS
+^
+./sections.h:846:16: warning: KS04: Tag requires instance data field declaration
+    static int s_class_data_1300;
+               ^
+./sections.h:841:1: note: KS04: Tag is here
+// PUBLIC DATA MEMBERS
+^
+./sections.h:847:17: warning: KS04: Tag requires instance data field declaration
+    static void s_class_method_1300();
+                ^
+./sections.h:841:1: note: KS04: Tag is here
+// PUBLIC DATA MEMBERS
+^
+./sections.h:848:22: warning: KS04: Tag requires instance data field declaration
+    static const int s_CONSTANT_1300 = 7;
+                     ^
+./sections.h:841:1: note: KS04: Tag is here
+// PUBLIC DATA MEMBERS
+^
+./sections.h:849:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<1300>);
+    ^
+./sections.h:841:1: note: KS09: Tag is here
+// PUBLIC DATA MEMBERS
+^
+./sections.h:850:8: warning: KS04: Tag requires instance data field declaration
+    X& operator=(Z<1300>);
+       ^
+./sections.h:841:1: note: KS04: Tag is here
+// PUBLIC DATA MEMBERS
+^
+./sections.h:851:9: warning: KS01: Tag requires public declaration
+    int d_data_1300;
+        ^
+./sections.h:841:1: note: KS01: Tag is here
+// PUBLIC DATA MEMBERS
+^
+./sections.h:852:17: warning: KS04: Tag requires instance data field declaration
+    typedef int Type_1300;
+                ^
+./sections.h:841:1: note: KS04: Tag is here
+// PUBLIC DATA MEMBERS
+^
+./sections.h:853:5: warning: KS04: Tag requires instance data field declaration
+    operator Z<1300>();
+    ^
+./sections.h:841:1: note: KS04: Tag is here
+// PUBLIC DATA MEMBERS
+^
+./sections.h:854:5: warning: KS04: Tag requires instance data field declaration
+    operator Z<1300>() const;
+    ^
+./sections.h:841:1: note: KS04: Tag is here
+// PUBLIC DATA MEMBERS
+^
+./sections.h:856:10: warning: KS04: Tag requires instance data field declaration
+    void accessor_1200() const;
+         ^
+./sections.h:841:1: note: KS04: Tag is here
+// PUBLIC DATA MEMBERS
+^
+./sections.h:857:10: warning: KS04: Tag requires instance data field declaration
+    void manipulator_1200();
+         ^
+./sections.h:841:1: note: KS04: Tag is here
+// PUBLIC DATA MEMBERS
+^
+./sections.h:858:10: warning: KS04: Tag requires instance data field declaration
+    void aspect_1200();
+         ^
+./sections.h:841:1: note: KS04: Tag is here
+// PUBLIC DATA MEMBERS
+^
+./sections.h:859:16: warning: KS04: Tag requires instance data field declaration
+    static int s_class_data_1200;
+               ^
+./sections.h:841:1: note: KS04: Tag is here
+// PUBLIC DATA MEMBERS
+^
+./sections.h:860:17: warning: KS04: Tag requires instance data field declaration
+    static void s_class_method_1200();
+                ^
+./sections.h:841:1: note: KS04: Tag is here
+// PUBLIC DATA MEMBERS
+^
+./sections.h:861:22: warning: KS04: Tag requires instance data field declaration
+    static const int s_CONSTANT_1200 = 7;
+                     ^
+./sections.h:841:1: note: KS04: Tag is here
+// PUBLIC DATA MEMBERS
+^
+./sections.h:862:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<1200>);
+    ^
+./sections.h:841:1: note: KS09: Tag is here
+// PUBLIC DATA MEMBERS
+^
+./sections.h:863:8: warning: KS04: Tag requires instance data field declaration
+    X& operator=(Z<1200>);
+       ^
+./sections.h:841:1: note: KS04: Tag is here
+// PUBLIC DATA MEMBERS
+^
+./sections.h:865:17: warning: KS04: Tag requires instance data field declaration
+    typedef int Type_1200;
+                ^
+./sections.h:841:1: note: KS04: Tag is here
+// PUBLIC DATA MEMBERS
+^
+./sections.h:866:5: warning: KS04: Tag requires instance data field declaration
+    operator Z<1200>();
+    ^
+./sections.h:841:1: note: KS04: Tag is here
+// PUBLIC DATA MEMBERS
+^
+./sections.h:867:5: warning: KS04: Tag requires instance data field declaration
+    operator Z<1200>() const;
+    ^
+./sections.h:841:1: note: KS04: Tag is here
+// PUBLIC DATA MEMBERS
+^
+./sections.h:871:10: warning: KS08: Tag requires non-const method declaration
+    void accessor_1100() const;
+         ^
+./sections.h:869:1: note: KS08: Tag is here
+// PUBLIC FUNCTIONS
+^
+./sections.h:872:10: warning: KS01: Tag requires public declaration
+    void manipulator_1100();
+         ^
+./sections.h:869:1: note: KS01: Tag is here
+// PUBLIC FUNCTIONS
+^
+./sections.h:873:10: warning: KS01: Tag requires public declaration
+    void aspect_1100();
+         ^
+./sections.h:869:1: note: KS01: Tag is here
+// PUBLIC FUNCTIONS
+^
+./sections.h:874:16: warning: KS08: Tag requires non-const method declaration
+    static int s_class_data_1100;
+               ^
+./sections.h:869:1: note: KS08: Tag is here
+// PUBLIC FUNCTIONS
+^
+./sections.h:875:17: warning: KS01: Tag requires public declaration
+    static void s_class_method_1100();
+                ^
+./sections.h:869:1: note: KS01: Tag is here
+// PUBLIC FUNCTIONS
+^
+./sections.h:876:22: warning: KS08: Tag requires non-const method declaration
+    static const int s_CONSTANT_1100 = 7;
+                     ^
+./sections.h:869:1: note: KS08: Tag is here
+// PUBLIC FUNCTIONS
+^
+./sections.h:877:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<1100>);
+    ^
+./sections.h:869:1: note: KS09: Tag is here
+// PUBLIC FUNCTIONS
+^
+./sections.h:878:8: warning: KS01: Tag requires public declaration
+    X& operator=(Z<1100>);
+       ^
+./sections.h:869:1: note: KS01: Tag is here
+// PUBLIC FUNCTIONS
+^
+./sections.h:879:9: warning: KS08: Tag requires non-const method declaration
+    int d_data_1100;
+        ^
+./sections.h:869:1: note: KS08: Tag is here
+// PUBLIC FUNCTIONS
+^
+./sections.h:880:17: warning: KS08: Tag requires non-const method declaration
+    typedef int Type_1100;
+                ^
+./sections.h:869:1: note: KS08: Tag is here
+// PUBLIC FUNCTIONS
+^
+./sections.h:881:5: warning: KS01: Tag requires public declaration
+    operator Z<1100>();
+    ^
+./sections.h:869:1: note: KS01: Tag is here
+// PUBLIC FUNCTIONS
+^
+./sections.h:882:5: warning: KS08: Tag requires non-const method declaration
+    operator Z<1100>() const;
+    ^
+./sections.h:869:1: note: KS08: Tag is here
+// PUBLIC FUNCTIONS
+^
+./sections.h:884:10: warning: KS08: Tag requires non-const method declaration
+    void accessor_900() const;
+         ^
+./sections.h:869:1: note: KS08: Tag is here
+// PUBLIC FUNCTIONS
+^
+./sections.h:887:16: warning: KS08: Tag requires non-const method declaration
+    static int s_class_data_900;
+               ^
+./sections.h:869:1: note: KS08: Tag is here
+// PUBLIC FUNCTIONS
+^
+./sections.h:889:22: warning: KS08: Tag requires non-const method declaration
+    static const int s_CONSTANT_900 = 7;
+                     ^
+./sections.h:869:1: note: KS08: Tag is here
+// PUBLIC FUNCTIONS
+^
+./sections.h:890:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<900>);
+    ^
+./sections.h:869:1: note: KS09: Tag is here
+// PUBLIC FUNCTIONS
+^
+./sections.h:892:9: warning: KS08: Tag requires non-const method declaration
+    int d_data_900;
+        ^
+./sections.h:869:1: note: KS08: Tag is here
+// PUBLIC FUNCTIONS
+^
+./sections.h:893:17: warning: KS08: Tag requires non-const method declaration
+    typedef int Type_900;
+                ^
+./sections.h:869:1: note: KS08: Tag is here
+// PUBLIC FUNCTIONS
+^
+./sections.h:895:5: warning: KS08: Tag requires non-const method declaration
+    operator Z<900>() const;
+    ^
+./sections.h:869:1: note: KS08: Tag is here
+// PUBLIC FUNCTIONS
+^
+./sections.h:899:10: warning: KS08: Tag requires non-const method declaration
+    void accessor_800() const;
+         ^
+./sections.h:897:1: note: KS08: Tag is here
+// PUBLIC MANIPULATORS
+^
+./sections.h:900:10: warning: KS01: Tag requires public declaration
+    void manipulator_800();
+         ^
+./sections.h:897:1: note: KS01: Tag is here
+// PUBLIC MANIPULATORS
+^
+./sections.h:901:10: warning: KS01: Tag requires public declaration
+    void aspect_800();
+         ^
+./sections.h:897:1: note: KS01: Tag is here
+// PUBLIC MANIPULATORS
+^
+./sections.h:902:16: warning: KS08: Tag requires non-const method declaration
+    static int s_class_data_800;
+               ^
+./sections.h:897:1: note: KS08: Tag is here
+// PUBLIC MANIPULATORS
+^
+./sections.h:903:17: warning: KS01: Tag requires public declaration
+    static void s_class_method_800();
+                ^
+./sections.h:897:1: note: KS01: Tag is here
+// PUBLIC MANIPULATORS
+^
+./sections.h:904:22: warning: KS08: Tag requires non-const method declaration
+    static const int s_CONSTANT_800 = 7;
+                     ^
+./sections.h:897:1: note: KS08: Tag is here
+// PUBLIC MANIPULATORS
+^
+./sections.h:905:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<800>);
+    ^
+./sections.h:897:1: note: KS09: Tag is here
+// PUBLIC MANIPULATORS
+^
+./sections.h:906:8: warning: KS01: Tag requires public declaration
+    X& operator=(Z<800>);
+       ^
+./sections.h:897:1: note: KS01: Tag is here
+// PUBLIC MANIPULATORS
+^
+./sections.h:907:9: warning: KS08: Tag requires non-const method declaration
+    int d_data_800;
+        ^
+./sections.h:897:1: note: KS08: Tag is here
+// PUBLIC MANIPULATORS
+^
+./sections.h:908:17: warning: KS08: Tag requires non-const method declaration
+    typedef int Type_800;
+                ^
+./sections.h:897:1: note: KS08: Tag is here
+// PUBLIC MANIPULATORS
+^
+./sections.h:909:5: warning: KS01: Tag requires public declaration
+    operator Z<800>();
+    ^
+./sections.h:897:1: note: KS01: Tag is here
+// PUBLIC MANIPULATORS
+^
+./sections.h:910:5: warning: KS08: Tag requires non-const method declaration
+    operator Z<800>() const;
+    ^
+./sections.h:897:1: note: KS08: Tag is here
+// PUBLIC MANIPULATORS
+^
+./sections.h:912:10: warning: KS08: Tag requires non-const method declaration
+    void accessor_700() const;
+         ^
+./sections.h:897:1: note: KS08: Tag is here
+// PUBLIC MANIPULATORS
+^
+./sections.h:915:16: warning: KS08: Tag requires non-const method declaration
+    static int s_class_data_700;
+               ^
+./sections.h:897:1: note: KS08: Tag is here
+// PUBLIC MANIPULATORS
+^
+./sections.h:917:22: warning: KS08: Tag requires non-const method declaration
+    static const int s_CONSTANT_700 = 7;
+                     ^
+./sections.h:897:1: note: KS08: Tag is here
+// PUBLIC MANIPULATORS
+^
+./sections.h:918:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<700>);
+    ^
+./sections.h:897:1: note: KS09: Tag is here
+// PUBLIC MANIPULATORS
+^
+./sections.h:920:9: warning: KS08: Tag requires non-const method declaration
+    int d_data_700;
+        ^
+./sections.h:897:1: note: KS08: Tag is here
+// PUBLIC MANIPULATORS
+^
+./sections.h:921:17: warning: KS08: Tag requires non-const method declaration
+    typedef int Type_700;
+                ^
+./sections.h:897:1: note: KS08: Tag is here
+// PUBLIC MANIPULATORS
+^
+./sections.h:923:5: warning: KS08: Tag requires non-const method declaration
+    operator Z<700>() const;
+    ^
+./sections.h:897:1: note: KS08: Tag is here
+// PUBLIC MANIPULATORS
+^
+./sections.h:927:10: warning: KS14: Tag requires conversion operator declaration
+    void accessor_400() const;
+         ^
+./sections.h:925:1: note: KS14: Tag is here
+// PUBLIC TRAITS
+^
+./sections.h:928:10: warning: KS14: Tag requires conversion operator declaration
+    void manipulator_400();
+         ^
+./sections.h:925:1: note: KS14: Tag is here
+// PUBLIC TRAITS
+^
+./sections.h:929:10: warning: KS14: Tag requires conversion operator declaration
+    void aspect_400();
+         ^
+./sections.h:925:1: note: KS14: Tag is here
+// PUBLIC TRAITS
+^
+./sections.h:930:16: warning: KS14: Tag requires conversion operator declaration
+    static int s_class_data_400;
+               ^
+./sections.h:925:1: note: KS14: Tag is here
+// PUBLIC TRAITS
+^
+./sections.h:931:17: warning: KS14: Tag requires conversion operator declaration
+    static void s_class_method_400();
+                ^
+./sections.h:925:1: note: KS14: Tag is here
+// PUBLIC TRAITS
+^
+./sections.h:932:22: warning: KS14: Tag requires conversion operator declaration
+    static const int s_CONSTANT_400 = 7;
+                     ^
+./sections.h:925:1: note: KS14: Tag is here
+// PUBLIC TRAITS
+^
+./sections.h:933:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<400>);
+    ^
+./sections.h:925:1: note: KS09: Tag is here
+// PUBLIC TRAITS
+^
+./sections.h:934:8: warning: KS14: Tag requires conversion operator declaration
+    X& operator=(Z<400>);
+       ^
+./sections.h:925:1: note: KS14: Tag is here
+// PUBLIC TRAITS
+^
+./sections.h:935:9: warning: KS14: Tag requires conversion operator declaration
+    int d_data_400;
+        ^
+./sections.h:925:1: note: KS14: Tag is here
+// PUBLIC TRAITS
+^
+./sections.h:936:17: warning: KS14: Tag requires conversion operator declaration
+    typedef int Type_400;
+                ^
+./sections.h:925:1: note: KS14: Tag is here
+// PUBLIC TRAITS
+^
+./sections.h:937:5: warning: KS01: Tag requires public declaration
+    operator Z<400>();
+    ^
+./sections.h:925:1: note: KS01: Tag is here
+// PUBLIC TRAITS
+^
+./sections.h:938:5: warning: KS01: Tag requires public declaration
+    operator Z<400>() const;
+    ^
+./sections.h:925:1: note: KS01: Tag is here
+// PUBLIC TRAITS
+^
+./sections.h:940:10: warning: KS14: Tag requires conversion operator declaration
+    void accessor_300() const;
+         ^
+./sections.h:925:1: note: KS14: Tag is here
+// PUBLIC TRAITS
+^
+./sections.h:941:10: warning: KS14: Tag requires conversion operator declaration
+    void manipulator_300();
+         ^
+./sections.h:925:1: note: KS14: Tag is here
+// PUBLIC TRAITS
+^
+./sections.h:942:10: warning: KS14: Tag requires conversion operator declaration
+    void aspect_300();
+         ^
+./sections.h:925:1: note: KS14: Tag is here
+// PUBLIC TRAITS
+^
+./sections.h:943:16: warning: KS14: Tag requires conversion operator declaration
+    static int s_class_data_300;
+               ^
+./sections.h:925:1: note: KS14: Tag is here
+// PUBLIC TRAITS
+^
+./sections.h:944:17: warning: KS14: Tag requires conversion operator declaration
+    static void s_class_method_300();
+                ^
+./sections.h:925:1: note: KS14: Tag is here
+// PUBLIC TRAITS
+^
+./sections.h:945:22: warning: KS14: Tag requires conversion operator declaration
+    static const int s_CONSTANT_300 = 7;
+                     ^
+./sections.h:925:1: note: KS14: Tag is here
+// PUBLIC TRAITS
+^
+./sections.h:946:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<300>);
+    ^
+./sections.h:925:1: note: KS09: Tag is here
+// PUBLIC TRAITS
+^
+./sections.h:947:8: warning: KS14: Tag requires conversion operator declaration
+    X& operator=(Z<300>);
+       ^
+./sections.h:925:1: note: KS14: Tag is here
+// PUBLIC TRAITS
+^
+./sections.h:948:9: warning: KS14: Tag requires conversion operator declaration
+    int d_data_300;
+        ^
+./sections.h:925:1: note: KS14: Tag is here
+// PUBLIC TRAITS
+^
+./sections.h:949:17: warning: KS14: Tag requires conversion operator declaration
+    typedef int Type_300;
+                ^
+./sections.h:925:1: note: KS14: Tag is here
+// PUBLIC TRAITS
+^
+./sections.h:955:10: warning: KS06: Tag requires type declaration
+    void accessor_200() const;
+         ^
+./sections.h:953:1: note: KS06: Tag is here
+// PUBLIC TYPES
+^
+./sections.h:956:10: warning: KS06: Tag requires type declaration
+    void manipulator_200();
+         ^
+./sections.h:953:1: note: KS06: Tag is here
+// PUBLIC TYPES
+^
+./sections.h:957:10: warning: KS06: Tag requires type declaration
+    void aspect_200();
+         ^
+./sections.h:953:1: note: KS06: Tag is here
+// PUBLIC TYPES
+^
+./sections.h:958:16: warning: KS06: Tag requires type declaration
+    static int s_class_data_200;
+               ^
+./sections.h:953:1: note: KS06: Tag is here
+// PUBLIC TYPES
+^
+./sections.h:959:17: warning: KS06: Tag requires type declaration
+    static void s_class_method_200();
+                ^
+./sections.h:953:1: note: KS06: Tag is here
+// PUBLIC TYPES
+^
+./sections.h:960:22: warning: KS06: Tag requires type declaration
+    static const int s_CONSTANT_200 = 7;
+                     ^
+./sections.h:953:1: note: KS06: Tag is here
+// PUBLIC TYPES
+^
+./sections.h:961:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<200>);
+    ^
+./sections.h:953:1: note: KS09: Tag is here
+// PUBLIC TYPES
+^
+./sections.h:962:8: warning: KS06: Tag requires type declaration
+    X& operator=(Z<200>);
+       ^
+./sections.h:953:1: note: KS06: Tag is here
+// PUBLIC TYPES
+^
+./sections.h:963:9: warning: KS06: Tag requires type declaration
+    int d_data_200;
+        ^
+./sections.h:953:1: note: KS06: Tag is here
+// PUBLIC TYPES
+^
+./sections.h:964:17: warning: KS01: Tag requires public declaration
+    typedef int Type_200;
+                ^
+./sections.h:953:1: note: KS01: Tag is here
+// PUBLIC TYPES
+^
+./sections.h:965:5: warning: KS06: Tag requires type declaration
+    operator Z<200>();
+    ^
+./sections.h:953:1: note: KS06: Tag is here
+// PUBLIC TYPES
+^
+./sections.h:966:5: warning: KS06: Tag requires type declaration
+    operator Z<200>() const;
+    ^
+./sections.h:953:1: note: KS06: Tag is here
+// PUBLIC TYPES
+^
+./sections.h:968:10: warning: KS06: Tag requires type declaration
+    void accessor_100() const;
+         ^
+./sections.h:953:1: note: KS06: Tag is here
+// PUBLIC TYPES
+^
+./sections.h:969:10: warning: KS06: Tag requires type declaration
+    void manipulator_100();
+         ^
+./sections.h:953:1: note: KS06: Tag is here
+// PUBLIC TYPES
+^
+./sections.h:970:10: warning: KS06: Tag requires type declaration
+    void aspect_100();
+         ^
+./sections.h:953:1: note: KS06: Tag is here
+// PUBLIC TYPES
+^
+./sections.h:971:16: warning: KS06: Tag requires type declaration
+    static int s_class_data_100;
+               ^
+./sections.h:953:1: note: KS06: Tag is here
+// PUBLIC TYPES
+^
+./sections.h:972:17: warning: KS06: Tag requires type declaration
+    static void s_class_method_100();
+                ^
+./sections.h:953:1: note: KS06: Tag is here
+// PUBLIC TYPES
+^
+./sections.h:973:22: warning: KS06: Tag requires type declaration
+    static const int s_CONSTANT_100 = 7;
+                     ^
+./sections.h:953:1: note: KS06: Tag is here
+// PUBLIC TYPES
+^
+./sections.h:974:5: warning: KS09: Constructor or destructor requires CREATORS tag
+    X(Z<100>);
+    ^
+./sections.h:953:1: note: KS09: Tag is here
+// PUBLIC TYPES
+^
+./sections.h:975:8: warning: KS06: Tag requires type declaration
+    X& operator=(Z<100>);
+       ^
+./sections.h:953:1: note: KS06: Tag is here
+// PUBLIC TYPES
+^
+./sections.h:976:9: warning: KS06: Tag requires type declaration
+    int d_data_100;
+        ^
+./sections.h:953:1: note: KS06: Tag is here
+// PUBLIC TYPES
+^
+./sections.h:978:5: warning: KS06: Tag requires type declaration
+    operator Z<100>();
+    ^
+./sections.h:953:1: note: KS06: Tag is here
+// PUBLIC TYPES
+^
+./sections.h:979:5: warning: KS06: Tag requires type declaration
+    operator Z<100>() const;
+    ^
+./sections.h:953:1: note: KS06: Tag is here
+// PUBLIC TYPES
+^
+738 warnings generated.

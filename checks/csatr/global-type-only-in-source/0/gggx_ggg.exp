@@ -1,0 +1,16 @@
+gggx_ggg.cpp:6:7: warning: TR11: Globally visible type 'BloombergLP::gggx::Aa' should be defined in header.
+class Aa { };
+      ^
+gggx_ggg.cpp:7:7: warning: TR10: Globally visible type 'BloombergLP::gggx::Bb' is not declared in header.
+class Bb;
+      ^
+gggx_ggg.cpp:8:7: warning: TR11: Globally visible type 'BloombergLP::gggx::Cc' should be defined in header.
+class Cc { };
+      ^
+gggx_ggg.cpp:14:28: warning: TR10: Globally visible type 'BloombergLP::gggx::Uu' is not declared in header.
+template <class PP> struct Uu;
+                           ^
+gggx_ggg.cpp:17:28: warning: TR11: Globally visible type 'BloombergLP::gggx::Vv' should be defined in header.
+template <class PP> struct Vv { };
+                           ^
+5 warnings generated.

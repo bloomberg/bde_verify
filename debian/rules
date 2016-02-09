@@ -1,0 +1,63 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+
+thisdir := $(shell pwd)
+
+PREFIX  ?= /opt/bb
+TMPDIR  ?= /tmp
+
+BUILD_BASE := $(DISTRIBUTION_REFROOT)/bbsrc/build-base
+include $(BUILD_BASE)/build-base.mk
+
+CXX := $(DISTRIBUTION_REFROOT)$(PREFIX)/lib/gcc-4.8/bin/g++
+
+build: build-arch
+
+build-arch: debian/build-stamp
+
+binary: binary-arch
+
+binary-arch: debian/binary-stamp
+
+debian/build-stamp:
+	$(MAKE)
+	touch $@
+
+debian/install-bin-stamp: debian/build-stamp
+	$(MAKE) DESTDIR=$(abspath debian/tmp/bin$(PREFIX)) install-bin
+	touch $@
+
+debian/install-dev-stamp: debian/build-stamp
+	$(MAKE) DESTDIR=$(abspath debian/tmp/dev$(PREFIX)) install-dev
+	touch $@
+
+debian/install-stamp: debian/install-bin-stamp debian/install-dev-stamp
+	touch $@
+
+debian/binary-bin-stamp: debian/install-bin-stamp
+	mkdir -p debian/tmp/bin/DEBIAN
+	dpkg-gencontrol -pbde-verify -Pdebian/tmp/bin
+	dpkg-deb -b debian/tmp/bin $(TMPDIR)
+	touch $@
+
+debian/binary-dev-stamp: debian/install-dev-stamp
+	mkdir -p debian/tmp/dev/DEBIAN
+	dpkg-gencontrol -plibbde-verify-dev -Pdebian/tmp/dev
+	dpkg-deb -b debian/tmp/dev $(TMPDIR)
+	touch $@
+
+debian/binary-stamp: debian/binary-bin-stamp debian/binary-dev-stamp
+	touch $@
+
+.EXPORT_ALL_VARIABLES:
+
+clean:
+	rm -rf debian/tmp                                                         \
+           debian/files                                                       \
+           debian/build-stamp                                                 \
+           debian/install-bin-stamp                                           \
+           debian/install-dev-stamp                                           \
+           debian/install-stamp                                               \
+           debian/binary-bin-stamp                                            \
+           debian/binary-dev-stamp                                            \
+           debian/binary-stamp

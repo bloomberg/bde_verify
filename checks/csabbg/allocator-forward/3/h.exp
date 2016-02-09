@@ -1,0 +1,7 @@
+h.cpp:16:15: warning: MA02: Allocator not passed to member d_fields
+            : d_fields(fields) {  // <--- allocator not forwarded
+              ^~~~~~~~~~~~~~~~
+h.cpp:19:15: warning: MA02: Allocator not passed to member d_fields
+            : d_fields(other.d_fields) {  // <--- allocator not forwarded
+              ^~~~~~~~~~~~~~~~~~~~~~~~
+2 warnings generated.
