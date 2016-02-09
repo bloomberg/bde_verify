@@ -358,6 +358,48 @@ for additional checks.
 
 .. only:: bde_verify
 
+   ``class-sections``
+   ++++++++++++++++++
+   BDE coding standards require that class member declarations appear in tagged
+   sections (e.g., ``// MANIPULATORS``, ``// CREATORS``, et al.)
+
+   * ``KS00``
+     Declaration without tag.
+   * ``KS01``
+     Tag requires public declaration.
+   * ``KS02``
+     Tag requires private declaration.
+   * ``KS03``
+     Tag requires function declaration.
+   * ``KS04``
+     Tag requires instance data field declaration.
+   * ``KS05``
+     Tag requires static data field declaration.
+   * ``KS06``
+     Tag requires type declaration.
+   * ``KS07``
+     Tag requires const method declaration.
+   * ``KS08``
+     Tag requires non-const method declaration.
+   * ``KS09``
+     Constructor or destructor requires CREATORS tag.
+   * ``KS10``
+     Tag requires constant data declaration.
+   * ``KS11``
+     Tag requires static method declaration.
+   * ``KS12``
+     Tag requires free operator declaration.
+   * ``KS13``
+     Tag requires free function declaration.
+   * ``KS14``
+     Tag requires conversion operator declaration.
+   * ``KS15``
+     Friend declaration requires FRIENDS tag.
+   * ``KS16``
+     Tag requires friend declaration.
+
+.. only:: bde_verify
+
    ``comments``
    ++++++++++++
    Comments containing erroneous or deprecated text.
@@ -727,6 +769,21 @@ for additional checks.
    * ``CD01``
      Method defined directly in class definition.
 
+.. only:: bde_verify or bb_cppverify
+
+   ``member-names``
+   ++++++++++++++++
+   * ``MN01``
+     Class data members must be private.
+   * ``MN02``
+     Non-static class data member names must start with ``d_``.
+   * ``MN03``
+     Static class data member names must start with ``s_``.
+   * ``MN04``
+     Pointer class data member names must end in ``_p``.
+   * ``MN05``
+     Only pointer class data member names should end in ``_p``.
+
 .. only:: bde_verify
 
    ``mid-return``
@@ -813,6 +870,7 @@ for additional checks.
    (``BloombergLP``).  Appearances of the old name, elaborated or not, will be
    replaced by the specified new value.  E.g.,
    ``append refactor name(bdetu_DayOfWeek::Day::BDET_WEDNESDAY,e_WEDNESDAY)``.
+   Macro names may also be replaced this way; just specify the old and the new.
 
    * ``RX01``
      Errors in the refactor specification (not in the examined files).
@@ -820,6 +878,20 @@ for additional checks.
      Replacing included files.
    * ``RC01``
      Replacing a name.
+   * ``RD0111
+     Replacing forward class declaration.
+
+.. only:: bde_verify
+
+   ``refactor-config``
+   +++++++++++++++++++
+   Given pairs of old/new header files, generate a configuration file for the
+   ``refactor`` check from corresponding pairs of names appending to the file
+   specified by the configuration file parameter ``refactorfile`` (or the
+   default, "refactor.cfg" if left unspecified).
+
+   * ``DD01``
+     Eligible name for refactoring.
 
 .. only:: bde_verify or bb_cppverify
 
