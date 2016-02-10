@@ -42,6 +42,15 @@ class A
     static char *s_private_d_p;
 };
 
+struct B
+{
+    int d_i;
+    static const int k_a = 1;
+    static const int s_a = 2;
+    typedef char *c_t;
+    c_t d_x;
+};
+
 // ----------------------------------------------------------------------------
 // Copyright (C) 205 Bloomberg Finance L.P.
 //
