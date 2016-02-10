@@ -464,10 +464,14 @@ static internal::DynTypedMatcher class_using_allocator_matcher()
 
 void report::match_class_using_allocator(const BoundNodes& nodes)
 {
-    d.type_takes_allocator_[nodes.getNodeAs<CXXRecordDecl>("class")
-                                ->getTypeForDecl()
-                                ->getCanonicalTypeInternal()
-                                .getTypePtr()] = true;
+    QualType type = nodes.getNodeAs<CXXRecordDecl>("class")
+                        ->getTypeForDecl()
+                        ->getCanonicalTypeInternal();
+    // Allocators look like they take allocators because of their copy
+    // constructors.  But they shouldn't be considered that way.
+    if (!is_allocator(type)) {
+        d.type_takes_allocator_[type.getTypePtr()] = true;
+    }
 }
 
 static internal::DynTypedMatcher allocator_trait_matcher(int value)
