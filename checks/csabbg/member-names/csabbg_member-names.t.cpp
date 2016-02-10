@@ -49,6 +49,8 @@ struct B
     static const int s_a = 2;
     typedef char *c_t;
     c_t d_x;
+    typedef int i_t;
+    i_t d_p;
 };
 
 // ----------------------------------------------------------------------------
