@@ -568,12 +568,21 @@ void report::operator()()
     for (auto decl : d.d_decls) {
         auto i =
             std::lower_bound(d.d_tags.begin(), d.d_tags.end(), decl, *this);
-        if (i == d.d_tags.begin() ||
-            !m.isWrittenInSameFile(getLoc(decl), getLoc(*--i)) ||
+        auto rd = llvm::dyn_cast<RecordDecl>(decl->getDeclContext())
+                      ->getCanonicalDecl();
+        bool without = i == d.d_tags.begin();
+        if (!without) {
+            while (--i != d.d_tags.begin() &&
+                   i->decl != rd &&
+                   i->decl != nullptr) {
+            }
+        }
+        if (without ||
+            !m.isWrittenInSameFile(getLoc(decl), getLoc(*i)) ||
             m.isBeforeInTranslationUnit(getLoc(i->range.getBegin()),
                                         getDCLoc(decl))) {
             if (!decl->isInAnonymousNamespace()) {
-                a.report(decl, check_name, "KS00", "Declaration witout tag");
+                a.report(decl, check_name, "KS00", "Declaration without tag");
             }
             continue;
         }
