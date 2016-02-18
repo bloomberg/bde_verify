@@ -232,6 +232,7 @@ namespace BloombergLP.BDE_VERIFY_VS {
                 si.Arguments += " -fms-compatibility";
                 si.Arguments += " -fms-extensions";
                 si.Arguments += " -std=c++11";
+                si.Arguments += " -xc++";
                 var paths = new HashSet<string>();
                 paths.Add("");
                 message = "Cannot find preprocessor include path";
