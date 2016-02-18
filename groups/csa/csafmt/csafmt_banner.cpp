@@ -107,7 +107,7 @@ static llvm::Regex generic_banner(      // things that look like banners
     llvm::Regex::Newline);
 
 static llvm::Regex generic_separator(  // things that look like separators
-    "(//.*[[:alnum:]].*)?\n?"
+    "(//.*[[:alnum:]].*)?\r*\n?"
     "((//([[:space:]]*)[-=_]"
     "("
      "([[:space:]][-=_]*( END-OF-FILE )?[[:space:]][-=_])*" "|"
@@ -216,6 +216,7 @@ void files::check_comment(SourceRange comment_range)
 
         llvm::StringRef bottom_rule = matches[7];
         if (banner.size() - banner.rfind('\n') != 80 &&
+            banner.size() - banner.rfind('\r') != 80 &&
             text.size() == bottom_rule.size() &&
             matches[3] != matches[6]) {
             // It's a misaligned underline for the banner text.

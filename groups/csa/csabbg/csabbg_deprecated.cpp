@@ -253,7 +253,7 @@ SourceRange report::getContract(const FunctionDecl     *func,
                 }
                 llvm::StringRef s =
                     a.get_source(SourceRange(it->getEnd(), initloc), true);
-                if (s.find_first_not_of(": \n") == llvm::StringRef::npos) {
+                if (s.find_first_not_of(": \r\n") == llvm::StringRef::npos) {
                     contract = *it;
                     break;
                 }
@@ -277,7 +277,7 @@ SourceRange report::getContract(const FunctionDecl     *func,
             }
             llvm::StringRef s =
                 a.get_source(SourceRange(it->getEnd(), bodyloc), true);
-            if (s.find_first_not_of(" \n") == llvm::StringRef::npos) {
+            if (s.find_first_not_of(" \r\n") == llvm::StringRef::npos) {
                 contract = *it;
                 break;
             }
@@ -298,7 +298,7 @@ SourceRange report::getContract(const FunctionDecl     *func,
             if (!with_body) {
                 s = s.split(';').second;
             }
-            if (s.find_first_not_of(" \n") == llvm::StringRef::npos &&
+            if (s.find_first_not_of(" \r\n") == llvm::StringRef::npos &&
                 s.count("\n") <= 1) {
                 contract = *it;
             }

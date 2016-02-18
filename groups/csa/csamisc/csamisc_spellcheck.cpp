@@ -236,6 +236,9 @@ report::break_for_spelling(std::vector<SourceRange>* words, SourceRange range)
                 (comment.substr(i).startswith("//@AUTHOR:") ||
                  comment.substr(i).startswith("//@CONTACT:"))) {
                 size_t j = comment.substr(i).find("\n//\n");
+                if (j == comment.npos) {
+                    j = comment.substr(i).find("\n//\r\n");
+                }
                 if (j != comment.npos) {
                     i += j;
                 }

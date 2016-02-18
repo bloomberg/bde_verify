@@ -324,9 +324,9 @@ void report::operator()(SourceLocation loc, SourceLocation ifloc)
         llvm::StringRef src = a.get_source(SourceRange(ifloc, loc));
         std::string guard = d.d_ifs[ifloc];
         std::string file = file_for_guard(guard);
-        std::string match = "^ifndef *" + guard + ".*$\n"
-                            "^ *# *include *[<\"]" + file + "[\">].*$\n"
-                            "(^ *# *define *" + guard + ".*$\n)?"
+        std::string match = "^ifndef *" + guard + ".*$\r*\n"
+                            "^ *# *include *[<\"]" + file + "[\">].*$\r*\n"
+                            "(^ *# *define *" + guard + ".*$\r*\n)?"
                             "^ *#endif";
         llvm::Regex re(match, llvm::Regex::Newline);
         if (re.match(src)) {

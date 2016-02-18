@@ -50,7 +50,7 @@ files::files(Analyser& analyser)
 {
 }
 
-llvm::Regex bad_ws("\t+| +\n", llvm::Regex::NoFlags);
+llvm::Regex bad_ws("\t+| +\r*\n", llvm::Regex::NoFlags);
 
 void files::operator()(SourceLocation loc,
                        std::string const &,
@@ -58,7 +58,10 @@ void files::operator()(SourceLocation loc,
 {
     const SourceManager &m = d_analyser.manager();
     llvm::StringRef buf = m.getBufferData(m.getFileID(loc));
-    if (d_analyser.is_component(loc) && buf.find('\t') != buf.find(" \n")) {
+    if (d_analyser.is_component(loc) &&
+        (buf.find('\t') != buf.npos ||
+         buf.find(" \n") != buf.npos ||
+         buf.find(" \r\n") != buf.npos)) {
         loc = m.getLocForStartOfFile(m.getFileID(loc));
         size_t offset = 0;
         llvm::StringRef s;

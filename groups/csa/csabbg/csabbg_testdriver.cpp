@@ -203,9 +203,9 @@ struct report : Report<data>
 
 // Loosely match the banner of a TEST PLAN.
 llvm::Regex test_plan_banner(
-    "//[[:blank:]]*" "[-=_]([[:blank:]]?[-=_])*"  "[[:blank:]]*\n"
-    "//[[:blank:]]*" "TEST" "[[:blank:]]*" "PLAN" "[[:blank:]]*\n"
-    "//[[:blank:]]*" "[-=_]([[:blank:]]?[-=_])*"  "[[:blank:]]*\n",
+    "//[[:blank:]]*" "[-=_]([[:blank:]]?[-=_])*"  "[[:blank:]]*\r*\n"
+    "//[[:blank:]]*" "TEST" "[[:blank:]]*" "PLAN" "[[:blank:]]*\r*\n"
+    "//[[:blank:]]*" "[-=_]([[:blank:]]?[-=_])*"  "[[:blank:]]*\r*\n",
     llvm::Regex::Newline | llvm::Regex::IgnoreCase);
 
 SourceRange report::get_test_plan()
@@ -221,7 +221,7 @@ SourceRange report::get_test_plan()
     return SourceRange();
 }
 
-llvm::Regex separator("//[[:blank:]]*-{60,}$\n", llvm::Regex::Newline);
+llvm::Regex separator("//[[:blank:]]*-{60,}$\r*\n", llvm::Regex::Newline);
     // Loosely match a long dashed separator.
 
 llvm::Regex test_plan(
@@ -232,21 +232,25 @@ llvm::Regex test_plan(
     llvm::Regex::Newline);  // Match a test plan item.  [ ] are essential.
 
 llvm::Regex test_title(
-    "[[:blank:]]*//[[:blank:]]*" "[-=_]([[:blank:]]?[-=_])*"  "[[:blank:]]*\n"
-    "[[:blank:]]*//[[:blank:]]*" "(.*[^[:blank:]])" "[[:blank:]]*\n",
+    "[[:blank:]]*//[[:blank:]]*"
+    "[-=_]([[:blank:]]?[-=_])*"
+    "[[:blank:]]*\r*\n"
+    "[[:blank:]]*//[[:blank:]]*"
+    "(.*[^[:blank:]])"
+    "[[:blank:]]*\r*\n",
     llvm::Regex::Newline);  // Match the title of a test case.
 
 llvm::Regex testing(
-    "//[[:blank:]]*Test(ing|ed|s)?[[:blank:]]*:?[[:blank:]]*\n",
+    "//[[:blank:]]*Test(ing|ed|s)?[[:blank:]]*:?[[:blank:]]*\r*\n",
     llvm::Regex::IgnoreCase);  // Loosely match 'Testing:' in a case comment.
 
 llvm::Regex concerns(
-    "(//[[:blank:]]*Concerns?[[:blank:]]*:?[[:blank:]]*\n)[[:blank:]]*"
+    "(//[[:blank:]]*Concerns?[[:blank:]]*:?[[:blank:]]*\r*\n)[[:blank:]]*"
     "(//:[[:blank:]]+[[:digit:]]+[[:blank:]])?",
     llvm::Regex::IgnoreCase);  // Loosely match 'Concerns:' in a case comment.
 
 llvm::Regex plansec(
-    "(//[[:blank:]]*Plan?[[:blank:]]*:?[[:blank:]]*\n)[[:blank:]]*"
+    "(//[[:blank:]]*Plan?[[:blank:]]*:?[[:blank:]]*\r*\n)[[:blank:]]*"
     "(//:[[:blank:]]+[[:digit:]]+[[:blank:]])?",
     llvm::Regex::IgnoreCase);  // Loosely match 'Plan:' in a case comment.
 
@@ -727,7 +731,7 @@ void report::operator()()
 
         if (bl.isValid()) {
             llvm::StringRef banner_text =
-                llvm::StringRef(banner).ltrim().split('\n').first;
+                llvm::StringRef(banner).ltrim().split('\n').first.rtrim("\r");
             if (test_title.match(comment, &matches)) {
                 llvm::StringRef t = matches[2];
                 testing_pos = comment.find(t);
@@ -756,7 +760,8 @@ void report::operator()()
             testing_pos = comment.find(t);
             line_pos = testing_pos + t.size();
             std::pair<size_t, size_t> m = mid_mismatch(t, "// Concerns:\n");
-            if (m.first != t.size()) {
+            std::pair<size_t, size_t> r = mid_mismatch(t, "// Concerns:\r\n");
+            if (m.first != t.size() && r.first != t.size()) {
                 a.report(cr.getBegin().getLocWithOffset(testing_pos + m.first),
                          check_name, "TP28",
                          "Correct format is '// Concerns:'");
@@ -777,7 +782,8 @@ void report::operator()()
             testing_pos = comment.find(t);
             line_pos = testing_pos + t.size();
             std::pair<size_t, size_t> m = mid_mismatch(t, "// Plan:\n");
-            if (m.first != t.size()) {
+            std::pair<size_t, size_t> r = mid_mismatch(t, "// Plan:\r\n");
+            if (m.first != t.size() && r.first != t.size()) {
                 a.report(cr.getBegin().getLocWithOffset(testing_pos + m.first),
                          check_name, "TP31",
                          "Correct format is '// Plan:'");
@@ -798,7 +804,8 @@ void report::operator()()
             testing_pos = comment.find(t);
             line_pos = testing_pos + t.size();
             std::pair<size_t, size_t> m = mid_mismatch(t, "// Testing:\n");
-            if (m.first != t.size()) {
+            std::pair<size_t, size_t> r = mid_mismatch(t, "// Testing:\r\n");
+            if (m.first != t.size() && r.first != t.size()) {
                 a.report(cr.getBegin().getLocWithOffset(testing_pos + m.first),
                          check_name, "TP15",
                          "Correct format is '// Testing:'");
@@ -998,7 +1005,7 @@ void report::check_banner(SourceLocation bl, llvm::StringRef s)
     }
     else {
         size_t n = s.size();
-        llvm::StringRef text = s.ltrim().split('\n').first;
+        llvm::StringRef text = s.ltrim().split('\n').first.rtrim("\r");
         bool c = is_all_cappish(s);
         if ((s.count('\n') != 3 ||
              s[0] != '\n' ||
@@ -1216,7 +1223,8 @@ void report::search(SourceLocation *best_loc,
     for (size_t n = 0; n < ns; ++n) {
         llvm::StringRef needle = needles[n];
         needle_lines[n] = needle.count('\n');
-        needle_blank_lines[n] = needle.count("\n\n");
+        needle_blank_lines[n] = needle.count("\n\n") +
+                                needle.count("\r\n\r\n");
         if (max_needle_lines < needle_lines[n]) {
             max_needle_lines = needle_lines[n];
         }
