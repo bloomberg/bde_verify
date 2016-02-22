@@ -294,7 +294,7 @@ static llvm::Regex pragma_bdeverify(
         "(" "[-] *([[:alnum:]]+|[*])"        ")|"  // 4 5
         "(" "[+] *([[:alnum:]]+|[*])"        ")|"  // 6 7
         "(" "set *([_[:alnum:]]+) *(.*[^ ])" ")|"  // 8 9 10
-        "$"
+        "\r*$"
     ")",
     llvm::Regex::NoFlags);
 
@@ -307,7 +307,7 @@ static llvm::Regex comment_bdeverify(
         "(" "set *([_[:alnum:]]+) *(.*[^ ])" ")|"      // 8 9 10
         "(" "append *([_[:alnum:]]+) *(.*[^ ])" ")|"   // 11 12 13
         "(" "prepend *([_[:alnum:]]+) *(.*[^ ])" ")|"  // 14 15 16
-        "$"
+        "\r*$"
     ")",
     llvm::Regex::NoFlags);
 

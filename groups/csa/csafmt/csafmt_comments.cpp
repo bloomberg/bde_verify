@@ -224,10 +224,10 @@ llvm::Regex bad_bubble(
                              "([(]" "[[:blank:]]*"              // 1
                                     "([[:alnum:]_:]+)"          // 2
                                     "[[:blank:]]*"
-                             "[)])" ".*\r*\n"
-        "//" "([[:blank:]]+)" "[|]" "[[:blank:]]*.*\r*\n"          // 3
-    "(" "//" "\\3"            "[|]" "[[:blank:]]*.*\r*\n" ")*"     // 4
-        "//" "\\3"            "[V]" "[[:blank:]]*.*\r*\n"     
+                             "[)])" ".*\n"
+        "//" "([[:blank:]]+)" "[|]" "[[:blank:]]*.*\n"          // 3
+    "(" "//" "\\3"            "[|]" "[[:blank:]]*.*\n" ")*"     // 4
+        "//" "\\3"            "[V]" "[[:blank:]]*.*\n"     
         "//" "[[:blank:]]*"  "([(]" "[[:blank:]]*"              // 5
                                     "([[:alnum:]_:]+)"          // 6
                                     "[[:blank:]]*"
@@ -490,7 +490,7 @@ llvm::Regex loose_purpose(
     llvm::Regex::Newline | llvm::Regex::IgnoreCase);
 
 llvm::Regex strict_purpose(
-    "^//@PURPOSE: [^[:blank:]].*[^.[:blank:]][.]$",
+    "^//@PURPOSE: [^[:blank:]].*[^.[:blank:]][.]\r*$",
     llvm::Regex::Newline);
 
 void files::check_purpose(SourceRange range)

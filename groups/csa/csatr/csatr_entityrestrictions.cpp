@@ -11,7 +11,6 @@
 #include <csabase_registercheck.h>
 #include <llvm/ADT/StringRef.h>
 #include <llvm/Support/Casting.h>
-#include <llvm/Support/Regex.h>
 #include <string>
 
 using namespace csabase;

@@ -103,7 +103,7 @@ void files::operator()(SourceRange range)
 static llvm::Regex generic_banner(      // things that look like banners
         "//"     SP     aba("[-=_]",        SP) SP          // 1, 2
         "//" "(" SP ")" aba("[_[:alnum:]]", SP) SP          // 3, 4, 5
-        "//" "(" SP ")" aba("[-=_]",        SP) SP "$",     // 6, 7, 8
+        "//" "(" SP ")" aba("[-=_]",        SP) SP "\r*$",  // 6, 7, 8
     llvm::Regex::Newline);
 
 static llvm::Regex generic_separator(  // things that look like separators
@@ -112,7 +112,7 @@ static llvm::Regex generic_separator(  // things that look like separators
     "("
      "([[:space:]][-=_]*( END-OF-FILE )?[[:space:]][-=_])*" "|"
      "([-=_]*( END-OF-FILE )?[-=_]*)"
-    "))[[:space:]]*)$",
+    "))[[:space:]]*)\r*$",
     llvm::Regex::Newline);
 
 #undef SP

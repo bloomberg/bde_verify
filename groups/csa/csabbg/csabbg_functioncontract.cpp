@@ -322,7 +322,7 @@ void break_into_words(std::vector<Word>* words,
     bool last_char_was_backslash = false;
     bool in_word = false;
     size_t start_of_last_word = 0;
-    static llvm::Regex code("^[[:blank:]]*//[.][.]$", llvm::Regex::Newline);
+    static llvm::Regex code("^[[:blank:]]*//[.][.]\r*$", llvm::Regex::Newline);
     llvm::SmallVector<llvm::StringRef, 7> matches;
     llvm::StringRef c = comment;
     size_t code_pos = c.size();

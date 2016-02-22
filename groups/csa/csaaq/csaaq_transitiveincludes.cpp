@@ -349,8 +349,8 @@ llvm::Regex (&skipped_files())[2]
 {
 
 static llvm::Regex s[2] = {
-    { "(^|/)bsl_stdhdrs_(epi|pro)logue(_recursive)?[.]h$" },
-    { ".+/(bits|stlport)/[^/.]+([.]h)?$"                  },
+    { "(^|/)bsl_stdhdrs_(epi|pro)logue(_recursive)?[.]h\r*$" },
+    { ".+/(bits|stlport)/[^/.]+([.]h)?\r*$"                  },
 };
 
     return s;

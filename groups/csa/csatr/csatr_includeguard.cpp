@@ -79,7 +79,7 @@ void report::operator()(SourceLocation, SourceRange range)
 {
     if (a.is_component_header(range.getBegin()) && !d.d_test) {
         llvm::StringRef value = a.get_source(range);
-        llvm::Regex re("^ *! *defined *[(]? *" + guard() + " *[)]? *$");
+        llvm::Regex re("^ *! *defined *[(]? *" + guard() + " *[)]? *\r*$");
         if (!re.match(value)) {
             a.report(range.getBegin(), check_name, "TR14",
                               "Wrong include guard (expected '!defined(%0)')")

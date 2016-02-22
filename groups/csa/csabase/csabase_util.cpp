@@ -41,7 +41,7 @@ csabase::mid_match(const std::string &have, const std::string &want)
 }
 
 static llvm::Regex between_comments(
-    "^[[:blank:]]*[[:space:]]?[[:blank:]]*$",
+    "^[[:blank:]]*\r*\n?[[:blank:]]*$",
     llvm::Regex::NoFlags);
 
 bool csabase::areConsecutive(clang::SourceManager &manager,

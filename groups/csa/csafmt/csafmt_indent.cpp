@@ -599,8 +599,8 @@ void report::operator()(const Token &token,
     }
 }
 
-llvm::Regex outdent ("^ *// *(v-*)[-^]$");
-llvm::Regex reindent("^ *// *[-^](-*v)$");
+llvm::Regex outdent ("^ *// *(v-*)[-^]\r*$");
+llvm::Regex reindent("^ *// *[-^](-*v)\r*$");
 
 void report::operator()(SourceRange comment)
 {

@@ -269,7 +269,7 @@ bool csabase::Analyser::is_global_name(const NamedDecl *decl)
 {
     llvm::Regex re("(^ *|[^[:alnum:]])" +
                    decl->getNameAsString() +
-                   "([^[:alnum:]]| *$)");
+                   "([^[:alnum:]]| *\r*$)");
     return re.match(config()->value("global_names", decl->getLocation()));
 }
 
