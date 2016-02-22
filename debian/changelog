@@ -1,3 +1,18 @@
+bde-verify (1.1.12) unstable; urgency=low
+
+  * c765810 Another CRLF fix.
+  * 1a9dab0 More CRLF changes.
+  * 81d2d18 Null pointer problem.
+  * c96ca21 Force C++ mode (for .h files).
+  * 6b460d4 Add support for CRs in multi-line comments.
+  * 191887a Allocators don't take allocators.
+  * 0997409 Skip back over nested tags.
+  * cb76ee0 Add another typedef name test.
+  * f551761 Allow public data members in structs. Allow 'k_' static const class data memebers. Don't check for '_p' on members declared with a typedef type.
+  * f36cfb1 Use glob matching (* and ?, but not [abc]) for suppressions.
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Mon, 22 Feb 2016 17:04:49 -0500
+
 bde-verify (1.1.11) unstable; urgency=low
 
   * 71d0331 Log into separate files without locking.
