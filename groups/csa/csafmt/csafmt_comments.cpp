@@ -403,8 +403,8 @@ void get_displays(llvm::StringRef text,
     }
 }
 
-llvm::Regex block_comment("((^ *// [^[ ].*$\r*\n?){2,})", llvm::Regex::Newline);
-llvm::Regex banner("^ *(// ?([-=_] ?)+)$", llvm::Regex::Newline);
+llvm::Regex block_comment("((^ *// [^[ ].*\r*$\n?){2,})", llvm::Regex::Newline);
+llvm::Regex banner("^ *(// ?([-=_] ?)+)\r*$", llvm::Regex::Newline);
 llvm::Regex copyright("Copyright.*[[:digit:]]{4}", llvm::Regex::IgnoreCase);
 
 void files::check_wrapped(SourceRange range)
