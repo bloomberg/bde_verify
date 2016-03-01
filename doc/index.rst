@@ -329,6 +329,15 @@ for additional checks.
 
 .. only:: bde_verify or bb_cppverify
 
+   ``bsl-std-string``
+   ++++++++++++++++++
+   * ``ST01``
+     Converting std::string to bsl::string.
+   * ``ST02``
+     Converting bsl::string to std::string.
+
+.. only:: bde_verify or bb_cppverify
+
    ``c-cast``
    ++++++++++
    * ``CC01``
