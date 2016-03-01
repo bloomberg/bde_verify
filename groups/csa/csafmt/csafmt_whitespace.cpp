@@ -68,23 +68,27 @@ void files::operator()(SourceLocation loc,
         llvm::SmallVector<llvm::StringRef, 7> matches;
         while (bad_ws.match(s = buf.drop_front(offset), &matches)) {
             llvm::StringRef text = matches[0];
+            size_t n = text.size();
+            if (text.endswith("\r\n")) {
+                --n;
+            }
             std::pair<size_t, size_t> m = mid_match(s, text);
             size_t matchpos = offset + m.first;
-            offset = matchpos + text.size();
+            offset = matchpos + n;
             SourceLocation sloc = loc.getLocWithOffset(matchpos);
             if (text[0] == '\t') {
                 d_analyser.report(sloc, check_name, "TAB01",
                         "Tab character%s0 in source")
-                    << static_cast<long>(text.size());
+                    << static_cast<long>(n);
                 d_analyser.ReplaceText(
-                    sloc, text.size(), std::string(text.size(), ' '));
+                    sloc, n, std::string(n, ' '));
             }
             else {
                 d_analyser.report(loc.getLocWithOffset(matchpos),
                         check_name, "ESP01",
                         "Space%s0 at end of line")
-                    << static_cast<long>(text.size() - 1);
-                d_analyser.RemoveText(sloc, text.size() - 1);
+                    << static_cast<long>(n - 1);
+                d_analyser.RemoveText(sloc, n - 1);
             }
         }
     }

@@ -181,6 +181,10 @@ struct report : Report<data>
     void get_function_names();
         // Find the public methods of the classes in @CLASSES.
 
+    std::string addCR(llvm::StringRef s);
+        // Return a string with the newllines in the specified 's' prefixed
+        // with \r.
+
     void search(SourceLocation *best_loc,
                 llvm::StringRef *best_needle,
                 size_t *best_distance,
@@ -221,14 +225,14 @@ SourceRange report::get_test_plan()
     return SourceRange();
 }
 
-llvm::Regex separator("//[[:blank:]]*-{60,}$\r*\n", llvm::Regex::Newline);
+llvm::Regex separator("//[[:blank:]]*-{60,}\r*$\n", llvm::Regex::Newline);
     // Loosely match a long dashed separator.
 
 llvm::Regex test_plan(
     "//"  "([^][[:alnum:]]*)"
     "\\[" "[[:blank:]]*" "(" "-?" "[[:digit:]]*" ")" "\\]"
           "[[:blank:]]*"
-    "(.*)$",
+    "([^\r]*)\r*$",
     llvm::Regex::Newline);  // Match a test plan item.  [ ] are essential.
 
 llvm::Regex test_title(
@@ -236,7 +240,7 @@ llvm::Regex test_title(
     "[-=_]([[:blank:]]?[-=_])*"
     "[[:blank:]]*\r*\n"
     "[[:blank:]]*//[[:blank:]]*"
-    "(.*[^[:blank:]])"
+    "(.*[^[:blank:]\r])"
     "[[:blank:]]*\r*\n",
     llvm::Regex::Newline);  // Match the title of a test case.
 
@@ -246,12 +250,12 @@ llvm::Regex testing(
 
 llvm::Regex concerns(
     "(//[[:blank:]]*Concerns?[[:blank:]]*:?[[:blank:]]*\r*\n)[[:blank:]]*"
-    "(//:[[:blank:]]+[[:digit:]]+[[:blank:]])?",
+    "/{0,2}(:[[:blank:]]+[[:digit:]]+[[:blank:]])?",
     llvm::Regex::IgnoreCase);  // Loosely match 'Concerns:' in a case comment.
 
 llvm::Regex plansec(
-    "(//[[:blank:]]*Plan?[[:blank:]]*:?[[:blank:]]*\r*\n)[[:blank:]]*"
-    "(//:[[:blank:]]+[[:digit:]]+[[:blank:]])?",
+    "(//[[:blank:]]*Plans?[[:blank:]]*:?[[:blank:]]*\r*\n)[[:blank:]]*"
+    "/{0,2}(:[[:blank:]]+[[:digit:]]+[[:blank:]])?",
     llvm::Regex::IgnoreCase);  // Loosely match 'Plan:' in a case comment.
 
 llvm::Regex test_item(
@@ -759,16 +763,9 @@ void report::operator()()
             llvm::StringRef t = matches[1];
             testing_pos = comment.find(t);
             line_pos = testing_pos + t.size();
-            std::pair<size_t, size_t> m = mid_mismatch(t, "// Concerns:\n");
-            std::pair<size_t, size_t> r = mid_mismatch(t, "// Concerns:\r\n");
-            if (m.first != t.size() && r.first != t.size()) {
-                a.report(cr.getBegin().getLocWithOffset(testing_pos + m.first),
-                         check_name, "TP28",
-                         "Correct format is '// Concerns:'");
-            }
             if (matches[2].size() == 0) {
-                a.report(cr.getBegin().getLocWithOffset(testing_pos + m.first +
-                                                        t.size()),
+                a.report(cr.getBegin().getLocWithOffset(testing_pos +
+                                                        matches[0].size() - 1),
                          check_name, "TP29",
                          "Concerns should be numbered like so: //: 1 ...");
             }
@@ -781,16 +778,9 @@ void report::operator()()
             llvm::StringRef t = matches[1];
             testing_pos = comment.find(t);
             line_pos = testing_pos + t.size();
-            std::pair<size_t, size_t> m = mid_mismatch(t, "// Plan:\n");
-            std::pair<size_t, size_t> r = mid_mismatch(t, "// Plan:\r\n");
-            if (m.first != t.size() && r.first != t.size()) {
-                a.report(cr.getBegin().getLocWithOffset(testing_pos + m.first),
-                         check_name, "TP31",
-                         "Correct format is '// Plan:'");
-            }
             if (matches[2].size() == 0) {
-                a.report(cr.getBegin().getLocWithOffset(testing_pos + m.first +
-                                                        t.size()),
+                a.report(cr.getBegin().getLocWithOffset(testing_pos +
+                                                        matches[0].size() - 1),
                          check_name, "TP32",
                          "Plans should be numbered like so: //: 1 ...");
             }
@@ -803,13 +793,6 @@ void report::operator()()
             llvm::StringRef t = matches[0];
             testing_pos = comment.find(t);
             line_pos = testing_pos + t.size();
-            std::pair<size_t, size_t> m = mid_mismatch(t, "// Testing:\n");
-            std::pair<size_t, size_t> r = mid_mismatch(t, "// Testing:\r\n");
-            if (m.first != t.size() && r.first != t.size()) {
-                a.report(cr.getBegin().getLocWithOffset(testing_pos + m.first),
-                         check_name, "TP15",
-                         "Correct format is '// Testing:'");
-            }
         } else if (!negative) {
             a.report(cr.getBegin(), check_name, "TP12",
                      "Comment should contain a 'Testing:' section");
@@ -1203,6 +1186,19 @@ static llvm::StringRef squash(std::string &out, llvm::StringRef in)
     return out;
 }
 
+std::string report::addCR(llvm::StringRef s)
+{
+    std::string r;
+    r.reserve(2 * s.size());
+    for (char c : s) {
+        if (c == '\n') {
+            r.append(1, '\r');
+        }
+        r.append(1, c);
+    }
+    return r;
+}
+
 void report::search(SourceLocation *best_loc,
                     llvm::StringRef *best_needle,
                     size_t *best_distance,
@@ -1307,7 +1303,11 @@ void report::check_boilerplate()
 
     needles.clear();
     needles.push_back(standard_bde_assert_test_function);
+    std::string sbatfcr = addCR(standard_bde_assert_test_function);
+    needles.push_back(sbatfcr);
     needles.push_back(standard_bde_assert_test_function_bsl);
+    std::string sbatfbcr = addCR(standard_bde_assert_test_function_bsl);
+    needles.push_back(sbatfbcr);
     search(&loc, &needle, &distance, "(failed)", needles, fid);
     if (distance != 0) {
         a.report(loc, check_name, "TP19",
@@ -1320,7 +1320,12 @@ void report::check_boilerplate()
 
     needles.clear();
     needles.push_back(standard_bde_test_driver_macro_abbreviations);
+    std::string sbtdmacr = addCR(standard_bde_test_driver_macro_abbreviations);
+    needles.push_back(sbtdmacr);
     needles.push_back(standard_bde_test_driver_macro_abbreviations_bsl);
+    std::string sbtdmabcr =
+        addCR(standard_bde_test_driver_macro_abbreviations_bsl);
+    needles.push_back(sbtdmabcr);
     search(&loc, &needle, &distance, "define LOOP_ASSERT", needles, fid);
     if (distance != 0) {
         a.report(loc, check_name, "TP19",

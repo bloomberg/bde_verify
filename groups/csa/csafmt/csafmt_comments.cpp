@@ -324,23 +324,19 @@ std::pair<size_t, size_t> bad_wrap_pos(llvm::StringRef text, size_t ll)
             break;
         }
         size_t ecr = 0;
-        size_t e = text.find("\n", b);
+        size_t e = text.find('\n', b);
         if (e == text.npos) {
             e = text.size();
         }
-        else if (e > b && text[e - 1] == '\r') {
+        else if (text[e - 1] == '\r') {
             ecr = 1;
         }
         offset = e;
-        size_t ncr = 0;
         size_t nextb = text.find("// ", e);
         if (nextb == text.npos) {
             break;
         }
-        else if (nextb > e && text[nextb - 1] == '\r') {
-            ncr = 1;
-        }
-        size_t nexte = text.find("\n", nextb);
+        size_t nexte = text.find('\n', nextb);
         if (nexte == text.npos) {
             nexte = text.size();
         }
@@ -364,12 +360,12 @@ std::pair<size_t, size_t> bad_wrap_pos(llvm::StringRef text, size_t ll)
             }
         }
 
-        if (e > 0 && text[e - 1] == '.') {
+        if (e > ecr && text[e - 1 - ecr] == '.') {
             // Double space after periods.
             ++e;
         }
 
-        if ((e - (b + 3) - ecr) + (i - (nextb + 3) - ncr) + 1 <= ll &&
+        if ((e - (b + 3) - ecr) + (i - (nextb + 3)) + 1 <= ll &&
             text.substr(nextb + 3, i - (nextb + 3)).find_first_of(
                 "abcdefghijklmnopqrstuvwxyz") != text.npos) {
             return std::make_pair(nextb + 3, i - 1);
