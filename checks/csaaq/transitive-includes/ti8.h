@@ -1,17 +1,7 @@
-#include <ti.h>
-#include <map>
-
-std::pair<int, int> p;
-std::string s;
-using namespace n;
-t i;
-void (*pf)() = f;
-
-#include <ti9.h>
-void x() { A::i().e(); }
+template <class T> struct S { static T& i(); };
 
 // ----------------------------------------------------------------------------
-// Copyright (C) 2014 Bloomberg Finance L.P.
+// Copyright (C) 2016 Bloomberg Finance L.P.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to

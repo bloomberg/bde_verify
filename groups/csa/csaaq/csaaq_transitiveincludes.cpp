@@ -605,10 +605,6 @@ struct report : public RecursiveASTVisitor<report>, Report<data>
         // specified declaration 'ds', determine which header file, if any, is
         // needed.
 
-    const NamedDecl *look_through_typedef(const Decl *ds);
-        // If the specified 'ds' is a typedef for a record, return the
-        // definition for the record if it exists.  Return null otherwise.
-
     void operator()();
         // Callback for end of main file.
 
@@ -642,7 +638,6 @@ struct report : public RecursiveASTVisitor<report>, Report<data>
     bool VisitQualifiedTypeLoc(QualifiedTypeLoc tl);
     bool VisitTagDecl(TagDecl *decl);
     bool VisitTemplateDecl(TemplateDecl *decl);
-    bool VisitTypeLoc(TypeLoc tl);
     bool VisitTypedefNameDecl(TypedefNameDecl *decl);
     bool VisitTypedefTypeLoc(TypedefTypeLoc tl);
     bool VisitUsingDecl(UsingDecl *decl);
@@ -796,12 +791,6 @@ void report::push_include(FileID fid, llvm::StringRef name, SourceLocation sl)
             d_data.d_all_includes.insert(name);
         }
     }
-#if 0
-    llvm::StringRef file = llvm::sys::path::filename(name);
-    if (file != name) {
-        push_include(fid, file, sl);
-    }
-#endif
 }
 
 // InclusionDirective
@@ -990,20 +979,6 @@ void report::operator()(SourceLocation where, SourceLocation ifloc)
     }
 }
 
-const NamedDecl *report::look_through_typedef(const Decl *ds)
-{
-#if 0
-    const TypedefDecl *td;
-    const CXXRecordDecl *rd;
-    if ((td = llvm::dyn_cast<TypedefDecl>(ds)) &&
-        (rd = td->getUnderlyingType().getTypePtr()->getAsCXXRecordDecl()) &&
-        rd->hasDefinition()) {
-        return rd->getDefinition();
-    }
-#endif
-    return 0;
-}
-
 bool report::files_match(llvm::StringRef included_file,
                          llvm::StringRef wanted_file)
 {
@@ -1074,77 +1049,60 @@ void report::inc_for_decl(llvm::StringRef r, SourceLocation sl, const Decl *ds)
         return;
     }
 
-#if 0
-    if (const UsingDecl *ud = llvm::dyn_cast<UsingDecl>(ds)) {
-        auto sb = ud->shadow_begin();
-        auto se = ud->shadow_end();
-        for (; sb != se; ++sb) {
-            const UsingShadowDecl *usd = *sb;
-            for (auto u = usd; u; u = u->getPreviousDecl()) {
-                inc_for_decl(r, sl, u);
-            }
-        }
-        return;
-    }
-#endif
+    bool skip = false;
+    Decl *prefer = 0;
 
-    for (const Decl *d = ds; d; d = look_through_typedef(d)) {
-        bool skip = false;
-        Decl *prefer = 0;
-        for (const Decl *p = d; !skip && p; p = p->getPreviousDecl()) {
-#if 1
-            Location loc(m, p->getLocation());
-            FileName fn(loc.file());
-            Decl::redecl_iterator rb = p->redecls_begin();
-            Decl::redecl_iterator re = p->redecls_end();
-            for (; !skip && rb != re; ++rb) {
-                SourceLocation rl = rb->getLocation();
-                if (rl.isValid() /*&& !m.isBeforeInTranslationUnit(sl, rl)*/) {
-                    llvm::StringRef file = file_for_location(rl, sl);
-                    skip = d_analyser.is_component(file) ||
-                           d_data.d_includes[m.getMainFileID()].count(file);
-                }
-                if (auto decl = llvm::dyn_cast<VarDecl>(*rb)) {
-                    if (decl->isThisDeclarationADefinition()) {
-                        prefer = *rb;
-                    }
-                }
-                if (auto decl = llvm::dyn_cast<FunctionDecl>(*rb)) {
-                    if (decl->isThisDeclarationADefinition()) {
-                        prefer = *rb;
-                    }
-                }
-                if (auto decl = llvm::dyn_cast<TagDecl>(*rb)) {
-                    if (decl->getRBraceLoc().isValid()) {
-                        prefer = *rb;
-                    }
-                }
-                if (llvm::dyn_cast<UsingDecl>(*rb)) {
+    for (const Decl *p = ds; !skip && p; p = p->getPreviousDecl()) {
+        Location loc(m, p->getLocation());
+        FileName fn(loc.file());
+        Decl::redecl_iterator rb = p->redecls_begin();
+        Decl::redecl_iterator re = p->redecls_end();
+        for (; !skip && rb != re; ++rb) {
+            SourceLocation rl = rb->getLocation();
+            if (rl.isValid()) {
+                llvm::StringRef file = file_for_location(rl, sl);
+                skip = d_analyser.is_component(file) ||
+                       d_data.d_includes[m.getMainFileID()].count(file);
+            }
+            if (auto decl = llvm::dyn_cast<VarDecl>(*rb)) {
+                if (decl->isThisDeclarationADefinition()) {
                     prefer = *rb;
                 }
             }
-#endif
-        }
-        for (const Decl *p = d; !skip && p; p = p->getPreviousDecl()) {
-#if 1
-            Location loc(m, p->getLocation());
-            FileName fn(loc.file());
-            Decl::redecl_iterator rb = p->redecls_begin();
-            Decl::redecl_iterator re = p->redecls_end();
-            for (; !skip && rb != re; ++rb) {
-                SourceLocation rl = rb->getLocation();
-                if (rl.isValid() /*&& !m.isBeforeInTranslationUnit(sl, rl)*/) {
-                    Location loc(m, rl);
-                    if (!skip && loc && (!prefer || prefer == *rb)) {
-                        require_file(file_for_location(rl, sl), sl, r, rl);
-                        skip = true;
-                    }
+            if (auto decl = llvm::dyn_cast<FunctionDecl>(*rb)) {
+                if (decl->isThisDeclarationADefinition()) {
+                    prefer = *rb;
                 }
             }
-#endif
+            if (auto decl = llvm::dyn_cast<TagDecl>(*rb)) {
+                if (decl->getRBraceLoc().isValid()) {
+                    prefer = *rb;
+                }
+            }
+            if (llvm::dyn_cast<UsingDecl>(*rb)) {
+                prefer = *rb;
+            }
+        }
+    }
+
+    for (const Decl *p = ds; !skip && p; p = p->getPreviousDecl()) {
+        Location loc(m, p->getLocation());
+        FileName fn(loc.file());
+        Decl::redecl_iterator rb = p->redecls_begin();
+        Decl::redecl_iterator re = p->redecls_end();
+        for (; !skip && rb != re; ++rb) {
+            SourceLocation rl = rb->getLocation();
+            if (rl.isValid()) {
+                Location loc(m, rl);
+                if (!skip && loc && (!prefer || prefer == *rb)) {
+                    require_file(file_for_location(rl, sl), sl, r, rl);
+                    skip = true;
+                }
+            }
         }
     }
 }
+
 //#define inc_for_decl(r,s,d) inc_for_decl(std::string(__FUNCTION__)+" "+r,s,d)
 
 std::string report::name_for(const NamedDecl *decl)
@@ -1176,7 +1134,6 @@ bool report::shouldVisitTemplateInstantiations() const
 
 bool report::VisitNamespaceAliasDecl(NamespaceAliasDecl *decl)
 {
-#if 1
     SourceLocation sl = decl->getLocation();
     if (sl.isValid() &&
         !sl.isMacroID() &&
@@ -1184,13 +1141,11 @@ bool report::VisitNamespaceAliasDecl(NamespaceAliasDecl *decl)
         std::string name = name_for(decl);
         inc_for_decl(name, sl, decl);
     }
-#endif
     return true;
 }
 
 bool report::VisitNamespaceDecl(NamespaceDecl *decl)
 {
-#if 1
     SourceLocation sl = decl->getLocation();
     if (sl.isValid() &&
         !sl.isMacroID() &&
@@ -1199,13 +1154,11 @@ bool report::VisitNamespaceDecl(NamespaceDecl *decl)
         std::string name = name_for(decl);
         inc_for_decl(name, sl, decl);
     }
-#endif
     return true;
 }
 
 bool report::VisitTemplateDecl(TemplateDecl *decl)
 {
-#if 1
     SourceLocation sl = decl->getLocation();
     if (sl.isValid() &&
         !sl.isMacroID() &&
@@ -1213,13 +1166,11 @@ bool report::VisitTemplateDecl(TemplateDecl *decl)
         std::string name = name_for(decl);
         inc_for_decl(name, sl, decl);
     }
-#endif
     return true;
 }
 
 bool report::VisitTagDecl(TagDecl *decl)
 {
-#if 1
     SourceLocation sl = decl->getLocation();
     if (sl.isValid() &&
         !sl.isMacroID() &&
@@ -1227,13 +1178,11 @@ bool report::VisitTagDecl(TagDecl *decl)
         std::string name = name_for(decl);
         inc_for_decl(name, sl, decl);
     }
-#endif
     return true;
 }
 
 bool report::VisitTypedefNameDecl(TypedefNameDecl *decl)
 {
-#if 1
     SourceLocation sl = decl->getLocation();
     if (sl.isValid() &&
         !sl.isMacroID() &&
@@ -1241,13 +1190,11 @@ bool report::VisitTypedefNameDecl(TypedefNameDecl *decl)
         std::string name = name_for(decl);
         inc_for_decl(name, sl, decl);
     }
-#endif
     return true;
 }
 
 bool report::VisitUsingDecl(UsingDecl *decl)
 {
-#if 1
     SourceLocation sl = decl->getLocation();
     if (sl.isValid() &&
         !sl.isMacroID() &&
@@ -1255,13 +1202,11 @@ bool report::VisitUsingDecl(UsingDecl *decl)
         std::string name = name_for(decl);
         inc_for_decl(name, sl, decl);
     }
-#endif
     return true;
 }
 
 bool report::VisitValueDecl(ValueDecl *decl)
 {
-#if 1
     SourceLocation sl = decl->getLocation();
     if (sl.isValid() &&
         !sl.isMacroID() &&
@@ -1269,13 +1214,11 @@ bool report::VisitValueDecl(ValueDecl *decl)
         std::string name = name_for(decl);
         inc_for_decl(name, sl, decl);
     }
-#endif
     return true;
 }
 
 bool report::VisitNamedDecl(NamedDecl *decl)
 {
-#if 1
     SourceLocation sl = decl->getLocation();
     if (sl.isValid() &&
         !sl.isMacroID() &&
@@ -1285,13 +1228,11 @@ bool report::VisitNamedDecl(NamedDecl *decl)
         std::string name = name_for(decl);
         inc_for_decl(name, sl, decl);
     }
-#endif
     return base::VisitNamedDecl(decl);
 }
 
 bool report::VisitUsingDirectiveDecl(UsingDirectiveDecl *decl)
 {
-#if 1
     NamespaceDecl *nd = decl->getNominatedNamespace();
     SourceLocation sl = decl->getLocation();
     if (sl.isValid() &&
@@ -1299,37 +1240,27 @@ bool report::VisitUsingDirectiveDecl(UsingDirectiveDecl *decl)
         nd->isExternallyVisible()) {
         inc_for_decl(name_for(nd), sl, nd);
     }
-#endif
     return base::VisitUsingDirectiveDecl(decl);
 }
 
 bool report::VisitDeclRefExpr(DeclRefExpr *expr)
 {
-#if 1
     SourceLocation sl = expr->getExprLoc();
-    if (sl.isValid() &&
-        !sl.isMacroID()) {
+    if (sl.isValid() && !sl.isMacroID()) {
         const NamedDecl *ds = expr->getFoundDecl();
         const DeclContext *dc = ds->getDeclContext();
-        std::string name = expr->getNameInfo().getName().getAsString();
-        while (dc->isRecord()) {
-            ds = llvm::dyn_cast<NamedDecl>(dc);
-            name = name_for(ds);
-            dc = dc->getParent();
-        }
         if (dc->isFileContext() ||
             dc->isExternCContext() ||
             dc->isExternCXXContext()) {
+            std::string name = expr->getNameInfo().getName().getAsString();
             inc_for_decl(name, sl, ds);
         }
     }
-#endif
     return base::VisitDeclRefExpr(expr);
 }
 
 bool report::VisitCXXConstructExpr(CXXConstructExpr *expr)
 {
-#if 1
     SourceLocation sl = expr->getExprLoc();
     const NamedDecl *ds = 0;
     std::string name;
@@ -1367,7 +1298,7 @@ bool report::VisitCXXConstructExpr(CXXConstructExpr *expr)
             inc_for_decl(name, sl, ds);
         }
     }
-#endif
+
     return base::VisitCXXConstructExpr(expr);
 }
 
@@ -1396,7 +1327,6 @@ bool report::VisitQualifiedTypeLoc(QualifiedTypeLoc tl)
 
 bool report::VisitTypedefTypeLoc(TypedefTypeLoc tl)
 {
-#if 1
     TypedefNameDecl *ds = tl.getTypedefNameDecl();
     SourceLocation sl = tl.getBeginLoc();
     if (!m.isWrittenInSameFile(tl.getBeginLoc(), tl.getEndLoc())) {
@@ -1406,39 +1336,7 @@ bool report::VisitTypedefTypeLoc(TypedefTypeLoc tl)
         std::string r = name_for(ds);
         inc_for_decl(r, sl, ds);
     }
-#endif
     return base::VisitTypedefTypeLoc(tl);
-}
-
-bool report::VisitTypeLoc(TypeLoc tl)
-{
-#if 0
-    const Type *type = tl.getTypePtr();
-    if (type->getAs<TypedefType>() || !type->isBuiltinType()) {
-        SourceLocation sl = tl.getBeginLoc();
-        if (!m.isWrittenInSameFile(tl.getBeginLoc(), tl.getEndLoc())) {
-            sl = m.getExpansionLoc(sl);
-        }
-        PrintingPolicy pp(d_analyser.context()->getLangOpts());
-        pp.SuppressTagKeyword = true;
-        pp.SuppressInitializers = true;
-        pp.TerseOutput = true;
-        std::string r = QualType(type, 0).getAsString(pp);
-        NamedDecl *ds = d_analyser.lookup_name(r);
-        if (!ds) {
-            if (const TypedefType *tt = type->getAs<TypedefType>()) {
-                ds = tt->getDecl();
-            }
-            else {
-                tl.getTypePtr()->isIncompleteType(&ds);
-            }
-        }
-        if (ds && sl.isValid() && !sl.isMacroID()) {
-            inc_for_decl(r, sl, ds);
-        }
-    }
-#endif
-    return base::VisitTypeLoc(tl);
 }
 
 // TranslationUnitDone
