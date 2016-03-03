@@ -317,13 +317,6 @@ const CXXRecordDecl *report::get_record_decl(QualType type)
     }
 
     if (rdecl) {
-        const CXXRecordDecl *tdecl = rdecl->getTemplateInstantiationPattern();
-        if (tdecl) {
-            rdecl = tdecl;
-        }
-    }
-
-    if (rdecl) {
         rdecl = rdecl->getCanonicalDecl();
     }
 
@@ -422,7 +415,8 @@ static internal::DynTypedMatcher nested_allocator_trait_matcher()
 void report::match_nested_allocator_trait(const BoundNodes& nodes)
 {
     CXXRecordDecl const* decl = nodes.getNodeAs<CXXRecordDecl>("class");
-    std::string type = nodes.getNodeAs<QualType>("type")->getAsString();
+    QualType qt = *nodes.getNodeAs<QualType>("type");
+    std::string type = qt.getAsString();
 
     if (!contains_word(type, decl->getNameAsString())) {
         a.report(nodes.getNodeAs<CXXMethodDecl>("trait"),
@@ -431,21 +425,51 @@ void report::match_nested_allocator_trait(const BoundNodes& nodes)
             << decl->getNameAsString();
     }
 
+    const NamedDecl *nd = llvm::dyn_cast<NamedDecl>(decl->getCanonicalDecl());
+
     if (type.find("bslalg::struct TypeTraitUsesBslmaAllocator::"
                   "NestedTraitDeclaration<") == 0 ||
         type.find("bslalg_TypeTraitUsesBslmaAllocator::"
                   "NestedTraitDeclaration<") == 0 ||
         type.find("bdealg_TypeTraitUsesBdemaAllocator::"
-                  "NestedTraitDeclaration<") == 0 ||
-        (type.find("BloombergLP::bslmf::NestedTraitDeclaration<") == 0 &&
-         (type.find(", bslma::UsesBslmaAllocator, true>") != type.npos ||
-          type.find(", bslma::UsesBslmaAllocator>") != type.npos))) {
-        d.decls_with_true_allocator_trait_.insert(
-            llvm::dyn_cast<NamedDecl>(decl->getCanonicalDecl()));
+                  "NestedTraitDeclaration<") == 0) {
+        d.decls_with_true_allocator_trait_.insert(nd);
     } else if (type.find("BloombergLP::bslmf::NestedTraitDeclaration<") == 0 &&
-               type.find(", bslma::UsesBslmaAllocator, false>") != type.npos) {
-        d.decls_with_false_allocator_trait_.insert(
-            llvm::dyn_cast<NamedDecl>(decl->getCanonicalDecl()));
+               type.find(", bslma::UsesBslmaAllocator") != type.npos) {
+        auto ts = qt->getAs<TemplateSpecializationType>();
+        if (ts && ts->getNumArgs() == 3) {
+            const TemplateArgument& ta = ts->getArg(2);
+            if (!ta.isDependent()) {
+                bool value, found;
+                if (ta.getKind() == TemplateArgument::Integral) {
+                    value = ta.getAsIntegral() != 0;
+                    found = true;
+                } else if (ta.getKind() == TemplateArgument::Expression &&
+                           ta.getAsExpr()->EvaluateAsBooleanCondition(
+                               value, *a.context())) {
+                    found = true;
+                } else {
+                    found = false;
+                }
+                if (found) {
+                    if (value) {
+                        d.decls_with_true_allocator_trait_.insert(nd);
+                    } else {
+                        d.decls_with_false_allocator_trait_.insert(nd);
+                    }
+                    return;
+                }
+            }
+        }
+        if (type.find(", bslma::UsesBslmaAllocator, true>") != type.npos ||
+            type.find(", bslma::UsesBslmaAllocator>") != type.npos) {
+            d.decls_with_true_allocator_trait_.insert(nd);
+        } else if (type.find(", bslma::UsesBslmaAllocator, false>") !=
+                   type.npos) {
+            d.decls_with_false_allocator_trait_.insert(nd);
+        } else if (type.find(", bslma::UsesBslmaAllocator,") != type.npos) {
+            d.decls_with_dependent_allocator_trait_.insert(nd);
+        }
     }
 }
 
@@ -921,19 +945,7 @@ void report::check_not_forwarded(CXXConstructorDecl::init_const_iterator begin,
 void report::check_not_forwarded(const CXXCtorInitializer* init,
                                  const ParmVarDecl* palloc)
 {
-    // Type of object being initialized.
-    const Type* type = init->isBaseInitializer()
-        ? init->getBaseClass()
-        : init->getAnyMember()->getType().getTypePtr();
-
-    if (!takes_allocator(type->getCanonicalTypeInternal()) ||
-        d.decls_with_false_allocator_trait_.count(
-            get_record_decl(type->getCanonicalTypeInternal()))) {
-        return;                                                       // RETURN
-    }
-
-    const CXXConstructExpr* ctor_expr =
-        llvm::dyn_cast<CXXConstructExpr>(init->getInit());
+    auto ctor_expr = llvm::dyn_cast<CXXConstructExpr>(init->getInit());
 
     if (!ctor_expr) {
         return;                                                       // RETURN
@@ -943,6 +955,23 @@ void report::check_not_forwarded(const CXXCtorInitializer* init,
         last_arg_is_explicit_allocator(ctor_expr)) {
         // The allocator parameter is passed.
         return;                                                       // RETURN
+    }
+
+    // Type of object being initialized.
+    const Type* type = init->isBaseInitializer()
+        ? init->getBaseClass()
+        : init->getAnyMember()->getType().getTypePtr();
+
+    if (!takes_allocator(type->getCanonicalTypeInternal())) {
+        return;                                                       // RETURN
+    }
+
+    auto rd = get_record_decl(type->getCanonicalTypeInternal());
+    while (rd) {
+        if (d.decls_with_false_allocator_trait_.count(rd)) {
+            return;                                                   // RETURN
+        }
+        rd = rd->getTemplateInstantiationPattern();
     }
 
     SourceLocation loc;
