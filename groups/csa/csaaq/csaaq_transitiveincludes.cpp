@@ -498,7 +498,7 @@ struct report : public RecursiveASTVisitor<report>, Report<data>
     std::vector<std::pair<FileID, bool>>& include_stack(SourceLocation sl);
         // Get the include stack for the specified 'sl'.
 
-    std::string file_for_location(SourceLocation in, SourceLocation sl);
+    std::string file_for_location(SourceLocation sl, SourceLocation in);
         // Return the header file appropriate for including the specified 'sl'
         // at the specified 'in', calculated as follows:
         // 1) If 'sl' is (transitively) included through the component header
@@ -696,34 +696,37 @@ std::string report::file_for_location(SourceLocation sl, SourceLocation in)
     bool found = false;
     bool just_found = false;
     std::string result = m.getFilename(sl);
-    for (auto& p : v) {
-        SourceLocation fl = m.getLocForStartOfFile(p.first);
-        SourceLocation tl = m.getLocForStartOfFile(top);
-        llvm::StringRef f = m.getFilename(fl);
-        llvm::StringRef t = m.getFilename(tl);
-        FileName ff(f);
-        if (p.first == in_id) {
-            result = t;
-            break;
-        }
-        if (is_skipped(f) && !is_mapped(f)) {
-            continue;
-        }
-        if (!found) {
-            if (p.second || is_mapped(f)) {
-                found = true;
-                just_found = true;
-                top = p.first;
+
+    if (!d.d_includes[in_id].count(FileName(result).name())) {
+        for (auto& p : v) {
+            SourceLocation  fl = m.getLocForStartOfFile(p.first);
+            SourceLocation  tl = m.getLocForStartOfFile(top);
+            llvm::StringRef f = m.getFilename(fl);
+            llvm::StringRef t = m.getFilename(tl);
+            FileName        ff(f);
+            if (p.first == in_id) {
+                result = t;
+                break;
             }
-        }
-        else {
-            if (reexports(f, t) ||
-                (just_found && d_analyser.is_component(ff.name()))) {
-                top = p.first;
+            if (is_skipped(f) && !is_mapped(f)) {
+                continue;
             }
-            just_found = false;
+            if (!found) {
+                if (p.second || is_mapped(f)) {
+                    found = true;
+                    just_found = true;
+                    top = p.first;
+                }
+            } else {
+                if (reexports(f, t) ||
+                    (just_found && d_analyser.is_component(ff.name()))) {
+                    top = p.first;
+                }
+                just_found = false;
+            }
         }
     }
+
     if (!d_analyser.is_component(result)) {
         if (is_mapped(result)) {
             result = get_mapped(result);
@@ -733,6 +736,7 @@ std::string report::file_for_location(SourceLocation sl, SourceLocation in)
             result = "";
         }
     }
+
     return d_data.d_file_for_loc[ip] = result;
 }
 
