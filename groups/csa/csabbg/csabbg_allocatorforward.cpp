@@ -958,11 +958,13 @@ void report::check_not_forwarded(const CXXCtorInitializer* init,
     }
 
     // Type of object being initialized.
-    const Type* type = init->isBaseInitializer()
-        ? init->getBaseClass()
-        : init->getAnyMember()->getType().getTypePtr();
+    const Type *type = init->isBaseInitializer() ?
+                           init->getBaseClass() :
+                       init->isAnyMemberInitializer() ?
+                           init->getAnyMember()->getType().getTypePtr() :
+                           nullptr;
 
-    if (!takes_allocator(type->getCanonicalTypeInternal())) {
+    if (!type || !takes_allocator(type->getCanonicalTypeInternal())) {
         return;                                                       // RETURN
     }
 
