@@ -666,7 +666,8 @@ static internal::DynTypedMatcher return_stmt_matcher()
 
 void report::match_return_stmt(const BoundNodes& nodes)
 {
-    if (!nodes.getNodeAs<FunctionDecl>("f")->isTemplateInstantiation()) {
+    //if (!nodes.getNodeAs<FunctionDecl>("f")->isTemplateInstantiation())
+    {
         auto stmt = nodes.getNodeAs<ReturnStmt>("r");
         d.returns_.insert(stmt);
     }
