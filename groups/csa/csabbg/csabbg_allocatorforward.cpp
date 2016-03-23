@@ -659,13 +659,17 @@ void report::match_ctor_expr(const BoundNodes& nodes)
 
 static internal::DynTypedMatcher return_stmt_matcher()
 {
-    return decl(forEachDescendant(returnStmt(anything()).bind("r")));
+    return decl(forEachDescendant(
+        functionDecl(forEachDescendant(returnStmt(anything()).bind("r")))
+            .bind("f")));
 }
 
 void report::match_return_stmt(const BoundNodes& nodes)
 {
-    auto stmt = nodes.getNodeAs<ReturnStmt>("r");
-    d.returns_.insert(stmt);
+    if (!nodes.getNodeAs<FunctionDecl>("f")->isTemplateInstantiation()) {
+        auto stmt = nodes.getNodeAs<ReturnStmt>("r");
+        d.returns_.insert(stmt);
+    }
 }
 
 static internal::DynTypedMatcher var_decl_matcher()
