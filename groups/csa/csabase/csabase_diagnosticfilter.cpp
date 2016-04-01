@@ -74,7 +74,9 @@ csabase::DiagnosticFilter::HandleDiagnostic(DiagnosticsEngine::Level level,
                      d_analyser->manager().getFileID(info.getLocation()) &&
                      !d_analyser->is_generated(info.getLocation());
         }
-        d_prev_handle = handle;
+        if (level < DiagnosticsEngine::Error) {
+            d_prev_handle = handle;
+        }
     }
     if (handle) {
         TextDiagnosticPrinter::HandleDiagnostic(level, info);
