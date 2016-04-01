@@ -958,6 +958,9 @@ for additional checks.
 
    ``swap-using``
    ++++++++++++++
+   Directly invoking ``std::swap`` or ``bsl::swap`` can prevent argument-
+   dependent lookup from finding overloads.
+
    * ``SU01``
      Prefer ``using std::swap; swap(...);'`` over ``std::swap(...);``.
 
