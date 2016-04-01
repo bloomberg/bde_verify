@@ -228,6 +228,15 @@ int csabase::run(int argc_, const char **argv_)
     ProcessWarningOptions(Diags, *DiagOpts, false);
 
     Driver TheDriver(Path, sys::getDefaultTargetTriple(), Diags);
+
+#undef  CCF
+#define CCF(D, X, O)                                                          \
+    if ((D.X = !!::getenv(#O))) D.X##Filename = ::getenv(#O "_FILE")
+    CCF(TheDriver, CCPrintOptions, CC_PRINT_OPTIONS);
+    CCF(TheDriver, CCPrintHeaders, CC_PRINT_HEADERS);
+    CCF(TheDriver, CCLogDiagnostics, CC_LOG_DIAGNOSTICS);
+#undef CCF
+
     SetInstallDir(argv, TheDriver, CanonicalPrefixes);
 
     std::unique_ptr<Compilation> C(TheDriver.BuildCompilation(argv));
