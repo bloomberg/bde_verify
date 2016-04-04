@@ -823,7 +823,7 @@ void report::critiqueContract(const FunctionDecl* func, SourceRange comment)
                         note_double_tick(&dt, "FD06");
                     }
                     first = false;
-                } else {
+                } else if (!words[j].is_noise) {
                     for (size_t k = j; k > 0; --k) {
                         const Word& word = words[k - 1];
                         if (word.is_specify) {
