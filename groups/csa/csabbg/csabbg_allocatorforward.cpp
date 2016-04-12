@@ -975,6 +975,7 @@ void report::check_not_forwarded(const CXXCtorInitializer* init,
 
     auto rd = get_record_decl(type->getCanonicalTypeInternal());
     while (rd) {
+        rd = rd->getCanonicalDecl();
         if (d.decls_with_false_allocator_trait_.count(rd)) {
             return;                                                   // RETURN
         }
