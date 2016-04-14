@@ -572,25 +572,39 @@ static internal::DynTypedMatcher should_return_by_value_matcher()
     return decl(forEachDescendant(
         functionDecl(
             returns(asString("void")),
-            hasParameter(0, hasType(pointerType(
-                unless(pointee(isConstQualified())),
-                unless(pointee(asString("void"))),
-                unless(pointee(functionType())),
-                unless(pointee(memberPointerType()))
-            ).bind("type"))),
-            anyOf(
-                parameterCountIs(1),
-                hasParameter(1, unless(anyOf(
-                    hasType(isInteger()),
-                    hasType(pointerType(
-                        unless(pointee(asString("void"))),
-                        unless(pointee(functionType())),
-                        unless(pointee(memberPointerType()))
-                    ))
-                )))
-            )
-        ).bind("func")
-    ));
+            hasParameter(
+                0,
+                parmVarDecl(
+                    hasType(pointerType(unless(pointee(isConstQualified())),
+                                        unless(pointee(asString("void"))),
+                                        unless(pointee(functionType())),
+                                        unless(pointee(memberPointerType())))
+                                .bind("type")))
+                    .bind("parm")),
+            anyOf(parameterCountIs(1),
+                  hasParameter(
+                      1,
+                      unless(
+                          anyOf(hasType(isInteger()),
+                                hasType(pointerType(
+                                    unless(pointee(asString("void"))),
+                                    unless(pointee(functionType())),
+                                    unless(pointee(memberPointerType())))))))),
+            anyOf(hasDescendant(binaryOperator(
+                      hasOperatorName("="),
+                      hasLHS(unaryOperator(
+                          hasOperatorName("*"),
+                          hasUnaryOperand(ignoringImpCasts(declRefExpr(
+                              to(decl(equalsBoundNode("parm")))))))))),
+                  hasDescendant(operatorCallExpr(
+                      hasOverloadedOperatorName("="),
+                      hasArgument(
+                          0,
+                          ignoringImpCasts(unaryOperator(
+                              hasOperatorName("*"),
+                              hasUnaryOperand(ignoringImpCasts(declRefExpr(
+                                  to(decl(equalsBoundNode("parm")))))))))))))
+            .bind("func")));
 }
 
 bool report::hasRVCognate(const FunctionDecl *func)
@@ -621,8 +635,8 @@ bool report::hasRVCognate(const FunctionDecl *func)
 
 void report::match_should_return_by_value(const BoundNodes& nodes)
 {
-    const FunctionDecl *func = nodes.getNodeAs<FunctionDecl>("func");
-    const PointerType *p1 = nodes.getNodeAs<PointerType>("type");
+    auto func = nodes.getNodeAs<FunctionDecl>("func");
+    auto p1 = nodes.getNodeAs<PointerType>("type");
     if (func->getCanonicalDecl() == func &&
         func->getTemplatedKind() == FunctionDecl::TK_NonTemplate &&
         !func->getLocation().isMacroID() &&
