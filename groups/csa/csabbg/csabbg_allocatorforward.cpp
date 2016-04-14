@@ -52,7 +52,7 @@ static std::string const check_name("allocator-forward");
 
 namespace {
 
-bool is_allocator(QualType type, ASTContext& c)
+bool is_allocator(QualType type, ASTContext& c, bool includeBases = true)
     // Return 'true' iff the specified 'type' is pointer or reference to
     // an allocator.
 {
@@ -78,16 +78,17 @@ bool is_allocator(QualType type, ASTContext& c)
         };
         auto rd = r->getDefinition();
         is = !not_alloc(r, 0) ||
-             (rd &&
+             (includeBases &&
+              rd &&
               rd->forallBases(all_true, 0) &&
               !rd->forallBases(not_alloc, 0));
     }
     return is;
 }
 
-bool is_allocator(const Type& type, ASTContext& c)
+bool is_allocator(const Type& type, ASTContext& c, bool includeBases = true)
 {
-    return is_allocator(QualType(&type, 0), c);
+    return is_allocator(QualType(&type, 0), c, includeBases);
 }
 
 }
@@ -169,9 +170,10 @@ struct report : Report<data>
         // Return the record declaration for the specified 'type' and a null
         // pointer if it does not have one.
 
-    bool is_allocator(QualType type);
+    bool is_allocator(QualType type, bool includeBases = true);
         // Return 'true' iff the specified 'type' is pointer or reference to
-        // 'bslma::Allocator'.
+        // 'bslma::Allocator'.  If the optionally specified 'includeBases' is
+        // false, do not consider base classes of 'type'.
 
     bool last_arg_is_explicit_allocator(const CXXConstructExpr* call);
         // Return 'true' iff the specified 'call' to a constructor has
@@ -323,9 +325,9 @@ const CXXRecordDecl *report::get_record_decl(QualType type)
     return rdecl;
 }
 
-bool report::is_allocator(QualType type)
+bool report::is_allocator(QualType type, bool includeBases)
 {
-    return ::is_allocator(type, *a.context());
+    return ::is_allocator(type, *a.context(), includeBases);
 }
 
 bool report::last_arg_is_explicit_allocator(const CXXConstructExpr* call)
@@ -493,7 +495,7 @@ void report::match_class_using_allocator(const BoundNodes& nodes)
                         ->getCanonicalTypeInternal();
     // Allocators look like they take allocators because of their copy
     // constructors.  But they shouldn't be considered that way.
-    if (!is_allocator(type)) {
+    if (!is_allocator(type, false)) {
         d.type_takes_allocator_[type.getTypePtr()] = true;
     }
 }

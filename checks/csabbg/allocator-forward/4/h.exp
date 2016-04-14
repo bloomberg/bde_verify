@@ -1,0 +1,4 @@
+h.cpp:9:8: warning: AT02: Class 'MyAllocator' uses allocators but does not have an allocator trait
+struct MyAllocator : public bslma::Allocator
+       ^
+1 warning generated.
