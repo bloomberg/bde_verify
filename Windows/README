@@ -50,7 +50,7 @@ Now get and build BDE Verify,
     cmake --build . --target package
 
 This will produce an executable bde_verify-1.x.y-win32.exe
-(currently x = 1 and y = 13).
+(currently x = 1 and y = 14).
 Run it to install BDE Verify.  The driver script on Windows is bde_verify.pl,
 taking generally the same arguments as the Unix bde_verify driver script.  See
 <http://bloomberg.github.io/bde_verify/bde_verify_build/html/> for full
