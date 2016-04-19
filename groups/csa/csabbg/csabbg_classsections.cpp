@@ -568,7 +568,7 @@ void report::operator()()
         sorts.emplace_back(Sort::RangeStart, def);
         sorts.emplace_back(Sort::RangeEnd, def);
     }
-    std::stable_sort(sorts.begin(), sorts.end(), *this);
+    std::sort(sorts.begin(), sorts.end(), *this);
     std::vector<const TagDecl *> scopes(1, nullptr);
     for (const auto& sort : sorts) {
         switch (sort.type) {
@@ -585,7 +585,9 @@ void report::operator()()
             break;
         }
     }
-    for (auto decl : d.d_decls) {
+    std::vector<const Decl *> decls(d.d_decls.begin(), d.d_decls.end());
+    std::sort(decls.begin(), decls.end(), *this);
+    for (auto decl : decls) {
         auto i =
             std::lower_bound(d.d_tags.begin(), d.d_tags.end(), decl, *this);
         auto rd = llvm::dyn_cast<RecordDecl>(decl->getDeclContext());
