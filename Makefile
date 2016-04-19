@@ -184,7 +184,6 @@ LIBS     =    -l$(LCB)                                                        \
               -lLLVMInstrumentation                                           \
               -lLLVMObjCARCOpts                                               \
               -lLLVMTransformUtils                                            \
-              -lLLVMipa                                                       \
               -lLLVMAnalysis                                                  \
               -lclangStaticAnalyzerFrontend                                   \
               -lclangRewriteFrontend                                          \

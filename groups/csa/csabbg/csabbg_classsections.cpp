@@ -206,9 +206,6 @@ struct report : public Report<data>
 SourceLocation report::getLoc(SourceLocation loc) const
 {
     return m.getFileLoc(loc);
-    return m.getExpansionLoc(loc);
-    return m.getSpellingLoc(loc);
-    return loc;
 }
 
 SourceLocation report::getLoc(const TagData &td) const
@@ -571,7 +568,7 @@ void report::operator()()
         sorts.emplace_back(Sort::RangeStart, def);
         sorts.emplace_back(Sort::RangeEnd, def);
     }
-    std::sort(sorts.begin(), sorts.end(), *this);
+    std::stable_sort(sorts.begin(), sorts.end(), *this);
     std::vector<const TagDecl *> scopes(1, nullptr);
     for (const auto& sort : sorts) {
         switch (sort.type) {

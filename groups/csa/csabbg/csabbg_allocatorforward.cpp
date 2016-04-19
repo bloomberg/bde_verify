@@ -71,17 +71,17 @@ bool is_allocator(QualType type, ASTContext& c, bool includeBases = true)
     }
     bool is = false;
     if (auto r = type->getAsCXXRecordDecl()) {
-        auto all_true = [](const CXXRecordDecl *decl, void *) { return true; };
-        auto not_alloc = [](const CXXRecordDecl *decl, void *) {
+        auto all_true = [](const CXXRecordDecl *decl) { return true; };
+        auto not_alloc = [](const CXXRecordDecl *decl) {
             std::string t = decl->getQualifiedNameAsString();
             return t != a1 && t != a2;
         };
         auto rd = r->getDefinition();
-        is = !not_alloc(r, 0) ||
+        is = !not_alloc(r) ||
              (includeBases &&
               rd &&
-              rd->forallBases(all_true, 0) &&
-              !rd->forallBases(not_alloc, 0));
+              rd->forallBases(all_true) &&
+              !rd->forallBases(not_alloc));
     }
     return is;
 }
@@ -406,7 +406,7 @@ static internal::DynTypedMatcher nested_allocator_trait_matcher()
     // methods and the callback looks for further structure.
 {
     return decl(forEachDescendant(
-        methodDecl(
+        cxxMethodDecl(
             matchesName("::operator NestedTraitDeclaration($|<)"),
             returns(qualType().bind("type")),
             ofClass(recordDecl().bind("class"))
@@ -481,7 +481,7 @@ static internal::DynTypedMatcher class_using_allocator_matcher()
     // has such a constructor.
 {
     return decl(forEachDescendant(recordDecl(
-        has(constructorDecl(hasLastParameter(parmVarDecl(anyOf(
+        has(cxxConstructorDecl(hasLastParameter(parmVarDecl(anyOf(
             hasType(pointerType(isAllocator())),
             hasType(referenceType(isAllocator()))
         )))))
@@ -596,7 +596,7 @@ static internal::DynTypedMatcher should_return_by_value_matcher()
                           hasOperatorName("*"),
                           hasUnaryOperand(ignoringImpCasts(declRefExpr(
                               to(decl(equalsBoundNode("parm")))))))))),
-                  hasDescendant(operatorCallExpr(
+                  hasDescendant(cxxOperatorCallExpr(
                       hasOverloadedOperatorName("="),
                       hasArgument(
                           0,
@@ -664,7 +664,7 @@ void report::match_should_return_by_value(const BoundNodes& nodes)
 
 static internal::DynTypedMatcher ctor_expr_matcher()
 {
-    return decl(forEachDescendant(constructExpr(anything()).bind("e")));
+    return decl(forEachDescendant(cxxConstructExpr(anything()).bind("e")));
 }
 
 void report::match_ctor_expr(const BoundNodes& nodes)
@@ -706,7 +706,7 @@ void report::match_var_decl(const BoundNodes& nodes)
 
 static internal::DynTypedMatcher ctor_decl_matcher()
 {
-    return decl(forEachDescendant(constructorDecl(anything()).bind("c")));
+    return decl(forEachDescendant(cxxConstructorDecl(anything()).bind("c")));
 }
 
 void report::match_ctor_decl(const BoundNodes& nodes)

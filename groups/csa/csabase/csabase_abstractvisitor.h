@@ -43,7 +43,7 @@ STMT(Stmt,void)
     void visit_stmt(clang::Stmt const*);
     void visit_context(void const*);
     void visit_context(clang::DeclContext const*);
-    void visit_children(clang::StmtRange const&);
+    void visit_children(clang::Stmt::child_range const&);
     template <typename Children> void visit_children(Children const&);
 };
 }

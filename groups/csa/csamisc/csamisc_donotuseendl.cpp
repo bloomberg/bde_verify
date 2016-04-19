@@ -45,7 +45,7 @@ void report::operator()()
                  "Prefer ... << '\\n', and ... << flush if needed");
     });
     mf.addDynamicMatcher(
-        decl(forEachDescendant(operatorCallExpr(
+        decl(forEachDescendant(cxxOperatorCallExpr(
             hasOverloadedOperatorName("<<"),
             hasAnyArgument(ignoringImpCasts(declRefExpr(
                 to(namedDecl(hasName("std::endl")))

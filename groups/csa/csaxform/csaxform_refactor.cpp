@@ -103,7 +103,7 @@ struct report : public RecursiveASTVisitor<report>, Report<data>
     void operator()();
         // Callback for end of compilation unit.
 
-    void operator()(SourceLocation, const Token &, const MacroDirective *);
+    void operator()(SourceLocation, const Token &, const MacroDefinition&);
         // Callback for ifndef.
 
     void operator()(SourceLocation,
@@ -118,7 +118,7 @@ struct report : public RecursiveASTVisitor<report>, Report<data>
         // Callback for inclusion directive.
 
     void operator()(Token const &,
-                    MacroDirective const *,
+                    const MacroDefinition&,
                     SourceRange,
                     MacroArgs const *);
         // Callback for macro expansion
@@ -291,7 +291,7 @@ void report::operator()(SourceLocation loc,
 
 void report::operator()(SourceLocation        loc,
                         const Token&          token,
-                        const MacroDirective *)
+                        const MacroDefinition&)
 {
     std::string may_be_guard = p.getSpelling(token);
     if (is_guard(may_be_guard)) {
@@ -336,7 +336,7 @@ void report::operator()(SourceLocation loc, SourceLocation ifloc)
 }
 
 void report::operator()(Token const& token,
-                        MacroDirective const *,
+                        const MacroDefinition&,
                         SourceRange,
                         MacroArgs const *)
 {

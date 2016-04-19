@@ -286,15 +286,15 @@ internal::DynTypedMatcher print_matcher()
                      callee(functionDecl(hasName("printf"))),
                      hasArgument(
                          0, ignoringImpCasts(characterLiteral().bind("pc")))),
-            operatorCallExpr(
+            cxxOperatorCallExpr(
                 hasOverloadedOperatorName("<<"),
                 hasArgument(1, ignoringImpCasts(
                                    declRefExpr(to(functionDecl(hasName(
                                                    "endl")))).bind("ce")))),
-            operatorCallExpr(
+            cxxOperatorCallExpr(
                 hasOverloadedOperatorName("<<"),
                 hasArgument(1, ignoringImpCasts(stringLiteral().bind("cs")))),
-            operatorCallExpr(
+            cxxOperatorCallExpr(
                 hasOverloadedOperatorName("<<"),
                 hasArgument(1, ignoringImpCasts(
                                    characterLiteral().bind("cc"))))))))))));
@@ -308,10 +308,10 @@ internal::DynTypedMatcher noisy_print_matcher()
         ifStmt(hasCondition(ignoringImpCasts(
                    declRefExpr(to(varDecl(hasName("verbose")))))),
                anyOf(hasAncestor(doStmt(unless(
-                         anyOf(hasCondition(boolLiteral(equals(false))),
+                         anyOf(hasCondition(cxxBoolLiteral(equals(false))),
                                hasCondition(characterLiteral(equals(0u))),
                                hasCondition(integerLiteral(equals(0))),
-                               hasCondition(nullPtrLiteralExpr()))))),
+                               hasCondition(cxxNullPtrLiteralExpr()))))),
                      hasAncestor(forStmt()),
                      hasAncestor(whileStmt()))).bind("noisy")))));
 }

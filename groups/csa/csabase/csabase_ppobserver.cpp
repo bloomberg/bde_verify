@@ -278,7 +278,7 @@ bool csabase::PPObserver::FileNotFound(llvm::StringRef name,
 // -----------------------------------------------------------------------------
 
 void
-csabase::PPObserver::Ident(SourceLocation location, std::string const& ident)
+csabase::PPObserver::Ident(SourceLocation location, llvm::StringRef ident)
 {
     onPPIdent(location, ident);
 
@@ -320,8 +320,8 @@ static void handle_bv_pragma(const SourceManager&  m,
     unsigned line = m.getPresumedLineNumber(l);
     llvm::StringRef directive = 
         m.getBufferData(fid).slice(
-            m.getFileOffset(m.translateLineCol(fid, line, 1)),
-            m.getFileOffset(m.translateLineCol(fid, line, 0)));
+            m.getFileOffset(m.translateLineCol(fid, line, 1u)),
+            m.getFileOffset(m.translateLineCol(fid, line, ~0u)));
     llvm::SmallVector<llvm::StringRef, 20> matches;
     if (r.match(directive, &matches)) {
         if (!matches[2].empty()) {                        // push
@@ -366,7 +366,7 @@ void csabase::PPObserver::PragmaDirective(SourceLocation location,
 
 void csabase::PPObserver::PragmaComment(SourceLocation location,
                                         IdentifierInfo const *id,
-                                        std::string const& value)
+                                        llvm::StringRef value)
 {
     onPPPragmaComment(location, id, value);
 
@@ -374,8 +374,8 @@ void csabase::PPObserver::PragmaComment(SourceLocation location,
 }
 
 void csabase::PPObserver::PragmaDetectMismatch(SourceLocation loc,
-                                               const std::string& name,
-                                               const std::string& value)
+                                               llvm::StringRef name,
+                                               llvm::StringRef value)
 {
     onPPPragmaDetectMismatch(loc, name, value);
 }
@@ -444,13 +444,13 @@ void csabase::PPObserver::PragmaMessage(SourceLocation location,
 // -----------------------------------------------------------------------------
 
 void csabase::PPObserver::MacroExpands(Token const& token,
-                                       const MacroDirective* macro,
+                                       const MacroDefinition& macro,
                                        SourceRange range,
                                        const MacroArgs* args)
 {
     onPPMacroExpands(token, macro, range, args);
 
-    do_macro_expands(token, macro, range, args);
+    do_macro_expands(token, macro.getLocalDirective(), range, args);
 }
 
 void csabase::PPObserver::MacroDefined(Token const& token,
@@ -462,15 +462,15 @@ void csabase::PPObserver::MacroDefined(Token const& token,
 }
 
 void csabase::PPObserver::MacroUndefined(Token const& token,
-                                         const MacroDirective* macro)
+                                         const MacroDefinition& macro)
 {
     onPPMacroUndefined(token, macro);
 
-    do_macro_undefined(token, macro);
+    do_macro_undefined(token, macro.getLocalDirective());
 }
 
 void csabase::PPObserver::Defined(const Token& token,
-                                  const MacroDirective* macro,
+                                  const MacroDefinition& macro,
                                   SourceRange range)
 {
     onPPDefined(token, macro, range);
@@ -504,7 +504,7 @@ void csabase::PPObserver::Elif(SourceLocation loc,
 
 void csabase::PPObserver::Ifdef(SourceLocation loc,
                                 Token const& token,
-                                const MacroDirective* md)
+                                const MacroDefinition& md)
 {
     onPPIfdef(loc, token, md);
 
@@ -513,7 +513,7 @@ void csabase::PPObserver::Ifdef(SourceLocation loc,
 
 void csabase::PPObserver::Ifndef(SourceLocation loc,
                                  Token const& token,
-                                 const MacroDirective* md)
+                                 const MacroDefinition& md)
 {
     onPPIfndef(loc, token, md);
 

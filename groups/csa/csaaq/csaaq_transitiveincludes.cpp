@@ -544,24 +544,26 @@ struct report : public RecursiveASTVisitor<report>, Report<data>
     bool is_named(Token const& token, llvm::StringRef name);
         // Return 'true' iff the specified 'token' is the specified 'name'.
 
-    void operator()(Token const&          token,
-                    MacroDirective const *md,
-                    SourceRange           range,
-                    MacroArgs const      *);
+    void operator()(Token const&           token,
+                    const MacroDefinition& md,
+                    SourceRange            range,
+                    MacroArgs const *);
         // Preprocessor callback for macro expanding.
 
-    void operator()(Token const&          token,
-                    MacroDirective const *md);
-        // Preprocessor callback for macro (un)defined.
+    void operator()(Token const& token, const MacroDirective *md);
+        // Preprocessor callback for macro defined.
 
-    void operator()(SourceLocation        where,
-                    const Token&          token,
-                    const MacroDirective *md);
+    void operator()(Token const& token, const MacroDefinition& md);
+        // Preprocessor callback for macro undefined.
+
+    void operator()(SourceLocation         where,
+                    const Token&           token,
+                    const MacroDefinition& md);
         // Preprocessor callback for 'ifdef'/'ifndef'.
 
-    void operator()(const Token&          token,
-                    const MacroDirective *md,
-                    SourceRange           range);
+    void operator()(const Token&           token,
+                    const MacroDefinition& md,
+                    SourceRange            range);
         // Preprocessor callback for 'defined(.)'.
 
     void operator()(SourceRange range);
@@ -781,7 +783,7 @@ void report::push_include(FileID fid, llvm::StringRef name, SourceLocation sl)
                     unsigned line = m.getLineNumber(flid, offset);
                     if (line > 1) {
                         SourceLocation prev =
-                            m.translateLineCol(flid, line - 1, 0);
+                            m.translateLineCol(flid, line - 1, 1);
                         llvm::StringRef p = d_analyser.get_source_line(prev);
                         static llvm::Regex guard("^ *# *ifn?def  *INCLUDED_");
                         if (guard.match(p)) {
@@ -842,13 +844,13 @@ bool report::is_named(Token const& token, llvm::StringRef name)
 }
 
 // MacroExpands
-void report::operator()(Token const&          token,
-                        MacroDirective const *md,
-                        SourceRange           range,
-                        MacroArgs const      *)
+void report::operator()(Token const&           token,
+                        const MacroDefinition& md,
+                        SourceRange            range,
+                        MacroArgs const *)
 {
     llvm::StringRef macro = token.getIdentifierInfo()->getName();
-    const MacroInfo *mi = md->getMacroInfo();
+    const MacroInfo *mi = md.getMacroInfo();
     Location loc(m, mi->getDefinitionLoc());
     if (loc && !range.getBegin().isMacroID() && macro != "std") {
         require_file(
@@ -859,9 +861,17 @@ void report::operator()(Token const&          token,
     }
 }
 
-// MacroDefined/MacroUndefined
-void report::operator()(Token const&          token,
-                        MacroDirective const *md)
+// MacroDefined
+void report::operator()(Token const& token, MacroDirective const *)
+{
+    llvm::StringRef macro = token.getIdentifierInfo()->getName();
+    if (macro == "BSL_OVERRIDES_STD") {
+        d.d_ovr = d_type == PPObserver::e_MacroDefined;
+    }
+}
+
+// MacroUndefined
+void report::operator()(Token const& token, const MacroDefinition&)
 {
     llvm::StringRef macro = token.getIdentifierInfo()->getName();
     if (macro == "BSL_OVERRIDES_STD") {
@@ -916,7 +926,7 @@ bool report::is_guard_for(const Token& token, SourceLocation sl)
 // Ifndef
 void report::operator()(SourceLocation        where,
                         const Token&          token,
-                        const MacroDirective *)
+                        const MacroDefinition&)
 {
     llvm::StringRef tn = token.getIdentifierInfo()->getName();
 
@@ -929,7 +939,7 @@ void report::operator()(SourceLocation        where,
 
 // Defined
 void report::operator()(const Token&          token,
-                        const MacroDirective *,
+                        const MacroDefinition&,
                         SourceRange           range)
 {
     clear_guard();

@@ -175,7 +175,7 @@ void report::operator()()
     auto &macros = d.d_ns[Tags[Macro]];
     for (auto i = p.macro_begin(); i != p.macro_end(); ++i) {
         IdentifierInfo *ii = const_cast<IdentifierInfo *>(i->first);
-        if (MacroDirective *md = p.getMacroDirective(ii)) {
+        if (auto md = p.getMacroDefinition(ii).getLocalDirective()) {
             if (m.isWrittenInMainFile(md->getLocation())) {
                 std::string s = ii->getName().str();
                 if (!llvm::StringRef(s).startswith("INCLUDE") &&

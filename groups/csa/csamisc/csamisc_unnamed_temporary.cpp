@@ -73,9 +73,10 @@ internal::DynTypedMatcher unnamed_temporary_matcher()
     // construct temporary objects.
 {
     return decl(forEachDescendant(
-        cleanups(hasParent(stmt(unless(expr()))),
-                 anyOf(has(functionalCastExpr()),
-                       has(bindTemporaryExpr(has(temporaryObjectExpr())))))
+        cleanups(
+            hasParent(stmt(unless(expr()))),
+            anyOf(has(cxxFunctionalCastExpr()),
+                  has(cxxBindTemporaryExpr(has(cxxTemporaryObjectExpr())))))
             .bind("ut")));
 }
 

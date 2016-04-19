@@ -216,12 +216,12 @@ void report::operator()()
         local_friendship_only(nodes.getNodeAs<FriendDecl>("friend"));
     });
     mf.addDynamicMatcher(
-        decl(forEachDescendant(recordDecl(
+        decl(forEachDescendant(cxxRecordDecl(
             unless(classTemplateSpecializationDecl(anything())),
             forEach(friendDecl(anything()).bind("friend"))
         ))), &m1);
     mf.addDynamicMatcher(
-        decl(forEachDescendant(recordDecl(
+        decl(forEachDescendant(cxxRecordDecl(
             isExplicitTemplateSpecialization(),
             forEach(friendDecl(anything()).bind("friend"))
         ))), &m1);

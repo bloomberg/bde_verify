@@ -190,7 +190,6 @@ AnalyseConsumer::HandleTranslationUnit(ASTContext&)
         else {
             llvm::raw_fd_ostream rfdo(fd, true);
             rfdo.SetUnbuffered();
-            rfdo.SetUseAtomicWrites(true);
             for (const auto &r : analyser_.replacements()) {
                 std::string buf;
                 llvm::raw_string_ostream os(buf);

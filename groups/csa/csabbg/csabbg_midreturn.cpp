@@ -18,6 +18,7 @@
 #include <csabase_location.h>
 #include <csabase_ppobserver.h>
 #include <csabase_registercheck.h>
+#include <csabase_report.h>
 #include <csabase_util.h>
 #include <llvm/ADT/Optional.h>
 #include <llvm/ADT/StringRef.h>
@@ -81,27 +82,22 @@ internal::DynTypedMatcher return_matcher()
 }
 
 // Callback object invoked upon completion.
-struct report
+struct report : Report<data>
 {
-    Analyser& d_analyser;
-    data& d_data;
-
-    report(Analyser& analyser)
-        : d_analyser(analyser)
-        , d_data(analyser.attachment<data>()) { }
+    INHERIT_REPORT_CTOR(report, Report, data);
 
     // Function for searching for final return statements.
-    const ReturnStmt* last_return(ConstStmtRange s)
+    const ReturnStmt* last_return(Stmt::const_child_range r)
     {
-        const ReturnStmt* ret = 0;
-        for (; s; ++s) {
-            if (llvm::dyn_cast<CompoundStmt>(*s)) {
+        const ReturnStmt *ret = 0;
+        for (const Stmt *s : r) {
+            if (llvm::dyn_cast<CompoundStmt>(s)) {
                 // Recurse into simple compound statements.
-                ret = last_return((*s)->children());
+                ret = last_return(s->children());
             } else {
                 // Try to cast each statement to a ReturnStmt. Therefore 'ret'
                 // will only be non-zero if the final statement is a 'return'.
-                ret = llvm::dyn_cast<ReturnStmt>(*s);
+                ret = llvm::dyn_cast<ReturnStmt>(s);
             }
         }
         return ret;

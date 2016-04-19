@@ -50,8 +50,8 @@ void report::operator()()
     });
     mf.addDynamicMatcher(
         decl(forEachDescendant(
-            constructExpr(
-                hasDeclaration(constructorDecl(
+            cxxConstructExpr(
+                hasDeclaration(cxxConstructorDecl(
                     matchesName("::bsl::basic_string<"),
                     hasParameter(
                         0,
@@ -68,9 +68,9 @@ void report::operator()()
     });
     mf.addDynamicMatcher(
         decl(forEachDescendant(
-            memberCallExpr(
+            cxxMemberCallExpr(
                 on(hasType(recordDecl(matchesName("::bsl::basic_string")))),
-                callee(methodDecl(matchesName("operator basic_string"))))
+                callee(cxxMethodDecl(matchesName("operator basic_string"))))
                 .bind("e"))),
         &m2);
 

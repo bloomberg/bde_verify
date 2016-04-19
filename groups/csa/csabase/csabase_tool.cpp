@@ -4,11 +4,13 @@
 #include <csabase_debug.h>
 #include <csabase_diagnostic_builder.h>
 #include <llvm/Option/ArgList.h>
+#include <llvm/Support/Allocator.h>
 #include <llvm/Support/Host.h>
 #include <llvm/Support/ManagedStatic.h>
 #include <llvm/Support/Process.h>
 #include <llvm/Support/Program.h>
 #include <llvm/Support/Signals.h>
+#include <llvm/Support/StringSaver.h>
 #include <llvm/Support/TargetSelect.h>
 #include <llvm/Support/Timer.h>
 #include <clang/Driver/Compilation.h>
@@ -44,13 +46,6 @@ LLVMErrorHandler(void *UserData, const std::string& Message, bool GenCrashDiag)
     sys::RunInterruptHandlers();
     exit(GenCrashDiag ? 70 : 1);
 }
-
-class StringSetSaver : public cl::StringSaver {
-    const char *SaveString(const char *Str) override {
-        return Storage.insert(Str).first->c_str();
-    }
-    std::set<std::string> Storage;
-};
 }
 
 std::string GetExecutablePath(const char *Argv0, bool CanonicalPrefixes)
@@ -125,9 +120,9 @@ CreateAndPopulateDiagOpts(ArrayRef<const char *> argv)
     auto                      *DiagOpts = new DiagnosticOptions;
     std::unique_ptr<OptTable>  Opts(createDriverOptTable());
     unsigned                   MissingArgIndex, MissingArgCount;
-    InputArgList              *Args = Opts->ParseArgs(
-        argv.begin() + 1, argv.end(), MissingArgIndex, MissingArgCount);
-    (void)ParseDiagnosticArgs(*DiagOpts, *Args);
+    InputArgList               Args =
+        Opts->ParseArgs(argv, MissingArgIndex, MissingArgCount);
+    (void)ParseDiagnosticArgs(*DiagOpts, Args);
     return DiagOpts;
 }
 
@@ -176,7 +171,8 @@ int csabase::run(int argc_, const char **argv_)
 
     InitializeNativeTarget();
 
-    StringSetSaver Saver;
+    BumpPtrAllocator Alloc;
+    StringSaver Saver(Alloc);
 
     bool MarkEOLs = argv.size() <= 1 ||
                     !StringRef(argv[1]).startswith("-cc1");
