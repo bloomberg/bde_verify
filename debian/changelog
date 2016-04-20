@@ -1,3 +1,11 @@
+bde-verify (1.2.1) unstable; urgency=low
+
+  * b618f3a Use llvm/clang 3.8
+  * cca8710 Don't warn in declaration pointer order.
+  * 4254e4c Changes for clang 3.8
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Tue, 19 Apr 2016 15:41:04 -0400
+
 bde-verify (1.1.14) unstable; urgency=low
 
   * 9112828 Require assignment for RV01 check.
