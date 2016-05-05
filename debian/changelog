@@ -1,3 +1,9 @@
+bde-verify (1.2.2) unstable; urgency=low
+
+  * ae5241c Missed an llvm => llvm-3.8 change.
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Thu, 5 May 2016 16:56:11 -0400
+
 bde-verify (1.2.1) unstable; urgency=low
 
   * b618f3a Use llvm/clang 3.8
