@@ -59,6 +59,7 @@ my $tag;
 my $ovr = -1;
 my $m32;
 my $m64;
+my $diff;
 
 my $command = join " \\\n ", $0, map { join '" "', split(/ /, $_, -1) } @ARGV;
 
@@ -75,6 +76,7 @@ usage: $0 [options] [additional compiler options] file.cpp ...
     --cl=config_line
     --bb=dir                 [$bb]
     --exe=binary             [$exe]
+    --diff=file (- = stdin)  [$diff]
     --[no]definc             [$definc]
     --[no]defdef             [$defdef]
     --[no]ovr                # whether to define BSL_OVERRIDES_STD
@@ -105,6 +107,7 @@ GetOptions(
     'debug'                        => \$debug,
     'help|?'                       => \$help,
     'cc=s'                         => \$dummy,
+    'diff=s'                       => \$diff,
     'exe=s'                        => \$exe,
     'verbose|v'                    => \$verbose,
     'definc!'                      => \$definc,
@@ -143,6 +146,7 @@ my @rwd    = plugin("rewrite-dir=$rwd")    if $rwd;
 print "No such directory $rwd\n" if $rwd and ! -d $rwd;
 my @rwf    = plugin("rewrite-file=$rwf")   if $rwf;
 my @tag    = plugin("tool=$tag")           if $tag;
+my @diff   = plugin("diff=$diff")          if $diff;
 my %uf     = (
              );
 @lflags = map { "-f$_" } grep { not exists $uf{$_} } @lflags;
@@ -231,6 +235,7 @@ my @command = (
     @rwd,
     @rwf,
     @tag,
+    @diff,
     @cl,
     @defs,
     @incs,

@@ -63,6 +63,7 @@ class Analyser : public Attachments
     std::string const& component() const;
     std::string const& rewrite_dir() const;
     std::string const& rewrite_file() const;
+    std::string const& diff_file() const;
     void               toplevel(std::string const&);
     bool               is_header(std::string const&) const;
     bool               is_component_header(std::string const&) const;
@@ -168,6 +169,7 @@ private:
     std::string                           component_;
     std::string                           rewrite_dir_;
     std::string                           rewrite_file_;
+    std::string                           diff_file_;
     typedef std::map<std::string, bool>   IsComponent;
     mutable IsComponent                   is_component_;
     typedef std::map<std::string, bool>   IsComponentHeader;

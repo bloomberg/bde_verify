@@ -357,6 +357,9 @@ bool PluginAction::ParseArgs(CompilerInstance const& compiler,
         else if (arg.startswith("rewrite-file=")) {
             rewrite_file_ = arg.substr(13).str();
         }
+        else if (arg.startswith("diff=")) {
+            diff_file_ = arg.substr(5).str();
+        }
         else
         {
             llvm::errs() << "unknown csabase argument = '" << arg << "'\n";
@@ -402,6 +405,11 @@ std::string PluginAction::rewrite_dir() const
 std::string PluginAction::rewrite_file() const
 {
     return rewrite_file_;
+}
+
+std::string PluginAction::diff_file() const
+{
+    return diff_file_;
 }
 
 // ----------------------------------------------------------------------------

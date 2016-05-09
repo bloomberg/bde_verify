@@ -61,6 +61,7 @@ csabase::Analyser::Analyser(CompilerInstance& compiler,
 , rewriter_(new Rewriter(compiler.getSourceManager(), compiler.getLangOpts()))
 , rewrite_dir_(plugin.rewrite_dir())
 , rewrite_file_(plugin.rewrite_file())
+, diff_file_(plugin.diff_file())
 {
     compiler_.getPreprocessor().addPPCallbacks(std::unique_ptr<PPCallbacks>(
         new PPObserver(&d_source_manager, d_config.get())));
@@ -130,6 +131,11 @@ std::string const& csabase::Analyser::rewrite_dir() const
 std::string const& csabase::Analyser::rewrite_file() const
 {
     return rewrite_file_;
+}
+
+std::string const& csabase::Analyser::diff_file() const
+{
+    return diff_file_;
 }
 
 tooling::Replacements const& csabase::Analyser::replacements() const
