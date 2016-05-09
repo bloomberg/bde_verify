@@ -50,6 +50,7 @@ Options
 --exe binary          bde_verify executable file
 --cc compiler         C++ compiler used to find system include directories
 --definc              set up default include paths
+--diff file           restrict output using git diff in file (``-`` for stdin)
 --nodefinc            do not set up default include paths
 --defdef              set up default macro definitions
 --nodefdef            do not set up default macro definitions
