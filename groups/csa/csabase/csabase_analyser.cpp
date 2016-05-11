@@ -1,6 +1,7 @@
 // csabase_analyser.cpp                                               -*-C++-*-
 
 #include <csabase_analyser.h>
+#include <csabase_filenames.h>
 #include <clang/AST/Decl.h>
 #include <clang/AST/DeclBase.h>
 #include <clang/AST/DeclCXX.h>
@@ -726,10 +727,10 @@ int
 csabase::Analyser::ReplaceText(SourceLocation l, unsigned n, llvm::StringRef s)
 {
     l = d_source_manager.getExpansionLoc(l);
-    d_source_manager.getDecomposedLoc(l);
-    tooling::Replacement r(d_source_manager, l, n, s);
-    replacements_.insert(r);
-    return 0;
+    return ReplaceText(d_source_manager.getFilename(l),
+                       d_source_manager.getFileOffset(l),
+                       n,
+                       s);
 }
 
 int csabase::Analyser::ReplaceText(SourceRange r, llvm::StringRef s)
@@ -744,7 +745,7 @@ int csabase::Analyser::ReplaceText(SourceRange r, llvm::StringRef s)
 int csabase::Analyser::ReplaceText(
           llvm::StringRef file, unsigned offset, unsigned n, llvm::StringRef s)
 {
-    tooling::Replacement r(file, offset, n, s);
+    tooling::Replacement r(FileName(file).full(), offset, n, s);
     replacements_.insert(r);
     return 0;
 }

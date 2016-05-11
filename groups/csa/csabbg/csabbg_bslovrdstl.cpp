@@ -1353,7 +1353,7 @@ void report::add_include(FileID             fid,
         // include that was changed, we changed up to but not including the
         // newline).  Otherwise the rewriting system can produce mangled text.
         SourceLocation ia = ip.getLocWithOffset(-1);
-        if (ia.isValid()) {
+        if (m.getFileID(ia) == m.getFileID(ip)) {
             ip = ia;
         }
         d_analyser.report(ip, check_name, "IS02", "Inserting %0") << text;

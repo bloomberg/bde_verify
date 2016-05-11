@@ -5,6 +5,7 @@
 
 #include <llvm/ADT/StringRef.h>
 #include <string>
+#include <map>
 
 // ----------------------------------------------------------------------------
 
@@ -85,6 +86,8 @@ private:
     llvm::StringRef pkgdir_;
     llvm::StringRef prefix_;
     llvm::StringRef tag_;
+
+    static std::map<std::string, FileName> s_file_names_;
 };
 }
 

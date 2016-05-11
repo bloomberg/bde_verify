@@ -1,6 +1,7 @@
 // csabase_filenames.cpp                                              -*-C++-*-
 
 #include <csabase_filenames.h>
+#include <csabase_debug.h>
 #include <llvm/Support/FileSystem.h>
 #include <llvm/Support/Path.h>
 #include <stddef.h>
@@ -31,20 +32,28 @@ llvm::StringRef subdir(llvm::StringRef path, llvm::StringRef dir)
 
 }
 
+std::map<std::string, csabase::FileName> csabase::FileName::s_file_names_;
+
 void csabase::FileName::reset(llvm::StringRef sr)
 {
+    auto i = s_file_names_.find(sr);
+    if (i != s_file_names_.end()) {
+        *this = i->second;
+        return;                                                       // RETURN
+    }
     if (sr.startswith("<")) {  // Not a real file
         name_ = full_ = sr;
         tag_ = "<";
     }
     else {
-        llvm::SmallVector<char, 512> path;
-        path.append(sr.begin(), sr.end());
-        if (llvm::sys::fs::make_absolute(path) == std::error_code()) {
-            full_ = llvm::StringRef(path.begin(), path.size());
-        }
-        else {
-            full_ = sr;
+        char buf[4000];
+#ifdef _MSC_VER
+#define realpath(path, buf) _fullpath(buf, path, sizeof(buf))
+#endif
+        full_ = sr;
+        const char *pc = realpath(full_.c_str(), buf);
+        if (pc) {
+            full_ = pc;
         }
 
         llvm::StringRef rfull = full_;
@@ -82,6 +91,7 @@ void csabase::FileName::reset(llvm::StringRef sr)
             // Something else - don't look for package structure.
         }
     }
+    s_file_names_[sr] = *this;
 
 #if 0
     ERRS() << "component   " << component_; ERNL();
