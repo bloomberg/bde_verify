@@ -243,7 +243,6 @@ my @command = (
     xclang("-plugin", "bde_verify"),
     "--gcc-toolchain=${gccdir}",
     "-resource-dir", "${pt}include/bde-verify/clang",
-    "-msoft-float",
     "-fsyntax-only",
     "-xc++",
     @std,
