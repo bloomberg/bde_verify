@@ -174,10 +174,12 @@ my $macro = ${nm};
 $macro =~ s{^([^.]*).*}{\U$1\E};
 push(@defs, ($macro));
 push(@defs, (
-    "BB_THREADED",
+    "BDE_API",
     "BDE_BUILD_TARGET_DBG",
     "BDE_BUILD_TARGET_EXC",
     "BDE_BUILD_TARGET_MT",
+    "BDE_DCL",
+    "BB_THREADED",
     "_LINUX_SOURCE",
     "_REENTRANT",
     "_SYS_SYSMACROS_H",
@@ -205,14 +207,14 @@ for (@ARGV) {
 }
 for (@incs) { warn "cannot find directory $_\n" unless -d; }
 push(@incs, (
-    "$bb/include/stlport",
-    "$bb/lib/dpkgroot/opt/bb/include/stlport",
-    "$bb/share/include/00depbuild",
-    "$bb/share/include/00deployed",
-    "$bb/share/include/00offlonly",
+    "$bb/opt/bb/include",
+    "$bb/opt/bb/include/00depbuild",
+    "$bb/opt/bb/include/00deployed",
+    "$bb/opt/bb/include/00offlonly",
     "/bb/build/share/stp/include/00offlonly",
-    "$bb/include",
-    "$bb/lib/dpkgroot/opt/bb/include",
+    "/bbsrc/thirdparty/bbit/include",
+    "$bb/dpkgroot/opt/bb/include",
+    "$bb/dpkgroot/opt/bb/include/stlport",
 )) if $bb and $definc;
 @incs = map { ( "-I", $_ ) }
         map { $_ eq Cwd::cwd() ? "." : $_ }
