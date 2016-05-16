@@ -24,6 +24,7 @@ class PluginAction : public clang::PluginASTAction
     std::string diagnose() const;
     std::string rewrite_dir() const;
     std::string rewrite_file() const;
+    std::string diff_file() const;
 
   protected:
     std::unique_ptr<clang::ASTConsumer>
@@ -42,6 +43,7 @@ class PluginAction : public clang::PluginASTAction
     std::string diagnose_;
     std::string rewrite_dir_;
     std::string rewrite_file_;
+    std::string diff_file_;
 };
 }
 

@@ -1,3 +1,58 @@
+bde-verify (1.2.2) unstable; urgency=low
+
+  * ae5241c Missed an llvm => llvm-3.8 change.
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Thu, 5 May 2016 16:56:11 -0400
+
+bde-verify (1.2.1) unstable; urgency=low
+
+  * b618f3a Use llvm/clang 3.8
+  * cca8710 Don't warn in declaration pointer order.
+  * 4254e4c Changes for clang 3.8
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Tue, 19 Apr 2016 15:41:04 -0400
+
+bde-verify (1.1.14) unstable; urgency=low
+
+  * 9112828 Require assignment for RV01 check.
+  * 6a5f093 Classes derived from allocators may take allocators.
+  * ac35c1b Fix spurious MA02 complaint.
+  * 700de6d Expand ~ in config file names.
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Thu, 14 Apr 2016 13:05:01 -0400
+
+bde-verify (1.1.13) unstable; urgency=low
+
+  * 8c1e665 Handle alignment for multiple declarations per line.
+  * 22eb2bf Describe how to build Release versions in Windows.
+  * 9a02ac4 Slight fix for when noise words are parameters.
+  * 63297af Provide rationale for swap-using check.
+  * 13745c4 Initialize some driver settings left unset by the constructor.
+  * 5f098ea Don't spam notes after an error.
+  * 7598018 Check for 'bsl::swp' in swap-using check.
+  * b30f7f3 Undo 'return' change
+  * dfc235a Don't warn for returns in instantiations.
+  * bba8c2b Avoid a core dump and complaining about names in instantiations.
+  * 5f2f619 Fix transitive include warning per DRQS 78714114.
+  * ddf67ff Transitive include false positive - DRQS 79095016
+  * 065e413 Changes to fix allocator forwarding error found in DRQS 78929431.
+  * a6a1a1a Check for conversion between bsl and std strings.
+  * ac31ded Make the bb_cppverify variants their own files instead of links. Finish up the CRLF handling fixes.
+  * fceff35 Bump version to 1.1.12
+  * da101b8 To 1.1.12
+  * c765810 Another CRLF fix.
+  * 1a9dab0 More CRLF changes.
+  * 81d2d18 Null pointer problem.
+  * c96ca21 Force C++ mode (for .h files).
+  * 6b460d4 Add support for CRs in multi-line comments.
+  * 191887a Allocators don't take allocators.
+  * 0997409 Skip back over nested tags.
+  * cb76ee0 Add another typedef name test.
+  * f551761 Allow public data members in structs. Allow 'k_' static const class data memebers. Don't check for '_p' on members declared with a typedef type.
+  * f36cfb1 Use glob matching (* and ?, but not [abc]) for suppressions.
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Tue, 5 Apr 2016 17:27:57 -0400
+
 bde-verify (1.1.11) unstable; urgency=low
 
   * 71d0331 Log into separate files without locking.

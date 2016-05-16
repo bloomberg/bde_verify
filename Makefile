@@ -91,6 +91,7 @@ CXXFILES =                                                                    \
         groups/csa/csabbg/csabbg_allocatornewwithpointer.cpp                  \
         groups/csa/csabbg/csabbg_assertassign.cpp                             \
         groups/csa/csabbg/csabbg_bslovrdstl.cpp                               \
+        groups/csa/csabbg/csabbg_bslstdstring.cpp                             \
         groups/csa/csabbg/csabbg_classsections.cpp                            \
         groups/csa/csabbg/csabbg_cmporder.cpp                                 \
         groups/csa/csabbg/csabbg_deprecated.cpp                               \
@@ -183,7 +184,6 @@ LIBS     =    -l$(LCB)                                                        \
               -lLLVMInstrumentation                                           \
               -lLLVMObjCARCOpts                                               \
               -lLLVMTransformUtils                                            \
-              -lLLVMipa                                                       \
               -lLLVMAnalysis                                                  \
               -lclangStaticAnalyzerFrontend                                   \
               -lclangRewriteFrontend                                          \

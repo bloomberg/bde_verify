@@ -184,7 +184,7 @@ report::break_for_spelling(std::vector<SourceRange>* words, SourceRange range)
     bool in_double_quotes = false;
     bool in_block = false;
     size_t start_of_last_block = 0;
-    static llvm::Regex code("^[[:blank:]]*//[.][.]$", llvm::Regex::Newline);
+    static llvm::Regex code("^[[:blank:]]*//[.][.]\r*$", llvm::Regex::Newline);
     llvm::SmallVector<llvm::StringRef, 7> matches;
     size_t code_pos = comment.size() + 1;
     // If the comment has a "//.." line, note its end position.
@@ -236,6 +236,9 @@ report::break_for_spelling(std::vector<SourceRange>* words, SourceRange range)
                 (comment.substr(i).startswith("//@AUTHOR:") ||
                  comment.substr(i).startswith("//@CONTACT:"))) {
                 size_t j = comment.substr(i).find("\n//\n");
+                if (j == comment.npos) {
+                    j = comment.substr(i).find("\n//\r\n");
+                }
                 if (j != comment.npos) {
                     i += j;
                 }

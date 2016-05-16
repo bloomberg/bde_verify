@@ -132,7 +132,7 @@ void report::split(std::vector<Word> *words, llvm::StringRef comment)
             }
         }
         llvm::StringRef sub = comment.substr(i);
-        if (sub.startswith("//..\n")) {
+        if (sub.startswith("//..\n") || sub.startswith("//..\r\n")) {
             i += 4 - 1;
             if (in_code) {
                 words->push_back(Word());

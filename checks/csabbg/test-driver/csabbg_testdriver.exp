@@ -201,9 +201,9 @@ csabbg_testdriver.t.cpp:138:20: warning: TP22: Mismatch between title in comment
 csabbg_testdriver.t.cpp:151:21: note: TP22: Printed title is
             cout << endl << "'f' AND 'setf'" << endl << "==========" << '\n';
                     ^
-csabbg_testdriver.t.cpp:143:3: warning: TP29: Concerns should be numbered like so: //: 1 ...
-        // Plan:
-  ^
+csabbg_testdriver.t.cpp:142:10: warning: TP29: Concerns should be numbered like so: //: 1 ...
+        //
+         ^
 csabbg_testdriver.t.cpp:144:10: warning: TP32: Plans should be numbered like so: //: 1 ...
         //
          ^
@@ -231,9 +231,9 @@ csabbg_testdriver.t.cpp:107:13: warning: TP22: Mismatch between title in comment
 csabbg_testdriver.t.cpp:124:20: note: TP22: Printed title is
             printf("Usage Example\n=============\n");
                    ^
-csabbg_testdriver.t.cpp:110:14: warning: TP29: Concerns should be numbered like so: //: 1 ...
+csabbg_testdriver.t.cpp:110:10: warning: TP29: Concerns should be numbered like so: //: 1 ...
         //   The usage example provided in the component header file must
-             ^
+         ^
 csabbg_testdriver.t.cpp:114:10: warning: TP32: Plans should be numbered like so: //: 1 ...
         //   Incorporate usage example from header into driver, remove leading
          ^

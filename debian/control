@@ -6,7 +6,8 @@ Build-Depends: build-base,
                binutils,
                coreutils,
                gcc,
-               llvm,
+               clang-3.8,
+               llvm-3.8,
                aspell,
                libncurses5-dev,
                libtinfo5,
@@ -20,6 +21,6 @@ Description: bde_verify
 Depends: gcc
 
 Package: libbde-verify-dev
-Depends: llvm
+Depends: llvm-3.8
 Architecture: amd64 solaris10-sparc
 Description: bde_verify base library and headers

@@ -50,6 +50,7 @@ Options
 --exe binary          bde_verify executable file
 --cc compiler         C++ compiler used to find system include directories
 --definc              set up default include paths
+--diff file           restrict output using git diff in file (``-`` for stdin)
 --nodefinc            do not set up default include paths
 --defdef              set up default macro definitions
 --nodefdef            do not set up default macro definitions
@@ -326,6 +327,15 @@ for additional checks.
      Replacing use of macro ``std`` with ``bsl``.
    * ``SB07``
      Replacing ``std`` with ``bsl`` in macro definition.
+
+.. only:: bde_verify or bb_cppverify
+
+   ``bsl-std-string``
+   ++++++++++++++++++
+   * ``ST01``
+     Converting std::string to bsl::string.
+   * ``ST02``
+     Converting bsl::string to std::string.
 
 .. only:: bde_verify or bb_cppverify
 
@@ -878,7 +888,7 @@ for additional checks.
      Replacing included files.
    * ``RC01``
      Replacing a name.
-   * ``RD0111
+   * ``RD0111``
      Replacing forward class declaration.
 
 .. only:: bde_verify
@@ -949,6 +959,9 @@ for additional checks.
 
    ``swap-using``
    ++++++++++++++
+   Directly invoking ``std::swap`` or ``bsl::swap`` can prevent argument-
+   dependent lookup from finding overloads.
+
    * ``SU01``
      Prefer ``using std::swap; swap(...);'`` over ``std::swap(...);``.
 

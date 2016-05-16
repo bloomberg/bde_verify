@@ -159,11 +159,11 @@ process_decl(AbstractVisitor* visitor, ClassTemplateDecl* decl)
 // -----------------------------------------------------------------------------
 
 void
-csabase::AbstractVisitor::visit_children(StmtRange const& range)
+csabase::AbstractVisitor::visit_children(Stmt::child_range const& range)
 {
     std::for_each(
-        range.first,
-        range.second,
+        range.begin(),
+        range.end(),
         std::bind1st(std::mem_fun(&AbstractVisitor::visit_stmt), this));
 }
 

@@ -22,7 +22,6 @@
 #include <llvm/ADT/SmallVector.h>
 #include <llvm/ADT/StringRef.h>
 #include <llvm/Support/Casting.h>
-#include <llvm/Support/Regex.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <utils/event.hpp>
@@ -55,11 +54,16 @@ struct TagInfo
         BitData = 0x0020,
         BitType = 0x0040,
         BitOther = 0x0080,
+
         BitPrivate = 0x0100,
         BitPublic = 0x0200,
-        BitImplicitPrivate = 0x0400,
-        BitImplicitPublic = 0x0800,
-        BitWrong = 0x1000,
+        BitProtected = 0x0400,
+
+        AccessBits = BitPrivate | BitPublic | BitProtected,
+
+        BitImplicitPrivate = 0x0800,
+        BitImplicitPublic = 0x1000,
+        BitWrong = 0x2000,
 
         Accessors = BitFunction + 1 + BitImplicitPublic,
         Aspects = BitFunction + 2 + BitImplicitPublic,
@@ -182,6 +186,7 @@ struct report : public Report<data>
 
     bool requirePublic(const Decl *decl, data::Tags::const_iterator i);
     bool requirePrivate(const Decl *decl, data::Tags::const_iterator i);
+    bool requireProtected(const Decl *decl, data::Tags::const_iterator i);
     bool requireFunction(const Decl *decl, data::Tags::const_iterator i);
     bool requireField(const Decl *decl, data::Tags::const_iterator i);
     bool requireVar(const Decl *decl, data::Tags::const_iterator i);
@@ -201,9 +206,6 @@ struct report : public Report<data>
 SourceLocation report::getLoc(SourceLocation loc) const
 {
     return m.getFileLoc(loc);
-    return m.getExpansionLoc(loc);
-    return m.getSpellingLoc(loc);
-    return loc;
 }
 
 SourceLocation report::getLoc(const TagData &td) const
@@ -298,6 +300,7 @@ void report::operator()(SourceRange range)
         comment = comment.drop_front(2).trim();
         bool saysPublic = false;
         bool saysPrivate = false;
+        bool saysProtected = false;
         if (comment.startswith_lower("public ")) {
             comment = comment.drop_front(6).trim();
             saysPublic = true;
@@ -305,6 +308,10 @@ void report::operator()(SourceRange range)
         else if (comment.startswith_lower("private ")) {
             comment = comment.drop_front(7).trim();
             saysPrivate = true;
+        }
+        else if (comment.startswith_lower("protected ")) {
+            comment = comment.drop_front(9).trim();
+            saysProtected = true;
         }
         if (comment.startswith_lower("instance ")) {
             comment = comment.drop_front(8).trim();
@@ -322,6 +329,9 @@ void report::operator()(SourceRange range)
                     else if (saysPrivate) {
                         type = TagInfo::TagTypes(type | TagInfo::BitPrivate);
                     }
+                    else if (saysProtected) {
+                        type = TagInfo::TagTypes(type | TagInfo::BitProtected);
+                    }
                     d.d_tags.emplace_back(range, type, nullptr);
                     break;
                 }
@@ -338,8 +348,7 @@ void report::tagIsHere(data::Tags::const_iterator i, const char *code)
 
 bool report::requirePublic(const Decl *decl, data::Tags::const_iterator i)
 {
-    if (decl->getAccess() == AS_private ||
-        decl->getAccess() == AS_protected) {
+    if (decl->getAccess() == AS_private || decl->getAccess() == AS_protected) {
         a.report(decl, check_name, "KS01", "Tag requires public declaration");
         tagIsHere(i, "KS01");
         return false;                                                 // RETURN
@@ -355,6 +364,17 @@ bool report::requirePrivate(const Decl *decl, data::Tags::const_iterator i)
                      "Tag requires private declaration" :
                      "Tag implicitly requires private declaration");
         tagIsHere(i, "KS02");
+        return false;                                                 // RETURN
+    }
+    return true;
+}
+
+bool report::requireProtected(const Decl *decl, data::Tags::const_iterator i)
+{
+    if (decl->getAccess() != AS_protected) {
+        a.report(decl, check_name, "KS17",
+                 "Tag requires protected declaration");
+        tagIsHere(i, "KS17");
         return false;                                                 // RETURN
     }
     return true;
@@ -565,20 +585,33 @@ void report::operator()()
             break;
         }
     }
-    for (auto decl : d.d_decls) {
+    std::vector<const Decl *> decls(d.d_decls.begin(), d.d_decls.end());
+    std::sort(decls.begin(), decls.end(), *this);
+    for (auto decl : decls) {
         auto i =
             std::lower_bound(d.d_tags.begin(), d.d_tags.end(), decl, *this);
-        if (i == d.d_tags.begin() ||
-            !m.isWrittenInSameFile(getLoc(decl), getLoc(*--i)) ||
+        auto rd = llvm::dyn_cast<RecordDecl>(decl->getDeclContext());
+        if (rd) {
+            rd = llvm::dyn_cast<RecordDecl>(rd->getCanonicalDecl());
+        }
+        bool without = i == d.d_tags.begin();
+        if (!without) {
+            while (--i != d.d_tags.begin() &&
+                   i->decl != rd &&
+                   i->decl != nullptr) {
+            }
+        }
+        if (without ||
+            !m.isWrittenInSameFile(getLoc(decl), getLoc(*i)) ||
             m.isBeforeInTranslationUnit(getLoc(i->range.getBegin()),
                                         getDCLoc(decl))) {
             if (!decl->isInAnonymousNamespace()) {
-                a.report(decl, check_name, "KS00", "Declaration witout tag");
+                a.report(decl, check_name, "KS00", "Declaration without tag");
             }
             continue;
         }
-        TagInfo::TagTypes base_type = TagInfo::TagTypes(
-                         i->type & ~TagInfo::BitPrivate & ~TagInfo::BitPublic);
+        TagInfo::TagTypes base_type =
+            TagInfo::TagTypes(i->type & ~TagInfo::AccessBits);
         if (llvm::dyn_cast<FriendDecl>(decl)) {
             if (base_type != TagInfo::Friends) {
                 a.report(decl, check_name, "KS15",
@@ -679,6 +712,9 @@ void report::operator()()
         }
         else if (i->type & TagInfo::BitPublic) {
             requirePublic(decl, i);
+        }
+        else if (i->type & TagInfo::BitProtected) {
+            requireProtected(decl, i);
         }
         else if (i->type & TagInfo::BitImplicitPrivate) {
             requirePrivate(decl, i);

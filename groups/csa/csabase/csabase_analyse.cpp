@@ -1,6 +1,7 @@
 // csabase_analyse.cpp                                                -*-C++-*-
 
 #include <csabase_analyse.h>
+#include <csabase_filenames.h>
 #include <clang/AST/ASTConsumer.h>
 #include <clang/AST/DeclBase.h>
 #include <clang/AST/DeclGroup.h>
@@ -50,14 +51,12 @@ class AnalyseConsumer : public ASTConsumer
                     PluginAction const& plugin);
     void Initialize(ASTContext& context);
     bool HandleTopLevelDecl(DeclGroupRef DG);
-    llvm::StringRef Canon(llvm::StringRef path);
     void ReadReplacements(std::string file);
     void HandleTranslationUnit(ASTContext&);
 
   private:
     Analyser analyser_;
     std::string const source_;
-    std::map<std::string, std::string> canon_;
 };
 }
 
@@ -97,25 +96,6 @@ AnalyseConsumer::HandleTopLevelDecl(DeclGroupRef DG)
 
 // -----------------------------------------------------------------------------
 
-llvm::StringRef
-AnalyseConsumer::Canon(llvm::StringRef path)
-{
-    std::string ps = path.str();
-    auto i = canon_.find(ps);
-    if (i != canon_.end()) {
-        return i->second;
-    }
-    char buf[4000];
-#ifdef _MSC_VER
-#define realpath(path, buf) _fullpath(buf, path, sizeof(buf))
-#endif
-    const char *pc = realpath(ps.c_str(), buf);
-    if (!pc) {
-        pc = ps.c_str();
-    }
-    return canon_[path] = std::string(pc);
-}
-
 void
 AnalyseConsumer::ReadReplacements(std::string file)
 {
@@ -138,7 +118,6 @@ AnalyseConsumer::ReadReplacements(std::string file)
                 f >> rep_offset >> rep_length >> length;
                 data.resize(length);
                 f.ignore(1).read(&data[0], data.size()).ignore(1);
-                mod_file = Canon(mod_file);
                 analyser_.ReplaceText(mod_file, rep_offset, rep_length, data);
             }
         }
@@ -190,11 +169,10 @@ AnalyseConsumer::HandleTranslationUnit(ASTContext&)
         else {
             llvm::raw_fd_ostream rfdo(fd, true);
             rfdo.SetUnbuffered();
-            rfdo.SetUseAtomicWrites(true);
             for (const auto &r : analyser_.replacements()) {
                 std::string buf;
                 llvm::raw_string_ostream os(buf);
-                llvm::StringRef c = Canon(r.getFilePath());
+                llvm::StringRef c = FileName(r.getFilePath()).full();
                 os << c.size() << " "
                    << c << " "
                    << r.getOffset() << " "
@@ -358,6 +336,9 @@ bool PluginAction::ParseArgs(CompilerInstance const& compiler,
         else if (arg.startswith("rewrite-file=")) {
             rewrite_file_ = arg.substr(13).str();
         }
+        else if (arg.startswith("diff=")) {
+            diff_file_ = arg.substr(5).str();
+        }
         else
         {
             llvm::errs() << "unknown csabase argument = '" << arg << "'\n";
@@ -403,6 +384,11 @@ std::string PluginAction::rewrite_dir() const
 std::string PluginAction::rewrite_file() const
 {
     return rewrite_file_;
+}
+
+std::string PluginAction::diff_file() const
+{
+    return diff_file_;
 }
 
 // ----------------------------------------------------------------------------

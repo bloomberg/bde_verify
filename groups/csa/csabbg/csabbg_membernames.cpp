@@ -18,7 +18,11 @@ static std::string const check_name("member-names");
 
 static void check_private(Analyser& a, DeclaratorDecl const *decl)
 {
-    if (decl->getAccess() != AS_private) {
+    auto rd = llvm::dyn_cast<CXXRecordDecl>(decl->getDeclContext());
+    if (decl->getAccess() != AS_private &&
+        rd &&
+        !rd->getTemplateInstantiationPattern() &&
+        rd->getTagKind() == TTK_Class) {
         a.report(decl, check_name, "MN01",
                  "Class data members must be private");
     }
@@ -26,6 +30,13 @@ static void check_private(Analyser& a, DeclaratorDecl const *decl)
 
 static void check_pointer(Analyser& a, DeclaratorDecl const *decl)
 {
+    if (decl->getType()->getTypeClass() == Type::Typedef) {
+        return;
+    }
+    auto rd = llvm::dyn_cast<CXXRecordDecl>(decl->getDeclContext());
+    if (rd && rd->getTemplateInstantiationPattern()) {
+        return;                                                       // RETURN
+    }
     bool is_pointer_type = decl->getType()->isPointerType();
     bool is_pointer_name = decl->getName().endswith("_p");
     if (is_pointer_type && !is_pointer_name) {
@@ -40,6 +51,10 @@ static void check_pointer(Analyser& a, DeclaratorDecl const *decl)
 
 static void field_name(Analyser& a, FieldDecl const *decl)
 {
+    auto rd = llvm::dyn_cast<CXXRecordDecl>(decl->getDeclContext());
+    if (rd && rd->getTemplateInstantiationPattern()) {
+        return;                                                       // RETURN
+    }
     if (decl->isCXXClassMember()) {
         check_private(a, decl);
         if (!decl->getName().startswith("d_")) {
@@ -52,11 +67,24 @@ static void field_name(Analyser& a, FieldDecl const *decl)
 
 static void var_name(Analyser& a, VarDecl const *decl)
 {
+    auto rd = llvm::dyn_cast<CXXRecordDecl>(decl->getDeclContext());
+    if (rd && rd->getTemplateInstantiationPattern()) {
+        return;                                                       // RETURN
+    }
     if (decl->isCXXClassMember()) {
-        check_private(a, decl);
-        if (!decl->getName().startswith("s_")) {
-            a.report(decl, check_name, "MN03",
-                     "Static data member names must begin with 's_'");
+        if (!decl->getType().isConstQualified()) {
+            check_private(a, decl);
+            if (!decl->getName().startswith("s_")) {
+                a.report(decl, check_name, "MN03",
+                         "Static data member names must begin with 's_'");
+            }
+        }
+        else {
+            if (!decl->getName().startswith("s_") &&
+                !decl->getName().startswith("k_")) {
+                a.report(decl, check_name, "MN03",
+                         "Constant member names must begin with 's_' or 'k_'");
+            }
         }
         check_pointer(a, decl);
     }

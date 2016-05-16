@@ -133,7 +133,7 @@ void report::operator()()
              *d_analyser.context());
 }
 
-static llvm::Regex all_upper("^[[:upper:]](_?[[:upper:][:digit:]]+)*$");
+static llvm::Regex all_upper("^[[:upper:]](_?[[:upper:][:digit:]]+)*\r*$");
 
 void report::checkTemplateParameters(TemplateParameterList const* parms)
 {

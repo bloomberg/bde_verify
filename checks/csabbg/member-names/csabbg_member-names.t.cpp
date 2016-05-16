@@ -42,8 +42,19 @@ class A
     static char *s_private_d_p;
 };
 
+struct B
+{
+    int d_i;
+    static const int k_a = 1;
+    static const int s_a = 2;
+    typedef char *c_t;
+    c_t d_x;
+    typedef int i_t;
+    i_t d_p;
+};
+
 // ----------------------------------------------------------------------------
-// Copyright (C) 205 Bloomberg Finance L.P.
+// Copyright (C) 2015 Bloomberg Finance L.P.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to

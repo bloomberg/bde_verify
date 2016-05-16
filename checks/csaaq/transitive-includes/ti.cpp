@@ -7,6 +7,9 @@ using namespace n;
 t i;
 void (*pf)() = f;
 
+#include <ti9.h>
+void x() { A::i().e(); }
+
 // ----------------------------------------------------------------------------
 // Copyright (C) 2014 Bloomberg Finance L.P.
 //

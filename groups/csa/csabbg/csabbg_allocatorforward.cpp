@@ -52,7 +52,7 @@ static std::string const check_name("allocator-forward");
 
 namespace {
 
-bool is_allocator(QualType type, ASTContext& c)
+bool is_allocator(QualType type, ASTContext& c, bool includeBases = true)
     // Return 'true' iff the specified 'type' is pointer or reference to
     // an allocator.
 {
@@ -71,23 +71,24 @@ bool is_allocator(QualType type, ASTContext& c)
     }
     bool is = false;
     if (auto r = type->getAsCXXRecordDecl()) {
-        auto all_true = [](const CXXRecordDecl *decl, void *) { return true; };
-        auto not_alloc = [](const CXXRecordDecl *decl, void *) {
+        auto all_true = [](const CXXRecordDecl *decl) { return true; };
+        auto not_alloc = [](const CXXRecordDecl *decl) {
             std::string t = decl->getQualifiedNameAsString();
             return t != a1 && t != a2;
         };
         auto rd = r->getDefinition();
-        is = !not_alloc(r, 0) ||
-             (rd &&
-              rd->forallBases(all_true, 0) &&
-              !rd->forallBases(not_alloc, 0));
+        is = !not_alloc(r) ||
+             (includeBases &&
+              rd &&
+              rd->forallBases(all_true) &&
+              !rd->forallBases(not_alloc));
     }
     return is;
 }
 
-bool is_allocator(const Type& type, ASTContext& c)
+bool is_allocator(const Type& type, ASTContext& c, bool includeBases = true)
 {
-    return is_allocator(QualType(&type, 0), c);
+    return is_allocator(QualType(&type, 0), c, includeBases);
 }
 
 }
@@ -169,9 +170,10 @@ struct report : Report<data>
         // Return the record declaration for the specified 'type' and a null
         // pointer if it does not have one.
 
-    bool is_allocator(QualType type);
+    bool is_allocator(QualType type, bool includeBases = true);
         // Return 'true' iff the specified 'type' is pointer or reference to
-        // 'bslma::Allocator'.
+        // 'bslma::Allocator'.  If the optionally specified 'includeBases' is
+        // false, do not consider base classes of 'type'.
 
     bool last_arg_is_explicit_allocator(const CXXConstructExpr* call);
         // Return 'true' iff the specified 'call' to a constructor has
@@ -317,22 +319,15 @@ const CXXRecordDecl *report::get_record_decl(QualType type)
     }
 
     if (rdecl) {
-        const CXXRecordDecl *tdecl = rdecl->getTemplateInstantiationPattern();
-        if (tdecl) {
-            rdecl = tdecl;
-        }
-    }
-
-    if (rdecl) {
         rdecl = rdecl->getCanonicalDecl();
     }
 
     return rdecl;
 }
 
-bool report::is_allocator(QualType type)
+bool report::is_allocator(QualType type, bool includeBases)
 {
-    return ::is_allocator(type, *a.context());
+    return ::is_allocator(type, *a.context(), includeBases);
 }
 
 bool report::last_arg_is_explicit_allocator(const CXXConstructExpr* call)
@@ -411,7 +406,7 @@ static internal::DynTypedMatcher nested_allocator_trait_matcher()
     // methods and the callback looks for further structure.
 {
     return decl(forEachDescendant(
-        methodDecl(
+        cxxMethodDecl(
             matchesName("::operator NestedTraitDeclaration($|<)"),
             returns(qualType().bind("type")),
             ofClass(recordDecl().bind("class"))
@@ -422,7 +417,8 @@ static internal::DynTypedMatcher nested_allocator_trait_matcher()
 void report::match_nested_allocator_trait(const BoundNodes& nodes)
 {
     CXXRecordDecl const* decl = nodes.getNodeAs<CXXRecordDecl>("class");
-    std::string type = nodes.getNodeAs<QualType>("type")->getAsString();
+    QualType qt = *nodes.getNodeAs<QualType>("type");
+    std::string type = qt.getAsString();
 
     if (!contains_word(type, decl->getNameAsString())) {
         a.report(nodes.getNodeAs<CXXMethodDecl>("trait"),
@@ -431,21 +427,51 @@ void report::match_nested_allocator_trait(const BoundNodes& nodes)
             << decl->getNameAsString();
     }
 
+    const NamedDecl *nd = llvm::dyn_cast<NamedDecl>(decl->getCanonicalDecl());
+
     if (type.find("bslalg::struct TypeTraitUsesBslmaAllocator::"
                   "NestedTraitDeclaration<") == 0 ||
         type.find("bslalg_TypeTraitUsesBslmaAllocator::"
                   "NestedTraitDeclaration<") == 0 ||
         type.find("bdealg_TypeTraitUsesBdemaAllocator::"
-                  "NestedTraitDeclaration<") == 0 ||
-        (type.find("BloombergLP::bslmf::NestedTraitDeclaration<") == 0 &&
-         (type.find(", bslma::UsesBslmaAllocator, true>") != type.npos ||
-          type.find(", bslma::UsesBslmaAllocator>") != type.npos))) {
-        d.decls_with_true_allocator_trait_.insert(
-            llvm::dyn_cast<NamedDecl>(decl->getCanonicalDecl()));
+                  "NestedTraitDeclaration<") == 0) {
+        d.decls_with_true_allocator_trait_.insert(nd);
     } else if (type.find("BloombergLP::bslmf::NestedTraitDeclaration<") == 0 &&
-               type.find(", bslma::UsesBslmaAllocator, false>") != type.npos) {
-        d.decls_with_false_allocator_trait_.insert(
-            llvm::dyn_cast<NamedDecl>(decl->getCanonicalDecl()));
+               type.find(", bslma::UsesBslmaAllocator") != type.npos) {
+        auto ts = qt->getAs<TemplateSpecializationType>();
+        if (ts && ts->getNumArgs() == 3) {
+            const TemplateArgument& ta = ts->getArg(2);
+            if (!ta.isDependent()) {
+                bool value, found;
+                if (ta.getKind() == TemplateArgument::Integral) {
+                    value = ta.getAsIntegral() != 0;
+                    found = true;
+                } else if (ta.getKind() == TemplateArgument::Expression &&
+                           ta.getAsExpr()->EvaluateAsBooleanCondition(
+                               value, *a.context())) {
+                    found = true;
+                } else {
+                    found = false;
+                }
+                if (found) {
+                    if (value) {
+                        d.decls_with_true_allocator_trait_.insert(nd);
+                    } else {
+                        d.decls_with_false_allocator_trait_.insert(nd);
+                    }
+                    return;
+                }
+            }
+        }
+        if (type.find(", bslma::UsesBslmaAllocator, true>") != type.npos ||
+            type.find(", bslma::UsesBslmaAllocator>") != type.npos) {
+            d.decls_with_true_allocator_trait_.insert(nd);
+        } else if (type.find(", bslma::UsesBslmaAllocator, false>") !=
+                   type.npos) {
+            d.decls_with_false_allocator_trait_.insert(nd);
+        } else if (type.find(", bslma::UsesBslmaAllocator,") != type.npos) {
+            d.decls_with_dependent_allocator_trait_.insert(nd);
+        }
     }
 }
 
@@ -455,7 +481,7 @@ static internal::DynTypedMatcher class_using_allocator_matcher()
     // has such a constructor.
 {
     return decl(forEachDescendant(recordDecl(
-        has(constructorDecl(hasLastParameter(parmVarDecl(anyOf(
+        has(cxxConstructorDecl(hasLastParameter(parmVarDecl(anyOf(
             hasType(pointerType(isAllocator())),
             hasType(referenceType(isAllocator()))
         )))))
@@ -464,10 +490,14 @@ static internal::DynTypedMatcher class_using_allocator_matcher()
 
 void report::match_class_using_allocator(const BoundNodes& nodes)
 {
-    d.type_takes_allocator_[nodes.getNodeAs<CXXRecordDecl>("class")
-                                ->getTypeForDecl()
-                                ->getCanonicalTypeInternal()
-                                .getTypePtr()] = true;
+    QualType type = nodes.getNodeAs<CXXRecordDecl>("class")
+                        ->getTypeForDecl()
+                        ->getCanonicalTypeInternal();
+    // Allocators look like they take allocators because of their copy
+    // constructors.  But they shouldn't be considered that way.
+    if (!is_allocator(type, false)) {
+        d.type_takes_allocator_[type.getTypePtr()] = true;
+    }
 }
 
 static internal::DynTypedMatcher allocator_trait_matcher(int value)
@@ -542,25 +572,39 @@ static internal::DynTypedMatcher should_return_by_value_matcher()
     return decl(forEachDescendant(
         functionDecl(
             returns(asString("void")),
-            hasParameter(0, hasType(pointerType(
-                unless(pointee(isConstQualified())),
-                unless(pointee(asString("void"))),
-                unless(pointee(functionType())),
-                unless(pointee(memberPointerType()))
-            ).bind("type"))),
-            anyOf(
-                parameterCountIs(1),
-                hasParameter(1, unless(anyOf(
-                    hasType(isInteger()),
-                    hasType(pointerType(
-                        unless(pointee(asString("void"))),
-                        unless(pointee(functionType())),
-                        unless(pointee(memberPointerType()))
-                    ))
-                )))
-            )
-        ).bind("func")
-    ));
+            hasParameter(
+                0,
+                parmVarDecl(
+                    hasType(pointerType(unless(pointee(isConstQualified())),
+                                        unless(pointee(asString("void"))),
+                                        unless(pointee(functionType())),
+                                        unless(pointee(memberPointerType())))
+                                .bind("type")))
+                    .bind("parm")),
+            anyOf(parameterCountIs(1),
+                  hasParameter(
+                      1,
+                      unless(
+                          anyOf(hasType(isInteger()),
+                                hasType(pointerType(
+                                    unless(pointee(asString("void"))),
+                                    unless(pointee(functionType())),
+                                    unless(pointee(memberPointerType())))))))),
+            anyOf(hasDescendant(binaryOperator(
+                      hasOperatorName("="),
+                      hasLHS(unaryOperator(
+                          hasOperatorName("*"),
+                          hasUnaryOperand(ignoringImpCasts(declRefExpr(
+                              to(decl(equalsBoundNode("parm")))))))))),
+                  hasDescendant(cxxOperatorCallExpr(
+                      hasOverloadedOperatorName("="),
+                      hasArgument(
+                          0,
+                          ignoringImpCasts(unaryOperator(
+                              hasOperatorName("*"),
+                              hasUnaryOperand(ignoringImpCasts(declRefExpr(
+                                  to(decl(equalsBoundNode("parm")))))))))))))
+            .bind("func")));
 }
 
 bool report::hasRVCognate(const FunctionDecl *func)
@@ -591,8 +635,8 @@ bool report::hasRVCognate(const FunctionDecl *func)
 
 void report::match_should_return_by_value(const BoundNodes& nodes)
 {
-    const FunctionDecl *func = nodes.getNodeAs<FunctionDecl>("func");
-    const PointerType *p1 = nodes.getNodeAs<PointerType>("type");
+    auto func = nodes.getNodeAs<FunctionDecl>("func");
+    auto p1 = nodes.getNodeAs<PointerType>("type");
     if (func->getCanonicalDecl() == func &&
         func->getTemplatedKind() == FunctionDecl::TK_NonTemplate &&
         !func->getLocation().isMacroID() &&
@@ -620,7 +664,7 @@ void report::match_should_return_by_value(const BoundNodes& nodes)
 
 static internal::DynTypedMatcher ctor_expr_matcher()
 {
-    return decl(forEachDescendant(constructExpr(anything()).bind("e")));
+    return decl(forEachDescendant(cxxConstructExpr(anything()).bind("e")));
 }
 
 void report::match_ctor_expr(const BoundNodes& nodes)
@@ -631,13 +675,18 @@ void report::match_ctor_expr(const BoundNodes& nodes)
 
 static internal::DynTypedMatcher return_stmt_matcher()
 {
-    return decl(forEachDescendant(returnStmt(anything()).bind("r")));
+    return decl(forEachDescendant(
+        functionDecl(forEachDescendant(returnStmt(anything()).bind("r")))
+            .bind("f")));
 }
 
 void report::match_return_stmt(const BoundNodes& nodes)
 {
-    auto stmt = nodes.getNodeAs<ReturnStmt>("r");
-    d.returns_.insert(stmt);
+    //if (!nodes.getNodeAs<FunctionDecl>("f")->isTemplateInstantiation())
+    {
+        auto stmt = nodes.getNodeAs<ReturnStmt>("r");
+        d.returns_.insert(stmt);
+    }
 }
 
 static internal::DynTypedMatcher var_decl_matcher()
@@ -657,7 +706,7 @@ void report::match_var_decl(const BoundNodes& nodes)
 
 static internal::DynTypedMatcher ctor_decl_matcher()
 {
-    return decl(forEachDescendant(constructorDecl(anything()).bind("c")));
+    return decl(forEachDescendant(cxxConstructorDecl(anything()).bind("c")));
 }
 
 void report::match_ctor_decl(const BoundNodes& nodes)
@@ -917,19 +966,7 @@ void report::check_not_forwarded(CXXConstructorDecl::init_const_iterator begin,
 void report::check_not_forwarded(const CXXCtorInitializer* init,
                                  const ParmVarDecl* palloc)
 {
-    // Type of object being initialized.
-    const Type* type = init->isBaseInitializer()
-        ? init->getBaseClass()
-        : init->getAnyMember()->getType().getTypePtr();
-
-    if (!takes_allocator(type->getCanonicalTypeInternal()) ||
-        d.decls_with_false_allocator_trait_.count(
-            get_record_decl(type->getCanonicalTypeInternal()))) {
-        return;                                                       // RETURN
-    }
-
-    const CXXConstructExpr* ctor_expr =
-        llvm::dyn_cast<CXXConstructExpr>(init->getInit());
+    auto ctor_expr = llvm::dyn_cast<CXXConstructExpr>(init->getInit());
 
     if (!ctor_expr) {
         return;                                                       // RETURN
@@ -939,6 +976,26 @@ void report::check_not_forwarded(const CXXCtorInitializer* init,
         last_arg_is_explicit_allocator(ctor_expr)) {
         // The allocator parameter is passed.
         return;                                                       // RETURN
+    }
+
+    // Type of object being initialized.
+    const Type *type = init->isBaseInitializer() ?
+                           init->getBaseClass() :
+                       init->isAnyMemberInitializer() ?
+                           init->getAnyMember()->getType().getTypePtr() :
+                           nullptr;
+
+    if (!type || !takes_allocator(type->getCanonicalTypeInternal())) {
+        return;                                                       // RETURN
+    }
+
+    auto rd = get_record_decl(type->getCanonicalTypeInternal());
+    while (rd) {
+        rd = rd->getCanonicalDecl();
+        if (d.decls_with_false_allocator_trait_.count(rd)) {
+            return;                                                   // RETURN
+        }
+        rd = rd->getTemplateInstantiationPattern();
     }
 
     SourceLocation loc;

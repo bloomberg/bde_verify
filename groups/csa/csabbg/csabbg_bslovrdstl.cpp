@@ -548,20 +548,23 @@ struct report : public RecursiveASTVisitor<report>
                     MacroDirective const *md);
         // Preprocessor callback for macro definition.
 
-    void operator()(Token const&          token,
-                    MacroDirective const *md,
-                    SourceRange           range,
-                    MacroArgs const      *);
+    void operator()(Token const& token, const MacroDefinition& md);
+        // Preprocessor callback for macro undefinition.
+
+    void operator()(Token const&           token,
+                    const MacroDefinition& md,
+                    SourceRange            range,
+                    MacroArgs const *);
         // Preprocessor callback for macro expanding.
 
-    void operator()(SourceLocation        where,
-                    const Token&          token,
-                    const MacroDirective *md);
+    void operator()(SourceLocation         where,
+                    const Token&           token,
+                    const MacroDefinition& md);
         // Preprocessor callback for 'ifdef'/'ifndef'.
 
-    void operator()(const Token&          token,
-                    const MacroDirective *md,
-                    SourceRange           range);
+    void operator()(const Token&           token,
+                    const MacroDefinition& md,
+                    SourceRange            range);
         // Preprocessor callback for 'defined(.)'.
 
     void operator()(SourceRange range);
@@ -759,7 +762,7 @@ void report::push_include(FileID fid, llvm::StringRef name, SourceLocation sl)
                     unsigned line = m.getLineNumber(flid, offset);
                     if (line > 1) {
                         SourceLocation prev =
-                            m.translateLineCol(flid, line - 1, 0);
+                            m.translateLineCol(flid, line - 1, 1);
                         llvm::StringRef p = d_analyser.get_source_line(prev);
                         static llvm::Regex guard("^ *# *ifn?def  *INCLUDED_");
                         if (guard.match(p)) {
@@ -920,18 +923,17 @@ bool report::is_named(Token const& token, llvm::StringRef name)
            token.getIdentifierInfo()->getName() == name;
 }
 
-// MacroDefined
 // MacroUndefined
-void report::operator()(Token const&          token,
-                        MacroDirective const *md)
+void report::operator()(Token const& token, const MacroDefinition& md)
 {
-    if (d_type == PPObserver::e_MacroUndefined) {
-        if (is_named(token, "std")) {
-            d_data.d_bsl_overrides_std = false;
-        }
-        return;                                                       // RETURN
+    if (is_named(token, "std")) {
+        d_data.d_bsl_overrides_std = false;
     }
+}
 
+// MacroDefined
+void report::operator()(Token const& token, MacroDirective const *md)
+{
     SourceManager& m = d_analyser.manager();
     SourceLocation sl = token.getLocation();
     FileID fid = m.getFileID(sl);
@@ -988,13 +990,13 @@ void report::operator()(Token const&          token,
 }
 
 // MacroExpands
-void report::operator()(Token const&          token,
-                        MacroDirective const *md,
-                        SourceRange           range,
-                        MacroArgs const      *)
+void report::operator()(Token const&           token,
+                        const MacroDefinition& md,
+                        SourceRange            range,
+                        MacroArgs const *)
 {
     llvm::StringRef macro = token.getIdentifierInfo()->getName();
-    const MacroInfo *mi = md->getMacroInfo();
+    const MacroInfo *mi = md.getMacroInfo();
     SourceManager& m = d_analyser.manager();
     Location loc(m, range.getBegin());
     FileType ft = classify(loc.file());
@@ -1087,7 +1089,7 @@ bool report::is_guard_for(const Token& token, SourceLocation sl)
 // Ifndef
 void report::operator()(SourceLocation        where,
                         const Token&          token,
-                        const MacroDirective *)
+                        const MacroDefinition&)
 {
     clear_guard();
 
@@ -1115,7 +1117,7 @@ void report::operator()(SourceLocation        where,
 
 // Defined
 void report::operator()(const Token&          token,
-                        const MacroDirective *,
+                        const MacroDefinition&,
                         SourceRange           range)
 {
     clear_guard();
@@ -1351,7 +1353,7 @@ void report::add_include(FileID             fid,
         // include that was changed, we changed up to but not including the
         // newline).  Otherwise the rewriting system can produce mangled text.
         SourceLocation ia = ip.getLocWithOffset(-1);
-        if (ia.isValid()) {
+        if (m.getFileID(ia) == m.getFileID(ip)) {
             ip = ia;
         }
         d_analyser.report(ip, check_name, "IS02", "Inserting %0") << text;

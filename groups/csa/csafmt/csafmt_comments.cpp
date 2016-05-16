@@ -235,9 +235,9 @@ llvm::Regex bad_bubble(
     llvm::Regex::Newline);
 
 llvm::Regex good_bubble(
-    "//( *)" " [,](-+)[.]" "\n"
-    "//\\1"  "[(]  .* [)]" "\n"
-    "//\\1"  " [`]\\2[']"  "$",
+    "//( *)" " [,](-+)[.]" "\r*\n"
+    "//\\1"  "[(]  .* [)]" "\r*\n"
+    "//\\1"  " [`]\\2[']"  "\r*$",
     llvm::Regex::Newline);
 
 std::string bubble(llvm::StringRef s, size_t column)
@@ -323,16 +323,20 @@ std::pair<size_t, size_t> bad_wrap_pos(llvm::StringRef text, size_t ll)
         if (b == text.npos) {
             break;
         }
-        size_t e = text.find("\n", b);
+        size_t ecr = 0;
+        size_t e = text.find('\n', b);
         if (e == text.npos) {
             e = text.size();
+        }
+        else if (text[e - 1] == '\r') {
+            ecr = 1;
         }
         offset = e;
         size_t nextb = text.find("// ", e);
         if (nextb == text.npos) {
             break;
         }
-        size_t nexte = text.find("\n", nextb);
+        size_t nexte = text.find('\n', nextb);
         if (nexte == text.npos) {
             nexte = text.size();
         }
@@ -341,7 +345,7 @@ std::pair<size_t, size_t> bad_wrap_pos(llvm::StringRef text, size_t ll)
         for (i = nextb + 3; i < nexte; ++i) {
             char c = text[i];
             if (state == e_C) {
-                if (c == ' ') {
+                if (c == ' ' || c == '\r') {
                     break;
                 }
                 state = c == '\'' && text[i - 1] == ' ' ? e_Q1 :
@@ -356,12 +360,12 @@ std::pair<size_t, size_t> bad_wrap_pos(llvm::StringRef text, size_t ll)
             }
         }
 
-        if (e > 0 && text[e - 1] == '.') {
+        if (e > ecr && text[e - 1 - ecr] == '.') {
             // Double space after periods.
             ++e;
         }
 
-        if ((e - (b + 3)) + (i - (nextb + 3)) + 1 <= ll &&
+        if ((e - (b + 3) - ecr) + (i - (nextb + 3)) + 1 <= ll &&
             text.substr(nextb + 3, i - (nextb + 3)).find_first_of(
                 "abcdefghijklmnopqrstuvwxyz") != text.npos) {
             return std::make_pair(nextb + 3, i - 1);
@@ -395,8 +399,8 @@ void get_displays(llvm::StringRef text,
     }
 }
 
-llvm::Regex block_comment("((^ *// [^[ ].*$\n?){2,})", llvm::Regex::Newline);
-llvm::Regex banner("^ *(// ?([-=_] ?)+)$", llvm::Regex::Newline);
+llvm::Regex block_comment("((^ *// [^[ ].*\r*$\n?){2,})", llvm::Regex::Newline);
+llvm::Regex banner("^ *(// ?([-=_] ?)+)\r*$", llvm::Regex::Newline);
 llvm::Regex copyright("Copyright.*[[:digit:]]{4}", llvm::Regex::IgnoreCase);
 
 void files::check_wrapped(SourceRange range)
@@ -444,6 +448,7 @@ void files::check_wrapped(SourceRange range)
         while ((sp = text.find(". ", sp)) != text.npos) {
             if (sp + 2 < text.size() && 
                 text[sp + 2] != ' ' &&
+                text[sp + 2] != '\r' &&
                 text[sp + 2] != '\n' &&
                 !(text.slice(0, sp).count('\'') & 1)) {
                 d_analyser.report(
@@ -481,7 +486,7 @@ llvm::Regex loose_purpose(
     llvm::Regex::Newline | llvm::Regex::IgnoreCase);
 
 llvm::Regex strict_purpose(
-    "^//@PURPOSE: [^[:blank:]].*[^.[:blank:]][.]$",
+    "^//@PURPOSE: [^[:blank:]].*[^.[:blank:]][.]\r*$",
     llvm::Regex::Newline);
 
 void files::check_purpose(SourceRange range)
@@ -528,7 +533,10 @@ void files::check_description(SourceRange range)
     size_t cpos = comment.find("//@CLASSES:");
     size_t end = comment.find("//\n", cpos);
     if (end == comment.npos) {
-        end = comment.size();
+        end = comment.find("//\r\n", cpos);
+        if (end == comment.npos) {
+            end = comment.size();
+        }
     }
     size_t dpos = comment.find("//@DESCRIPTION:", cpos);
     size_t t1 = comment.find("\n///", dpos);

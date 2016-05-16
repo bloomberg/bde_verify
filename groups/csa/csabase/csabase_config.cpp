@@ -237,7 +237,11 @@ void
 csabase::Config::load(std::string const& original)
 {
     std::string file(original);
-    if (!file.empty() && file[0] == '$') {
+    if (file[0] == '~' && file[1] == '/') {
+        // Annoyingly, shells are not expanding the ~ in --config=~/...
+        file = "$HOME" + file.substr(1);
+    }
+    if (file[0] == '$') {
         std::string::size_type slash(file.find('/'));
         std::string variable(file.substr(1, slash - 1));
         if (char const* value = getenv(variable.c_str())) {

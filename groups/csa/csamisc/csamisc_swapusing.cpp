@@ -5,6 +5,7 @@
 #include <clang/ASTMatchers/ASTMatchers.h>
 #include <csabase_analyser.h>
 #include <csabase_debug.h>
+#include <csabase_filenames.h>
 #include <csabase_registercheck.h>
 #include <csabase_report.h>
 #include <csabase_util.h>
@@ -35,21 +36,48 @@ namespace
 
 struct data
 {
+    bool d_bsl;
+
+    data();
 };
+
+data::data() : d_bsl(false)
+{
+}
 
 struct report : Report<data>
 {
     INHERIT_REPORT_CTOR(report, Report, data);
 
+    // Preprocessor FileChanged callback
+    void operator()(SourceLocation                now,
+                    PPCallbacks::FileChangeReason reason,
+                    SrcMgr::CharacteristicKind    type,
+                    FileID                        prev);
+
+    // TranslationUnitDone callback
     void operator()();
 };
+
+void report::operator()(SourceLocation                now,
+                        PPCallbacks::FileChangeReason reason,
+                        SrcMgr::CharacteristicKind    type,
+                        FileID                        prev)
+{
+    if (!d.d_bsl) {
+        FileName file(m.getPresumedLoc(now).getFilename());
+        d.d_bsl = file.name() == "bsl_utility.h" ||
+                  file.name() == "bsl_algorithm.h";
+    }
+}
 
 void report::operator()()
 {
     MatchFinder mf;
     OnMatch<> m1([&](const BoundNodes &nodes) {
         a.report(nodes.getNodeAs<CallExpr>("c"), check_name, "SU01",
-                 "Prefer 'using std::swap; swap(...);'");
+                 "Prefer 'using %0::swap; swap(...);'")
+            << (d.d_bsl ? "bsl" : "std");
     });
     mf.addDynamicMatcher(
         decl(forEachDescendant(callExpr(
@@ -65,6 +93,7 @@ void report::operator()()
 void subscribe(Analyser& analyser, Visitor& visitor, PPObserver& observer)
     // Hook up the callback functions.
 {
+    observer.onPPFileChanged       += report(analyser);
     analyser.onTranslationUnitDone += report(analyser);
 }
 

@@ -85,8 +85,8 @@ bool comments::isReset(SourceRange range)
                     range.getEnd().getLocWithOffset(1)),
         true);
     return comment.startswith("\n") &&
-           comment.endswith("\n") &&
-           comment.count('\n') == 2;
+           ((comment.endswith("\n") && comment.count('\n') == 2) ||
+            (comment.endswith("\r") && comment.count('\n') == 1));
 }
 
 void comments::operator()(SourceRange range)

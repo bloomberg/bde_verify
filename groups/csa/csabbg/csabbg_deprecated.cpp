@@ -23,7 +23,6 @@
 #include <llvm/ADT/SmallVector.h>
 #include <llvm/ADT/StringRef.h>
 #include <llvm/Support/Casting.h>
-#include <llvm/Support/Regex.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <utils/event.hpp>
@@ -253,7 +252,7 @@ SourceRange report::getContract(const FunctionDecl     *func,
                 }
                 llvm::StringRef s =
                     a.get_source(SourceRange(it->getEnd(), initloc), true);
-                if (s.find_first_not_of(": \n") == llvm::StringRef::npos) {
+                if (s.find_first_not_of(": \r\n") == llvm::StringRef::npos) {
                     contract = *it;
                     break;
                 }
@@ -277,7 +276,7 @@ SourceRange report::getContract(const FunctionDecl     *func,
             }
             llvm::StringRef s =
                 a.get_source(SourceRange(it->getEnd(), bodyloc), true);
-            if (s.find_first_not_of(" \n") == llvm::StringRef::npos) {
+            if (s.find_first_not_of(" \r\n") == llvm::StringRef::npos) {
                 contract = *it;
                 break;
             }
@@ -298,7 +297,7 @@ SourceRange report::getContract(const FunctionDecl     *func,
             if (!with_body) {
                 s = s.split(';').second;
             }
-            if (s.find_first_not_of(" \n") == llvm::StringRef::npos &&
+            if (s.find_first_not_of(" \r\n") == llvm::StringRef::npos &&
                 s.count("\n") <= 1) {
                 contract = *it;
             }

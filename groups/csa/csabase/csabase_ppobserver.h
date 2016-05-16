@@ -149,7 +149,7 @@ public:
 
     utils::event<decltype(&Base::EndOfMainFile)> onPPEndOfMainFile;
 
-    void Ident(clang::SourceLocation Loc, const std::string &Str)
+    void Ident(clang::SourceLocation Loc, llvm::StringRef Str)
     override;
 
     utils::event<decltype(&Base::Ident)> onPPIdent;
@@ -162,14 +162,14 @@ public:
 
     void PragmaComment(clang::SourceLocation         Loc,
                        const clang::IdentifierInfo  *Kind,
-                       const std::string&            Str)
+                       const llvm::StringRef         Str)
     override;
 
     utils::event<decltype(&Base::PragmaComment)> onPPPragmaComment;
 
-    void PragmaDetectMismatch(clang::SourceLocation     Loc,
-                              const std::string        &Name,
-                              const std::string        &Value)
+    void PragmaDetectMismatch(clang::SourceLocation Loc,
+                              llvm::StringRef       Name,
+                              llvm::StringRef       Value)
     override;
 
     utils::event<decltype(&Base::PragmaDetectMismatch)>
@@ -237,10 +237,10 @@ public:
 
     utils::event<decltype(&Base::PragmaWarningPop)> onPPPragmaWarningPop;
 
-    void MacroExpands(const clang::Token&          MacroNameTok,
-                      const clang::MacroDirective *MD,
-                      clang::SourceRange           Range,
-                      const clang::MacroArgs      *Args)
+    void MacroExpands(const clang::Token&            MacroNameTok,
+                      const clang::MacroDefinition&  MD,
+                      clang::SourceRange             Range,
+                      const clang::MacroArgs        *Args)
     override;
 
     utils::event<decltype(&Base::MacroExpands)> onPPMacroExpands;
@@ -251,15 +251,15 @@ public:
 
     utils::event<decltype(&Base::MacroDefined)> onPPMacroDefined;
 
-    void MacroUndefined(const clang::Token&          MacroNameTok,
-                        const clang::MacroDirective *MD)
+    void MacroUndefined(const clang::Token&           MacroNameTok,
+                        const clang::MacroDefinition& MD)
     override;
 
     utils::event<decltype(&Base::MacroUndefined)> onPPMacroUndefined;
 
-    void Defined(const clang::Token&          MacroNameTok,
-                 const clang::MacroDirective *MD,
-                 clang::SourceRange           Range)
+    void Defined(const clang::Token&           MacroNameTok,
+                 const clang::MacroDefinition& MD,
+                 clang::SourceRange            Range)
     override;
 
     utils::event<decltype(&Base::Defined)> onPPDefined;
@@ -284,16 +284,16 @@ public:
 
     utils::event<decltype(&Base::Elif)> onPPElif;
 
-    void Ifdef(clang::SourceLocation        Loc,
-               const clang::Token&          MacroNameTok,
-               const clang::MacroDirective *MD)
+    void Ifdef(clang::SourceLocation         Loc,
+               const clang::Token&           MacroNameTok,
+               const clang::MacroDefinition& MD)
     override;
 
     utils::event<decltype(&Base::Ifdef)> onPPIfdef;
 
-    void Ifndef(clang::SourceLocation        Loc,
-                const clang::Token&          MacroNameTok,
-                const clang::MacroDirective *MD)
+    void Ifndef(clang::SourceLocation         Loc,
+                const clang::Token&           MacroNameTok,
+                const clang::MacroDefinition& MD)
     override;
 
     utils::event<decltype(&Base::Ifndef)> onPPIfndef;

@@ -32,12 +32,14 @@ my %pathmap = (
 );
 my $bb = "/bb/build/$pathmap{$system}/release/robolibs/trunk";
 my @bbd = (
-    "$bb/lib/dpkgroot/opt/bb/include/stlport",
-    "$bb/share/include/00depbuild",
-    "$bb/share/include/00deployed",
-    "$bb/share/include/00offlonly",
+    "$bb/opt/bb/include",
+    "$bb/opt/bb/include/00depbuild",
+    "$bb/opt/bb/include/00deployed",
+    "$bb/opt/bb/include/00offlonly",
     "/bb/build/share/stp/include/00offlonly",
-    "$bb/lib/dpkgroot/opt/bb/include",
+    "/bbsrc/thirdparty/bbit/include",
+    "$bb/dpkgroot/opt/bb/include",
+    "$bb/dpkgroot/opt/bb/include/stlport",
 );
 my $help;
 my $nr;

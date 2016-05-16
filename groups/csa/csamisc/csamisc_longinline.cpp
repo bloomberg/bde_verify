@@ -69,8 +69,8 @@ unsigned count_statements(const Stmt *stmt)
         if (   !llvm::dyn_cast<Expr>(stmt)
             && !llvm::dyn_cast<ReturnStmt>(stmt)
             && !llvm::dyn_cast<DeclStmt>(stmt)) {
-            for (ConstStmtRange kids = stmt->children(); kids; ++kids) {
-                count += count_statements(*kids);
+            for (const Stmt *kid : stmt->children()) {
+                count += count_statements(kid);
             }
         }
     }

@@ -28,7 +28,8 @@ static void check(Analyser& analyser, CXXThrowExpr const* expr)
     {
         QualType t = e->getTypeForDecl()->getCanonicalTypeInternal();
         QualType ot = object->getType()->getCanonicalTypeInternal();
-        if (ot != t && !analyser.sema().IsDerivedFrom(ot, t)) {
+        if (ot != t &&
+            !analyser.sema().IsDerivedFrom(SourceLocation(), ot, t)) {
             analyser.report(expr, check_name, "FE01",
                             "Object of type %0 not derived from "
                             "std::exception is thrown.")

@@ -71,6 +71,7 @@ my $tag;
 my $ovr = -1;
 my $m32;
 my $m64;
+my $diff;
 
 my $command = join " \\\n ", $0, map { join "\\ ", split(/ /, $_, -1) } @ARGV;
 
@@ -88,6 +89,7 @@ usage: $0 [options] [additional compiler options] file.cpp ...
     --bb=dir                 [$bb]
     --exe=bde_verify         [$exe]
     --cc=/path/to/g++        [$cc]
+    --diff=file (- = stdin)  [$diff]
     --[no]definc             [$definc]
     --[no]defdef             [$defdef]
     --[no]ovr                # whether to define BSL_OVERRIDES_STD
@@ -119,6 +121,7 @@ GetOptions(
     'debug'                        => \$debug,
     'help|?'                       => \$help,
     'cc=s'                         => \$cc,
+    'diff=s'                       => \$diff,
     'exe=s'                        => \$exe,
     'verbose|v'                    => \$verbose,
     'definc!'                      => \$definc,
@@ -157,6 +160,7 @@ my @rwd    = plugin("rewrite-dir=$rwd")    if $rwd;
 print "No such directory $rwd\n" if $rwd and ! -d $rwd;
 my @rwf    = plugin("rewrite-file=$rwf")   if $rwf;
 my @tag    = plugin("tool=$tag")           if $tag;
+my @diff   = plugin("diff=$diff")          if $diff;
 my %uf     = ( "no-strict-aliasing" => 1,
                "PIC" => 1,
                "asynchronous-unwind-tables" => 1,
@@ -170,10 +174,12 @@ my $macro = ${nm};
 $macro =~ s{^([^.]*).*}{\U$1\E};
 push(@defs, ($macro));
 push(@defs, (
-    "BB_THREADED",
+    "BDE_API",
     "BDE_BUILD_TARGET_DBG",
     "BDE_BUILD_TARGET_EXC",
     "BDE_BUILD_TARGET_MT",
+    "BDE_DCL",
+    "BB_THREADED",
     "_LINUX_SOURCE",
     "_REENTRANT",
     "_SYS_SYSMACROS_H",
@@ -201,14 +207,14 @@ for (@ARGV) {
 }
 for (@incs) { warn "cannot find directory $_\n" unless -d; }
 push(@incs, (
-    "$bb/include/stlport",
-    "$bb/lib/dpkgroot/opt/bb/include/stlport",
-    "$bb/share/include/00depbuild",
-    "$bb/share/include/00deployed",
-    "$bb/share/include/00offlonly",
+    "$bb/opt/bb/include",
+    "$bb/opt/bb/include/00depbuild",
+    "$bb/opt/bb/include/00deployed",
+    "$bb/opt/bb/include/00offlonly",
     "/bb/build/share/stp/include/00offlonly",
-    "$bb/include",
-    "$bb/lib/dpkgroot/opt/bb/include",
+    "/bbsrc/thirdparty/bbit/include",
+    "$bb/dpkgroot/opt/bb/include",
+    "$bb/dpkgroot/opt/bb/include/stlport",
 )) if $bb and $definc;
 @incs = map { ( "-I", $_ ) }
         map { $_ eq Cwd::cwd() ? "." : $_ }
@@ -235,8 +241,8 @@ push(@std, "-std=$std") if $std;
 my @command = (
     "$exe",
     xclang("-plugin", "bde_verify"),
+    "--gcc-toolchain=${gccdir}",
     "-resource-dir", "${pt}include/bde-verify/clang",
-    "-msoft-float",
     "-fsyntax-only",
     "-xc++",
     @std,
@@ -246,6 +252,7 @@ my @command = (
     @rwd,
     @rwf,
     @tag,
+    @diff,
     @cl,
     @defs,
     @incs,

@@ -61,7 +61,7 @@ struct report
     void check_switch(SwitchStmt const *stmt);
         // Check the specified 'stmt' for test-driver correctness.
 
-    BreakStmt const* last_break(ConstStmtRange s);
+    BreakStmt const* last_break(Stmt::const_child_range s);
         // If the last statement in the specified range 's' is a 'break'
         // statement (including within nested compund statements), return it,
         // otherwise return null.
@@ -228,17 +228,17 @@ void report::check_switch(SwitchStmt const* stmt)
     }
 }
 
-BreakStmt const* report::last_break(ConstStmtRange s)
+BreakStmt const* report::last_break(Stmt::const_child_range r)
 {
     BreakStmt const* brk = 0;
-    for (; s; ++s) {
-        if (llvm::dyn_cast<CompoundStmt>(*s)) {
+    for (const Stmt *s : r) {
+        if (llvm::dyn_cast<CompoundStmt>(s)) {
             // Recurse into simple compound statements.
-            brk = last_break((*s)->children());
+            brk = last_break(s->children());
         } else {
             // Try to cast each statement to a BreakStmt. Therefore 'brk'
             // will only be non-zero if the final statement is a 'break'.
-            brk = llvm::dyn_cast<BreakStmt>(*s);
+            brk = llvm::dyn_cast<BreakStmt>(s);
         }
     }
     return brk;

@@ -5,6 +5,7 @@
 
 #include <clang/Frontend/TextDiagnosticPrinter.h>
 #include <memory>
+#include <map>
 #include <set>
 #include <string>
 
@@ -29,10 +30,11 @@ class DiagnosticFilter : public clang::TextDiagnosticPrinter
     static bool is_fail(unsigned id);
 
   private:
-    Analyser const*                          d_analyser;
-    std::string                              d_diagnose;
-    bool                                     d_prev_handle;
-    static std::set<unsigned>                s_fail_ids;
+    const Analyser                                    *d_analyser;
+    std::string                                        d_diagnose;
+    bool                                               d_prev_handle;
+    static std::set<unsigned>                          s_fail_ids;
+    static std::map<std::string, std::set<unsigned> >  s_diff_lines;
 };
 }
 

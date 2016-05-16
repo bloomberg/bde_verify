@@ -322,7 +322,7 @@ void break_into_words(std::vector<Word>* words,
     bool last_char_was_backslash = false;
     bool in_word = false;
     size_t start_of_last_word = 0;
-    static llvm::Regex code("^[[:blank:]]*//[.][.]$", llvm::Regex::Newline);
+    static llvm::Regex code("^[[:blank:]]*//[.][.]\r*$", llvm::Regex::Newline);
     llvm::SmallVector<llvm::StringRef, 7> matches;
     llvm::StringRef c = comment;
     size_t code_pos = c.size();
@@ -596,7 +596,7 @@ SourceRange report::getContract(const FunctionDecl     *func,
                 }
                 llvm::StringRef s = d_analyser.get_source(
                         SourceRange(it->getEnd(), initloc), true);
-                if (s.find_first_not_of(": \n") == llvm::StringRef::npos) {
+                if (s.find_first_not_of(": \r\n") == llvm::StringRef::npos) {
                     contract = *it;
                     break;
                 }
@@ -620,7 +620,7 @@ SourceRange report::getContract(const FunctionDecl     *func,
             }
             llvm::StringRef s = d_analyser.get_source(
                 SourceRange(it->getEnd(), bodyloc), true);
-            if (s.find_first_not_of(" \n") == llvm::StringRef::npos) {
+            if (s.find_first_not_of(" \r\n") == llvm::StringRef::npos) {
                 contract = *it;
                 break;
             }
@@ -641,7 +641,7 @@ SourceRange report::getContract(const FunctionDecl     *func,
             if (!with_body) {
                 s = s.split(';').second;
             }
-            if (s.find_first_not_of(" \n") == llvm::StringRef::npos &&
+            if (s.find_first_not_of(" \r\n") == llvm::StringRef::npos &&
                 s.count("\n") <= 1) {
                 contract = *it;
             }
@@ -823,7 +823,7 @@ void report::critiqueContract(const FunctionDecl* func, SourceRange comment)
                         note_double_tick(&dt, "FD06");
                     }
                     first = false;
-                } else {
+                } else if (!words[j].is_noise) {
                     for (size_t k = j; k > 0; --k) {
                         const Word& word = words[k - 1];
                         if (word.is_specify) {

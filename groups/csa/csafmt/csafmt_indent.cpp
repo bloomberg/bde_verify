@@ -484,29 +484,41 @@ bool report::WalkUpFromSwitchCase(SwitchCase *stmt)
 void report::do_consecutive()
 {
     if (d.d_consecutive.size() > 1) {
-        NamedDecl *decl = d.d_consecutive.front().first;
-        SourceLocation sl = decl->getLocation();
-        Location loc(m, sl);
-        for (size_t i = 1; i < d.d_consecutive.size(); ++i) {
-            NamedDecl *decli = d.d_consecutive[i].first;
-            SourceLocation sli = decli->getLocation();
-            Location loci(m, sli);
-            if (loci.column() > loc.column()) {
-                decl = decli;
-                sl = sli;
-                loc = loci;
-            }
-        }
+        llvm::SmallVector<NamedDecl *, 8> decl;
+        llvm::SmallVector<SourceLocation, 8> sl;
+        llvm::SmallVector<Location, 8> loc;
+        size_t line = 0;
+        size_t index = 0;
         for (size_t i = 0; i < d.d_consecutive.size(); ++i) {
             NamedDecl *decli = d.d_consecutive[i].first;
             SourceLocation sli = decli->getLocation();
             Location loci(m, sli);
-            if (loc.column() != loci.column() &&
-                loc.column() + decl->getNameAsString().length() !=
+            index = loci.line() == line ? index + 1 : 0;
+            line = loci.line();
+            if (index >= loc.size()) {
+                decl.push_back(decli);
+                sl.push_back(sli);
+                loc.push_back(loci);
+            } else if (loci.column() > loc[index].column()) {
+                decl[index] = decli;
+                sl[index] = sli;
+                loc[index] = loci;
+            }
+        }
+        line = 0;
+        for (size_t i = 0; i < d.d_consecutive.size(); ++i) {
+            NamedDecl *decli = d.d_consecutive[i].first;
+            SourceLocation sli = decli->getLocation();
+            Location loci(m, sli);
+            index = loci.line() == line ? index + 1 : 0;
+            line = loci.line();
+            if (loc[index].column() != loci.column() &&
+                loc[index].column() +
+                                decl[index]->getNameAsString().length() !=
                 loci.column() + decli->getNameAsString().length()) {
                 a.report(sli, check_name, "IND04",
                          "Declarators on consecutive lines must be aligned");
-                a.report(sl, check_name, "IND04",
+                a.report(sl[index], check_name, "IND04",
                          "Rightmost declarator is here",
                          false, DiagnosticIDs::Note);
             }
@@ -532,7 +544,8 @@ void report::add_consecutive(NamedDecl *decl, SourceRange sr)
     if (   !decl
         || !r
         || d.d_consecutive.size() == 0
-        || d.d_consecutive.back().second.to().line() + 1 != r.from().line()
+        || (d.d_consecutive.back().second.to().line() + 1 != r.from().line() &&
+            d.d_consecutive.back().second.to().line()     != r.from().line())
         || diff_func_parms(decl, d.d_consecutive.back().first)) {
         do_consecutive();
     }
@@ -599,8 +612,8 @@ void report::operator()(const Token &token,
     }
 }
 
-llvm::Regex outdent ("^ *// *(v-*)[-^]$");
-llvm::Regex reindent("^ *// *[-^](-*v)$");
+llvm::Regex outdent ("^ *// *(v-*)[-^]\r*$");
+llvm::Regex reindent("^ *// *[-^](-*v)\r*$");
 
 void report::operator()(SourceRange comment)
 {

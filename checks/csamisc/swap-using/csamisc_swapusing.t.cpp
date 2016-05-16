@@ -1,5 +1,5 @@
 // csamisc_swapusing.t.cpp                                            -*-C++-*-
-#include <bsl_utility.h>
+#include <utility>
 
 struct V { };
 void swap(V&, V&);

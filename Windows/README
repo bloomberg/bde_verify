@@ -49,11 +49,19 @@ Now get and build BDE Verify,
     cmake $BVSRC
     cmake --build . --target package
 
-This will produce an executable bde_verify-1.x.0-win32.exe (currently x = 1).
+This will produce an executable bde_verify-1.x.y-win32.exe
+(currently x = 2 and y = 1).
 Run it to install BDE Verify.  The driver script on Windows is bde_verify.pl,
 taking generally the same arguments as the Unix bde_verify driver script.  See
 <http://bloomberg.github.io/bde_verify/bde_verify_build/html/> for full
 documentation.
+
+(Note: This build process builds Debug versions of LLVM/Clang and BDE Verify.
+These may require non-redistributable Microsoft runtime DLLs to be present.
+Release versions can be built by using the solution files for LLVM/Clang and
+BDE Verify created by CMake.  For each one, open it in Visual Studio, set the
+build configuration to Release, build the PACKAGE solution, and run the
+installation executable that is built, as described above.)
 
 Then build the Visual Studio plugin:  From Visual Studio, open the solution
 $BVSRC/Windows/BDE_VERIFY_VS/BDE_VERIFY_VS.sln and build it, producing
