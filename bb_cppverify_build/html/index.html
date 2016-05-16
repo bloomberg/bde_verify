@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>BB_CPPVERIFY &mdash; bb_cppverify 1.1.0.1 documentation</title>
+    <title>BB_CPPVERIFY &mdash; bb_cppverify 1.2.3 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '1.1.0.1',
+        VERSION:     '1.2.3',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,7 +23,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="bb_cppverify 1.1.0.1 documentation" href="#" /> 
+    <link rel="top" title="bb_cppverify 1.2.3 documentation" href="#" /> 
   </head>
   <body>
     <div class="related">
@@ -32,7 +32,7 @@
         <li class="right" style="margin-right: 10px">
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
-        <li><a href="#">bb_cppverify 1.1.0.1 documentation</a> &raquo;</li> 
+        <li><a href="#">bb_cppverify 1.2.3 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -186,6 +186,19 @@ version.</p>
 <td>disable normal compiler warnings</td></tr>
 </tbody>
 </table>
+</div>
+<div class="section" id="git-diff-output-restriction">
+<h2>Git-Diff Output Restriction<a class="headerlink" href="#git-diff-output-restriction" title="Permalink to this headline">¶</a></h2>
+<p>The output of <tt class="docutils literal"><span class="pre">bb_cppverify</span></tt> can be restricted to include only those warnings whose line
+numbers fall within a set of changes given by the output of a <tt class="docutils literal"><span class="pre">git</span> <span class="pre">diff</span></tt>
+command.  Such output contains lines beginning with <tt class="docutils literal"><span class="pre">+++</span></tt> representing a file
+with changes and lines starting with <tt class="docutils literal"><span class="pre">&#64;</span></tt> and containing <tt class="docutils literal"><span class="pre">+LINE_NUMBER</span></tt> or
+<tt class="docutils literal"><span class="pre">+LINE_NUMBER,NUMBER_OF_LINES</span></tt> representing which lines in the file have
+changed.  Such diffs may be saved in a file and given to <tt class="docutils literal"><span class="pre">bb_cppverify</span></tt> via the option
+<tt class="docutils literal"><span class="pre">--diff=file</span></tt> or they may be piped into <tt class="docutils literal"><span class="pre">bb_cppverify</span></tt> via the option <tt class="docutils literal"><span class="pre">--diff=-</span></tt> in
+which case standard input will be read for the diffs.</p>
+<p>Note that (for now) the file names upon which <tt class="docutils literal"><span class="pre">bb_cppverify</span></tt> will operate must still be
+specified on the command line; they are not picked up from the diff.</p>
 </div>
 <div class="section" id="configuration">
 <h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h2>
@@ -715,6 +728,7 @@ File contains spaces at end of lines.</li>
 <li><a class="reference internal" href="#synopsis">Synopsis</a></li>
 <li><a class="reference internal" href="#description">Description</a></li>
 <li><a class="reference internal" href="#options">Options</a></li>
+<li><a class="reference internal" href="#git-diff-output-restriction">Git-Diff Output Restriction</a></li>
 <li><a class="reference internal" href="#configuration">Configuration</a></li>
 <li><a class="reference internal" href="#local-suppressions">Local Suppressions</a></li>
 <li><a class="reference internal" href="#exit-status">Exit Status</a></li>
@@ -793,7 +807,7 @@ File contains spaces at end of lines.</li>
         <li class="right" style="margin-right: 10px">
           <a href="genindex.html" title="General Index"
              >index</a></li>
-        <li><a href="#">bb_cppverify 1.1.0.1 documentation</a> &raquo;</li> 
+        <li><a href="#">bb_cppverify 1.2.3 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
