@@ -101,6 +101,9 @@ version.</p>
 <kbd><span class="option">--definc</span></kbd></td>
 <td>set up default include paths</td></tr>
 <tr><td class="option-group">
+<kbd><span class="option">--diff <var>file</var></span></kbd></td>
+<td>restrict output using git diff in file (<tt class="docutils literal"><span class="pre">-</span></tt> for stdin)</td></tr>
+<tr><td class="option-group">
 <kbd><span class="option">--nodefinc</span></kbd></td>
 <td>do not set up default include paths</td></tr>
 <tr><td class="option-group">
@@ -409,6 +412,15 @@ Sized array parameter is really a pointer.</li>
 Top-level macro condintion is an assignment.</li>
 </ul>
 </div>
+<div class="section" id="bsl-std-string">
+<h3><tt class="docutils literal"><span class="pre">bsl-std-string</span></tt><a class="headerlink" href="#bsl-std-string" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">ST01</span></tt>
+Converting std::string to bsl::string.</li>
+<li><tt class="docutils literal"><span class="pre">ST02</span></tt>
+Converting bsl::string to std::string.</li>
+</ul>
+</div>
 <div class="section" id="c-cast">
 <h3><tt class="docutils literal"><span class="pre">c-cast</span></tt><a class="headerlink" href="#c-cast" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
@@ -615,6 +627,8 @@ Addition of integer and string literal.</li>
 </div>
 <div class="section" id="swap-using">
 <h3><tt class="docutils literal"><span class="pre">swap-using</span></tt><a class="headerlink" href="#swap-using" title="Permalink to this headline">¶</a></h3>
+<p>Directly invoking <tt class="docutils literal"><span class="pre">std::swap</span></tt> or <tt class="docutils literal"><span class="pre">bsl::swap</span></tt> can prevent argument-
+dependent lookup from finding overloads.</p>
 <ul class="simple">
 <li><tt class="docutils literal"><span class="pre">SU01</span></tt>
 Prefer <tt class="docutils literal"><span class="pre">using</span> <span class="pre">std::swap;</span> <span class="pre">swap(...);'</span></tt> over <tt class="docutils literal"><span class="pre">std::swap(...);</span></tt>.</li>
@@ -710,6 +724,7 @@ File contains spaces at end of lines.</li>
 <li><a class="reference internal" href="#anon-namespace"><tt class="docutils literal"><span class="pre">anon-namespace</span></tt></a></li>
 <li><a class="reference internal" href="#array-argument"><tt class="docutils literal"><span class="pre">array-argument</span></tt></a></li>
 <li><a class="reference internal" href="#assert-assign"><tt class="docutils literal"><span class="pre">assert-assign</span></tt></a></li>
+<li><a class="reference internal" href="#bsl-std-string"><tt class="docutils literal"><span class="pre">bsl-std-string</span></tt></a></li>
 <li><a class="reference internal" href="#c-cast"><tt class="docutils literal"><span class="pre">c-cast</span></tt></a></li>
 <li><a class="reference internal" href="#char-classification-range"><tt class="docutils literal"><span class="pre">char-classification-range</span></tt></a></li>
 <li><a class="reference internal" href="#char-vs-string"><tt class="docutils literal"><span class="pre">char-vs-string</span></tt></a></li>

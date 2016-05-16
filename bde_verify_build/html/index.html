@@ -101,6 +101,9 @@ version.</p>
 <kbd><span class="option">--definc</span></kbd></td>
 <td>set up default include paths</td></tr>
 <tr><td class="option-group">
+<kbd><span class="option">--diff <var>file</var></span></kbd></td>
+<td>restrict output using git diff in file (<tt class="docutils literal"><span class="pre">-</span></tt> for stdin)</td></tr>
+<tr><td class="option-group">
 <kbd><span class="option">--nodefinc</span></kbd></td>
 <td>do not set up default include paths</td></tr>
 <tr><td class="option-group">
@@ -479,6 +482,15 @@ Removing include guard definition.</li>
 Replacing use of macro <tt class="docutils literal"><span class="pre">std</span></tt> with <tt class="docutils literal"><span class="pre">bsl</span></tt>.</li>
 <li><tt class="docutils literal"><span class="pre">SB07</span></tt>
 Replacing <tt class="docutils literal"><span class="pre">std</span></tt> with <tt class="docutils literal"><span class="pre">bsl</span></tt> in macro definition.</li>
+</ul>
+</div>
+<div class="section" id="bsl-std-string">
+<h3><tt class="docutils literal"><span class="pre">bsl-std-string</span></tt><a class="headerlink" href="#bsl-std-string" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">ST01</span></tt>
+Converting std::string to bsl::string.</li>
+<li><tt class="docutils literal"><span class="pre">ST02</span></tt>
+Converting bsl::string to std::string.</li>
 </ul>
 </div>
 <div class="section" id="c-cast">
@@ -1006,7 +1018,7 @@ Errors in the refactor specification (not in the examined files).</li>
 Replacing included files.</li>
 <li><tt class="docutils literal"><span class="pre">RC01</span></tt>
 Replacing a name.</li>
-<li><a href="#id1"><span class="problematic" id="id2">``</span></a>RD0111
+<li><tt class="docutils literal"><span class="pre">RD0111</span></tt>
 Replacing forward class declaration.</li>
 </ul>
 </div>
@@ -1069,6 +1081,8 @@ Parameters of free <em>swap</em> function are not named <em>a</em> and <em>b</em
 </div>
 <div class="section" id="swap-using">
 <h3><tt class="docutils literal"><span class="pre">swap-using</span></tt><a class="headerlink" href="#swap-using" title="Permalink to this headline">¶</a></h3>
+<p>Directly invoking <tt class="docutils literal"><span class="pre">std::swap</span></tt> or <tt class="docutils literal"><span class="pre">bsl::swap</span></tt> can prevent argument-
+dependent lookup from finding overloads.</p>
 <ul class="simple">
 <li><tt class="docutils literal"><span class="pre">SU01</span></tt>
 Prefer <tt class="docutils literal"><span class="pre">using</span> <span class="pre">std::swap;</span> <span class="pre">swap(...);'</span></tt> over <tt class="docutils literal"><span class="pre">std::swap(...);</span></tt>.</li>
@@ -1272,6 +1286,7 @@ File contains spaces at end of lines.</li>
 <li><a class="reference internal" href="#base"><tt class="docutils literal"><span class="pre">base</span></tt></a></li>
 <li><a class="reference internal" href="#boolcomparison"><tt class="docutils literal"><span class="pre">boolcomparison</span></tt></a></li>
 <li><a class="reference internal" href="#bsl-overrides-std"><tt class="docutils literal"><span class="pre">bsl-overrides-std</span></tt></a></li>
+<li><a class="reference internal" href="#bsl-std-string"><tt class="docutils literal"><span class="pre">bsl-std-string</span></tt></a></li>
 <li><a class="reference internal" href="#c-cast"><tt class="docutils literal"><span class="pre">c-cast</span></tt></a></li>
 <li><a class="reference internal" href="#char-classification-range"><tt class="docutils literal"><span class="pre">char-classification-range</span></tt></a></li>
 <li><a class="reference internal" href="#char-vs-string"><tt class="docutils literal"><span class="pre">char-vs-string</span></tt></a></li>
