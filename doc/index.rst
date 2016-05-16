@@ -888,7 +888,7 @@ for additional checks.
      Replacing included files.
    * ``RC01``
      Replacing a name.
-   * ``RD0111
+   * ``RD0111``
      Replacing forward class declaration.
 
 .. only:: bde_verify
