@@ -510,6 +510,47 @@ Passing the address of a single character as an argument to a
 <tt class="docutils literal"><span class="pre">const</span> <span class="pre">char</span> <span class="pre">*</span></tt> parameter.</li>
 </ul>
 </div>
+<div class="section" id="class-sections">
+<h3><tt class="docutils literal"><span class="pre">class-sections</span></tt><a class="headerlink" href="#class-sections" title="Permalink to this headline">¶</a></h3>
+<p>BDE coding standards require that class member declarations appear in tagged
+sections (e.g., <tt class="docutils literal"><span class="pre">//</span> <span class="pre">MANIPULATORS</span></tt>, <tt class="docutils literal"><span class="pre">//</span> <span class="pre">CREATORS</span></tt>, et al.)</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">KS00</span></tt>
+Declaration without tag.</li>
+<li><tt class="docutils literal"><span class="pre">KS01</span></tt>
+Tag requires public declaration.</li>
+<li><tt class="docutils literal"><span class="pre">KS02</span></tt>
+Tag requires private declaration.</li>
+<li><tt class="docutils literal"><span class="pre">KS03</span></tt>
+Tag requires function declaration.</li>
+<li><tt class="docutils literal"><span class="pre">KS04</span></tt>
+Tag requires instance data field declaration.</li>
+<li><tt class="docutils literal"><span class="pre">KS05</span></tt>
+Tag requires static data field declaration.</li>
+<li><tt class="docutils literal"><span class="pre">KS06</span></tt>
+Tag requires type declaration.</li>
+<li><tt class="docutils literal"><span class="pre">KS07</span></tt>
+Tag requires const method declaration.</li>
+<li><tt class="docutils literal"><span class="pre">KS08</span></tt>
+Tag requires non-const method declaration.</li>
+<li><tt class="docutils literal"><span class="pre">KS09</span></tt>
+Constructor or destructor requires CREATORS tag.</li>
+<li><tt class="docutils literal"><span class="pre">KS10</span></tt>
+Tag requires constant data declaration.</li>
+<li><tt class="docutils literal"><span class="pre">KS11</span></tt>
+Tag requires static method declaration.</li>
+<li><tt class="docutils literal"><span class="pre">KS12</span></tt>
+Tag requires free operator declaration.</li>
+<li><tt class="docutils literal"><span class="pre">KS13</span></tt>
+Tag requires free function declaration.</li>
+<li><tt class="docutils literal"><span class="pre">KS14</span></tt>
+Tag requires conversion operator declaration.</li>
+<li><tt class="docutils literal"><span class="pre">KS15</span></tt>
+Friend declaration requires FRIENDS tag.</li>
+<li><tt class="docutils literal"><span class="pre">KS16</span></tt>
+Tag requires friend declaration.</li>
+</ul>
+</div>
 <div class="section" id="comments">
 <h3><tt class="docutils literal"><span class="pre">comments</span></tt><a class="headerlink" href="#comments" title="Permalink to this headline">¶</a></h3>
 <p>Comments containing erroneous or deprecated text.</p>
@@ -862,6 +903,21 @@ Line exceeds 79 characters.</li>
 Method defined directly in class definition.</li>
 </ul>
 </div>
+<div class="section" id="member-names">
+<h3><tt class="docutils literal"><span class="pre">member-names</span></tt><a class="headerlink" href="#member-names" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">MN01</span></tt>
+Class data members must be private.</li>
+<li><tt class="docutils literal"><span class="pre">MN02</span></tt>
+Non-static class data member names must start with <tt class="docutils literal"><span class="pre">d_</span></tt>.</li>
+<li><tt class="docutils literal"><span class="pre">MN03</span></tt>
+Static class data member names must start with <tt class="docutils literal"><span class="pre">s_</span></tt>.</li>
+<li><tt class="docutils literal"><span class="pre">MN04</span></tt>
+Pointer class data member names must end in <tt class="docutils literal"><span class="pre">_p</span></tt>.</li>
+<li><tt class="docutils literal"><span class="pre">MN05</span></tt>
+Only pointer class data member names should end in <tt class="docutils literal"><span class="pre">_p</span></tt>.</li>
+</ul>
+</div>
 <div class="section" id="mid-return">
 <h3><tt class="docutils literal"><span class="pre">mid-return</span></tt><a class="headerlink" href="#mid-return" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
@@ -941,7 +997,8 @@ will be as well.  E.g., <tt class="docutils literal"><span class="pre">append</s
 elaborated with namespaces and classes, except for the enterprise namespace
 (<tt class="docutils literal"><span class="pre">BloombergLP</span></tt>).  Appearances of the old name, elaborated or not, will be
 replaced by the specified new value.  E.g.,
-<tt class="docutils literal"><span class="pre">append</span> <span class="pre">refactor</span> <span class="pre">name(bdetu_DayOfWeek::Day::BDET_WEDNESDAY,e_WEDNESDAY)</span></tt>.</p>
+<tt class="docutils literal"><span class="pre">append</span> <span class="pre">refactor</span> <span class="pre">name(bdetu_DayOfWeek::Day::BDET_WEDNESDAY,e_WEDNESDAY)</span></tt>.
+Macro names may also be replaced this way; just specify the old and the new.</p>
 <ul class="simple">
 <li><tt class="docutils literal"><span class="pre">RX01</span></tt>
 Errors in the refactor specification (not in the examined files).</li>
@@ -949,6 +1006,19 @@ Errors in the refactor specification (not in the examined files).</li>
 Replacing included files.</li>
 <li><tt class="docutils literal"><span class="pre">RC01</span></tt>
 Replacing a name.</li>
+<li><a href="#id1"><span class="problematic" id="id2">``</span></a>RD0111
+Replacing forward class declaration.</li>
+</ul>
+</div>
+<div class="section" id="refactor-config">
+<h3><tt class="docutils literal"><span class="pre">refactor-config</span></tt><a class="headerlink" href="#refactor-config" title="Permalink to this headline">¶</a></h3>
+<p>Given pairs of old/new header files, generate a configuration file for the
+<tt class="docutils literal"><span class="pre">refactor</span></tt> check from corresponding pairs of names appending to the file
+specified by the configuration file parameter <tt class="docutils literal"><span class="pre">refactorfile</span></tt> (or the
+default, &#8220;refactor.cfg&#8221; if left unspecified).</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">DD01</span></tt>
+Eligible name for refactoring.</li>
 </ul>
 </div>
 <div class="section" id="runtime-initialization">
@@ -1205,6 +1275,7 @@ File contains spaces at end of lines.</li>
 <li><a class="reference internal" href="#c-cast"><tt class="docutils literal"><span class="pre">c-cast</span></tt></a></li>
 <li><a class="reference internal" href="#char-classification-range"><tt class="docutils literal"><span class="pre">char-classification-range</span></tt></a></li>
 <li><a class="reference internal" href="#char-vs-string"><tt class="docutils literal"><span class="pre">char-vs-string</span></tt></a></li>
+<li><a class="reference internal" href="#class-sections"><tt class="docutils literal"><span class="pre">class-sections</span></tt></a></li>
 <li><a class="reference internal" href="#comments"><tt class="docutils literal"><span class="pre">comments</span></tt></a></li>
 <li><a class="reference internal" href="#comparison-order"><tt class="docutils literal"><span class="pre">comparison-order</span></tt></a></li>
 <li><a class="reference internal" href="#component-header"><tt class="docutils literal"><span class="pre">component-header</span></tt></a></li>
@@ -1240,6 +1311,7 @@ File contains spaces at end of lines.</li>
 <li><a class="reference internal" href="#long-inline"><tt class="docutils literal"><span class="pre">long-inline</span></tt></a></li>
 <li><a class="reference internal" href="#longlines"><tt class="docutils literal"><span class="pre">longlines</span></tt></a></li>
 <li><a class="reference internal" href="#member-definition-in-class-definition"><tt class="docutils literal"><span class="pre">member-definition-in-class-definition</span></tt></a></li>
+<li><a class="reference internal" href="#member-names"><tt class="docutils literal"><span class="pre">member-names</span></tt></a></li>
 <li><a class="reference internal" href="#mid-return"><tt class="docutils literal"><span class="pre">mid-return</span></tt></a></li>
 <li><a class="reference internal" href="#namespace-tags"><tt class="docutils literal"><span class="pre">namespace-tags</span></tt></a></li>
 <li><a class="reference internal" href="#nested-declarations"><tt class="docutils literal"><span class="pre">nested-declarations</span></tt></a></li>
@@ -1248,6 +1320,7 @@ File contains spaces at end of lines.</li>
 <li><a class="reference internal" href="#packagename"><tt class="docutils literal"><span class="pre">packagename</span></tt></a></li>
 <li><a class="reference internal" href="#ref-to-movableref"><tt class="docutils literal"><span class="pre">ref-to-movableref</span></tt></a></li>
 <li><a class="reference internal" href="#refactor"><tt class="docutils literal"><span class="pre">refactor</span></tt></a></li>
+<li><a class="reference internal" href="#refactor-config"><tt class="docutils literal"><span class="pre">refactor-config</span></tt></a></li>
 <li><a class="reference internal" href="#runtime-initialization"><tt class="docutils literal"><span class="pre">runtime-initialization</span></tt></a></li>
 <li><a class="reference internal" href="#spell-check"><tt class="docutils literal"><span class="pre">spell-check</span></tt></a></li>
 <li><a class="reference internal" href="#strict-alias"><tt class="docutils literal"><span class="pre">strict-alias</span></tt></a></li>
