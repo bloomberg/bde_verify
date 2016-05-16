@@ -78,6 +78,20 @@ Options
 -f flag               specify compiler flag
 -w                    disable normal compiler warnings
 
+Git-Diff Output Restriction
+---------------------------
+The output of |bv| can be restricted to include only those warnings whose line
+numbers fall within a set of changes given by the output of a ``git diff``
+command.  Such output contains lines beginning with ``+++`` representing a file
+with changes and lines starting with ``@`` and containing ``+LINE_NUMBER`` or
+``+LINE_NUMBER,NUMBER_OF_LINES`` representing which lines in the file have
+changed.  Such diffs may be saved in a file and given to |bv| via the option
+``--diff=file`` or they may be piped into |bv| via the option ``--diff=-`` in
+which case standard input will be read for the diffs.
+
+Note that (for now) the file names upon which |bv| will operate must still be
+specified on the command line; they are not picked up from the diff.
+
 Configuration
 -------------
 The configuration file allows individual or groups of checks to enabled or
