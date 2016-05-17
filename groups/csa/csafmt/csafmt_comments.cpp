@@ -446,7 +446,9 @@ void files::check_wrapped(SourceRange range)
 
         size_t sp = c;
         while ((sp = text.find(". ", sp)) != text.npos) {
-            if (sp + 2 < text.size() && 
+            if (sp > 0 &&
+                text[sp - 1] != '.' &&
+                sp + 2 < text.size() && 
                 text[sp + 2] != ' ' &&
                 text[sp + 2] != '\r' &&
                 text[sp + 2] != '\n' &&
