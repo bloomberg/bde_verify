@@ -78,6 +78,20 @@ Options
 -f flag               specify compiler flag
 -w                    disable normal compiler warnings
 
+Git-Diff Output Restriction
+---------------------------
+The output of |bv| can be restricted to include only those warnings whose line
+numbers fall within a set of changes given by the output of a ``git diff``
+command.  Such output contains lines beginning with ``+++`` representing a file
+with changes and lines starting with ``@`` and containing ``+LINE_NUMBER`` or
+``+LINE_NUMBER,NUMBER_OF_LINES`` representing which lines in the file have
+changed.  Such diffs may be saved in a file and given to |bv| via the option
+``--diff=file`` or they may be piped into |bv| via the option ``--diff=-`` in
+which case standard input will be read for the diffs.
+
+Note that (for now) the file names upon which |bv| will operate must still be
+specified on the command line; they are not picked up from the diff.
+
 Configuration
 -------------
 The configuration file allows individual or groups of checks to enabled or
@@ -888,7 +902,7 @@ for additional checks.
      Replacing included files.
    * ``RC01``
      Replacing a name.
-   * ``RD0111
+   * ``RD0111``
      Replacing forward class declaration.
 
 .. only:: bde_verify
@@ -1141,21 +1155,15 @@ See the README file at the top level of the source tree.
    ----------------------------------------------------------------------------
    Copyright (C) 2015 Bloomberg Finance L.P.
   
-   Permission is hereby granted, free of charge, to any person obtaining a copy
-   of this software and associated documentation files (the "Software"), to
-   deal in the Software without restriction, including without limitation the
-   rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
-   sell copies of the Software, and to permit persons to whom the Software is
-   furnished to do so, subject to the following conditions:
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+   
+       http://www.apache.org/licenses/LICENSE-2.0
   
-   The above copyright notice and this permission notice shall be included in
-   all copies or substantial portions of the Software.
-  
-   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
-   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-   FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
-   IN THE SOFTWARE.
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
    ----------------------------- END-OF-FILE ----------------------------------
