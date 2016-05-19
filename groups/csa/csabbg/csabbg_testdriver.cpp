@@ -379,7 +379,7 @@ void report::match_set_status(const BoundNodes& nodes)
 void report::note_function(std::string f)
 {
     size_t lt = f.find('<');
-    if (lt != f.npos && !llvm::StringRef(f).startswith("operator")) {
+    if (lt != f.npos) {
         f = f.substr(0, lt);
     }
     ++d.d_names_to_test[f];
@@ -401,17 +401,9 @@ bool report::process_function(CXXMethodDecl *f)
                 found = true;
             }
         });
-#if 0
-        mf.addDynamicMatcher(
-            decl(hasDescendant(
-                namedDecl(hasName("main"),
-                          forEachDescendant(expr(callTo(f)).bind("expr"))))),
-            &m1);
-#else
         mf.addDynamicMatcher(
             decl(forEachDescendant(expr(callTo(f)).bind("expr"))),
             &m1);
-#endif
         mf.match(*f->getTranslationUnitDecl(), *a.context());
         if (!found) {
             a.report(f, check_name, "TP27",
