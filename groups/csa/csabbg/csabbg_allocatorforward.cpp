@@ -52,9 +52,14 @@ static std::string const check_name("allocator-forward");
 
 namespace {
 
-bool is_allocator(QualType type, ASTContext& c, bool includeBases = true)
-    // Return 'true' iff the specified 'type' is pointer or reference to
-    // an allocator.
+bool is_allocator(QualType    type,
+                  ASTContext& c,
+                  bool        includeBases = true,
+                  bool        excludeConst = false)
+    // Return 'true' iff the specified 'type' is a pointer or reference to an
+    // allocator.  If the optionally specified 'includeBases' is false, do not
+    // consider base classes of 'type'.  If the optionally specified
+    // 'excludeConst' is true, do not consider const-qualified pointers.
 {
     static const std::string a1 = "BloombergLP::bslma::Allocator";
     static const std::string a2 = "bsl::allocator";
@@ -63,10 +68,16 @@ bool is_allocator(QualType type, ASTContext& c, bool includeBases = true)
 
     if (type->isPointerType()) {
         type = type->getPointeeType().getDesugaredType(c);
+        if (excludeConst && type.isConstQualified()) {
+            return false;
+        }
     } else if (type->isReferenceType()) {
         type = type->getPointeeType().getDesugaredType(c);
         if (type->isPointerType()) {
             type = type->getPointeeType().getDesugaredType(c);
+            if (excludeConst && type.isConstQualified()) {
+                return false;
+            }
         }
     }
     bool is = false;
@@ -86,9 +97,12 @@ bool is_allocator(QualType type, ASTContext& c, bool includeBases = true)
     return is;
 }
 
-bool is_allocator(const Type& type, ASTContext& c, bool includeBases = true)
+bool is_allocator(const Type& type,
+                  ASTContext& c,
+                  bool        includeBases = true,
+                  bool        excludeConst = false)
 {
-    return is_allocator(QualType(&type, 0), c, includeBases);
+    return is_allocator(QualType(&type, 0), c, includeBases, excludeConst);
 }
 
 }
@@ -109,7 +123,7 @@ AST_MATCHER_P(FunctionDecl, hasLastParameter,
 }
 
 AST_MATCHER(Type, isAllocator) {
-    return is_allocator(Node, Finder->getASTContext());
+    return is_allocator(Node, Finder->getASTContext(), true, true);
 }
 
 }
@@ -170,10 +184,14 @@ struct report : Report<data>
         // Return the record declaration for the specified 'type' and a null
         // pointer if it does not have one.
 
-    bool is_allocator(QualType type, bool includeBases = true);
+    bool is_allocator(QualType type,
+                      bool     includeBases = true,
+                      bool     excludeConst = false);
         // Return 'true' iff the specified 'type' is pointer or reference to
         // 'bslma::Allocator'.  If the optionally specified 'includeBases' is
-        // false, do not consider base classes of 'type'.
+        // false, do not consider base classes of 'type'.  If the optionally
+        // specified 'excludeConst' is true, do not consider const-qualified
+        // pointers.
 
     bool last_arg_is_explicit_allocator(const CXXConstructExpr* call);
         // Return 'true' iff the specified 'call' to a constructor has
@@ -325,9 +343,9 @@ const CXXRecordDecl *report::get_record_decl(QualType type)
     return rdecl;
 }
 
-bool report::is_allocator(QualType type, bool includeBases)
+bool report::is_allocator(QualType type, bool includeBases, bool excludeConst)
 {
-    return ::is_allocator(type, *a.context(), includeBases);
+    return ::is_allocator(type, *a.context(), includeBases, excludeConst);
 }
 
 bool report::last_arg_is_explicit_allocator(const CXXConstructExpr* call)
@@ -362,28 +380,8 @@ bool report::takes_allocator(CXXConstructorDecl const* constructor)
 
     QualType type = constructor->getParamDecl(n - 1)->getType();
 
-#if 1
-    return d.ctor_takes_allocator_[constructor] = is_allocator(type);
-#else
-    if (is_allocator(type)) {
-        return d.ctor_takes_allocator_[constructor] = true;           // RETURN
-    }
-
-    const ReferenceType *ref =
-        llvm::dyn_cast<ReferenceType>(type.getTypePtr());
-
-    if (!ref) {
-        return false;                                                 // RETURN
-    }
-
-    type = ref->getPointeeType();
-
-    if (!type.isConstQualified()) {
-        return false;                                                 // RETURN
-    }
-
-    return d.ctor_takes_allocator_[constructor] = takes_allocator(type);
-#endif
+    return d.ctor_takes_allocator_[constructor] =
+               is_allocator(type, true, true);
 }
 
 static internal::DynTypedMatcher nested_allocator_trait_matcher()
