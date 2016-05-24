@@ -226,7 +226,7 @@ push(@pass, "-m32") if $m32;
 push(@pass, "-m64") if $m64;
 
 unshift(@incs, xclang(
-        map { ( "-internal-isystem", $_ ) }
+        map { ( "-isystem", $_ ) }
         map { Cwd::abs_path($_) }
         grep { -d }
         map { chomp; $_; }
