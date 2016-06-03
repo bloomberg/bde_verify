@@ -9,8 +9,11 @@
 #include <clang/ASTMatchers/ASTMatchersInternal.h>
 #include <clang/Basic/IdentifierTable.h>
 #include <clang/Basic/SourceLocation.h>
+#include <clang/Lex/Preprocessor.h>
 #include <csabase_analyser.h>
+#include <csabase_debug.h>
 #include <csabase_registercheck.h>
+#include <csabase_report.h>
 #include <csabase_util.h>
 #include <llvm/ADT/Optional.h>
 #include <llvm/ADT/StringRef.h>
@@ -40,20 +43,14 @@ namespace
 
 struct data
 {
-    data();
-
     std::set<NamedDecl const*> d_decls;
+    std::vector<SourceRange> d_omit_internal_deprecated;
 };
 
-data::data()
-{
-}
-
-struct report
+struct report :  Report<data>
     // Complain about upper-case only variables and constants.
 {
-    report(Analyser& analyser);
-        // Create an object of this type using the specified analyser.
+    INHERIT_REPORT_CTOR(report, Report, data);
 
     void match_has_name(const BoundNodes& nodes);
         // Find named declarations.
@@ -61,15 +58,18 @@ struct report
     void operator()();
         // Callback invoked at end of translation unit.
 
-    Analyser& d_analyser;
-    data& d_data;
-};
+    void operator()(SourceLocation,
+                    SourceRange,
+                    PPCallbacks::ConditionValueKind,
+                    SourceLocation);
+        // Callback for #elif.
 
-report::report(Analyser& analyser)
-: d_analyser(analyser)
-, d_data(analyser.attachment<data>())
-{
-}
+    void operator()(SourceLocation, const Token &, const MacroDefinition &);
+        // Callback for #ifndef.
+
+    void operator()(SourceLocation, SourceLocation);
+        // Callback for #else/#endif.
+};
 
 internal::DynTypedMatcher has_name_matcher()
     // Return an AST matcher which looks for named declarations.
@@ -112,8 +112,20 @@ void report::match_has_name(const BoundNodes& nodes)
             name.find_first_of("ABCDEFGHIJKLMNOPQRSTUVWXYZ") != name.npos &&
             name.find(llvm::StringRef(d_analyser.component()).upper()) ==
                 name.npos) {
-            d_analyser.report(decl, check_name, "UC01",
-                              "Name should not be all upper-case");
+            bool omit = false;
+            for (auto i : d.d_omit_internal_deprecated) {
+                if (m.isBeforeInTranslationUnit(i.getBegin(),
+                                                decl->getLocation()) &&
+                    m.isBeforeInTranslationUnit(decl->getLocation(),
+                                                i.getEnd())) {
+                    omit = true;
+                    break;
+                }
+            }
+            if (!omit) {
+                d_analyser.report(decl, check_name, "UC01",
+                                  "Name should not be all upper-case");
+            }
         }
     }
 
@@ -133,9 +145,46 @@ void report::operator()()
     }
 }
 
-void subscribe(Analyser& analyser, Visitor&, PPObserver&)
+// Ifndef
+void report::operator()(SourceLocation         loc,
+                        const Token&           macro,
+                        const MacroDefinition& md)
+{
+    if (macro.getIdentifierInfo()->getName() ==
+        "BDE_OMIT_INTERNAL_DEPRECATED") {
+        d.d_omit_internal_deprecated.emplace_back(loc);
+    }
+}
+
+// Else
+// Endif
+void report::operator()(SourceLocation loc, SourceLocation ifloc)
+    // Callback for #else/#endif.
+{
+    for (auto &i : d.d_omit_internal_deprecated) {
+        if (i.getBegin() == ifloc && i.getEnd() == ifloc) {
+            i.setEnd(loc);
+        }
+    }
+}
+
+// Elif
+void report::operator()(SourceLocation                  loc,
+                        SourceRange                     condition,
+                        PPCallbacks::ConditionValueKind kind,
+                        SourceLocation                  ifloc)
+{
+    (*this)(loc, ifloc);
+}
+
+void subscribe(Analyser& analyser, Visitor&, PPObserver& observer)
 {
     analyser.onTranslationUnitDone += report(analyser);
+
+    observer.onPPIfndef += report(analyser, observer.e_Ifndef);
+    observer.onPPElif   += report(analyser, observer.e_Elif);
+    observer.onPPElse   += report(analyser, observer.e_Else);
+    observer.onPPEndif  += report(analyser, observer.e_Endif);
 }
 
 }
