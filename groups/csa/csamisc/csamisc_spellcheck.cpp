@@ -114,6 +114,65 @@ void report::operator()(SourceRange range)
 
 void report::operator()()
 {
+    static const char default_dictionary[] =
+        // Words considered bad by the spell checker but we like.
+        " accessor{,s}"
+        " adl"
+        " allocator{,s}"
+        " bde"
+        " bdewrap"
+        " bitwise"
+        " bloomberg"
+        " BLP"
+        " bsl{,m{a,f}}"
+        " const{,ness}"
+        " deallocate{,d,s}"
+        " dereference{,d,s}"
+        " destructor{,s}"
+        " drqs"
+        " enum"
+        " enqueu{e{,d},ing}"
+        " filename"
+        " functor{,s}"
+        " gcc"
+        " {g,u}uid{,s}"
+        " indices"
+        " initiali{s,z}er{,s}"
+        " inlin{e,ing}"
+        " instantia{ble,tion{,s}}"
+        " {i,io,o}stream{,s}"
+        " leveli{s,z}{ation,e{,d}}"
+        " {l,r}hs"
+        " lookup"
+        " {l,{,p}r}value{,s}"
+        " merchantability"
+        " metafunction{,s}"
+        " multi"
+        " namespace{,s}"
+        " noninfringement"
+        " parameteri{s,z}ed"
+        " portably"
+        " pragma"
+        " proleptic"
+        " resiz{e{,d,s},ing}"
+        " runtime{,s}"
+        " sfinae"
+        " stl"
+        " struct"
+        " sublicense"
+        " subrange{,s}"
+        " subsequence{,s}"
+        " templati{s,z}ed"
+        " typedef{,s}"
+        " unary"
+        " unbuffered"
+        " unticked"
+        " utc"
+        " variadic"
+        " vtable{,s}"
+        " xlc"
+    ;
+
     AspellConfig *spell_config = new_aspell_config();
     aspell_config_replace(spell_config, "lang", "en_US");
     aspell_config_replace(spell_config, "size", "90");
@@ -132,6 +191,7 @@ void report::operator()()
     spell_checker = to_aspell_speller(possible_err);
     llvm::SmallVector<llvm::StringRef, 1000> raw_good_words;
     std::vector<std::string> good_words;
+    llvm::StringRef(default_dictionary).split(raw_good_words, " ", -1, false);
     llvm::StringRef(a.config()->value("dictionary"))
         .split(raw_good_words, " ", -1, false);
     for (size_t i = 0; i < raw_good_words.size(); ++i) {
