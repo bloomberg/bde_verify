@@ -1,3 +1,13 @@
+bde-verify (1.2.3) unstable; urgency=low
+
+  * c12abd0 Get rid of -msoft-float parameter.
+  * d1f342a Robolibs paths have changed.
+  * c04be5b Do a better job on file name canonicalization to avoid rewrite issues.
+  * 9cc9e4a Add usage for -diff option
+  * 950eae1 Add -diff plugin arg for git diff restrictions.
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Thu, 12 May 2016 11:38:38 -0400
+
 bde-verify (1.2.2) unstable; urgency=low
 
   * ae5241c Missed an llvm => llvm-3.8 change.
