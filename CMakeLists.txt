@@ -342,6 +342,7 @@ install(PROGRAMS
     DESTINATION bin)
 
 install(FILES
+    bde.cfg
     bde_verify.cfg
     bb_cppverify.cfg
     DESTINATION etc/bde-verify)
@@ -359,7 +360,7 @@ set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
 set(CPACK_PACKAGE_INSTALL_DIRECTORY "BDE Verify")
 set(CPACK_PACKAGE_VERSION_MAJOR "1")
 set(CPACK_PACKAGE_VERSION_MINOR "2")
-set(CPACK_PACKAGE_VERSION_PATCH "1")
+set(CPACK_PACKAGE_VERSION_PATCH "4")
 
 include(CPack)
 

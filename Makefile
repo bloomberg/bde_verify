@@ -257,7 +257,7 @@ install-bin: $(OBJ)/$(TARGET)
 	mkdir -p $(DESTDIR)/bin
 	cp scripts/bde_verify scripts/bb_cppverify scripts/check_bos $(DESTDIR)/bin
 	mkdir -p $(DESTDIR)/etc/bde-verify
-	cp bde_verify.cfg bb_cppverify.cfg $(DESTDIR)/etc/bde-verify
+	cp bde.cfg bde_verify.cfg bb_cppverify.cfg $(DESTDIR)/etc/bde-verify
 	mkdir -p $(DESTDIR)/include/bde-verify/clang
 	cp -r $(CLANG_RES)/include $(DESTDIR)/include/bde-verify/clang
 

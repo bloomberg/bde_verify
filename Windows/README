@@ -7,7 +7,7 @@ Prerequisites for building BDE Verify on Windows:
 Prerequisites for running the command-line BDE Verify on Windows:
 1) Perl               <http://www.activestate.com/activeperl/downloads>
 
-Prepare a development installation of LLVM/Clang 3.6.x (currently x = 2).
+Prepare a development installation of LLVM/Clang 3.8.
 First, obtain the sources; in a Git Bash shell, do
 
     export SRC=/path/to/source/directory
@@ -18,15 +18,15 @@ First, obtain the sources; in a Git Bash shell, do
     cd $SRC
     git clone http://github.com/llvm-mirror/llvm.git
     cd llvm
-    git checkout release_36
+    git checkout release_38
     cd tools
     git clone http://github.com/llvm-mirror/clang.git
     cd clang
-    git checkout release_36
+    git checkout release_38
     cd tools
     git clone http://github.com/llvm-mirror/clang-tools-extra.git extra
     cd extra
-    git checkout release_36
+    git checkout release_38
 
 Then build an installation package;
     export CLSRC=$SRC/llvm
@@ -36,7 +36,7 @@ Then build an installation package;
     cmake $CLSRC
     cmake --build . --target package
 
-This will produce an executable LLVM-3.6.x-win32.exe (currently x = 2).
+This will produce an executable LLVM-3.8.?-win32.exe.
 Run it to install the development LLVM/Clang.
 
 Now get and build BDE Verify,
@@ -50,7 +50,7 @@ Now get and build BDE Verify,
     cmake --build . --target package
 
 This will produce an executable bde_verify-1.x.y-win32.exe
-(currently x = 2 and y = 1).
+(currently x = 2 and y = 4).
 Run it to install BDE Verify.  The driver script on Windows is bde_verify.pl,
 taking generally the same arguments as the Unix bde_verify driver script.  See
 <http://bloomberg.github.io/bde_verify/bde_verify_build/html/> for full
