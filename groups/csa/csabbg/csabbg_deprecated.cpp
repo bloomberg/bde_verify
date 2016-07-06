@@ -128,14 +128,13 @@ void report::operator()(SourceRange range)
 void report::operator()(const CallExpr *call)
 {
     if (auto func = call->getDirectCallee()) {
-        if (auto f = func->getInstantiatedFromMemberFunction()) {
+        if (auto f = func->getTemplateInstantiationPattern()) {
             func = f;
         }
         func = func->getCanonicalDecl();
         if (!a.is_test_driver() ||
             !a.is_component_header(func->getLocStart())) {
-            d.d_calls[Location(m, call->getExprLoc())] =
-                func->getCanonicalDecl();
+            d.d_calls[Location(m, call->getExprLoc())] = func;
         }
     }
 }
@@ -160,9 +159,8 @@ void report::operator()()
         if (i != d.d_dep_files.end()) {
             d.d_dep_funcs[p.first] = i->second;
         }
-        auto m = llvm::dyn_cast<CXXMethodDecl>(p.first);
-        if (m) {
-            auto k = d.d_dep_recs.find(m->getParent()->getDefinition());
+        if (auto h = llvm::dyn_cast<CXXMethodDecl>(p.first)) {
+            auto k = d.d_dep_recs.find(h->getParent()->getDefinition());
             if (k != d.d_dep_recs.end()) {
                 d.d_dep_funcs[p.first] = k->second;
             }
@@ -200,6 +198,9 @@ void report::operator()(const FunctionDecl* func)
         && (   func->getTemplatedKind() == func->TK_NonTemplate
             || func->getTemplatedKind() == func->TK_FunctionTemplate)
             ) {
+        if (auto f = func->getTemplateInstantiationPattern()) {
+            func = f;
+        }
         d.d_fundecls.push_back(
             std::make_pair(func->getCanonicalDecl(), SourceRange()));
     }
