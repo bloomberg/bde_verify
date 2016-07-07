@@ -1,3 +1,9 @@
+bde-verify (1.2.5) unstable; urgency=low
+
+  * No commits found
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Thu, 7 Jul 2016 18:44:43 -0400
+
 bde-verify (1.2.4) unstable; urgency=low
 
   * 2fbdb1f Merge branch 'master' into work
