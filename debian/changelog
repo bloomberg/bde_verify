@@ -1,3 +1,37 @@
+bde-verify (1.2.4) unstable; urgency=low
+
+  * 841fde2 Merge branch 'work'
+  * 662e4b0 Accidentally brought in docs
+  * 18f39bf Switch to Apache 2.0 license.
+  * 5aa23b2 Don't require two spaces after ellipses (or other multiple periods).
+  * 91554df Generate gh-pages
+  * 2081489 Merge branch 'work' into gh-pages
+  * 6f43c1d Elaborate on git diff option.
+  * 1aea15a Change docs version number.
+  * 1a56655 Generate gh-pages
+  * 1acf8ec Merge branch 'work' into gh-pages
+  * 9d2c7ee Fix doc.
+  * d470abc Merge branch 'gh-pages' of https://github.com/bloomberg/bde_verify into gh-pages
+  * 3d8ce50 Generate gh-pages
+  * ee59381 Update docs.
+  * cd6c054 Merge branch 'work' into gh-pages
+  * 3e172ff Generate gh-pages
+  * ecf252b Generate gh-pages
+  * 181b09f Generate gh-pages
+  * b33d6f8 Delete garbage files.
+  * 9f4ff68 Generate gh-pages
+  * 3ad29bd Generate gh-pages
+  * 9f224af Generate gh-pages
+  * a63cc52 Generate gh-pages
+  * 91e1def Generate gh-pages
+  * 9667fcf Generate gh-pages
+  * 6b28b69 Generate gh-pages
+  * 2ea7f09 Generate gh-pages
+  * d33ffdd Generate gh-pages
+  * f99cfb4 Generate gh-pages
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Tue, 17 May 2016 17:26:33 -0400
+
 bde-verify (1.2.3) unstable; urgency=low
 
   * c12abd0 Get rid of -msoft-float parameter.
