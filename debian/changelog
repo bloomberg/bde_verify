@@ -1,5 +1,18 @@
 bde-verify (1.2.4) unstable; urgency=low
 
+  * 2fbdb1f Merge branch 'master' into work
+  * efb2af5 Bump to 1.2.4
+  * 01b2aeb Update version info.
+  * 51aa87b Check for deprecated function templates.
+  * 189ec0f Merge branch 'master' into work
+  * 0d0f43e Add BDE-specific config file.
+  * 006c0e0 Put a default dictionary into code.  Change BDLS_TESTutil to BSLIM.
+  * fbd6fcf Switch to using BSLIM macros.
+  * 001885a Don't warn inside #ifndef BDE_OMIT_INTERNAL_DEPRECATED.
+  * f114dcf Use -internal, not -internal-isystem.
+  * 611f8b0 Don't leave template parameters on conversion operators.
+  * fcda703 Constructors that take const allocator pointers don't "use" allocators.
+  * c0a4593 Line numbers changed with copyright change.
   * 841fde2 Merge branch 'work'
   * 662e4b0 Accidentally brought in docs
   * 18f39bf Switch to Apache 2.0 license.
@@ -30,7 +43,7 @@ bde-verify (1.2.4) unstable; urgency=low
   * d33ffdd Generate gh-pages
   * f99cfb4 Generate gh-pages
 
- -- Hyman Rosen <hrosen4@bloomberg.net>  Tue, 17 May 2016 17:26:33 -0400
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Thu, 7 Jul 2016 11:28:32 -0400
 
 bde-verify (1.2.3) unstable; urgency=low
 
