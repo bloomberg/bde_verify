@@ -642,6 +642,7 @@ void report::match_should_return_by_value(const BoundNodes& nodes)
         !p1->getPointeeType()->isDependentType() &&
         !p1->getPointeeType()->isInstantiationDependentType() &&
         !p1->getPointeeType()->isAnyCharacterType() &&
+        !p1->getPointeeType()->isIntegralType(*a.context()) &&
         !p1->getPointeeType()->isFunctionType() &&
         !p1->getPointeeType()->isMemberPointerType() &&
         !func->getParamDecl(0)->hasDefaultArg() &&

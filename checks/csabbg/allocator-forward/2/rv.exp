@@ -4,26 +4,14 @@ void f(B *b) { *b = B(); }
 rv.cpp:7:11: note: RV01: instead of through pointer parameter
 void f(B *b) { *b = B(); }
           ^
-rv.cpp:10:6: warning: RV01: Consider returning 'int' by value
-void f(int *i) { *i = int(); }
-     ^
-rv.cpp:10:13: note: RV01: instead of through pointer parameter
-void f(int *i) { *i = int(); }
-            ^
 rv.cpp:31:10: warning: RV01: Consider returning 'struct B' by value
     void f(B *b) { *b = B(); }
          ^
 rv.cpp:31:15: note: RV01: instead of through pointer parameter
     void f(B *b) { *b = B(); }
               ^
-rv.cpp:34:10: warning: RV01: Consider returning 'int' by value
-    void f(int *i) { *i = int(); }
-         ^
-rv.cpp:34:17: note: RV01: instead of through pointer parameter
-    void f(int *i) { *i = int(); }
-                ^
 rv.cpp:3:8: warning: AT02: Class 'A' uses allocators but does not have an allocator trait
 struct A { explicit A(BloombergLP::bslma::Allocator * = 0); };
        ^
 rv.cpp:3:8: warning: AC02: Implicit copy constructor cannot be called with an allocator as the final argument
-6 warnings generated.
+4 warnings generated.
