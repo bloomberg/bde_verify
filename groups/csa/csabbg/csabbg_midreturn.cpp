@@ -28,6 +28,7 @@
 #include <utils/event.hpp>
 #include <utils/function.hpp>
 #include <set>
+#include <vector>
 #include <sstream>
 #include <string>
 
@@ -52,6 +53,7 @@ struct data
     std::set<const ReturnStmt*> d_last_returns;  // Last top-level 'return'
     std::set<const ReturnStmt*> d_all_returns;   // All 'return'
     std::set<SourceLocation>    d_rcs;           // Suppression comments
+    std::vector<SourceRange>    d_all_macros;    // Expanded macros
 };
 
 // Callback object for inspecting comments.
@@ -122,6 +124,15 @@ struct report : Report<data>
             }
         } while (0 != (func = d_analyser.get_parent<FunctionDecl>(func)));
         d_data.d_all_returns.insert(ret);
+    }
+
+    void operator()(const Token&,
+                    const MacroDefinition&,
+                    SourceRange r,
+                    const MacroArgs *)
+        // macro expands callback
+    {
+        d_data.d_all_macros.push_back(r);
     }
 
     void operator()()
@@ -198,14 +209,24 @@ struct report : Report<data>
         }
 
         SourceManager& m = d_analyser.manager();
-        // This "getLocForEndOfToken" weirdness is necessary because for a
-        // member expression (like "a.def"), "stmt->getLocEnd()" returns the
-        // beginning of the member instead of the end (i.e., 'd', not 'f')!
-        SourceLocation loc = m.getFileLoc(Lexer::getLocForEndOfToken(
-            stmt->getLocEnd(), 0, m, d_analyser.context()->getLangOpts()));
-        unsigned       sline = m.getPresumedLineNumber(loc);
-        unsigned       scolm = m.getPresumedColumnNumber(loc);
-        FileID         sfile = m.getFileID(loc);
+        SourceLocation loc = stmt->getLocEnd();
+        if (loc.isMacroID()) {
+            for (auto r : d_data.d_all_macros) {
+                if (!m.isBeforeInTranslationUnit(loc, r.getBegin()) &&
+                    !m.isBeforeInTranslationUnit(r.getEnd(), loc)) {
+                    loc = r.getEnd();
+                    break;
+                }
+            }
+        }
+        else {
+            loc = m.getFileLoc(Lexer::getLocForEndOfToken(
+                loc, 0, m, d_analyser.context()->getLangOpts()));
+        }
+
+        unsigned sline = m.getPresumedLineNumber(loc);
+        unsigned scolm = m.getPresumedColumnNumber(loc);
+        FileID   sfile = m.getFileID(loc);
 
         for (std::set<SourceLocation>::iterator it = comments_begin;
              it != comments_end;
@@ -251,6 +272,7 @@ void subscribe(Analyser& analyser, Visitor&, PPObserver& observer)
 {
     analyser.onTranslationUnitDone += report(analyser);
     observer.onComment += comments(analyser);
+    observer.onPPMacroExpands += report(analyser);
 }
 
 }  // close anonymous namespace
