@@ -105,27 +105,6 @@ int cc1_main(ArrayRef<const char *> Argv, const char *Argv0, void *MainAddr)
     return !Success;
 }
 
-static void FixupDiagPrefixExeName(TextDiagnosticPrinter *DiagClient,
-                                   const std::string&     Path)
-{
-    StringRef ExeBasename(sys::path::filename(Path));
-    DiagClient->setPrefix(ExeBasename);
-}
-
-// This lets us create the DiagnosticsEngine with a properly-filled-out
-// DiagnosticOptions instance.
-static DiagnosticOptions *
-CreateAndPopulateDiagOpts(ArrayRef<const char *> argv)
-{
-    auto                      *DiagOpts = new DiagnosticOptions;
-    std::unique_ptr<OptTable>  Opts(createDriverOptTable());
-    unsigned                   MissingArgIndex, MissingArgCount;
-    InputArgList               Args =
-        Opts->ParseArgs(argv, MissingArgIndex, MissingArgCount);
-    (void)ParseDiagnosticArgs(*DiagOpts, Args);
-    return DiagOpts;
-}
-
 static void SetInstallDir(SmallVectorImpl<const char *>& argv,
                           Driver&                        TheDriver,
                           bool                           CanonicalPrefixes)
@@ -203,12 +182,15 @@ int csabase::run(int argc_, const char **argv_)
 
     std::string Path = GetExecutablePath(argv[0], CanonicalPrefixes);
 
-    IntrusiveRefCntPtr<DiagnosticOptions> DiagOpts =
-        CreateAndPopulateDiagOpts(argv);
+    IntrusiveRefCntPtr<DiagnosticOptions> DiagOpts = new DiagnosticOptions;
+    std::unique_ptr<OptTable>  Opts(createDriverOptTable());
+    unsigned MissingIndex, MissingCount;
+    InputArgList Args = Opts->ParseArgs(argv, MissingIndex, MissingCount);
+    (void)ParseDiagnosticArgs(*DiagOpts, Args);
 
     TextDiagnosticPrinter *DiagClient =
         new TextDiagnosticPrinter(errs(), &*DiagOpts);
-    FixupDiagPrefixExeName(DiagClient, Path);
+    DiagClient->setPrefix(StringRef(sys::path::filename(Path)));
 
     IntrusiveRefCntPtr<DiagnosticIDs> DiagID(new DiagnosticIDs());
 

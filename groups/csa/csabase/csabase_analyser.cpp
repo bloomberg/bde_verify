@@ -52,7 +52,7 @@ csabase::Analyser::Analyser(CompilerInstance& compiler,
 : d_config(new Config(plugin.config().size() == 0
                           ? std::vector<std::string>(1, "load .bdeverify")
                           : plugin.config(),
-                      compiler.getSourceManager()))
+                      compiler))
 , tool_name_(plugin.tool_name())
 , diagnose_(plugin.diagnose())
 , compiler_(compiler)

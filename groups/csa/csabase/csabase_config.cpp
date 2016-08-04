@@ -2,7 +2,10 @@
 
 #include <csabase_config.h>
 #include <clang/Basic/SourceManager.h>
+#include <clang/Frontend/CompilerInstance.h>
 #include <llvm/ADT/StringRef.h>
+#include <llvm/Support/FileSystem.h>
+#include <llvm/Support/Path.h>
 #include <llvm/Support/raw_ostream.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -20,6 +23,7 @@
 
 using namespace csabase;
 using namespace clang;
+using namespace llvm;
 
 // ----------------------------------------------------------------------------
 
@@ -86,12 +90,28 @@ set_status(std::map<std::string, Config::Status>& checks,
 // ----------------------------------------------------------------------------
 
 csabase::Config::Config(std::vector<std::string> const& config,
-                              SourceManager& manager)
+                        CompilerInstance&               compiler)
 : d_toplevel_namespace("BloombergLP")
 , d_all(on)
-, d_manager(manager)
+, d_manager(compiler.getSourceManager())
 {
-    //-dk:TODO load global and user configuration?
+    d_load_dirs.emplace_back(".");
+    for (const auto &f : compiler.getFrontendOpts().Inputs) {
+        if (f.isFile()) {
+            StringRef file = f.getFile();
+            file = sys::path::remove_leading_dotslash(file);
+            SmallVector<char, 1024> v(file.begin(), file.end());
+            sys::fs::make_absolute(v);
+            sys::path::remove_dots(v, true);
+            sys::path::remove_filename(v);
+            StringRef path(v.begin(), v.size());
+            while (!path.empty()) {
+                d_load_dirs.emplace_back(path);
+                path = sys::path::parent_path(path);
+            }
+        }
+    }
+
     for (size_t i = 0; i < config.size(); ++i) {
         process(config[i]);
     }
@@ -110,7 +130,7 @@ csabase::Config::process(std::string const& line)
             d_toplevel_namespace = name;
         }
         else {
-            llvm::errs()
+            errs()
                 << "WARNING: couldn't read namespace name from '"
                 << line << "'\n";
         }
@@ -121,7 +141,7 @@ csabase::Config::process(std::string const& line)
             d_all = status;
         }
         else {
-            llvm::errs()
+            errs()
                 << "WARNING: couldn't read 'all' configuration from '"
                 << line << "'\n";
         }
@@ -134,7 +154,7 @@ csabase::Config::process(std::string const& line)
             set_status(d_checks, d_groups, check, status, path);
         }
         else {
-            llvm::errs()
+            errs()
                 << "WARNING: couldn't read check configuration from '"
                 << line << "'\n";
         }
@@ -146,7 +166,7 @@ csabase::Config::process(std::string const& line)
                     std::istream_iterator<std::string>());
         }
         else {
-            llvm::errs()
+            errs()
                 << "WARNING: a group needs at least a name on line '"
                 << line << "'\n";
         }
@@ -157,7 +177,7 @@ csabase::Config::process(std::string const& line)
             load(name);
         }
         else {
-            llvm::errs()
+            errs()
                 << "WARNING: no file name given on line '"
                 << line << "'\n";
         }
@@ -172,16 +192,16 @@ csabase::Config::process(std::string const& line)
                 } else if ("prepend" == command) {
                     rest = rest + " " + value(key);
                 }
-                set_value(key, llvm::StringRef(rest).trim());
+                set_value(key, StringRef(rest).trim());
             }
             else {
-                llvm::errs() << "WARNING: " << command
+                errs() << "WARNING: " << command
                              << " could not read value on line '" << line
                              << "'\n";
             }
         }
         else {
-            llvm::errs()
+            errs()
                 << "WARNING: " << command << " needs name and value on line '"
                 << line << "'\n";
         }
@@ -202,7 +222,7 @@ csabase::Config::process(std::string const& line)
             }
         }
         else {
-            llvm::errs()
+            errs()
                 << "WARNING: suppress needs tag and files on line '"
                 << line << "'\n";
         }
@@ -222,7 +242,7 @@ csabase::Config::process(std::string const& line)
             }
         }
         else {
-            llvm::errs()
+            errs()
                 << "WARNING: unsuppress needs tag and files on line '"
                 << line << "'\n";
         }
@@ -233,53 +253,75 @@ csabase::Config::process(std::string const& line)
     }
 }
 
-void
+bool
 csabase::Config::load(std::string const& original)
 {
     std::string file(original);
+    ERRS() << file << "\n";
     if (file[0] == '~' && file[1] == '/') {
         // Annoyingly, shells are not expanding the ~ in --config=~/...
         file = "$HOME" + file.substr(1);
     }
     if (file[0] == '$') {
-        std::string::size_type slash(file.find('/'));
-        std::string variable(file.substr(1, slash - 1));
-        if (char const* value = getenv(variable.c_str())) {
-            file = value + file.substr(slash);
+        std::string variable;
+        std::string::size_type end;
+        if (file[1] == '{') {
+            end = file.find('}');
+            variable = file.substr(2, end - 1);
         }
         else {
-            llvm::errs()
+            end = file.find('/');
+            variable = file.substr(1, end - 1);
+        }
+        if (char const* value = getenv(variable.c_str())) {
+            file = value + file.substr(end);
+        }
+        else {
+            errs()
                 << "WARNING: environment variable '" << variable
                 << "' not set (file '" << file
                 << "' is not loaded)\n";
-            return;
+            return false;
         }
     }
-    if (d_loadpath.end() != std::find(d_loadpath.begin(),
-                                      d_loadpath.end(), file)) {
-        llvm::errs()
-            << "WARNING: recursive loading aborted for file '"
-            << file << "'\n";
-        return;
-    }
-
-    d_loadpath.push_back(file);
-    std::ifstream in(file.c_str());
-    std::string line;
-    while (std::getline(in, line)) {
-        while (!line.empty() && line[line.size() - 1] == '\\') {
-            line.resize(line.size() - 1);
-            std::string next;
-            if (std::getline(in, next)) {
+    std::string sep = sys::path::get_separator();
+    if (file.find(sep) != file.npos) {
+        // File name contains path components; use as-is
+        std::ifstream in(file.c_str());
+        if (!in) {
+            return false;
+        }
+        if (!d_loadpath.insert(file).second) {
+            errs()
+                << "WARNING: recursive loading aborted for file '"
+                << file << "'\n";
+            return false;
+        }
+        std::string line;
+        while (std::getline(in, line)) {
+            while (!line.empty() && line.back() == '\\') {
+                line.pop_back();
+                std::string next;
+                if (!std::getline(in, next)) {
+                    break;
+                }
                 line += next;
             }
-            else {
-                break;
-            }
+            process(line);
         }
-        process(line);
+        d_loadpath.erase(file);
+        return true;
     }
-    d_loadpath.pop_back();
+
+    // File name is a plain name, try to find it up from input files.
+    for (auto &p : d_load_dirs) {
+        SmallVector<char, 1024> v(p.begin(), p.end());
+        sys::path::append(v, file);
+        if (load(std::string(v.begin(), v.end()))) {
+            return true;
+        }
+    }
+    return false;
 }
 
 // ----------------------------------------------------------------------------
@@ -377,7 +419,7 @@ bool csabase::Config::all() const
 }
 
 namespace {
-bool glob_match(llvm::StringRef name, llvm::StringRef pattern)
+bool glob_match(StringRef name, StringRef pattern)
 {
     while (name.size() != 0 && pattern.size() != 0 && pattern[0] != '*') {
         if (name[0] != pattern[0] && pattern[0] != '?') { return false; }

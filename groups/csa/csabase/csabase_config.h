@@ -12,6 +12,7 @@
 #include <vector>
 
 namespace clang { class SourceManager; }
+namespace clang { class CompilerInstance; }
 
 // -----------------------------------------------------------------------------
 
@@ -28,12 +29,13 @@ public:
     };
 
     Config(std::vector<std::string> const& config,
-           clang::SourceManager& manager);
+           clang::CompilerInstance &compiler);
         // Create a 'Config' object initialized with the set of specified
-        // 'config' lines, and holding the specified 'manager'.
+        // 'config' lines, using the specified 'compiler'.
 
-    void load(std::string const& file);
+    bool load(std::string const& file);
         // Read a set of configuration lines from the specified 'file'.
+        // Return 'true' iff the 'file' could be read.
 
     void process(std::string const& line);
         // Append the specifed 'line' to the configuration.
@@ -95,12 +97,13 @@ public:
         // bde_comp_fooutil.h bde_comp_fooutil.cpp bde_comp_fooutil.t.cpp
 
 private:
-    std::string                                      d_toplevel_namespace;
-    std::vector<std::string>                         d_loadpath;
-    std::map<std::string, Status>                    d_checks;
-    std::map<std::string, std::vector<std::string> > d_groups;
-    std::map<std::string, std::string>               d_values;
-    std::set<std::pair<std::string, std::string> >   d_suppressions;
+    std::string                                     d_toplevel_namespace;
+    std::set<std::string>                           d_loadpath;
+    std::map<std::string, Status>                   d_checks;
+    std::map<std::string, std::vector<std::string>> d_groups;
+    std::map<std::string, std::string>              d_values;
+    std::set<std::pair<std::string, std::string>>   d_suppressions;
+    std::vector<std::string>                        d_load_dirs;
 
     struct BVData
     {
