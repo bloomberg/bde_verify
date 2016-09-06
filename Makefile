@@ -52,6 +52,9 @@ ifeq ($(SYSTEM),Linux)
                   /usr/lib64
     LDFLAGS    += -Wl,--enable-new-dtags
     LDFLAGS    += $(foreach L,$(LIBDIRS),-Wl,-L$(L),-rpath,$(L))
+    ifneq (,$(wildcard $(foreach L,$(LIBDIRS),$(L)/libtinfo.so)))
+        EXTRALIBS += -ltinfo
+    endif
 else ifeq ($(SYSTEM),SunOS)
     AR          = /usr/ccs/bin/ar
     CXXFLAGS   += -DBYTE_ORDER=BIG_ENDIAN
