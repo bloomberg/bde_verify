@@ -1,3 +1,12 @@
+bde-verify (1.2.6) unstable; urgency=low
+
+  * 48b47cb Link with libtinfo on Linux if it can be found.
+  * e2c2d84 Find .bdeverify config file up from input file directories.
+  * 05275e7 Fix mid-return code for returns inside macros.
+  * 8a11c80 Don't RV01 warn about integer return pointers.
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Tue, 6 Sep 2016 14:12:47 -0400
+
 bde-verify (1.2.5) unstable; urgency=low
 
   * No commits found
