@@ -1,3 +1,9 @@
+bde-verify (1.2.7) unstable; urgency=low
+
+  * 00772fb Errant debug line.
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Tue, 13 Sep 2016 10:38:18 -0400
+
 bde-verify (1.2.6) unstable; urgency=low
 
   * 48b47cb Link with libtinfo on Linux if it can be found.
