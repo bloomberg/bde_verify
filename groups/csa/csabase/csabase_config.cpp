@@ -257,7 +257,6 @@ bool
 csabase::Config::load(std::string const& original)
 {
     std::string file(original);
-    ERRS() << file << "\n";
     if (file[0] == '~' && file[1] == '/') {
         // Annoyingly, shells are not expanding the ~ in --config=~/...
         file = "$HOME" + file.substr(1);
