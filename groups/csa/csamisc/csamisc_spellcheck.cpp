@@ -275,7 +275,12 @@ report::break_for_spelling(std::vector<SourceRange>* words, SourceRange range)
         unsigned char c =
             i == comment.size() ? ' ' : static_cast<unsigned char>(comment[i]);
         if (c == '\'') {
-            if (!in_double_quotes) {
+            if (in_block &&
+                !in_single_quotes &&
+                i > 0 &&
+                std::isalpha(static_cast<unsigned char>(comment[i - 1]))) {
+                // This is an apostrophe, not a single quote.
+            } else if (!in_double_quotes) {
                 in_single_quotes = !in_single_quotes;
                 if (!in_block) {
                     in_block = true;
@@ -311,7 +316,7 @@ report::break_for_spelling(std::vector<SourceRange>* words, SourceRange range)
                     for (size_t j = start_of_last_block; found && j < last;
                          ++j) {
                         c = static_cast<unsigned char>(comment[j]);
-                        if (!std::isalpha(c)) {
+                        if (!std::isalpha(c) && c != '\'') {
                             if (j != i - 1) {
                                 found = false;
                             } else if (punct.find(c) != punct.npos) {
@@ -326,6 +331,10 @@ report::break_for_spelling(std::vector<SourceRange>* words, SourceRange range)
                         }
                     }
                     if (found) {
+                        while (last > start_of_last_block &&
+                               comment[last - 1] == '\'') {
+                            --last;
+                        }
                         words->push_back(
                             getOffsetRange(range,
                                            start_of_last_block,

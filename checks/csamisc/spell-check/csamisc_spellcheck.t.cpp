@@ -11,6 +11,14 @@
 // SphinxA ofB blackC quartzD, judgeE myF vowG!
 // CamlCas
 // Sphnx F Black Qurtz, Judg M Vo!
+// Wea wouldn't want this to be misspealled.
+// The cats' fur is freylich.
+// The cat's fur is glaargh.
+// The zempirs' fur is shnugglish.
+// The zembir's fur is hoby.
+// Seven xaf'tpps for a zemcir'!
+// Seven 'xaftpps for a zemdir'!
+// This is undefined unless '0 < cats' is shupshish.
 
 // ----------------------------------------------------------------------------
 // Copyright (C) 2014 Bloomberg Finance L.P.
