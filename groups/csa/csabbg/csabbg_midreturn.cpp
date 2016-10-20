@@ -219,10 +219,11 @@ struct report : Report<data>
                 }
             }
         }
-        else {
-            loc = m.getFileLoc(Lexer::getLocForEndOfToken(
-                loc, 0, m, d_analyser.context()->getLangOpts()));
-        }
+        // This "getLocForEndOfToken" weirdness is necessary because for some
+        // expressions (like "a.def"), "stmt->getLocEnd()" returns a position
+        // within the expression instead of the end (e.g., 'd', not 'f').
+        loc = m.getFileLoc(Lexer::getLocForEndOfToken(
+            loc, 0, m, d_analyser.context()->getLangOpts()));
 
         unsigned sline = m.getPresumedLineNumber(loc);
         unsigned scolm = m.getPresumedColumnNumber(loc);
