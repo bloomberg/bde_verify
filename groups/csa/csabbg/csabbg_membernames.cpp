@@ -30,8 +30,10 @@ static void check_private(Analyser& a, DeclaratorDecl const *decl)
 
 static void check_pointer(Analyser& a, DeclaratorDecl const *decl)
 {
-    if (decl->getType()->getTypeClass() == Type::Typedef) {
-        return;
+    QualType qt = decl->getType();
+    if (qt->getTypeClass() != Type::Builtin &&
+        qt->getTypeClass() != Type::Pointer) {
+        return;                                                       // RETURN
     }
     auto rd = llvm::dyn_cast<CXXRecordDecl>(decl->getDeclContext());
     if (rd && rd->getTemplateInstantiationPattern()) {
