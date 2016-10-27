@@ -8,6 +8,7 @@
 #include <clang/Basic/SourceManager.h>
 #include <csabase_analyser.h>
 #include <csabase_config.h>
+#include <csabase_debug.h>
 #include <csabase_registercheck.h>
 #include <llvm/Support/Casting.h>
 #include <string.h>
@@ -81,7 +82,8 @@ unsigned count_statements(const Stmt *stmt)
 void long_inlines(Analyser& analyser, const FunctionDecl* func)
 {
     // Process only function definitions, not declarations.
-    if (func->hasBody() && func->getBody() && func->isInlineSpecified()) {
+    if (func->hasBody() && func->getBody() && func->isInlineSpecified() &&
+        !func->isTemplateInstantiation()) {
         data&           d    = analyser.attachment<data>();
         data::VecFE&    ad   = d.d_long_inlines;
         Stmt           *body = func->getBody();
@@ -100,6 +102,12 @@ void long_inlines(Analyser& analyser, const FunctionDecl* func)
             ad.push_back(std::make_pair(func, data::e_TOO_LONG));
         }
     }
+}
+
+// Callback function for inspecting function template declarations.
+void long_tplt_inlines(Analyser& analyser, const FunctionTemplateDecl* tplt)
+{
+    long_inlines(analyser, tplt->getTemplatedDecl());
 }
 
 // Callback object invoked upon completion.
@@ -159,6 +167,7 @@ void subscribe(Analyser& analyser, Visitor&, PPObserver& observer)
 // ----------------------------------------------------------------------------
 
 static RegisterCheck c1(check_name, &long_inlines);
+static RegisterCheck c3(check_name, &long_tplt_inlines);
 static RegisterCheck c2(check_name, &subscribe);
 
 // ----------------------------------------------------------------------------
