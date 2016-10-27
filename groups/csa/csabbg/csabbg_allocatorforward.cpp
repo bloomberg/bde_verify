@@ -117,7 +117,14 @@ AST_MATCHER_P(TemplateArgument, equalsIntegral, unsigned, N) {
 
 AST_MATCHER_P(FunctionDecl, hasLastParameter,
                internal::Matcher<ParmVarDecl>, InnerMatcher) {
-    return Node.getNumParams() > 0 &&
+    unsigned np = 0;
+    if (const auto *ctor = llvm::dyn_cast<CXXConstructorDecl>(&Node)) {
+        if (ctor->isCopyOrMoveConstructor()) {
+            np = 1;
+        }
+    }
+
+    return Node.getNumParams() > np &&
            InnerMatcher.matches(
                *Node.getParamDecl(Node.getNumParams() - 1), Finder, Builder);
 }
@@ -374,7 +381,7 @@ bool report::takes_allocator(CXXConstructorDecl const* constructor)
     d.ctor_takes_allocator_[constructor] = false;
     unsigned n = constructor->getNumParams();
 
-    if (n == 0) {
+    if (n == 0 || (constructor->isCopyOrMoveConstructor() && n == 1)) {
         return false;                                                 // RETURN
     }
 
@@ -491,11 +498,7 @@ void report::match_class_using_allocator(const BoundNodes& nodes)
     QualType type = nodes.getNodeAs<CXXRecordDecl>("class")
                         ->getTypeForDecl()
                         ->getCanonicalTypeInternal();
-    // Allocators look like they take allocators because of their copy
-    // constructors.  But they shouldn't be considered that way.
-    if (!is_allocator(type, false)) {
-        d.type_takes_allocator_[type.getTypePtr()] = true;
-    }
+    d.type_takes_allocator_[type.getTypePtr()] = true;
 }
 
 static internal::DynTypedMatcher allocator_trait_matcher(int value)
