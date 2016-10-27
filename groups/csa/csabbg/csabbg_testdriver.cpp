@@ -778,7 +778,7 @@ void report::operator()()
             }
         } else if (!negative) {
             a.report(cr.getBegin(), check_name, "TP33",
-                     "Comment should contain a 'Concerns:' section");
+                     "Comment should contain a 'Plan:' section");
         }
 
         if (testing.match(comment, &matches)) {
