@@ -1,3 +1,16 @@
+bde-verify (1.2.8) unstable; urgency=low
+
+  * 10459b3 Bump version.
+  * 9994c08 Fix calculation of whether constructors take allocators.
+  * b3d0ae7 Avoid member name suffix warnings on complicated types.
+  * 2d1ea14 Error in TP33 - Concerns instead of Plan.
+  * f6a1b31 Check for long inline function templates.
+  * df4e4fd Make bde_verify depend on coreutils and perl.
+  * 8b0409a Fix finding // RETURN position when macros are involved.
+  * af815b1 Allow apostrophes in words for spell checking.
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Thu, 27 Oct 2016 18:08:59 -0400
+
 bde-verify (1.2.7) unstable; urgency=low
 
   * 00772fb Errant debug line.
