@@ -1,3 +1,9 @@
+bde-verify (1.2.9) unstable; urgency=low
+
+  * 4f67673 Fix new single-quote error in spell-check.
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Fri, 28 Oct 2016 11:09:19 -0400
+
 bde-verify (1.2.8) unstable; urgency=low
 
   * 10459b3 Bump version.
