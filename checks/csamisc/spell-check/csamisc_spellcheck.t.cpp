@@ -19,6 +19,7 @@
 // Seven xaf'tpps for a zemcir'!
 // Seven 'xaftpps for a zemdir'!
 // This is undefined unless '0 < cats' is shupshish.
+// The specified 'value' is evanescent.
 
 // ----------------------------------------------------------------------------
 // Copyright (C) 2014 Bloomberg Finance L.P.

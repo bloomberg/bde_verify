@@ -316,7 +316,8 @@ report::break_for_spelling(std::vector<SourceRange>* words, SourceRange range)
                     for (size_t j = start_of_last_block; found && j < last;
                          ++j) {
                         c = static_cast<unsigned char>(comment[j]);
-                        if (!std::isalpha(c) && c != '\'') {
+                        if (!std::isalpha(c) &&
+                            (c != '\'' || j == start_of_last_block)) {
                             if (j != i - 1) {
                                 found = false;
                             } else if (punct.find(c) != punct.npos) {
