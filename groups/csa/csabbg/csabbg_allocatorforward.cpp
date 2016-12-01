@@ -312,6 +312,28 @@ struct report : Report<data>
         // which did not have one.
 
     template <typename Iter>
+    void check_uses_allocator(Iter begin, Iter end);
+        // Check if the items in the sequence from the specified 'begin' up to
+        // but not including the specified 'end' initialize an allocator
+        // parameter from an object allocator.
+
+    void check_uses_allocator(const CXXConstructExpr *expr);
+        // Check whether the specified 'expr' constructor expression contains a
+        // final explicit allocator pointer used to initialize an allocator
+        // parameter from an object allocator.  The canonical case is
+        //..
+        //  struct X {
+        //      bslma::Allocator *allocator() const;
+        //      X& operator=(const X& o) {
+        //          X(o, allocator()).swap(*this);
+        //          return *this;
+        //      }
+        //  };
+        //..
+        // which can run out of memory when the object allocator does not free
+        // memory (as in sequential allocators).
+
+    template <typename Iter>
     void check_alloc_returns(Iter begin, Iter end);
         // Check that the return statements in the specified half-open range
         // '[ begin .. end )' do not return items that take allocators.
@@ -755,6 +777,7 @@ void report::operator()()
 
     check_not_forwarded(d.ctors_.begin(), d.ctors_.end());
     check_wrong_parm(d.cexprs_.begin(), d.cexprs_.end());
+    check_uses_allocator(d.cexprs_.begin(), d.cexprs_.end());
     check_alloc_returns(d.returns_.begin(), d.returns_.end());
     check_globals_use_allocator(d.globals_.begin(), d.globals_.end());
 }
@@ -1139,6 +1162,94 @@ void report::check_wrong_parm(const CXXConstructExpr *expr)
 
             break;  // Done.
         }
+    }
+}
+
+template <typename Iter>
+void report::check_uses_allocator(Iter begin, Iter end)
+{
+    while (begin != end) {
+        check_uses_allocator(*begin++);
+    }
+}
+
+void report::check_uses_allocator(const CXXConstructExpr *expr)
+{
+    unsigned n = expr->getNumArgs();
+
+    if (n == 0) {
+        return;
+    }
+
+    const CXXConstructorDecl *decl = expr->getConstructor();
+
+    if (decl->getNumParams() != n ||
+        !is_allocator(decl->getParamDecl(n - 1)->getType())) {
+        return;
+    }
+
+    const Expr *arg = expr->getArg(n - 1);
+
+    if (arg->isDefaultArgument()) {
+        return;
+    }
+
+    // Descend into the expression, looking for a conversion from an allocator.
+    // We use a loop because elements of the descent can repeat.
+    for (;;) {
+        arg = arg->IgnoreImpCasts();
+        if (const MaterializeTemporaryExpr *mte =
+                llvm::dyn_cast<MaterializeTemporaryExpr>(arg)) {
+            arg = mte->GetTemporaryExpr();
+            continue;
+        }
+
+        if (const CXXBindTemporaryExpr *bte =
+                llvm::dyn_cast<CXXBindTemporaryExpr>(arg)) {
+            arg = bte->getSubExpr();
+            continue;
+        }
+
+        if (const CXXConstructExpr *ce =
+                llvm::dyn_cast<CXXConstructExpr>(arg)) {
+            unsigned i;
+            for (i = ce->getNumArgs(); i > 0; --i) {
+                const Expr* carg = ce->getArg(i - 1);
+                if (!carg->isDefaultArgument()) {
+                    // Get the rightmost non-defaulted argument expression.
+                    arg = carg->IgnoreImpCasts();
+                    break;
+                }
+            }
+
+            if (i > 0) {
+                continue;
+            }
+        }
+
+        // At this point, we should have stripped off all the outer layers of
+        // the argument expression which are performing the conversion to the
+        // parameter type, and have the inner expression with its actual type.
+        // If that type is bslma::Allocator* (specifically, to eliminate cases
+        // such as passing &testAllocator), report the use if it is not a
+        // parameter or a null pointer.
+
+        if (is_allocator(arg->getType(), false)) {
+            if (auto dre = llvm::dyn_cast<DeclRefExpr>(arg)) {
+                if (llvm::dyn_cast<ParmVarDecl>(dre->getDecl())) {
+                    break;
+                }
+            }
+            if (arg->IgnoreCasts()->isNullPointerConstant(
+                    *a.context(), arg->NPC_ValueDependentIsNotNull)) {
+                break;
+            }
+            a.report(arg->getExprLoc(), check_name, "AU01",
+                     "Verify whether allocator use is appropriate")
+                << arg->getSourceRange();
+        }
+
+        break;  // Done.
     }
 }
 

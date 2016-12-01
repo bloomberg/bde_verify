@@ -237,6 +237,11 @@ for additional checks.
      A class trait declaration does not mention its class name.
    * ``RV01``
      Function should return by value rather than through pointer parameter.
+   * ``AU01``
+     An allocator argument needs to be manually checked for appropriateness.
+     This is intended to catch assignment idioms like
+     ``MyClass(other, this->allocator()).swap(*this)`` that can exhaust
+     sequential allocators (but are sometimes necessary).
 
 .. only:: bde_verify or bb_cppverify
 
