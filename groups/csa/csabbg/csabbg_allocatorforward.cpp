@@ -1232,16 +1232,23 @@ void report::check_uses_allocator(const CXXConstructExpr *expr)
         // parameter type, and have the inner expression with its actual type.
         // If that type is bslma::Allocator* (specifically, to eliminate cases
         // such as passing &testAllocator), report the use if it is not a
-        // parameter or a null pointer.
+        // parameter, a null pointer, or a call to a non-member function.
 
         if (is_allocator(arg->getType(), false)) {
             if (auto dre = llvm::dyn_cast<DeclRefExpr>(arg)) {
                 if (llvm::dyn_cast<ParmVarDecl>(dre->getDecl())) {
+                    // E.g., X x(basicAllocator);
                     break;
                 }
             }
             if (arg->IgnoreCasts()->isNullPointerConstant(
                     *a.context(), arg->NPC_ValueDependentIsNotNull)) {
+                // E.g., X x((bslma::Allocator *)0);
+                break;
+            }
+            if (llvm::dyn_cast<CallExpr>(arg) &&
+                !llvm::dyn_cast<CXXMemberCallExpr>(arg)) {
+                // E.g., X x(bslma::Default::allocator());
                 break;
             }
             a.report(arg->getExprLoc(), check_name, "AU01",
