@@ -213,8 +213,7 @@ push(@incs, (
     "$bb/opt/bb/include/00offlonly",
     "/bb/build/share/stp/include/00offlonly",
     "/bbsrc/thirdparty/bbit/include",
-    "$bb/dpkgroot/opt/bb/include",
-    "$bb/dpkgroot/opt/bb/include/stlport",
+    "$bb/opt/bb/include/stlport",
 )) if $bb and $definc;
 @incs = map { ( "-I", $_ ) }
         map { $_ eq Cwd::cwd() ? "." : $_ }
@@ -225,9 +224,14 @@ my @pass;
 push(@pass, "-m32") if $m32;
 push(@pass, "-m64") if $m64;
 
+# Get the compiler include paths.  Skip the directory containing stddef.h
+# (unless it's /usr/include) because we want to use the resource directory
+# associated with the bde_verify installation instead; that directory has
+# intrinsics definitions that are right for clang but not gcc.
 unshift(@incs, xclang(
         map { ( "-isystem", $_ ) }
         map { Cwd::abs_path($_) }
+        grep { $_ eq "/usr/include" or ! -f "$_/stddef.h" }
         grep { -d }
         map { chomp; $_; }
         qx{ $cc -xc++ @pass -E -v /dev/null 2>&1 |
