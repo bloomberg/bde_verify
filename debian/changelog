@@ -1,3 +1,13 @@
+bde-verify (1.2.10) unstable; urgency=low
+
+  * b18cb33 Include path changes for resource directory.
+  * 0bc38a2 Don't AU01 on global calls.
+  * ebe6050 Add AU01 check.
+  * cc817b4 Add check for possible inappropriate allocator use.
+  * 1c2b6ff Use llvm/clang 3.8
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Wed, 7 Dec 2016 15:43:02 -0500
+
 bde-verify (1.2.9) unstable; urgency=low
 
   * 4f67673 Fix new single-quote error in spell-check.
