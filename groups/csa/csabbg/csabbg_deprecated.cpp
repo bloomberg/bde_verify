@@ -69,7 +69,7 @@ struct data
     typedef std::vector<std::pair<const CXXRecordDecl*, SourceRange>> RecDecls;
     RecDecls d_recdecls;  // CXXRecordDecl, comment
 
-    typedef std::map<Location, const FunctionDecl*> Calls;
+    typedef std::multimap<Location, const FunctionDecl*> Calls;
     Calls d_calls;
 };
 
@@ -134,7 +134,8 @@ void report::operator()(const CallExpr *call)
         func = func->getCanonicalDecl();
         if (!a.is_test_driver() ||
             !a.is_component_header(func->getLocStart())) {
-            d.d_calls[Location(m, call->getExprLoc())] = func;
+            d.d_calls.insert(
+                std::make_pair(Location(m, call->getExprLoc()), func));
         }
     }
 }
