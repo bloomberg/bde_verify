@@ -98,9 +98,6 @@ csabbg_testdriver.t.cpp:24:1: warning: TP26: Tested classes have a function name
 csabbg_testdriver.t.cpp:24:1: warning: TP26: Tested classes have a function named 'H' but the test plan has none
 csabbg_testdriver.t.cpp:24:1: warning: TP26: Tested classes have 2 functions named 'joe' but the test plan has none
 csabbg_testdriver.t.cpp:24:1: warning: TP26: Tested classes have a function named '~joe' but the test plan has none
-csabbg_testdriver.t.cpp:274:38: warning: TP23: Final statement of `main()` must be `return testStatus;`
-    return testStatus ? testStatus : 0;
-                                     ^
 csabbg_testdriver.t.cpp:272:7: warning: TP24: `default:` case should set `testStatus = -1;`
       }
       ^
@@ -243,4 +240,4 @@ csabbg_testdriver.t.cpp:120:9: warning: TP08: Test plan does not have case numbe
 csabbg_testdriver.t.cpp:30:6: note: TP08: Test plan item is
 // [  ] USAGE EXAMPLE
      ^
-62 warnings generated.
+61 warnings generated.
