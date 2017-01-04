@@ -344,7 +344,7 @@ internal::DynTypedMatcher no_print_matcher()
 internal::DynTypedMatcher return_status_matcher()
     // Return an AST matcher which looks for a 'return testStatus;' statement.
 {
-    return returnStmt(returnExpr(ignoringParenImpCasts(declRefExpr(
+    return returnStmt(returnExpr(hasDescendant(declRefExpr(
                           hasDeclaration(namedDecl(hasName("testStatus")))))))
         .bind("good");
 }
@@ -358,6 +358,13 @@ internal::DynTypedMatcher set_status_matcher()
     // Return an AST matcher which looks for 'testStatus = -1;'.
 {
     return defaultStmt(anyOf(
+        defaultStmt(hasDescendant(cxxOperatorCallExpr(
+                        hasOverloadedOperatorName("="),
+                        hasArgument(0, declRefExpr(
+                            hasDeclaration(namedDecl(hasName("testStatus"))))),
+                        hasArgument(1, unaryOperator(hasOperatorName("-"),
+                                             hasUnaryOperand(integerLiteral(
+                                                 equals(1)))))))).bind("good"),
         defaultStmt(hasDescendant(binaryOperator(
                         hasOperatorName("="),
                         hasLHS(declRefExpr(
