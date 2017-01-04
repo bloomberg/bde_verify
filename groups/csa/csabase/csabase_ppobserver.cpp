@@ -311,7 +311,7 @@ static llvm::Regex comment_bdeverify(
     ")",
     llvm::Regex::NoFlags);
 
-static void handle_bv_pragma(const SourceManager&  m,
+static bool handle_bv_pragma(const SourceManager&  m,
                              Config               *c,
                              SourceLocation        l,
                              llvm::Regex&          r)
@@ -343,25 +343,28 @@ static void handle_bv_pragma(const SourceManager&  m,
             std::string sp = old.size() > 0 ? " " : "";
             c->set_bv_value(l, matches[15], matches[16].str() + old + sp);
         }
+        return true;                                                  // RETURN
     }
+    return false;
 }
 
 void csabase::PPObserver::do_comment(SourceRange range)
 {
     Debug d("do_comment");
 
-    handle_bv_pragma(
-        *source_manager_, config_, range.getBegin(), comment_bdeverify);
-
-    onComment(range);
+    if (!handle_bv_pragma(
+            *source_manager_, config_, range.getBegin(), comment_bdeverify)) {
+        onComment(range);
+    }
 }
 
 void csabase::PPObserver::PragmaDirective(SourceLocation location,
                                           PragmaIntroducerKind introducer)
 {
-    handle_bv_pragma(*source_manager_, config_, location, pragma_bdeverify);
-
-    onPPPragmaDirective(location, introducer);
+    if (!handle_bv_pragma(
+            *source_manager_, config_, location, pragma_bdeverify)) {
+        onPPPragmaDirective(location, introducer);
+    }
 }
 
 void csabase::PPObserver::PragmaComment(SourceLocation location,
