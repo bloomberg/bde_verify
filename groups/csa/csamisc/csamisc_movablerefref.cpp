@@ -81,11 +81,11 @@ void report::match_ref_to_movableref(const BoundNodes &nodes)
     auto type = nodes.getNodeAs<Type>("pt")->getUnqualifiedDesugaredType();
     auto rec = type->getAsCXXRecordDecl();
     if (!rec) {
-        auto tst = type->getAs<TemplateSpecializationType>();
-        if (tst) {
-            auto td = tst->getTemplateName().getAsTemplateDecl();
-            if (td) {
-                rec = llvm::dyn_cast<CXXRecordDecl>(td->getTemplatedDecl());
+        if (auto tst = type->getAs<TemplateSpecializationType>()) {
+            if (auto td = tst->getTemplateName().getAsTemplateDecl()) {
+                if (auto tdd = td->getTemplatedDecl()) {
+                    rec = llvm::dyn_cast<CXXRecordDecl>(tdd);
+                }
             }
         }
     }
