@@ -449,9 +449,8 @@ void files::check_wrapped(SourceRange range)
             if (sp > 0 &&
                 text[sp - 1] != '.' &&
                 sp + 2 < text.size() && 
-                text[sp + 2] != ' ' &&
-                text[sp + 2] != '\r' &&
-                text[sp + 2] != '\n' &&
+                !std::isspace(text[sp + 2] & 0xFF) &&
+                !std::islower(text[sp + 2] & 0xFF) &&
                 !(text.slice(0, sp).count('\'') & 1)) {
                 d_analyser.report(
                     range.getBegin().getLocWithOffset(matchpos + sp),
