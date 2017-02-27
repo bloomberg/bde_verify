@@ -1,3 +1,15 @@
+bde-verify (1.2.11) unstable; urgency=low
+
+  * 416c96c Fix building on RHEL/DTS4 et al.
+  * b88b748 Two spaces after period or followed by lower case.
+  * 82d0ef0 Fix crash in ref-to-movableref check.
+  * 1e5d6c1 Loosened restriction on return testStatus eliminated one warning.
+  * dfa4026 Allow testStatus to be of class type.
+  * dac6217 Skip normal handling of bde_verify's own pragmas
+  * c3d6cfe Use multimap for holding possibly-deprecated calls.
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Mon, 27 Feb 2017 15:28:38 -0500
+
 bde-verify (1.2.10) unstable; urgency=low
 
   * b18cb33 Include path changes for resource directory.
