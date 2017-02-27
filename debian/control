@@ -12,13 +12,14 @@ Build-Depends: build-base,
                libncurses5-dev,
                libtinfo5,
                libz-dev,
+               rhel-dts-debhelper [amd64],
                which
 Standards-Version: 3.8.4
 
 Package: bde-verify
 Architecture: amd64 solaris10-sparc
 Description: bde_verify
-Depends: coreutils, gcc, perl
+Depends: coreutils, gcc, perl, aspell
 
 Package: libbde-verify-dev
 Depends: llvm-3.8

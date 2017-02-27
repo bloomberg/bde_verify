@@ -38,6 +38,12 @@ CXXFLAGS   += -Wall -Wno-unused-local-typedefs
 CXXFLAGS   += -DSPELL_CHECK=1
 INCFLAGS   += -I$(PREFIX)/include -I/opt/swt/include
 
+LIBDIRS    ?= ${shell \
+      $(GCCDIR)/bin/g++ -xc++ $(CXXFLAGS) -\#\#\# /dev/null 2>&1 | \
+      tr ' ' '\n' | \
+      sed -n 's/"//g;/^-L/s/-L//p' \
+      }
+
 # Set up locations and flags for the compiler that will build bde_verify.
 ifeq ($(notdir $(CXX)),clang++)
     CXXFLAGS   += --gcc-toolchain=$(GCCDIR) -Wno-mismatched-tags
@@ -45,25 +51,25 @@ endif
 
 ifeq ($(SYSTEM),Linux)
     AR          = /usr/bin/ar
-    LIBDIRS     = $(GCCDIR)/lib64                                             \
-                  $(LLVMDIR)/lib64                                            \
+    LIBDIRS    += $(LLVMDIR)/lib64                                            \
                   $(PREFIX)/lib64                                             \
                   /opt/swt/lib64                                              \
                   /usr/lib64
     LDFLAGS    += -Wl,--enable-new-dtags
-    LDFLAGS    += $(foreach L,$(LIBDIRS),-Wl,-L$(L),-rpath,$(L))
+    LDFLAGS    += $(foreach L,$(LIBDIRS),                                     \
+                    -Wl,-L,$(abspath $(L)),-rpath,$(abspath $(L)))
     ifneq (,$(wildcard $(foreach L,$(LIBDIRS),$(L)/libtinfo.so)))
         EXTRALIBS += -ltinfo
     endif
 else ifeq ($(SYSTEM),SunOS)
     AR          = /usr/ccs/bin/ar
     CXXFLAGS   += -DBYTE_ORDER=BIG_ENDIAN
-    LIBDIRS     = $(GCCDIR)/lib/sparcv9                                       \
-                  $(LLVMDIR)/lib64                                            \
+    LIBDIRS    += $(LLVMDIR)/lib64                                            \
                   $(PREFIX)/lib64                                             \
                   /opt/swt/lib64                                              \
                   /usr/lib/sparcv9
-    LDFLAGS    += $(foreach L,$(LIBDIRS),-Wl,-L$(L),-R,$(L))
+    LDFLAGS    += $(foreach L,$(LIBDIRS),                                     \
+                    -Wl,-L,$(abspath $(L)),-rpath,$(abspath $(L)))
     EXTRALIBS  += -lrt
     ifneq (,$(wildcard $(foreach L,$(LIBDIRS),$(L)/libtinfo.so)))
         EXTRALIBS += -ltinfo
@@ -228,6 +234,7 @@ LIBS     =    -l$(LCB)                                                        \
               -lpthread                                                       \
               -ldl                                                            \
               -lz                                                             \
+              -lstdc++                                                        \
               -laspell                                                        \
               $(EXTRALIBS)
 
