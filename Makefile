@@ -56,6 +56,7 @@ ifeq ($(SYSTEM),Linux)
                   /opt/swt/lib64                                              \
                   /usr/lib64
     LDFLAGS    += -Wl,--enable-new-dtags
+    LDFLAGS    += -Wl,-rpath,'$$ORIGIN/../lib64'
     LDFLAGS    += $(foreach L,$(LIBDIRS),                                     \
                     -Wl,-L,$(abspath $(L)),-rpath,$(abspath $(L)))
     ifneq (,$(wildcard $(foreach L,$(LIBDIRS),$(L)/libtinfo.so)))
@@ -68,6 +69,7 @@ else ifeq ($(SYSTEM),SunOS)
                   $(PREFIX)/lib64                                             \
                   /opt/swt/lib64                                              \
                   /usr/lib/sparcv9
+    LDFLAGS    += -Wl,-rpath,$$ORIGIN/../lib64
     LDFLAGS    += $(foreach L,$(LIBDIRS),                                     \
                     -Wl,-L,$(abspath $(L)),-rpath,$(abspath $(L)))
     EXTRALIBS  += -lrt

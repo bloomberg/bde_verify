@@ -19,7 +19,7 @@ Standards-Version: 3.8.4
 Package: bde-verify
 Architecture: amd64 solaris10-sparc
 Description: bde_verify
-Depends: coreutils, gcc, perl, aspell
+Depends: coreutils, gcc, perl, aspell, aspell-en
 
 Package: libbde-verify-dev
 Depends: llvm-3.8
