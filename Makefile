@@ -56,7 +56,7 @@ ifeq ($(SYSTEM),Linux)
                   /opt/swt/lib64                                              \
                   /usr/lib64
     LDFLAGS    += -Wl,--enable-new-dtags
-    LDFLAGS    += -Wl,-rpath,'$$ORIGIN/../lib64'
+    LDFLAGS    += -Wl,-rpath,'$$ORIGIN/../../lib64'
     LDFLAGS    += $(foreach L,$(LIBDIRS),                                     \
                     -Wl,-L,$(abspath $(L)),-rpath,$(abspath $(L)))
     ifneq (,$(wildcard $(foreach L,$(LIBDIRS),$(L)/libtinfo.so)))
