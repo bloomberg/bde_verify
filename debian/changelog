@@ -1,3 +1,9 @@
+bde-verify (1.2.13) unstable; urgency=low
+
+  * 92678b7 Fix $ORIGIN path
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Tue, 28 Feb 2017 17:27:01 -0500
+
 bde-verify (1.2.12) unstable; urgency=low
 
   * f3ca811 Rpath with $ORIGIN, depend on aspell-en.
