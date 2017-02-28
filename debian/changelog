@@ -1,3 +1,9 @@
+bde-verify (1.2.12) unstable; urgency=low
+
+  * f3ca811 Rpath with $ORIGIN, depend on aspell-en.
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Tue, 28 Feb 2017 16:57:46 -0500
+
 bde-verify (1.2.11) unstable; urgency=low
 
   * 416c96c Fix building on RHEL/DTS4 et al.
