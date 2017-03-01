@@ -156,7 +156,11 @@ check_order(Analyser*                       analyser,
     }
     std::string ident = analyser->config()->value("ident_header");
     if (!ident.size()) {
-        ident = analyser->group() == "bsl" || analyser->group() == "bdl"
+        ident = analyser->group() == "bal" ||
+                analyser->group() == "bbl" ||
+                analyser->group() == "bdl" ||
+                analyser->group() == "bsl" ||
+                analyser->group() == "btl"
                     ? "bsls_ident"
                     : "bdes_ident";
     }
