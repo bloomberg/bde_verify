@@ -38,7 +38,7 @@ CXXFLAGS   += -Wall -Wno-unused-local-typedefs
 CXXFLAGS   += -DSPELL_CHECK=1
 INCFLAGS   += -I$(PREFIX)/include -I/opt/swt/include
 
-LIBDIRS    ?= ${shell \
+GCCLIBDIRS = ${shell \
       $(GCCDIR)/bin/g++ -xc++ $(CXXFLAGS) -\#\#\# /dev/null 2>&1 | \
       tr ' ' '\n' | \
       sed -n 's/"//g;/^-L/s/-L//p' \
@@ -51,10 +51,10 @@ endif
 
 ifeq ($(SYSTEM),Linux)
     AR          = /usr/bin/ar
-    LIBDIRS    += $(LLVMDIR)/lib64                                            \
+    LIBDIRS     = $(LLVMDIR)/lib64                                            \
                   $(PREFIX)/lib64                                             \
                   /opt/swt/lib64                                              \
-                  /usr/lib64
+                  $(GCCLIBDIRS)
     LDFLAGS    += -Wl,--enable-new-dtags
     LDFLAGS    += -Wl,-rpath,'$$ORIGIN/../../lib64'
     LDFLAGS    += $(foreach L,$(LIBDIRS),                                     \
@@ -65,10 +65,10 @@ ifeq ($(SYSTEM),Linux)
 else ifeq ($(SYSTEM),SunOS)
     AR          = /usr/ccs/bin/ar
     CXXFLAGS   += -DBYTE_ORDER=BIG_ENDIAN
-    LIBDIRS    += $(LLVMDIR)/lib64                                            \
+    LIBDIRS     = $(LLVMDIR)/lib64                                            \
                   $(PREFIX)/lib64                                             \
                   /opt/swt/lib64                                              \
-                  /usr/lib/sparcv9
+                  $(GCCLIBDIRS)
     LDFLAGS    += -Wl,-rpath,$$ORIGIN/../lib64
     LDFLAGS    += $(foreach L,$(LIBDIRS),                                     \
                     -Wl,-L,$(abspath $(L)),-rpath,$(abspath $(L)))
