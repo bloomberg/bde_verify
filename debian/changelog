@@ -1,3 +1,10 @@
+bde-verify (1.2.14) unstable; urgency=low
+
+  * 8b2dcbf Put /opt/bb/lib64 in rpath before the gcc dirs, to get dpkg libs first.
+  * 7292a7a More groups for bsls_ident vs. bdes_ident.
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Fri, 3 Mar 2017 12:22:04 -0500
+
 bde-verify (1.2.13) unstable; urgency=low
 
   * 92678b7 Fix $ORIGIN path
