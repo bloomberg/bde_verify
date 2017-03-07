@@ -38,10 +38,18 @@ CXXFLAGS   += -Wall -Wno-unused-local-typedefs
 CXXFLAGS   += -DSPELL_CHECK=1
 INCFLAGS   += -I$(PREFIX)/include -I/opt/swt/include
 
-GCCLIBDIRS = ${shell \
+GCCLOCALLIBDIRS = ${shell \
       $(GCCDIR)/bin/g++ -xc++ $(CXXFLAGS) -\#\#\# /dev/null 2>&1 | \
       tr ' ' '\n' | \
-      sed -n 's/"//g;/^-L/s/-L//p' \
+      sed -n 's/"//g;/^-L/s/-L//p' | \
+      fgrep $(GCCDIR) \
+      }
+
+GCCOTHERLIBDIRS = ${shell \
+      $(GCCDIR)/bin/g++ -xc++ $(CXXFLAGS) -\#\#\# /dev/null 2>&1 | \
+      tr ' ' '\n' | \
+      sed -n 's/"//g;/^-L/s/-L//p' | \
+      fgrep -v $(GCCDIR) \
       }
 
 # Set up locations and flags for the compiler that will build bde_verify.
@@ -51,10 +59,11 @@ endif
 
 ifeq ($(SYSTEM),Linux)
     AR          = /usr/bin/ar
-    LIBDIRS     = $(LLVMDIR)/lib64                                            \
+    LIBDIRS     = $(GCCLOCALLIBDIRS)                                          \
+                  $(LLVMDIR)/lib64                                            \
                   $(PREFIX)/lib64                                             \
-                  /opt/swt/lib64                                              \
-                  $(GCCLIBDIRS)
+                  $(GCCOTHERLIBDIRS)                                          \
+                  /opt/swt/lib64
     LDFLAGS    += -Wl,--enable-new-dtags
     LDFLAGS    += -Wl,-rpath,'$$ORIGIN/../../lib64'
     LDFLAGS    += $(foreach L,$(LIBDIRS),                                     \
@@ -65,11 +74,12 @@ ifeq ($(SYSTEM),Linux)
 else ifeq ($(SYSTEM),SunOS)
     AR          = /usr/ccs/bin/ar
     CXXFLAGS   += -DBYTE_ORDER=BIG_ENDIAN
-    LIBDIRS     = $(LLVMDIR)/lib64                                            \
+    LIBDIRS     = $(GCCLOCALLIBDIRS)                                          \
+                  $(LLVMDIR)/lib64                                            \
                   $(PREFIX)/lib64                                             \
-                  /opt/swt/lib64                                              \
-                  $(GCCLIBDIRS)
-    LDFLAGS    += -Wl,-rpath,$$ORIGIN/../lib64
+                  $(GCCOTHERLIBDIRS)                                          \
+                  /opt/swt/lib64
+    LDFLAGS    += -Wl,-rpath,$$ORIGIN/../../lib64
     LDFLAGS    += $(foreach L,$(LIBDIRS),                                     \
                     -Wl,-L,$(abspath $(L)),-rpath,$(abspath $(L)))
     EXTRALIBS  += -lrt
