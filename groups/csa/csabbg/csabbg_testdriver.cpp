@@ -110,8 +110,8 @@ struct data
     typedef std::map<size_t /* line */, size_t /* index */> CommentsOfLines;
     CommentsOfLines d_comments_of_lines;
 
-    typedef std::map<const FunctionDecl*, SourceRange> FunDecls;
-    FunDecls d_fundecls;  // FunDecl, comment
+    typedef std::set<const FunctionDecl*> FunDecls;
+    FunDecls d_fundecls;  // Ffunction declarations.
 
     typedef std::multimap<long long, std::string> TestsOfCases;
     TestsOfCases d_tests_of_cases;  // Map functions to test numbers.
@@ -158,6 +158,9 @@ struct report : Report<data>
 
     void operator()(const FunctionDecl *function);
         // Callback for the specified 'function'.
+
+    void operator()(const Expr *expr);
+        // Callback for the specified 'expr'.
 
     void operator()(SourceLocation loc, SourceRange);
         // Callback for '#if' and '#elif' at the specified 'loc'.
@@ -466,14 +469,22 @@ void report::get_function_names()
             DeclContext::decl_iterator e = record->decls_end();
             for (; b != e; ++b) {
                 if (auto t = llvm::dyn_cast<FunctionTemplateDecl>(*b)) {
-                    if (llvm::dyn_cast<CXXMethodDecl>(t->getTemplatedDecl())
-                            ->getAccess() != AS_public) {
+                    auto td = t->getTemplatedDecl();
+                    if (llvm::dyn_cast<CXXMethodDecl>(td)->getAccess() !=
+                        AS_public) {
                         continue;
                     }
                     note_function(t->getNameAsString());
-                    auto sb = t->spec_begin();
-                    auto se = t->spec_end();
-                    if (sb == se) {
+                    bool specialized = t->spec_begin() != t->spec_end();
+                    for (auto *func : d.d_fundecls) {
+                        if (specialized) {
+                            break;
+                        }
+                        if (func->getTemplateInstantiationPattern() == td) {
+                            specialized = true;
+                        }
+                    }
+                    if (!specialized) {
                         a.report(t, check_name, "TP27",
                                  "Method not called in test driver");
                     }
@@ -897,8 +908,18 @@ void report::operator()(SourceRange range)
 
 void report::operator()(const FunctionDecl *function)
 {
+    ERRS(); function->dump(); ERNL();
     if (function->isMain() && function->hasBody()) {
         d.d_main = llvm::dyn_cast<CompoundStmt>(function->getBody());
+    }
+    d.d_fundecls.insert(function);
+}
+
+void report::operator()(const Expr *expr)
+{
+    if (m.getFileID(m.getExpansionLoc(expr->getExprLoc())) ==
+        m.getMainFileID()) {
+        ERRS(); expr->dump(); ERNL();
     }
 }
 
@@ -1341,6 +1362,7 @@ void subscribe(Analyser& analyser, Visitor& visitor, PPObserver& observer)
 {
     analyser.onTranslationUnitDone += report(analyser);
     visitor.onFunctionDecl += report(analyser);
+    visitor.onExpr += report(analyser);
     observer.onComment += report(analyser);
     observer.onIf += report(analyser);
     observer.onElif += report(analyser);

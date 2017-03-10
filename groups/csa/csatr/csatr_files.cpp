@@ -7,6 +7,7 @@
 #include <csabase_ppobserver.h>
 #include <csabase_registercheck.h>
 #include <llvm/ADT/StringRef.h>
+#include <llvm/Support/Path.h>
 #include <sys/stat.h>
 #include <utils/event.hpp>
 #include <utils/function.hpp>
@@ -41,14 +42,18 @@ namespace
                 std::string component = fn.component().str();
                 std::string prefix = fn.directory().str() + component;
                 std::string pkg_prefix = fn.pkgdir().str() + component;
+                std::string test_prefix =
+                    fn.directory().str() + "test" +
+                    llvm::sys::path::get_separator().str() + component;
                 if (stat((    prefix + ".h").c_str(), &buffer) &&
                     stat((pkg_prefix + ".h").c_str(), &buffer)) {
                     d_analyser.report(where, check_name, "FI01",
                             "Header file '%0.h' not accessible", true)
                         << component;
                 }
-                if (stat((    prefix + ".t.cpp").c_str(), &buffer) &&
-                    stat((pkg_prefix + ".t.cpp").c_str(), &buffer)) {
+                if (stat((     prefix + ".t.cpp").c_str(), &buffer) &&
+                    stat(( pkg_prefix + ".t.cpp").c_str(), &buffer) &&
+                    stat((test_prefix + ".t.cpp").c_str(), &buffer)) {
                     d_analyser.report(where, check_name, "FI02",
                             "Test file '%0.t.cpp' not accessible", true)
                         << component;
