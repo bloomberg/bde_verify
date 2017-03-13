@@ -111,7 +111,10 @@ struct data
     CommentsOfLines d_comments_of_lines;
 
     typedef std::set<const FunctionDecl*> FunDecls;
-    FunDecls d_fundecls;  // Ffunction declarations.
+    FunDecls d_fundecls;  // Function declarations.
+
+    typedef std::set<const FunctionDecl*> CallDecls;
+    CallDecls d_calldecls;  // Called declarations.
 
     typedef std::multimap<long long, std::string> TestsOfCases;
     TestsOfCases d_tests_of_cases;  // Map functions to test numbers.
@@ -475,16 +478,15 @@ void report::get_function_names()
                         continue;
                     }
                     note_function(t->getNameAsString());
-                    bool specialized = t->spec_begin() != t->spec_end();
-                    for (auto *func : d.d_fundecls) {
-                        if (specialized) {
+                    bool called = false;
+                    for (auto func : d.d_calldecls) {
+                        if (func == td ||
+                            func->getTemplateInstantiationPattern() == td) {
+                            called = true;
                             break;
                         }
-                        if (func->getTemplateInstantiationPattern() == td) {
-                            specialized = true;
-                        }
                     }
-                    if (!specialized) {
+                    if (!called) {
                         a.report(t, check_name, "TP27",
                                  "Method not called in test driver");
                     }
@@ -908,7 +910,6 @@ void report::operator()(SourceRange range)
 
 void report::operator()(const FunctionDecl *function)
 {
-    ERRS(); function->dump(); ERNL();
     if (function->isMain() && function->hasBody()) {
         d.d_main = llvm::dyn_cast<CompoundStmt>(function->getBody());
     }
@@ -919,7 +920,21 @@ void report::operator()(const Expr *expr)
 {
     if (m.getFileID(m.getExpansionLoc(expr->getExprLoc())) ==
         m.getMainFileID()) {
-        ERRS(); expr->dump(); ERNL();
+        const Decl *callee = 0;
+        if (const CallExpr *call = llvm::dyn_cast<CallExpr>(expr)) {
+            callee = call->getCalleeDecl();
+        }
+        else if (const CXXConstructExpr *ctor =
+                                     llvm::dyn_cast<CXXConstructExpr>(expr)) {
+            callee = ctor->getConstructor();
+        }
+        else if (const DeclRefExpr *dr = llvm::dyn_cast<DeclRefExpr>(expr)) {
+            callee = dr->getDecl();
+        }
+        auto func = callee ? llvm::dyn_cast<FunctionDecl>(callee) : 0;
+        if (func) {
+            d.d_calldecls.insert(func);
+        }
     }
 }
 

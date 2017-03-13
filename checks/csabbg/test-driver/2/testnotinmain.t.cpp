@@ -66,7 +66,7 @@ void aSsErT(bool condition, const char *message, int line)
 //@CLASSES:
 //    joe : just a class template
 //    moe : just a class
-
+//   N::F : class template with function templates
 namespace bde_verify
 {
     template <class T> struct joe {
@@ -82,7 +82,7 @@ namespace bde_verify
     };
 }
 
-#include <notinmain.h>
+#include <testnotinmain.h>
 
 //=============================================================================
 //                              MAIN PROGRAM
@@ -122,7 +122,6 @@ int main(int argc, char *argv[])
         if (verbose) cout << endl
                           << "CALLS OUTSIDE OF MAIN" << endl
                           << "=====================" << endl;
-
           joe<void> j;
           moe       m;
           j.f();
@@ -131,6 +130,7 @@ int main(int argc, char *argv[])
           m.i();
           call_j(m);
           call_k(m);
+          N::F<void()> f(N::g, m);
       } break;
     }
     return testStatus;

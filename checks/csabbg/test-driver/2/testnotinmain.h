@@ -1,5 +1,41 @@
-inline template <class T> void call_h(joe<T> &j) { j.h(); }
-inline                    void call_k(moe    &j) { j.k(); }
+template <class T> inline void call_h(joe<T>& j) { j.h(); }
+                   inline void call_k(moe&    j) { j.k(); }
+
+namespace N {
+struct G { };
+static const G g = {};
+
+template <class P>
+struct B {
+    template <class A> B(const A&);
+};
+
+template <class P>
+struct F : B<P> {
+    template <class A> F();
+    template <class A> F(const A&);
+    template <class A> F(G, const A&);
+    template <class A> void H() { }
+};
+}
+
+template <class P>
+template <class A>
+inline N::B<P>::B(const A&) { }
+
+template <class P>
+template <class A>
+inline N::F<P>::F(const A& a) : B<P>(a) { }
+
+template <class P>
+template <class A>
+inline N::F<P>::F(G, const A& a) : B<P>(a) { }
+
+inline void h()
+{
+    N::F<char> f(N::g, 3);
+    f.H<short>();
+}
 
 // ----------------------------------------------------------------------------
 // Copyright (C) 2014 Bloomberg Finance L.P.
