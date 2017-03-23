@@ -118,6 +118,32 @@ static llvm::Regex generic_separator(  // things that look like separators
 #undef SP
 #undef aba
 
+llvm::Regex display("^( *//[.][.])$", llvm::Regex::Newline);
+
+void get_displays(llvm::StringRef text,
+                  llvm::SmallVector<std::pair<size_t, size_t>, 7>* displays)
+{
+    llvm::SmallVector<llvm::StringRef, 7> matches;
+
+    size_t          offset = 0;
+    llvm::StringRef s;
+    int             n = 0;
+    displays->clear();
+    while (display.match(s = text.drop_front(offset), &matches)) {
+        llvm::StringRef           d        = matches[0];
+        std::pair<size_t, size_t> m        = mid_match(s, d);
+        size_t                    matchpos = offset + m.first;
+        offset                             = matchpos + d.size();
+
+        if (n++ & 1) {
+            displays->back().second = matchpos;
+        }
+        else {
+            displays->push_back(std::make_pair(matchpos, text.size()));
+        }
+    }
+}
+
 void files::check_comment(SourceRange comment_range)
 {
     if (!d_analyser.is_component(comment_range.getBegin())) {
@@ -128,14 +154,23 @@ void files::check_comment(SourceRange comment_range)
     llvm::SmallVector<llvm::StringRef, 8> matches;
 
     llvm::StringRef comment = d_analyser.get_source(comment_range, true);
+    llvm::SmallVector<std::pair<size_t, size_t>, 7> displays;
+    get_displays(comment, &displays);
 
     size_t offset = 0;
+    size_t dnum = 0;
     for (llvm::StringRef suffix = comment;
          generic_separator.match(suffix, &matches);
          suffix = comment.drop_front(offset)) {
         llvm::StringRef separator = matches[2];
         size_t separator_pos = offset + suffix.find(separator);
         offset = separator_pos + separator.size();
+        while (dnum < displays.size() && displays[dnum].second < separator_pos)
+            ++dnum;
+        if (dnum < displays.size() &&
+            displays[dnum].first <= separator_pos &&
+            separator_pos <= displays[dnum].second)
+            continue;
         SourceLocation separator_start =
             comment_range.getBegin().getLocWithOffset(separator_pos);
         if (manager.getPresumedColumnNumber(separator_start) == 1 &&
@@ -161,12 +196,19 @@ void files::check_comment(SourceRange comment_range)
     }
 
     offset = 0;
+    dnum = 0;
     for (llvm::StringRef suffix = comment; 
          generic_banner.match(suffix, &matches);
          suffix = comment.drop_front(offset)) {
         llvm::StringRef banner = matches[0];
         size_t banner_pos = offset + suffix.find(banner);
         offset = banner_pos + banner.rfind('\n');
+        while (dnum < displays.size() && displays[dnum].second < banner_pos)
+            ++dnum;
+        if (dnum < displays.size() &&
+            displays[dnum].first <= banner_pos &&
+            banner_pos <= displays[dnum].second)
+            continue;
         SourceLocation banner_start =
             comment_range.getBegin().getLocWithOffset(banner_pos);
         if (manager.getPresumedColumnNumber(banner_start) != 1) {
