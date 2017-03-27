@@ -37,9 +37,7 @@ static bool wrong_prefix(Analyser& analyser, const NamedDecl* named)
 
 // ----------------------------------------------------------------------------
 
-static void
-component_prefix(Analyser&  analyser,
-                 Decl const        *decl)
+static void component_prefix(Analyser& analyser, Decl const *decl)
 {
     const DeclContext *dc = decl->getDeclContext();
     if (dc->isClosure() || dc->isFunctionOrMethod() || dc->isRecord()) {
@@ -55,15 +53,24 @@ component_prefix(Analyser&  analyser,
         return;
     }
     NamedDecl const* named(llvm::dyn_cast<NamedDecl>(decl));
+    if (!named) {
+        return;
+    }
     if (FunctionTemplateDecl const* ftd =
             llvm::dyn_cast<FunctionTemplateDecl>(decl)) {
         fd = ftd->getTemplatedDecl();
     }
-    std::string const& name(named ? named->getNameAsString() : std::string());
-    if (   !name.empty()
-        && !analyser.is_global_package()
+    std::string const& name(named->getNameAsString());
+    NamedDecl const *member_check = named;
+    if (EnumDecl const *ed = llvm::dyn_cast<EnumDecl>(dc)) {
+        // Handle both scoped and unscoped enumerators.
+        member_check = ed;
+    }
+    if (member_check->isCXXClassMember()) {
+        return;
+    }
+    if (   !analyser.is_global_package()
         && !analyser.is_global_name(named)
-        && !named->isCXXClassMember()
         && (   named->hasLinkage()
             || (   llvm::dyn_cast<TypedefDecl>(named)
                 && name.find(analyser.package() + "_") != 0

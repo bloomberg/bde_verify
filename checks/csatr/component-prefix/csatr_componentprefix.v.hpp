@@ -142,6 +142,25 @@ bde_verify::csatr::swap(bde_verify::csatr::ComponentPrefixGoodClass&,
     extern int someVariable;
 }
 
+// ----------------------------------------------------------------------------
+
+namespace bde_verify
+{
+    namespace csatr
+    {
+        enum class BadEnumClass
+        {
+            badBadEnumClassTag
+        };
+    }
+
+    enum class ComponentPrefixGoodEnumClass
+    {
+        badGoodEnumClassTag,
+        componentPrefixGoodEnumClassTag
+    };
+}
+
 #endif
 
 // ----------------------------------------------------------------------------

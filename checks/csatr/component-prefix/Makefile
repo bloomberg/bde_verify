@@ -3,6 +3,7 @@ FILES := $(wildcard *.cpp)
 CHECKNAME := $(notdir $(realpath .))
 
 BDE_VERIFY_DIR ?= ../../..
+BDE_VERIFY_ARGS := -std=c++11
 include $(BDE_VERIFY_DIR)/checks/Makefile.inc
 
 ## ----------------------------------------------------------------------------
