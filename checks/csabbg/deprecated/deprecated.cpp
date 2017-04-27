@@ -1,28 +1,28 @@
-#include <deprecated.h>
-void f();
+#include <dep1.h>
+#include <dep2.h>
+void lf();
     // !DEPRECATED!:
-struct E {
+struct LE {
+    static void k();
+        // !DEPRECATED!:
+    static void l();
+};
+template <class PP>
+struct LF {
+    static void j();
+    static void k();
+        // !DEPRECATED!:
+    static void l();
+};
+struct LEE {
+        // !DEPRECATED!:
     static void j();
     static void k();
         // !DEPRECATED!:
     static void l();
 };
 template <class PP>
-struct F {
-    static void j();
-    static void k();
-        // !DEPRECATED!:
-    static void l();
-};
-struct EE {
-        // !DEPRECATED!:
-    static void j();
-    static void k();
-        // !DEPRECATED!:
-    static void l();
-};
-template <class PP>
-struct FF {
+struct LFF {
         // !DEPRECATED!:
     static void j();
     static void k();
@@ -57,6 +57,18 @@ void g() {
     FF<int>::j();
     FF<void>::k();
     FF<C>::l();
+    lf();
+    LE::k();
+    LE::l();
+    LF<int>::j();
+    LF<void>::k();
+    LF<C>::l();
+    LEE::j();
+    LEE::k();
+    LEE::l();
+    LFF<int>::j();
+    LFF<void>::k();
+    LFF<C>::l();
 }
 
 // ----------------------------------------------------------------------------

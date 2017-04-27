@@ -20,6 +20,7 @@ define CHECKARGS
     -Wno-string-plus-int                                                      \
     -std=c++11                                                                \
     -D_X86INTRIN_H_INCLUDED                                                   \
+    -D__USE_XOPEN2K8                                                          \
     -I $(BDE_VERIFY_DIR)/groups/csa/csadep                                    \
     -I $(BDE_VERIFY_DIR)/checks/include                                       \
     $(BDE_VERIFY_ARGS)

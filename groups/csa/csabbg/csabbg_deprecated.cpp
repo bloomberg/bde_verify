@@ -174,7 +174,7 @@ void report::operator()()
 
     for (auto& p : d.d_calls) {
         auto i = d.d_dep_funcs.find(p.second);
-        if (i != d.d_dep_funcs.end()) {
+        if (i != d.d_dep_funcs.end() && !a.is_component(i->second)) {
             a.report(p.first.location(), check_name, "DP01",
                      "Call to deprecated function");
             a.report(i->second, check_name, "DP01",
