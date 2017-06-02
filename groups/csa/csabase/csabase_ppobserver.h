@@ -102,11 +102,10 @@ public:
         e_Comment,
     };
 
-    void FileChanged(
-                  clang::SourceLocation             Loc,
-                  FileChangeReason                  Reason,
-                  clang::SrcMgr::CharacteristicKind FileType,
-                  clang::FileID                     PrevFID)
+    void FileChanged(clang::SourceLocation             Loc,
+                     FileChangeReason                  Reason,
+                     clang::SrcMgr::CharacteristicKind FileType,
+                     clang::FileID                     PrevFID)
     override;
 
     utils::event<decltype(&Base::FileChanged)> onPPFileChanged;
@@ -162,7 +161,7 @@ public:
 
     void PragmaComment(clang::SourceLocation         Loc,
                        const clang::IdentifierInfo  *Kind,
-                       const llvm::StringRef         Str)
+                       llvm::StringRef               Str)
     override;
 
     utils::event<decltype(&Base::PragmaComment)> onPPPragmaComment;
