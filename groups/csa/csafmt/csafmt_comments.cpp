@@ -18,6 +18,7 @@
 #include <stdlib.h>
 #include <utils/event.hpp>
 #include <utils/function.hpp>
+#include <cctype>
 #include <map>
 #include <set>
 #include <string>
