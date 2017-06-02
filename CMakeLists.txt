@@ -9,6 +9,7 @@ file(GLOB CLANG_RESOURCE_FILES "${CLANG_RESOURCE_DIR}/include/*.*")
 
 if(MSVC)
     add_definitions(
+        "/wd4141"
         "/wd4146"
         "/wd4244"
         "/wd4291"
