@@ -2,18 +2,20 @@ Prerequisites for building BDE Verify on Windows:
 1) Git Bash           <https://git-scm.com/download/win>
 2) CMake              <https://cmake.org/download>
 3) NSIS               <http://nsis.sourceforge.net/Download>
-4) Visual Studio 2013
+4) Visual Studio
 
 Prerequisites for running the command-line BDE Verify on Windows:
 1) Perl               <http://www.activestate.com/activeperl/downloads>
 
 Prepare a development installation of LLVM/Clang 3.8.
 (If you already have a copy of the LLVM-3.8-x-win32.exe installer, from a
-previous build, perhaps, you can us ethat instead of building a new one.)
+previous build, perhaps, you can use that instead of building a new one.)
 This build will require a great deal of disk space; also make sure that your
 TEMPDIR/TEMP/TMP environment variables point to a directory on a filesystem
 with plenty of space, lest building the installer fail with a mysterious
-message.
+message.  The installation will be built in "MinSizeRel" mode.  (You may try
+other modes, but the NSIS installer fails at around 2GB.  In particular, Debug
+mode is unlikely to work.)
 
 First, obtain the sources; in a Git Bash shell, do
 
@@ -39,7 +41,12 @@ Then build an installation package for llvm/clang;
     cmake --build . --target package --config MinSizeRel
 
 This will produce an executable LLVM-3.8.?-win32.exe.
-Run it to install the development LLVM/Clang.
+Run it to install the development LLVM/Clang.  When asked by the installer,
+have it update the path, either for all users or for the current user.  (The
+installer may report that the path is too long to do that.  If so, you can try
+to shorten the existing path and try again, or manually set the LLVM_DIR
+environmenat variable to the directory of the LLVM installation containing the
+LLVMConfig.cmake file.)
 
 Now get and build BDE Verify:
     export BVSRC=$SRC/bde_verify
@@ -57,13 +64,6 @@ Run it to install BDE Verify.  The driver script on Windows is bde_verify.pl,
 taking generally the same arguments as the Unix bde_verify driver script.  See
 <http://bloomberg.github.io/bde_verify/bde_verify_build/html/> for full
 documentation.
-
-(Note: This build process builds Debug versions of LLVM/Clang and BDE Verify.
-These may require non-redistributable Microsoft runtime DLLs to be present.
-Release versions can be built by using the solution files for LLVM/Clang and
-BDE Verify created by CMake.  For each one, open it in Visual Studio, set the
-build configuration to Release, build the PACKAGE solution, and run the
-installation executable that is built, as described above.)
 
 Then build the Visual Studio plugin:  From Visual Studio, open the solution
 $BVSRC/Windows/BDE_VERIFY_VS/BDE_VERIFY_VS.sln and build it, producing
