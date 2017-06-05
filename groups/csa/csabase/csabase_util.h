@@ -118,6 +118,21 @@ class OnMatch<UseLambda, &UseLambda::NotFunction> :
   private:
     std::function<void(const clang::ast_matchers::BoundNodes &)> function_;
 };
+
+class SortByLocation
+{
+    clang::SourceManager &m;
+
+public:
+    SortByLocation(clang::SourceManager &m) : m(m) { }
+
+    template <class T>
+    bool operator()(const T *a, const T *b)
+    {
+        return m.isBeforeInTranslationUnit(a->getLocStart(), b->getLocStart());
+    }
+};
+
 }
 
 #endif

@@ -1379,6 +1379,10 @@ void report::require_file(std::string     name,
 {
     SourceManager& m = d_analyser.manager();
 
+    if (symbol == "std" || symbol == "bsl") {
+        return;
+    }
+
     if (classify(name) == e_SPC) {
         return;
     }
@@ -1420,12 +1424,14 @@ void report::require_file(std::string     name,
                 << name
                 << symbol;
         }
+#if 0
         else if (symbol == "bsl") {
             d_data.d_once[fid][bsl_ns] = sl;
             d_analyser.report(sl, check_name, "IS01", "Need %0 for symbol %1")
                 << bsl_ns
                 << symbol;
         }
+#endif
     }
 }
 

@@ -779,7 +779,11 @@ void report::operator()()
     check_wrong_parm(d.cexprs_.begin(), d.cexprs_.end());
     check_uses_allocator(d.cexprs_.begin(), d.cexprs_.end());
     check_alloc_returns(d.returns_.begin(), d.returns_.end());
-    check_globals_use_allocator(d.globals_.begin(), d.globals_.end());
+
+    std::set<data::Globals::value_type, csabase::SortByLocation>
+        sorted_globals(
+             d.globals_.begin(), d.globals_.end(), csabase::SortByLocation(m));
+    check_globals_use_allocator(sorted_globals.begin(), sorted_globals.end());
 }
 
 void report::check_globals_use_allocator(data::Globals::const_iterator begin,

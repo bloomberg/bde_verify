@@ -1,4 +1,4 @@
-#include <dept.h>
+#include <dept_sep.h>
 template <class T> void f();
     // !DEPRECATED!:
 struct E {

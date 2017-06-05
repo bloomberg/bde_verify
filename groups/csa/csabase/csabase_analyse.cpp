@@ -141,10 +141,10 @@ struct CompareReplacements
             return false;
         }
         if (a.getLength() < b.getLength()) {
-            return true;
+            return false;
         }
         if (b.getLength() < a.getLength()) {
-            return false;
+            return true;
         }
         return b.getReplacementText() < a.getReplacementText();
     }
