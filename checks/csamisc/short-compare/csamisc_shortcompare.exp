@@ -1,0 +1,37 @@
+csamisc_shortcompare.cpp:23:12: warning: US01: Comparison between signed and unsigned short may cause unexpected behavior
+           ss() != us() ||
+           ^
+csamisc_shortcompare.cpp:28:12: warning: US01: Comparison between signed and unsigned short may cause unexpected behavior
+           ss() < us() ||
+           ^
+csamisc_shortcompare.cpp:31:12: warning: US01: Comparison between signed and unsigned short may cause unexpected behavior
+           ss() <= us() ||
+           ^
+csamisc_shortcompare.cpp:34:12: warning: US01: Comparison between signed and unsigned short may cause unexpected behavior
+           ss() == us() ||
+           ^
+csamisc_shortcompare.cpp:37:12: warning: US01: Comparison between signed and unsigned short may cause unexpected behavior
+           ss() > us() ||
+           ^
+csamisc_shortcompare.cpp:39:12: warning: US01: Comparison between signed and unsigned short may cause unexpected behavior
+           ss() >= us() ||
+           ^
+csamisc_shortcompare.cpp:42:12: warning: US01: Comparison between signed and unsigned short may cause unexpected behavior
+           us() != ss() ||
+           ^
+csamisc_shortcompare.cpp:46:12: warning: US01: Comparison between signed and unsigned short may cause unexpected behavior
+           us() < ss() ||
+           ^
+csamisc_shortcompare.cpp:49:12: warning: US01: Comparison between signed and unsigned short may cause unexpected behavior
+           us() <= ss() ||
+           ^
+csamisc_shortcompare.cpp:52:12: warning: US01: Comparison between signed and unsigned short may cause unexpected behavior
+           us() == ss() ||
+           ^
+csamisc_shortcompare.cpp:55:12: warning: US01: Comparison between signed and unsigned short may cause unexpected behavior
+           us() > ss() ||
+           ^
+csamisc_shortcompare.cpp:58:12: warning: US01: Comparison between signed and unsigned short may cause unexpected behavior
+           us() >= ss() ||
+           ^
+12 warnings generated.

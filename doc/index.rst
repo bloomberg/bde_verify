@@ -929,6 +929,18 @@ for additional checks.
    * ``AQa01``
      Global variable with runtime initialization.
 
+.. only:: bde_verify or bb_cppverify
+
+   ``short-compare``
+   ++++++++++++++++++++++++++
+   * ``US01``
+     Comparison between signed and unsigned short may cause unexpected
+     behavior.  Signed and unsigned shorts in expressions are both promoted
+     to integer, with sign-extension for signed short and zero-extension
+     for unsigned short.  Thus a signed short and an unsigned short with the
+     same bit values and the high bit set will convert to different integer
+     values.
+
 .. only:: bde_verify
 
    ``spell-check``

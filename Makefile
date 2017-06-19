@@ -146,6 +146,7 @@ CXXFILES =                                                                    \
         groups/csa/csamisc/csamisc_movablerefref.cpp                          \
         groups/csa/csamisc/csamisc_namespacetags.cpp                          \
         groups/csa/csamisc/csamisc_opvoidstar.cpp                             \
+        groups/csa/csamisc/csamisc_shortcompare.cpp                           \
         groups/csa/csamisc/csamisc_spellcheck.cpp                             \
         groups/csa/csamisc/csamisc_strictaliasing.cpp                         \
         groups/csa/csamisc/csamisc_stringadd.cpp                              \
