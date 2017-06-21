@@ -71,7 +71,7 @@ my $tag;
 my $ovr = -1;
 my $m32;
 my $m64;
-my $diff;
+my $diff = "";
 
 my $command = join " \\\n ", $0, map { join "\\ ", split(/ /, $_, -1) } @ARGV;
 
