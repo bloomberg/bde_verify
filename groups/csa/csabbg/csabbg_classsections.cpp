@@ -86,8 +86,8 @@ struct TagInfo
         FreeFunctions = BitWrong + BitFunction + 1,
     };
 
-    const char *tag;
-    TagTypes    type;
+    llvm::StringRef tag;
+    TagTypes        type;
 } const tags[] = {
     {"", TagInfo::None},
     {"ACCESSOR", TagInfo::Accessors},
@@ -264,8 +264,9 @@ void report::operator()(const Decl *decl)
             llvm::dyn_cast<UsingShadowDecl>(decl)) {
             return;                                                   // RETURN
         }
-        if (auto rd = llvm::dyn_cast<RecordDecl>(decl)) {
-            if (rd->isInjectedClassName()) {
+        if (auto rd = llvm::dyn_cast<CXXRecordDecl>(decl)) {
+            if (rd->isInjectedClassName() ||
+                rd->getTemplateInstantiationPattern()) {
                 return;                                               // RETURN
             }
         }
@@ -284,8 +285,9 @@ void report::operator()(const Decl *decl)
                       fd->getLinkageInternal() == Linkage::ExternalLinkage;
         }
         else if (decl->getDeclContext()->isRecord()) {
-            include = llvm::dyn_cast<RecordDecl>(decl->getDeclContext())
-                          ->hasNameForLinkage();
+            auto rd = llvm::dyn_cast<CXXRecordDecl>(decl->getDeclContext());
+            include = !rd->getTemplateInstantiationPattern() &&
+                      rd->hasNameForLinkage();
         }
         if (include) {
             d.d_decls.insert(decl);
@@ -316,12 +318,13 @@ void report::operator()(SourceRange range)
         if (comment.startswith_lower("instance ")) {
             comment = comment.drop_front(8).trim();
         }
-        if (comment.endswith_lower("s")) {
-            comment = comment.drop_back(1).trim();
-        }
         if (comment.size() && std::isupper(comment[0] & 0xFFU)) {
             for (const auto& tag : tags) {
-                if (comment.equals_lower(tag.tag)) {
+                if (comment.startswith_lower(tag.tag) &&
+                    (comment.size() == tag.tag.size() ||
+                     !isalpha(comment[tag.tag.size()] & 0xFFU) ||
+                     comment[tag.tag.size()] == 's' ||
+                     comment[tag.tag.size()] == 'S')) {
                     auto type = tag.type;
                     if (saysPublic) {
                         type = TagInfo::TagTypes(type | TagInfo::BitPublic);
