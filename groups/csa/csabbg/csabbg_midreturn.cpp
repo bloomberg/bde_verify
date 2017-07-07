@@ -116,8 +116,10 @@ struct report : Report<data>
         // If the statement is contained in a function template specialization
         // (even nested within local classes) ignore it - the original in the
         // template will be processed.
-        const FunctionDecl* func = d_analyser.get_parent<FunctionDecl>(ret);
-        d_data.d_last_returns.insert(last_return(func->getBody()->children()));
+        auto func = d_analyser.get_parent<FunctionDecl>(ret);
+        auto lambda = d_analyser.get_parent<LambdaExpr>(ret);
+        d_data.d_last_returns.insert(
+            last_return((lambda ? lambda : func->getBody())->children()));
         do {
             if (func->isTemplateInstantiation()) {
                 return;                                               // RETURN
