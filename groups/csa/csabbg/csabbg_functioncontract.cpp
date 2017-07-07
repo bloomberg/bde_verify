@@ -391,12 +391,14 @@ void allFunDecls(Analyser& analyser, const FunctionDecl* func)
 {
     // Don't process compiler-defaulted methods, main, template instantiations,
     // or macro expansions
+    auto rd = llvm::dyn_cast<CXXRecordDecl>(func->getDeclContext());
     if (   !func->isDefaulted()
         && !func->isMain()
         && !func->getLocation().isMacroID()
         && (   func->getTemplatedKind() == func->TK_NonTemplate
             || func->getTemplatedKind() == func->TK_FunctionTemplate)
         && analyser.is_component(func)
+        && (!rd || !rd->getTemplateInstantiationPattern())
             ) {
         analyser.attachment<data>().d_fundecls.push_back(
             std::make_pair(func, SourceRange()));
