@@ -1,3 +1,25 @@
+bde-verify (1.2.15) unstable; urgency=low
+
+  * 3f5df5d Handle mid-function returns in lambdas.
+  * d9d9931 Don't warn in instantiations.
+  * 49fb893 Allow non-letter cruft at end of tags.  Skip instantiations.
+  * 585dbe1 Avoid unset $diff in help message.
+  * 7834122 Check for signed vs. unsigned short comparison.
+  * 9e17d02 Avoid including C-style bsl headers.
+  * edafb42 Fix a few issues: Global variable allocator warnings now sorted by loaction, not pointer. In bsl-overrides-std, don't bring in anything to declare 'std' or 'bsl'. Fix a deprecation check since self-deprecation no longer warns.
+  * 778f9cc More Windows build doc changes,
+  * bc4ccf0 Disable "inline more than once" warning for Windows
+  * 6765250 Extra const on parameter.
+  * 27f162b Update Windows README; fix header include.
+  * 9b65c9d Don't warn about component calling its own deprecated functions.
+  * 4e3f910 Fix CP01 checks for enum class members.
+  * 6294a37 Skip over displays.
+  * daad923 Fix test for uncalled function temnplates of templates.
+  * 9d2669e Allow test drivers in test subdirectory.
+  * a927869 More library path manipulations to find a better order.
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Fri, 7 Jul 2017 16:45:30 -0400
+
 bde-verify (1.2.14) unstable; urgency=low
 
   * 8b2dcbf Put /opt/bb/lib64 in rpath before the gcc dirs, to get dpkg libs first.
