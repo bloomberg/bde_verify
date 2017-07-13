@@ -151,19 +151,20 @@ add_executable(bde_verify_bin
     ${G}/csaaq/csaaq_inentns.cpp
     ${G}/csaaq/csaaq_runtimeinit.cpp
     ${G}/csaaq/csaaq_transitiveincludes.cpp
-    ${G}/csabde/csabde_tool.cpp
     ${G}/csabbg/csabbg_allocatorforward.cpp
     ${G}/csabbg/csabbg_allocatornewwithpointer.cpp
     ${G}/csabbg/csabbg_assertassign.cpp
     ${G}/csabbg/csabbg_bslovrdstl.cpp
+    ${G}/csabbg/csabbg_bslstdstring.cpp
     ${G}/csabbg/csabbg_classsections.cpp
     ${G}/csabbg/csabbg_cmporder.cpp
     ${G}/csabbg/csabbg_deprecated.cpp
     ${G}/csabbg/csabbg_enumvalue.cpp
     ${G}/csabbg/csabbg_functioncontract.cpp
-    ${G}/csabbg/csabbg_midreturn.cpp
     ${G}/csabbg/csabbg_membernames.cpp
+    ${G}/csabbg/csabbg_midreturn.cpp
     ${G}/csabbg/csabbg_testdriver.cpp
+    ${G}/csabde/csabde_tool.cpp
     ${G}/csafmt/csafmt_banner.cpp
     ${G}/csafmt/csafmt_comments.cpp
     ${G}/csafmt/csafmt_headline.cpp
@@ -189,6 +190,7 @@ add_executable(bde_verify_bin
     ${G}/csamisc/csamisc_movablerefref.cpp
     ${G}/csamisc/csamisc_namespacetags.cpp
     ${G}/csamisc/csamisc_opvoidstar.cpp
+    ${G}/csamisc/csamisc_shortcompare.cpp
     ${G}/csamisc/csamisc_spellcheck.cpp
     ${G}/csamisc/csamisc_strictaliasing.cpp
     ${G}/csamisc/csamisc_stringadd.cpp
