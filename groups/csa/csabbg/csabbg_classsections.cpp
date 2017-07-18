@@ -320,7 +320,8 @@ void report::operator()(SourceRange range)
         }
         if (comment.size() && std::isupper(comment[0] & 0xFFU)) {
             for (const auto& tag : tags) {
-                if (comment.startswith_lower(tag.tag) &&
+                if (tag.tag.size() &&
+                    comment.startswith_lower(tag.tag) &&
                     (comment.size() == tag.tag.size() ||
                      !isalpha(comment[tag.tag.size()] & 0xFFU) ||
                      comment[tag.tag.size()] == 's' ||
