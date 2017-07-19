@@ -445,7 +445,7 @@ void files::check_wrapped(SourceRange range)
         size_t ll = banner.match(text, &banners) ? banners[1].size() - 3 :
                                                    77 - (c - n);
 
-        size_t sp = c;
+        size_t sp = 0;
         while ((sp = text.find(". ", sp)) != text.npos) {
             if (sp > 0 &&
                 text[sp - 1] != '.' &&
