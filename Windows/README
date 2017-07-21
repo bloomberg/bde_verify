@@ -1,15 +1,27 @@
 Prerequisites for building BDE Verify on Windows:
 1) Git Bash           <https://git-scm.com/download/win>
 2) CMake              <https://cmake.org/download>
-3) NSIS               <http://nsis.sourceforge.net/Download>
+3) NSIS               <https://sourceforge.net/project/nsis/files>
 4) Visual Studio
 
 Prerequisites for running the command-line BDE Verify on Windows:
 1) Perl               <http://www.activestate.com/activeperl/downloads>
 
-Prepare a development installation of LLVM/Clang 3.8.
-(If you already have a copy of the LLVM-3.8-x-win32.exe installer, from a
-previous build, perhaps, you can use that instead of building a new one.)
+Installing NSIS:
+
+The standard version of NSIS has a 1K limit on string size, and installers
+built using it will fail to update PATH if its length exceeds that size.
+After installing NSIS (as of this writing, the current version is
+nsis-3.01-setup.exe found at
+<https://sourceforge.net/projects/nsis/files/NSIS%203/3.01/>), also download
+nsis-3.01-strlen_8192.zip and extract those files on top of the ones in the
+NSIS installation.
+
+Prepare a development installation of LLVM/Clang 3.8:
+
+(If you already have a copy of the LLVM-3.8-x-win32.exe installer from a
+previous build you can use that instead of building a new one.)
+
 This build will require a great deal of disk space; also make sure that your
 TEMPDIR/TEMP/TMP environment variables point to a directory on a filesystem
 with plenty of space, lest building the installer fail with a mysterious
@@ -50,12 +62,15 @@ Then build an installation package for llvm/clang;
     cmake --build . --target package --config MinSizeRel
 
 This will produce an executable LLVM-3.8.?-win32.exe.
-Run it to install the development LLVM/Clang.  When asked by the installer,
-have it update the path, either for all users or for the current user.  (The
-installer may report that the path is too long to do that.  If so, you can try
-to shorten the existing path and try again, or manually set the LLVM_DIR
-environmenat variable to the directory of the LLVM installation containing the
-LLVMConfig.cmake file.)
+
+Start a 'cmd' shell and run the executable to install the development
+LLVM/Clang.  When asked by the installer, have it update the path, either for
+all users or for the current user.  (The installer may report that the path is
+too long to do that.  If so, you can try to shorten the existing path and try
+again, or manually set the LLVM_DIR environmenat variable to the directory of
+the LLVM installation containing the LLVMConfig.cmake file, or go back and
+follow the instructions for installing the version of NSIS that can handle
+longer strings if you did not do that before.)  Exit the 'cmd' shell.
 
 Now get and build BDE Verify:
     export BVSRC=$SRC/bde_verify
@@ -69,8 +84,9 @@ Now get and build BDE Verify:
 
 This will produce an executable bde_verify-1.x.y-win32.exe
 (currently x = 2 and y = 15).
-Run it to install BDE Verify.  The driver script on Windows is bde_verify.pl,
-taking generally the same arguments as the Unix bde_verify driver script.  See
+Start a 'cmd' shell and run the executable to install BDE Verify, then exit the
+'cmd' shell.  The driver script on Windows is bde_verify.pl, taking generally
+the same arguments as the Unix bde_verify driver script.  See
 <http://bloomberg.github.io/bde_verify/bde_verify_build/html/> for full
 documentation.
 
