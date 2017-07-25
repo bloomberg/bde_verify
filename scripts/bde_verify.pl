@@ -7,7 +7,7 @@
 
 use strict;
 use warnings;
-use Getopt::Long;
+use Getopt::Long qw(:config no_ignore_case);
 use Cwd;
 
 my $bb       = $ENV{BDE_ROOT};
@@ -193,11 +193,11 @@ for (@ARGV) {
         push(@incs, ".") unless grep($_ eq ".", @incs);
     }
 }
+for (@incs) { warn "cannot find directory $_\n" unless -d; }
 push(@incs, (
     "$bb/include",
     "$bb/include/bsl+stdhdrs",
 )) if $bb and $definc;
-for (@incs) { warn "cannot find directory $_\n" unless -d; }
 @incs = map { ( "-I", $_ ) }
         map { $_ eq Cwd::cwd() ? "." : $_ }
         map { Cwd::abs_path($_) }

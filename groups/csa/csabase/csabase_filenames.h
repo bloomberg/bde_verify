@@ -74,18 +74,18 @@ public:
     llvm::StringRef tag()       const { return tag_;       }
 
 private:
-    llvm::StringRef component_;
-    llvm::StringRef directory_;
-    llvm::StringRef extension_;
-    llvm::StringRef extra_;
-    std::string     full_;
-    llvm::StringRef group_;
-    llvm::StringRef grpdir_;
-    llvm::StringRef name_;
-    llvm::StringRef package_;
-    llvm::StringRef pkgdir_;
-    llvm::StringRef prefix_;
-    llvm::StringRef tag_;
+    std::string component_;
+    std::string directory_;
+    std::string extension_;
+    std::string extra_;
+    std::string full_;
+    std::string group_;
+    std::string grpdir_;
+    std::string name_;
+    std::string package_;
+    std::string pkgdir_;
+    std::string prefix_;
+    std::string tag_;
 
     static std::map<std::string, FileName> s_file_names_;
 };
