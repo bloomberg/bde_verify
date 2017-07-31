@@ -3,7 +3,8 @@ cmake_minimum_required(VERSION 3.1)
 project(bde_verify)
 
 find_package(LLVM REQUIRED)
-set(CLANG_RESOURCE_DIR "${LLVM_LIBRARY_OUTPUT_INTDIR}/clang/${CLANG_VERSION}"
+set(CLANG_RESOURCE_DIR
+    "${LLVM_INSTALL_PREFIX}/lib/clang/${LLVM_PACKAGE_VERSION}"
     CACHE PATH "Clang resource directory")
 file(GLOB CLANG_RESOURCE_FILES "${CLANG_RESOURCE_DIR}/include/*.*")
 
