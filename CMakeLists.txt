@@ -18,6 +18,7 @@ if(MSVC)
         "/wd4800"
         "/wd4996"
     )
+    set(system_libs version)
     set(SCRIPT ".pl")
     set(CPACK_GENERATOR "NSIS")
     set(CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL ON)
