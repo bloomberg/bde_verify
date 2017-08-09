@@ -44,6 +44,8 @@ First, obtain the sources; in a Git Bash shell, do
     cd clang/tools
     git clone -b release_38 $GL/clang-tools-extra.git extra
 
+    export CLSRC=$SRC/llvm
+
 At this point, you may need to edit the file $CLSRC/cmake/modules/AddLLVM.cmake
 to comment out the following two lines (with #s) around line 294:
 # set_property(SOURCE ${resource_file}
@@ -54,7 +56,6 @@ if the option is given.  You can try building without this change; if you do
 have the issue, you'll see error messsages about "ologo".
 
 Then build an installation package for llvm/clang;
-    export CLSRC=$SRC/llvm
     export CLBLD=$BLD/llvm
     mkdir -p $CLBLD
     cd $CLBLD
