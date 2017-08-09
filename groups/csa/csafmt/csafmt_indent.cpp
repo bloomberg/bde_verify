@@ -222,14 +222,14 @@ bool report::WalkUpFromEnumConstantDecl(EnumConstantDecl *decl)
     if (*tag->enumerator_begin() == decl) {
         SourceLocation tagloc = tag->getDefinition()->getLocation();
         SourceLocation litloc = decl->getLocation();
-        if (tag->getRBraceLoc().isValid() &&
-            !tag->getRBraceLoc().isMacroID() &&
+        if (tag->getBraceRange().isValid() &&
+            !tag->getBraceRange().getEnd().isMacroID() &&
             m.getPresumedLineNumber(tagloc) ==
             m.getPresumedLineNumber(litloc)) {
             int indent = m.getPresumedColumnNumber(litloc) -
                          m.getPresumedColumnNumber(tagloc);
             add_indent(tag->getLocation().getLocWithOffset(1), indent - 4);
-            add_indent(tag->getRBraceLoc(), 4 - indent);
+            add_indent(tag->getBraceRange().getEnd(), 4 - indent);
         }
     }
     return Base::WalkUpFromEnumConstantDecl(decl);
@@ -246,9 +246,10 @@ bool report::WalkUpFromCompoundStmt(CompoundStmt *stmt)
 
 bool report::WalkUpFromTagDecl(TagDecl *tag)
 {
-    if (tag->getRBraceLoc().isValid() && !tag->getRBraceLoc().isMacroID()) {
+    if (tag->getBraceRange().isValid() &&
+        !tag->getBraceRange().getEnd().isMacroID()) {
         add_indent(tag->getLocation().getLocWithOffset(1), +4);
-        add_indent(tag->getRBraceLoc(), -4);
+        add_indent(tag->getBraceRange().getEnd(), -4);
     }
     return Base::WalkUpFromTagDecl(tag);
 }

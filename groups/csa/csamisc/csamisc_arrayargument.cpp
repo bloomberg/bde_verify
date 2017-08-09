@@ -33,7 +33,7 @@ struct report : Report<data>
 
 void report::operator()(FunctionDecl const *decl)
 {
-    for (auto p : decl->params()) {
+    for (auto p : decl->parameters()) {
         QualType pt = p->getOriginalType();
         if (pt->isConstantArrayType() && pt.getAsString() != "va_list") {
             a.report(p, check_name, "AA01",

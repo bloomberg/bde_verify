@@ -27,9 +27,8 @@ csabase::Location::Location(SourceManager const& manager,
 , d_location(manager.getExpansionLoc(location))
 {
     PresumedLoc loc(manager.getPresumedLoc(location));
-    char const* filename(loc.getFilename());
-    if (filename) {
-        d_file   = filename;
+    if (loc.isValid()) {
+        d_file   = loc.getFilename();
         d_line   = loc.getLine();
         d_column = loc.getColumn();
     }

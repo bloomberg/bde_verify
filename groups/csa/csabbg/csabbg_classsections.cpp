@@ -227,7 +227,7 @@ SourceLocation report::getLoc(const Sort &sort) const
     case Sort::RangeStart:
         return getLoc(sort.scope->getOuterLocStart());
     case Sort::RangeEnd:
-        return getLoc(sort.scope->getRBraceLoc());
+        return getLoc(sort.scope->getBraceRange().getEnd());
     }
 }
 
@@ -249,9 +249,9 @@ void report::operator()(const TagDecl *decl)
 {
     if (decl == decl->getCanonicalDecl() &&
         decl->isThisDeclarationADefinition() &&
-        decl->getRBraceLoc().isValid() &&
+        decl->getBraceRange().isValid() &&
         getLoc(decl).isFileID() &&
-        decl->getRBraceLoc().isFileID()) {
+        decl->getBraceRange().getEnd().isFileID()) {
         d.d_defs.insert(decl);
     }
 }

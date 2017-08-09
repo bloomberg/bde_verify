@@ -283,8 +283,7 @@ csabase::Config::load(std::string const& original)
             return false;
         }
     }
-    std::string sep = sys::path::get_separator();
-    if (file.find(sep) != file.npos) {
+    if (sys::path::filename(file) != file) {
         // File name contains path components; use as-is
         std::ifstream in(file.c_str());
         if (!in) {

@@ -7,6 +7,7 @@
 #include <llvm/Support/Allocator.h>
 #include <llvm/Support/Host.h>
 #include <llvm/Support/ManagedStatic.h>
+#include <llvm/Support/Path.h>
 #include <llvm/Support/Process.h>
 #include <llvm/Support/Program.h>
 #include <llvm/Support/Signals.h>
@@ -133,7 +134,7 @@ static int ExecuteCC1Tool(ArrayRef<const char *> argv, StringRef Tool)
 
 int csabase::run(int argc_, const char **argv_)
 {
-    sys::PrintStackTraceOnErrorSignal();
+    sys::PrintStackTraceOnErrorSignal(argv_[0], true);
     PrettyStackTraceProgram X(argc_, argv_);
 
     if (sys::Process::FixupStandardFileDescriptors())

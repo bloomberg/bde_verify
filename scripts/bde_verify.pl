@@ -18,6 +18,7 @@ my $pt       = $me;
 $pt          =~ s{(bin/|scripts/)?[^/]*$}{};
 my $nm       = ${0};
 $nm          =~ s{.*[/\\]}{};
+$nm          =~ s{[.]pl}{};
 
 my $config   = "${pt}etc/bde-verify/${nm}.cfg";
 $config      = "${pt}${nm}.cfg"                    unless -r $config;

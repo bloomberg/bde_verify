@@ -56,15 +56,6 @@ static std::string const check_name("bsl-overrides-std");
 
 // ----------------------------------------------------------------------------
 
-namespace clang {
-namespace ast_matchers {
-
-const internal::VariadicDynCastAllOfMatcher<Stmt, UnresolvedLookupExpr>
-unresolvedLookupExpr;
-
-}
-}
-
 namespace
 {
 

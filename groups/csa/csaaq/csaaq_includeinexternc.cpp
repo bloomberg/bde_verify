@@ -137,20 +137,14 @@ void report::operator()(SourceLocation   HashLoc,
 }
 
 // FileSkipped
-void report::operator()(const FileEntry&           ParentFile,
+void report::operator()(const FileEntry&           SkippedFile,
                         const Token&               FilenameTok,
                         SrcMgr::CharacteristicKind FileType)
 {
-    if (!special.count(llvm::sys::path::filename(ParentFile.getName()))) {
-        SourceLocation sl = m.getExpansionLoc(FilenameTok.getLocation());
-        llvm::StringRef file(
-            FilenameTok.getLiteralData() + 1, FilenameTok.getLength() - 2);
-        bool is_angled = *FilenameTok.getLiteralData() == '<';
-        const DirectoryLookup *dl = 0;
-        if (const FileEntry *fe = a.compiler().getPreprocessor().
-                LookupFile(sl, file, is_angled, 0, 0, dl, 0, 0, 0, 0)) {
-            d.d_includes.insert({sl, fe->getName()});
-        }
+    SourceLocation sl = m.getExpansionLoc(FilenameTok.getLocation());
+    llvm::StringRef file = SkippedFile.getName();
+    if (!special.count(file)) {
+        d.d_includes.insert({sl, file});
     }
 }
 

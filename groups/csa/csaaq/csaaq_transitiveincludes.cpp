@@ -16,6 +16,7 @@
 #include <llvm/ADT/Hashing.h>
 #include <llvm/ADT/StringRef.h>
 
+#include <llvm/Support/Path.h>
 #include <llvm/Support/Regex.h>
 
 #include <cctype>
@@ -1089,7 +1090,7 @@ void report::inc_for_decl(llvm::StringRef r, SourceLocation sl, const Decl *ds)
                 }
             }
             if (auto decl = llvm::dyn_cast<TagDecl>(*rb)) {
-                if (decl->getRBraceLoc().isValid()) {
+                if (decl->getBraceRange().isValid()) {
                     prefer = *rb;
                 }
             }
@@ -1127,7 +1128,7 @@ std::string report::name_for(const NamedDecl *decl)
     pp.Indentation = 4;
     pp.SuppressSpecifiers = false;
     pp.SuppressTagKeyword = false;
-    pp.SuppressTag = false;
+    pp.IncludeTagDefinition = true;
     pp.SuppressScope = false;
     pp.SuppressUnwrittenScope = false;
     pp.SuppressInitializers = false;

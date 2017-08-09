@@ -11,6 +11,7 @@
 #include <llvm/ADT/Hashing.h>
 #include <llvm/ADT/StringExtras.h>
 #include <llvm/ADT/StringRef.h>
+#include <llvm/Support/Path.h>
 #include <llvm/Support/Regex.h>
 
 #include <clang/AST/RecursiveASTVisitor.h>

@@ -18,7 +18,7 @@ LIBCSABASE  = lib$(LCB).a
 INCFLAGS   += -I$(LLVMDIR)/include
 
 CXXFLAGS   += -m64 -std=c++11
-CXXFLAGS   += -Wall -Wno-unused-local-typedefs
+CXXFLAGS   += -Wall -Wno-unused-local-typedefs -Wno-comment
 INCFLAGS   += -I$(PREFIX)/include -I/opt/swt/include
 
 # Set up locations and flags for the compiler that will build bde_verify.

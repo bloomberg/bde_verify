@@ -49,7 +49,7 @@ static void printer(Target& out, const NamedDecl *decl)
     pp.Indentation = 4;
     pp.SuppressSpecifiers = false;
     pp.SuppressTagKeyword = false;
-    pp.SuppressTag = false;
+    pp.IncludeTagDefinition = true;
     pp.SuppressScope = false;
     pp.SuppressUnwrittenScope = false;
     pp.SuppressInitializers = false;
