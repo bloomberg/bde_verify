@@ -44,6 +44,7 @@ my @lflags = (
     "diagnostics-show-option",
     "error-limit=0",
     "ms-compatibility",
+    "ms-compatibility-version=19",
     "ms-extensions",
    #"msc-version=1800",
    #"delayed-template-parsing",
@@ -209,11 +210,11 @@ push(@pass, "-m32") if $m32;
 push(@pass, "-m64") if $m64;
 
 my $inc = $ENV{INCLUDE} ||
-    "C:/Program Files (x86)/Microsoft Visual Studio 12.0/VC/INCLUDE;" .
-    "C:/Program Files (x86)/Microsoft Visual Studio 12.0/VC/ATLMFC/INCLUDE;" .
-    "C:/Program Files (x86)/Windows Kits/8.1/include/shared;" .
-    "C:/Program Files (x86)/Windows Kits/8.1/include/um;" .
-    "C:/Program Files (x86)/Windows Kits/8.1/include/winrt";
+    "C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/INCLUDE;" .
+    "C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/ATLMFC/INCLUDE;" .
+    "C:/Program Files (x86)/Windows Kits/10/include/10.0..15063/shared;" .
+    "C:/Program Files (x86)/Windows Kits/10/include/10.0..15063/um;" .
+    "C:/Program Files (x86)/Windows Kits/10/include/10.0..15063/winrt";
 push(@incs, map { ( "-isystem", $_ ) }
             map { Cwd::abs_path($_) }
             grep { -d } split(/;/, $inc));
