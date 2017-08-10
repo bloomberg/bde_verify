@@ -261,7 +261,8 @@ void report::operator()(const Decl *decl)
     if (decl == decl->getCanonicalDecl() && getLoc(decl).isValid()) {
         if (llvm::dyn_cast<AccessSpecDecl>(decl) ||
             llvm::dyn_cast<UsingDecl>(decl) ||
-            llvm::dyn_cast<UsingShadowDecl>(decl)) {
+            llvm::dyn_cast<UsingShadowDecl>(decl) ||
+            llvm::dyn_cast<IndirectFieldDecl>(decl)) {
             return;                                                   // RETURN
         }
         if (auto rd = llvm::dyn_cast<CXXRecordDecl>(decl)) {

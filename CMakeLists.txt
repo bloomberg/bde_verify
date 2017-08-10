@@ -252,7 +252,7 @@ function(llvmlib name)
     endif()
 endfunction(llvmlib)
 
-target_link_libraries(bde_verify_bin csabase)
+target_link_libraries(bde_verify_bin csabase ${system_libs})
 
 llvmlib(clangFrontendTool)
 llvmlib(clangCodeGen)
