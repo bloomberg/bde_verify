@@ -30,10 +30,12 @@ CSABASEDIR  = groups/csa/csabase
 
 # Set up location of clang headers and libraries needed by bde_verify.
 INCFLAGS   += -I$(LLVMDIR)/include
-LDFLAGS    += -L$(CSABASEDIR)/$(OBJ)
+LDFLAGS    += -L$(CSABASEDIR)/$(OBJ) -fno-use-linker-plugin
 
 CXXFLAGS   += -m64 -std=c++11
 CXXFLAGS   += -Wall -Wno-unused-local-typedefs -Wno-comment
+CXXFLAGS   += -Wno-ignored-attributes -Wno-unused-function
+CXXFLAGS   += -Wno-deprecated-declarations
 
 CXXFLAGS   += -DSPELL_CHECK=1
 INCFLAGS   += -I$(PREFIX)/include -I/opt/swt/include
@@ -182,7 +184,7 @@ CXXFILES =                                                                    \
 # -----------------------------------------------------------------------------
 
 DEFFLAGS += -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS
-INCFLAGS += -I. -I$(CSABASEDIR) -Igroups/csa/csadep
+INCFLAGS += -I. -I$(CSABASEDIR)
 CXXFLAGS += -fno-common -fno-strict-aliasing -fno-exceptions -fno-rtti
 
 OFILES = $(CXXFILES:%.cpp=$(OBJ)/%.o)

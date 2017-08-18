@@ -57,8 +57,8 @@ void report::operator()()
                         0,
                         parmVarDecl(hasType(referenceType(
                             pointee(hasDeclaration(namedDecl(matchesName(
-                                "::(native_)?std::basic_string")))))))))))
-                .bind("e"))),
+                                "::(native_)?std(::__cxx11)?::basic_string"))))
+            ))))))).bind("e"))),
         &m1);
 
     OnMatch<> m2([&](const BoundNodes &nodes) {
