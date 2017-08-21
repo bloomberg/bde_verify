@@ -5,8 +5,8 @@ thisdir := $(shell pwd)
 
 PREFIX  ?= /opt/bb
 TMPDIR  ?= /tmp
-LLVMDIR ?= /opt/bb/lib/llvm-3.8
-CLANG   ?= /opt/bb/lib/llvm-3.8/bin/clang++
+LLVMDIR ?= /opt/bb/lib/llvm-4.0
+CLANG   ?= /opt/bb/lib/llvm-4.0/bin/clang++
 
 BUILD_BASE := $(DISTRIBUTION_REFROOT)/opt/bb/share/build-base
 include $(BUILD_BASE)/build-base.mk
@@ -16,7 +16,7 @@ RDD := rhel-dts-debhelper
 include $(DISTRIBUTION_REFROOT)$(PREFIX)/share/$(RDD)/$(RDD).mk
 CXX := $(dir $(realpath $(shell $(RHEL_DTS_ENABLE) which gcc)))/g++
 else
-CXX := $(DISTRIBUTION_REFROOT)$(PREFIX)/lib/gcc-4.8/bin/g++
+CXX := $(DISTRIBUTION_REFROOT)$(PREFIX)/lib/gcc-6.2/bin/g++
 endif
 
 build: build-arch
