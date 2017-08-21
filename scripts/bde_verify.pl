@@ -10,7 +10,7 @@ use warnings;
 use Getopt::Long qw(:config no_ignore_case);
 use Cwd;
 
-my $bb       = $ENV{BDE_ROOT};
+my $bb       = $ENV{BDE_ROOT} || '';
 $bb          = '' unless -d $bb;
 
 my $me       = Cwd::abs_path(${0});
