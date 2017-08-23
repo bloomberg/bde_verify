@@ -40,7 +40,7 @@ if(MSVC)
                     '$INSTDIR\\\\libexec\\\\bde-verify\\\\bde_verify_bin.exe'
         System::Call 'Shell32::SHChangeNotify(i 0x8000000, i 0, i 0, i 0)'
     ")
-    set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "
+    set(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "
         DeleteRegKey SHCTX '${APREGKEY}bde_verify${SCRIPT}'
         DeleteRegKey SHCTX '${APREGKEY}bb_cppverify${SCRIPT}'
         DeleteRegKey SHCTX '${APREGKEY}check_bos${SCRIPT}'

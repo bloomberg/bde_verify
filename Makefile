@@ -32,7 +32,7 @@ CSABASEDIR  = groups/csa/csabase
 INCFLAGS   += -I$(LLVMDIR)/include
 LDFLAGS    += -L$(CSABASEDIR)/$(OBJ) -fno-use-linker-plugin
 
-CXXFLAGS   += -m64 -std=c++11 -D_GLIBCXX_USE_CXX11_ABI=0
+CXXFLAGS   += -m64 -std=c++11
 CXXFLAGS   += -Wall -Wno-unused-local-typedefs -Wno-comment
 CXXFLAGS   += -Wno-ignored-attributes -Wno-unused-function
 CXXFLAGS   += -Wno-deprecated-declarations
