@@ -9,6 +9,8 @@ use strict;
 use warnings;
 use Getopt::Long qw(:config no_ignore_case);
 use Cwd;
+use File::Basename;
+use File::Glob ':bsd_glob';
 
 my $bb       = $ENV{BDE_ROOT} || '';
 $bb          = '' unless -d $bb;
@@ -209,12 +211,67 @@ my @pass;
 push(@pass, "-m32") if $m32;
 push(@pass, "-m64") if $m64;
 
-my $inc = $ENV{INCLUDE} ||
-    "C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/INCLUDE;" .
-    "C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/ATLMFC/INCLUDE;" .
-    "C:/Program Files (x86)/Windows Kits/10/include/10.0..15063/shared;" .
-    "C:/Program Files (x86)/Windows Kits/10/include/10.0..15063/um;" .
-    "C:/Program Files (x86)/Windows Kits/10/include/10.0..15063/winrt";
+# Try to find include paths if INCLUDE is not specified.
+my $inc = $ENV{INCLUDE};
+
+if (!$inc) {
+    sub get_dir
+    {
+        my $file = $_[0];
+        my @dirs = @_;
+        my @globs;
+        for my $dir (@dirs) {
+            push @globs, (
+                "$dir/Include/*/$file",
+                "$dir/Include/[1-9]*/*/$file",
+                "$dir/VC/Tools/MSVC/*/atlmfc/include/$file",
+                "$dir/VC/Tools/MSVC/*/include/$file",
+                "$dir/VC/atlmfc/include/$file",
+                "$dir/VC/include/$file",
+                "$dir/*/*/VC/Tools/MSVC/*/atlmfc/include/$file",
+                "$dir/*/*/VC/Tools/MSVC/*/include/$file",
+            );
+        }
+        my $found;
+        for my $glob (@globs) {
+            for my $file (bsd_glob($glob, GLOB_NOCASE)) {
+                $found = $file if !$found || -M $file < -M $found;
+            }
+        }
+        return Cwd::abs_path(dirname($found || './'));
+    }
+
+    my $p = $ENV{'ProgramFiles(x86)'} || 'C:/Program Files (x86)';
+    my @vswhere = (
+        "$p/Microsoft Visual Studio/Installer/vswhere.exe",
+        '-property', 'installationpath', '-latest'
+    );
+    my @paths;
+    if (-x $vswhere[0] && open(my $fh, "-|", @vswhere)) {
+        while (<$fh>) {
+            s/\r?\n$//;
+            push @paths, $_;
+        }
+    }
+    if ($#paths < 0) {
+        @paths = bsd_glob("$p/Microsoft Visual Studio*", GLOB_NOCASE);
+    }
+    push @paths, bsd_glob("$p/Windows Kits/[1-9]*", GLOB_NOCASE);
+
+    my @exemplars = (
+        'cstdio',
+        'atlbase.h',
+        'windef.h',
+        'wincon.h',
+        'winstring.h',
+    );
+    my $sep = '';
+    for my $exemplar (@exemplars) {
+        $inc .= $sep . get_dir($exemplar, @paths);
+        $sep = ';';
+    }
+}
+
 push(@incs, map { ( "-isystem", $_ ) }
             map { Cwd::abs_path($_) }
             grep { -d } split(/;/, $inc));
