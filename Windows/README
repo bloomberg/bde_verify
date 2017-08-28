@@ -17,9 +17,9 @@ nsis-3.01-setup.exe found at
 nsis-3.01-strlen_8192.zip and extract those files on top of the ones in the
 NSIS installation.
 
-Prepare a development installation of LLVM/Clang 3.8:
+Prepare a development installation of LLVM/Clang 4.0:
 
-(If you already have a copy of the LLVM-3.8-x-win32.exe installer from a
+(If you already have a copy of the LLVM-4.0-x-win32.exe installer from a
 previous build you can use that instead of building a new one.)
 
 This build will require a great deal of disk space; also make sure that your
@@ -38,40 +38,25 @@ First, obtain the sources; in a Git Bash shell, do
 
     export GL=http://github.com/llvm-mirror
     cd $SRC
-    git clone -b release_38 $GL/llvm.git
+    git clone -b release_40 $GL/llvm.git
     cd llvm/tools
-    git clone -b release_38 $GL/clang.git
+    git clone -b release_40 $GL/clang.git
     cd clang/tools
-    git clone -b release_38 $GL/clang-tools-extra.git extra
-
-    export CLSRC=$SRC/llvm
-
-At this point, you may need to edit the file $CLSRC/cmake/modules/AddLLVM.cmake
-to comment out the following two lines (with #s) around line 294:
-# set_property(SOURCE ${resource_file}
-#              PROPERTY COMPILE_FLAGS /nologo)
-The build system should not be passing the /nologo option to the resource
-compiler.  It never had such an option, and recent versions have begun failing
-if the option is given.  You can try building without this change; if you do
-have the issue, you'll see error messsages about "ologo".
+    git clone -b release_40 $GL/clang-tools-extra.git extra
 
 Then build an installation package for llvm/clang;
+    export CLSRC=$SRC/llvm
     export CLBLD=$BLD/llvm
     mkdir -p $CLBLD
     cd $CLBLD
     cmake $CLSRC
     cmake --build . --target package --config MinSizeRel
 
-This will produce an executable LLVM-3.8.?-win32.exe.
+This will produce an executable LLVM-4.0.?-win32.exe.
 
 Start a 'cmd' shell and run the executable to install the development
 LLVM/Clang.  When asked by the installer, have it update the path, either for
-all users or for the current user.  (The installer may report that the path is
-too long to do that.  If so, you can try to shorten the existing path and try
-again, or manually set the LLVM_DIR environmenat variable to the directory of
-the LLVM installation containing the LLVMConfig.cmake file, or go back and
-follow the instructions for installing the version of NSIS that can handle
-longer strings if you did not do that before.)  Exit the 'cmd' shell.
+all users or for the current user.  Exit the 'cmd' shell.
 
 Now get and build BDE Verify:
     export BVSRC=$SRC/bde_verify
