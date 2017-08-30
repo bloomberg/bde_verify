@@ -61,30 +61,30 @@ endif
 
 ifeq ($(SYSTEM),Linux)
     AR          = /usr/bin/ar
-    LIBDIRS     = $(GCCLOCALLIBDIRS)                                          \
-                  /lib64                                                      \
-                  $(LLVMDIR)/lib64                                            \
+    LIBDIRS     = $(LLVMDIR)/lib64                                            \
                   $(PREFIX)/lib64                                             \
+	          $(GCCLOCALLIBDIRS)                                          \
+                  /lib64                                                      \
                   $(GCCOTHERLIBDIRS)                                          \
                   /opt/swt/lib64
     LDFLAGS    += -Wl,--enable-new-dtags
     LDFLAGS    += -Wl,-rpath,'$$ORIGIN/../../lib64'
     LDFLAGS    += $(foreach L,$(LIBDIRS),                                     \
-                    -Wl,-L,$(abspath $(L)),-rpath,$(abspath $(L)))
+                    -L$(abspath $(L)) -Wl,-rpath,$(abspath $(L)))
     ifneq (,$(wildcard $(foreach L,$(LIBDIRS),$(L)/libtinfo.so)))
         EXTRALIBS += -ltinfo
     endif
 else ifeq ($(SYSTEM),SunOS)
     AR          = /usr/ccs/bin/ar
     CXXFLAGS   += -DBYTE_ORDER=BIG_ENDIAN
-    LIBDIRS     = $(GCCLOCALLIBDIRS)                                          \
-                  $(LLVMDIR)/lib64                                            \
+    LIBDIRS     = $(LLVMDIR)/lib64                                            \
                   $(PREFIX)/lib64                                             \
+                  $(GCCLOCALLIBDIRS)                                          \
                   $(GCCOTHERLIBDIRS)                                          \
                   /opt/swt/lib64
     LDFLAGS    += -Wl,-rpath,$$ORIGIN/../../lib64
     LDFLAGS    += $(foreach L,$(LIBDIRS),                                     \
-                    -Wl,-L,$(abspath $(L)),-rpath,$(abspath $(L)))
+                    -L$(abspath $(L)) -Wl,-rpath,$(abspath $(L)))
     EXTRALIBS  += -lrt
     ifneq (,$(wildcard $(foreach L,$(LIBDIRS),$(L)/libtinfo.so)))
         EXTRALIBS += -ltinfo
