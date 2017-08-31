@@ -10,7 +10,7 @@ Build-Depends: build-base,
                llvm-4.0,
                aspell,
                libncurses5-dev,
-               libtinfo5,
+               libtinfo-dev,
                libz-dev,
                rhel-dts-debhelper [amd64],
                which
