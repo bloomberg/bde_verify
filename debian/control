@@ -5,7 +5,7 @@ Maintainer: Hyman Rosen <hrosen4@bloomberg.net>
 Build-Depends: build-base,
                binutils,
                coreutils,
-               gcc-4.9,
+               gcc-5.4,
                clang-4.0,
                llvm-4.0,
                aspell,
