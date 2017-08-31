@@ -59,7 +59,9 @@ ifeq ($(notdir $(CXX)),clang++)
     CXXFLAGS   += --gcc-toolchain=$(GCCDIR) -Wno-mismatched-tags
 endif
 
+# _GLIBCXX_USE_CXX11_ABI must match how the clang libraries were built
 ifeq ($(SYSTEM),Linux)
+    CXXFLAGS   += -D_GLIBCXX_USE_CXX11_ABI=0
     AR          = /usr/bin/ar
     LIBDIRS     = $(LLVMDIR)/lib64                                            \
                   $(PREFIX)/lib64                                             \
@@ -75,6 +77,7 @@ ifeq ($(SYSTEM),Linux)
         EXTRALIBS += -ltinfo
     endif
 else ifeq ($(SYSTEM),SunOS)
+    CXXFLAGS   += -D_GLIBCXX_USE_CXX11_ABI=1
     AR          = /usr/ccs/bin/ar
     CXXFLAGS   += -DBYTE_ORDER=BIG_ENDIAN
     LIBDIRS     = $(LLVMDIR)/lib64                                            \
