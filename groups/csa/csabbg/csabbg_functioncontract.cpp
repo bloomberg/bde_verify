@@ -743,6 +743,7 @@ void report::critiqueContract(const FunctionDecl* func, SourceRange comment)
 
         bool first = true;
         size_t first_index = 0;
+        size_t specify_index = 0;
         for (size_t j = 0; j < words.size(); ++j) {
             if (words[j].parm == i) {
                 if (first) {
@@ -824,9 +825,13 @@ void report::critiqueContract(const FunctionDecl* func, SourceRange comment)
                             << r;
                         note_double_tick(&dt, "FD06");
                     }
+                    specify_index = k;
                     first = false;
-                } else if (!words[j].is_noise) {
-                    for (size_t k = j; k > 0; --k) {
+                }
+                else if (!words[j].is_noise &&
+                         specify_index > 0 &&
+                         words[j].is_quoted) {
+                    for (size_t k = j; k > specify_index; --k) {
                         const Word& word = words[k - 1];
                         if (word.is_specify) {
                             SourceRange r = word_range(comment, word);
