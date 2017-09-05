@@ -30,11 +30,11 @@ endif
 
 # _GLIBCXX_USE_CXX11_ABI must match how the clang libraries were built
 ifeq ($(SYSTEM),Linux)
-    CXXFLAGS   += -D_GLIBCXX_USE_CXX11_ABI=0
     AR          = /usr/bin/ar
+    CXXFLAGS   += -D_GLIBCXX_USE_CXX11_ABI=0
 else ifeq ($(SYSTEM),SunOS)
-    CXXFLAGS   += -D_GLIBCXX_USE_CXX11_ABI=1
     AR          = /usr/ccs/bin/ar
+    CXXFLAGS   += -D_GLIBCXX_USE_CXX11_ABI=1
     CXXFLAGS   += -DBYTE_ORDER=BIG_ENDIAN
 endif
 
