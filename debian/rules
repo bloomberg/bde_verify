@@ -16,7 +16,7 @@ RDD := rhel-dts-debhelper
 include $(DISTRIBUTION_REFROOT)$(PREFIX)/share/$(RDD)/$(RDD).mk
 CXX := $(dir $(realpath $(shell $(RHEL_DTS_ENABLE) which gcc)))/g++
 else
-CXX := $(DISTRIBUTION_REFROOT)$(PREFIX)/lib/gcc-5.4/bin/g++
+CXX := $(DISTRIBUTION_REFROOT)$(PREFIX)/lib/gcc-6.4/bin/g++
 endif
 
 build: build-arch
