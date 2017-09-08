@@ -10,7 +10,6 @@ use strict;
 use warnings;
 use Getopt::Long qw(:config no_ignore_case);
 use Cwd;
-use Fcntl qw/ :flock /;
 
 my @known_systems = ('AIX', 'HP-UX', 'Linux', 'SunOS');
 chomp(my $system   = `uname -s`);
@@ -183,6 +182,7 @@ push(@defs, (
     "_REENTRANT",
     "_SYS_SYSMACROS_H",
     "_THREAD_SAFE",
+    "__USE_XOPEN2K8",
 )) if $defdef;
 if ($ovr == 1 || $ovr != 0 && $defdef && !grep(m{\bb[sd]l[^/]*$}, @ARGV)) {
     push(@defs, "BSL_OVERRIDES_STD");

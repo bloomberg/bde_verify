@@ -69,7 +69,7 @@ Now get and build BDE Verify:
     cmake --build . --target package --config MinSizeRel
 
 This will produce an executable bde_verify-1.x.y-win32.exe
-(currently x = 2 and y = 15).
+(currently x = 2 and y = 16).
 Start a 'cmd' shell and run the executable to install BDE Verify, then exit the
 'cmd' shell.  The driver script on Windows is bde_verify.pl, taking generally
 the same arguments as the Unix bde_verify driver script.  See
