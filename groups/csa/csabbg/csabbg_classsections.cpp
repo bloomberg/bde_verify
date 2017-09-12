@@ -91,21 +91,34 @@ struct TagInfo
 } const tags[] = {
     {"", TagInfo::None},
     {"ACCESSOR", TagInfo::Accessors},
+    {"ACCESSORS", TagInfo::Accessors},
     {"ASPECT", TagInfo::Aspects},
+    {"ASPECTS", TagInfo::Aspects},
     {"CLASS DATA", TagInfo::ClassData},
     {"CLASS METHOD", TagInfo::ClassMethods},
+    {"CLASS METHODS", TagInfo::ClassMethods},
     {"CONSTANT", TagInfo::Constant},
+    {"CONSTANTS", TagInfo::Constant},
     {"CREATOR", TagInfo::Creators},
+    {"CREATORS", TagInfo::Creators},
     {"DATA", TagInfo::Data},
     {"DATA MEMBER", TagInfo::Data},
+    {"DATA MEMBERS", TagInfo::Data},
     {"FREE FUNCTION", TagInfo::FreeFunctions},
+    {"FREE FUNCTIONS", TagInfo::FreeFunctions},
     {"FREE OPERATOR", TagInfo::FreeOperators},
+    {"FREE OPERATORS", TagInfo::FreeOperators},
     {"FRIEND", TagInfo::Friends},
+    {"FRIENDS", TagInfo::Friends},
     {"FUNCTION", TagInfo::Manipulators},
+    {"FUNCTIONS", TagInfo::Manipulators},
     {"MANIPULATOR", TagInfo::Manipulators},
+    {"MANIPULATORS", TagInfo::Manipulators},
     {"NOT IMPLEMENTED", TagInfo::NotImplemented},
     {"TRAIT", TagInfo::Traits},
+    {"TRAITS", TagInfo::Traits},
     {"TYPE", TagInfo::Types},
+    {"TYPES", TagInfo::Types},
 };
 
 struct TagData
@@ -321,12 +334,7 @@ void report::operator()(SourceRange range)
         }
         if (comment.size() && std::isupper(comment[0] & 0xFFU)) {
             for (const auto& tag : tags) {
-                if (tag.tag.size() &&
-                    comment.startswith_lower(tag.tag) &&
-                    (comment.size() == tag.tag.size() ||
-                     !isalpha(comment[tag.tag.size()] & 0xFFU) ||
-                     comment[tag.tag.size()] == 's' ||
-                     comment[tag.tag.size()] == 'S')) {
+                if (tag.tag.size() && comment.equals_lower(tag.tag)) {
                     auto type = tag.type;
                     if (saysPublic) {
                         type = TagInfo::TagTypes(type | TagInfo::BitPublic);
