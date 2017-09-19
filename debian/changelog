@@ -1,3 +1,9 @@
+bde-verify (1.2.16) unstable; urgency=low
+
+  * 92ba27e Changes to use gcc 5, donated by Andrew Paprocki
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Tue, 19 Sep 2017 14:49:49 -0400
+
 bde-verify (1.2.15) unstable; urgency=low
 
   * 3f5df5d Handle mid-function returns in lambdas.
