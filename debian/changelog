@@ -1,3 +1,10 @@
+bde-verify (1.2.17) unstable; urgency=low
+
+  * 0714ad3 Changelog for version 1.2.16
+  * 92ba27e Changes to use gcc 5, donated by Andrew Paprocki
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Tue, 19 Sep 2017 14:59:38 -0400
+
 bde-verify (1.2.16) unstable; urgency=low
 
   * 92ba27e Changes to use gcc 5, donated by Andrew Paprocki
