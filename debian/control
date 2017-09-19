@@ -5,7 +5,7 @@ Maintainer: Hyman Rosen <hrosen4@bloomberg.net>
 Build-Depends: build-base,
                binutils,
                coreutils,
-               gcc-6.4,
+               gcc-7.2,
                clang-4.0,
                llvm-4.0,
                aspell,
@@ -18,10 +18,12 @@ Standards-Version: 3.8.4
 
 Package: bde-verify
 Architecture: amd64 solaris10-sparc
+#Architecture: amd64
 Description: bde_verify
 Depends: coreutils, gcc, perl, aspell, aspell-en, libncurses5, libtinfo5, libz1
 
 Package: libbde-verify-dev
 Depends: llvm-4.0
 Architecture: amd64 solaris10-sparc
+#Architecture: amd64
 Description: bde_verify base library and headers

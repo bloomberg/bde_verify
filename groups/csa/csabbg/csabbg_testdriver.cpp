@@ -419,6 +419,7 @@ bool report::process_function(CXXMethodDecl *f)
             &m1);
         mf.match(*f->getTranslationUnitDecl(), *a.context());
         if (!found) {
+            ERRS(); f->dump(); ERNL();
             a.report(f, check_name, "TP27",
                      "Method not called in test driver");
         }

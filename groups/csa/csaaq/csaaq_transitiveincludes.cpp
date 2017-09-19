@@ -554,7 +554,9 @@ struct report : public RecursiveASTVisitor<report>, Report<data>
     void operator()(Token const& token, const MacroDirective *md);
         // Preprocessor callback for macro defined.
 
-    void operator()(Token const& token, const MacroDefinition& md);
+    void operator()(Token const&            token,
+                    const MacroDefinition&  md,
+                    const MacroDirective   *);
         // Preprocessor callback for macro undefined.
 
     void operator()(SourceLocation         where,
@@ -872,7 +874,9 @@ void report::operator()(Token const& token, MacroDirective const *)
 }
 
 // MacroUndefined
-void report::operator()(Token const& token, const MacroDefinition&)
+void report::operator()(Token const& token,
+                        const MacroDefinition&,
+                        const MacroDirective   *)
 {
     llvm::StringRef macro = token.getIdentifierInfo()->getName();
     if (macro == "BSL_OVERRIDES_STD") {

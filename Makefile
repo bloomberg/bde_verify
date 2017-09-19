@@ -256,6 +256,7 @@ LIBS     =    -l$(LCB)                                                        \
               -lLLVMBitReader                                                 \
               -lLLVMProfileData                                               \
               -lLLVMCore                                                      \
+              -lLLVMBinaryFormat                                              \
               -lLLVMSupport                                                   \
               -lLLVMDemangle                                                  \
               -lncurses                                                       \
