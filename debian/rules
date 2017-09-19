@@ -1,23 +1,11 @@
 #!/usr/bin/make -f
 # -*- makefile -*-
-
-thisdir := $(shell pwd)
+include $(DISTRIBUTION_REFROOT)/opt/bb/share/gcc-build-base/gcc-build-base.mk
 
 PREFIX  ?= /opt/bb
 TMPDIR  ?= /tmp
-LLVMDIR ?= /opt/bb/lib/llvm-3.8
-CLANG   ?= /opt/bb/lib/llvm-3.8/bin/clang++
-
-BUILD_BASE := $(DISTRIBUTION_REFROOT)/opt/bb/share/build-base
-include $(BUILD_BASE)/build-base.mk
-
-ifeq ($(DEB_HOST_ARCH),amd64)
-RDD := rhel-dts-debhelper
-include $(DISTRIBUTION_REFROOT)$(PREFIX)/share/$(RDD)/$(RDD).mk
-CXX := $(dir $(realpath $(shell $(RHEL_DTS_ENABLE) which gcc)))/g++
-else
-CXX := $(DISTRIBUTION_REFROOT)$(PREFIX)/lib/gcc-4.8/bin/g++
-endif
+LLVMDIR ?= $(DISTRIBUTION_REFROOT)$(LIBDIR_32BIT)/llvm-3.8
+CLANG   ?= $(DISTRIBUTION_REFROOT)$(LIBDIR_32BIT)/llvm-3.8/bin/clang++
 
 build: build-arch
 
@@ -28,7 +16,7 @@ binary: binary-arch
 binary-arch: debian/binary-stamp
 
 debian/build-stamp:
-	$(MAKE)
+	+$(MAKE)
 	touch $@
 
 debian/install-bin-stamp: debian/build-stamp
@@ -69,3 +57,5 @@ clean:
            debian/binary-bin-stamp                                            \
            debian/binary-dev-stamp                                            \
            debian/binary-stamp
+
+.PHONY: clean build build-arch binary binary-arch

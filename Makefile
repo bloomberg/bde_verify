@@ -30,7 +30,7 @@ CSABASEDIR  = groups/csa/csabase
 
 # Set up location of clang headers and libraries needed by bde_verify.
 INCFLAGS   += -I$(LLVMDIR)/include
-LDFLAGS    += -L$(CSABASEDIR)/$(OBJ)
+LDFLAGS    += -std=c++11 -L$(CSABASEDIR)/$(OBJ)
 
 CXXFLAGS   += -m64 -std=c++11
 CXXFLAGS   += -Wall -Wno-unused-local-typedefs
