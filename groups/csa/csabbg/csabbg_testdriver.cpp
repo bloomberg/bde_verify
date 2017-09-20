@@ -419,7 +419,6 @@ bool report::process_function(CXXMethodDecl *f)
             &m1);
         mf.match(*f->getTranslationUnitDecl(), *a.context());
         if (!found) {
-            ERRS(); f->dump(); ERNL();
             a.report(f, check_name, "TP27",
                      "Method not called in test driver");
         }
@@ -481,8 +480,9 @@ void report::get_function_names()
                     note_function(t->getNameAsString());
                     bool called = false;
                     for (auto func : d.d_calldecls) {
+                        auto tip = func->getTemplateInstantiationPattern();
                         if (func == td ||
-                            func->getTemplateInstantiationPattern() == td) {
+                            (tip && tip->getCanonicalDecl() == td)) {
                             called = true;
                             break;
                         }
@@ -934,7 +934,7 @@ void report::operator()(const Expr *expr)
         }
         auto func = callee ? llvm::dyn_cast<FunctionDecl>(callee) : 0;
         if (func) {
-            d.d_calldecls.insert(func);
+            d.d_calldecls.insert(func->getCanonicalDecl());
         }
     }
 }

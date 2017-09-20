@@ -5,13 +5,13 @@ namespace N {
 struct G { };
 static const G g = {};
 
-template <class P>
+template <class M>
 struct B {
     template <class A> B(const A&);
 };
 
-template <class P>
-struct F : B<P> {
+template <class M>
+struct F : B<M> {
     template <class A> F();
     template <class A> F(const A&);
     template <class A> F(G, const A&);
@@ -19,17 +19,17 @@ struct F : B<P> {
 };
 }
 
-template <class P>
+template <class M>
 template <class A>
-inline N::B<P>::B(const A&) { }
+inline N::B<M>::B(const A&) { }
 
-template <class P>
+template <class M>
 template <class A>
-inline N::F<P>::F(const A& a) : B<P>(a) { }
+inline N::F<M>::F(const A& a) : B<M>(a) { }
 
-template <class P>
+template <class M>
 template <class A>
-inline N::F<P>::F(G, const A& a) : B<P>(a) { }
+inline N::F<M>::F(G, const A& a) : B<M>(a) { }
 
 inline void h()
 {

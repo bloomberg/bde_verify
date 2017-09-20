@@ -1,6 +1,5 @@
 h.cpp:9:8: warning: AT02: Class 'MyAllocator' uses allocators but does not have an allocator trait
 struct MyAllocator : public bslma::Allocator
        ^
-h.cpp:9:8: warning: AC02: Implicit copy constructor cannot be called with an
-      allocator as the final argument
-2 warning generated.
+h.cpp:9:8: warning: AC02: Implicit copy constructor cannot be called with an allocator as the final argument
+2 warnings generated.
