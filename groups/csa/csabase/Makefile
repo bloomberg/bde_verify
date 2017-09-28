@@ -97,8 +97,8 @@ install-dev: $(OBJ)/$(LIBCSABASE)
 	mkdir -p $(DESTDIR)/include/bde-verify/utils
 	cp csabase_*.h $(DESTDIR)/include/bde-verify
 	cp utils/*.hpp $(DESTDIR)/include/bde-verify/utils
-	mkdir -p $(DESTDIR)/lib
-	cp $(OBJ)/$(LIBCSABASE) $(DESTDIR)/lib
+	mkdir -p $(DESTDIR)/lib64
+	cp $(OBJ)/$(LIBCSABASE) $(DESTDIR)/lib64
 
 .PHONY: clean
 

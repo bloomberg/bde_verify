@@ -85,7 +85,7 @@ else ifeq ($(SYSTEM),SunOS)
                   $(GCCLOCALLIBDIRS)                                          \
                   $(GCCOTHERLIBDIRS)                                          \
                   /opt/swt/lib64
-    LDFLAGS    += -Wl,-rpath,$$ORIGIN/../../lib64
+    LDFLAGS    += -Wl,-rpath,'$$ORIGIN/../../lib64'
     LDFLAGS    += $(foreach L,$(LIBDIRS),                                     \
                     -L$(abspath $(L)) -Wl,-rpath,$(abspath $(L)))
     EXTRALIBS  += -lrt
