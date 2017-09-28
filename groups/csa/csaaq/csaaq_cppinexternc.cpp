@@ -10,6 +10,7 @@
 #include <csabase_report.h>
 #include <csabase_visitor.h>
 
+#include <llvm/Support/Path.h>
 #include <llvm/Support/Regex.h>
 
 #include <unordered_map>
@@ -131,15 +132,14 @@ void report::operator()(SourceLocation   HashLoc,
 }
 
 // FileSkipped
-void report::operator()(const FileEntry&           ParentFile,
+void report::operator()(const FileEntry&           SkippedFile,
                         const Token&               FilenameTok,
                         SrcMgr::CharacteristicKind FileType)
 {
     SourceLocation sl = m.getExpansionLoc(FilenameTok.getLocation());
-    if (!special.count(llvm::sys::path::filename(m.getFilename(sl))))
+    llvm::StringRef file = SkippedFile.getName();
+    if (!special.count(file))
     {
-        llvm::StringRef file(
-            FilenameTok.getLiteralData() + 1, FilenameTok.getLength() - 2);
         d_data.d_includes.insert({sl, {file, true}});
     }
 }

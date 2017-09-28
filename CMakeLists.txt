@@ -3,7 +3,8 @@ cmake_minimum_required(VERSION 3.1)
 project(bde_verify)
 
 find_package(LLVM REQUIRED)
-set(CLANG_RESOURCE_DIR "${LLVM_LIBRARY_OUTPUT_INTDIR}/clang/${CLANG_VERSION}"
+set(CLANG_RESOURCE_DIR
+    "${LLVM_INSTALL_PREFIX}/lib/clang/${LLVM_PACKAGE_VERSION}"
     CACHE PATH "Clang resource directory")
 file(GLOB CLANG_RESOURCE_FILES "${CLANG_RESOURCE_DIR}/include/*.*")
 
@@ -17,6 +18,7 @@ if(MSVC)
         "/wd4800"
         "/wd4996"
     )
+    set(system_libs version)
     set(SCRIPT ".pl")
     set(CPACK_GENERATOR "NSIS")
     set(CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL ON)
@@ -38,7 +40,7 @@ if(MSVC)
                     '$INSTDIR\\\\libexec\\\\bde-verify\\\\bde_verify_bin.exe'
         System::Call 'Shell32::SHChangeNotify(i 0x8000000, i 0, i 0, i 0)'
     ")
-    set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "
+    set(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "
         DeleteRegKey SHCTX '${APREGKEY}bde_verify${SCRIPT}'
         DeleteRegKey SHCTX '${APREGKEY}bb_cppverify${SCRIPT}'
         DeleteRegKey SHCTX '${APREGKEY}check_bos${SCRIPT}'
@@ -151,19 +153,20 @@ add_executable(bde_verify_bin
     ${G}/csaaq/csaaq_inentns.cpp
     ${G}/csaaq/csaaq_runtimeinit.cpp
     ${G}/csaaq/csaaq_transitiveincludes.cpp
-    ${G}/csabde/csabde_tool.cpp
     ${G}/csabbg/csabbg_allocatorforward.cpp
     ${G}/csabbg/csabbg_allocatornewwithpointer.cpp
     ${G}/csabbg/csabbg_assertassign.cpp
     ${G}/csabbg/csabbg_bslovrdstl.cpp
+    ${G}/csabbg/csabbg_bslstdstring.cpp
     ${G}/csabbg/csabbg_classsections.cpp
     ${G}/csabbg/csabbg_cmporder.cpp
     ${G}/csabbg/csabbg_deprecated.cpp
     ${G}/csabbg/csabbg_enumvalue.cpp
     ${G}/csabbg/csabbg_functioncontract.cpp
-    ${G}/csabbg/csabbg_midreturn.cpp
     ${G}/csabbg/csabbg_membernames.cpp
+    ${G}/csabbg/csabbg_midreturn.cpp
     ${G}/csabbg/csabbg_testdriver.cpp
+    ${G}/csabde/csabde_tool.cpp
     ${G}/csafmt/csafmt_banner.cpp
     ${G}/csafmt/csafmt_comments.cpp
     ${G}/csafmt/csafmt_headline.cpp
@@ -189,6 +192,7 @@ add_executable(bde_verify_bin
     ${G}/csamisc/csamisc_movablerefref.cpp
     ${G}/csamisc/csamisc_namespacetags.cpp
     ${G}/csamisc/csamisc_opvoidstar.cpp
+    ${G}/csamisc/csamisc_shortcompare.cpp
     ${G}/csamisc/csamisc_spellcheck.cpp
     ${G}/csamisc/csamisc_strictaliasing.cpp
     ${G}/csamisc/csamisc_stringadd.cpp
@@ -237,8 +241,9 @@ function(llvmlib name)
     find_library(LIB${name}
                  NAMES ${name}
                  PATHS ${LLVM_LIBRARY_DIRS}
-                       /opt/swt/lib64
+                       /lib64
                        /opt/bb/lib64
+                       /opt/swt/lib64
                        /usr/lib/sparcv9
                        /usr/lib64
     )
@@ -247,66 +252,73 @@ function(llvmlib name)
     endif()
 endfunction(llvmlib)
 
-target_link_libraries(bde_verify_bin csabase)
+target_link_libraries(bde_verify_bin csabase ${system_libs})
 
-llvmlib(LLVMX86Info)
-llvmlib(LLVMSparcInfo)
 llvmlib(clangFrontendTool)
 llvmlib(clangCodeGen)
-llvmlib(LLVMIRReader)
-llvmlib(LLVMLinker)
-llvmlib(LLVMipo)
-llvmlib(LLVMX86AsmParser)
-llvmlib(LLVMSparcAsmParser)
-llvmlib(LLVMX86CodeGen)
-llvmlib(LLVMSparcCodeGen)
-llvmlib(LLVMSelectionDAG)
-llvmlib(LLVMCodeGen)
-llvmlib(LLVMScalarOpts)
-llvmlib(LLVMInstCombine)
-llvmlib(LLVMVectorize)
-llvmlib(LLVMInstrumentation)
-llvmlib(LLVMObjCARCOpts)
-llvmlib(LLVMTransformUtils)
-llvmlib(LLVMipa)
-llvmlib(LLVMAnalysis)
-llvmlib(clangStaticAnalyzerFrontend)
-llvmlib(clangRewriteFrontend)
 llvmlib(clangARCMigrate)
+llvmlib(clangRewriteFrontend)
+llvmlib(clangStaticAnalyzerFrontend)
 llvmlib(clangFrontend)
 llvmlib(clangSerialization)
-llvmlib(LLVMProfileData)
-llvmlib(LLVMX86Desc)
-llvmlib(LLVMSparcDesc)
-llvmlib(LLVMObject)
-llvmlib(LLVMBitReader)
-llvmlib(LLVMTarget)
-llvmlib(LLVMAsmParser)
-llvmlib(LLVMBitWriter)
-llvmlib(LLVMAsmPrinter)
-llvmlib(LLVMX86AsmPrinter)
-llvmlib(LLVMSparcAsmPrinter)
-llvmlib(LLVMX86Utils)
-llvmlib(LLVMCore)
+llvmlib(clangDriver)
 llvmlib(clangParse)
-llvmlib(LLVMMCParser)
-llvmlib(LLVMMCDisassembler)
 llvmlib(clangSema)
+llvmlib(clangEdit)
 llvmlib(clangStaticAnalyzerCheckers)
 llvmlib(clangStaticAnalyzerCore)
-llvmlib(clangASTMatchers)
-llvmlib(clangEdit)
 llvmlib(clangAnalysis)
-llvmlib(clangAST)
 llvmlib(clangToolingCore)
+llvmlib(clangASTMatchers)
 llvmlib(clangRewrite)
+llvmlib(clangAST)
 llvmlib(clangLex)
-llvmlib(clangDriver)
 llvmlib(clangBasic)
-llvmlib(LLVMMC)
+llvmlib(LLVMLTO)
+llvmlib(LLVMPasses)
+llvmlib(LLVMObjCARCOpts)
+llvmlib(LLVMDebugInfoPDB)
+llvmlib(LLVMCoverage)
+llvmlib(LLVMSparcCodeGen)
+llvmlib(LLVMSparcAsmParser)
+llvmlib(LLVMSparcDesc)
+llvmlib(LLVMSparcInfo)
+llvmlib(LLVMSparcAsmPrinter)
 llvmlib(LLVMOption)
+llvmlib(LLVMX86AsmParser)
+llvmlib(LLVMX86CodeGen)
+llvmlib(LLVMGlobalISel)
+llvmlib(LLVMSelectionDAG)
+llvmlib(LLVMAsmPrinter)
+llvmlib(LLVMDebugInfoCodeView)
+llvmlib(LLVMDebugInfoMSF)
+llvmlib(LLVMX86Desc)
+llvmlib(LLVMMCDisassembler)
+llvmlib(LLVMX86Info)
+llvmlib(LLVMX86AsmPrinter)
+llvmlib(LLVMX86Utils)
+llvmlib(LLVMCodeGen)
+llvmlib(LLVMTarget)
+llvmlib(LLVMCoroutines)
+llvmlib(LLVMipo)
+llvmlib(LLVMInstrumentation)
+llvmlib(LLVMVectorize)
+llvmlib(LLVMScalarOpts)
+llvmlib(LLVMLinker)
+llvmlib(LLVMIRReader)
+llvmlib(LLVMAsmParser)
+llvmlib(LLVMInstCombine)
+llvmlib(LLVMTransformUtils)
+llvmlib(LLVMBitWriter)
+llvmlib(LLVMAnalysis)
+llvmlib(LLVMObject)
+llvmlib(LLVMMCParser)
+llvmlib(LLVMMC)
+llvmlib(LLVMBitReader)
+llvmlib(LLVMProfileData)
+llvmlib(LLVMCore)
 llvmlib(LLVMSupport)
-
+llvmlib(LLVMDemangle)
 llvmlib(ncurses)
 llvmlib(pthread)
 llvmlib(dl)
@@ -361,7 +373,7 @@ set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
 set(CPACK_PACKAGE_INSTALL_DIRECTORY "BDE Verify")
 set(CPACK_PACKAGE_VERSION_MAJOR "1")
 set(CPACK_PACKAGE_VERSION_MINOR "2")
-set(CPACK_PACKAGE_VERSION_PATCH "4")
+set(CPACK_PACKAGE_VERSION_PATCH "16")
 
 include(CPack)
 

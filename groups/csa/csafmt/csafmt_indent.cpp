@@ -161,6 +161,12 @@ struct report : public RecursiveASTVisitor<report>, public Report<data>
     bool VisitFieldDecl(FieldDecl *fd);
     bool VisitVarDecl(VarDecl *vd);
 
+    bool WalkUpFromDoStmt(DoStmt *stmt);
+    bool WalkUpFromForStmt(ForStmt *stmt);
+    bool WalkUpFromIfStmt(IfStmt *stmt);
+    bool WalkUpFromSwitchStmt(SwitchStmt *stmt);
+    bool WalkUpFromWhileStmt(WhileStmt *stmt);
+
     void do_consecutive();
         // Issue warnings for misaligned declarators and clear the existing
         // declarator set.
@@ -216,20 +222,80 @@ bool report::VisitDecl(Decl *decl)
     return true;
 }
 
+bool report::WalkUpFromDoStmt(DoStmt *stmt)
+{
+    if (a.is_component(stmt) && !stmt->getDoLoc().isMacroID()) {
+        if (!llvm::dyn_cast<CompoundStmt>(stmt->getBody())) {
+            add_indent(stmt->getBody()->getLocStart(), +4);
+            add_indent(stmt->getWhileLoc(), -4);
+        }
+    }
+    return Base::WalkUpFromDoStmt(stmt);
+}
+
+bool report::WalkUpFromForStmt(ForStmt *stmt)
+{
+    if (a.is_component(stmt) && !stmt->getForLoc().isMacroID()) {
+        if (!llvm::dyn_cast<CompoundStmt>(stmt->getBody())) {
+            add_indent(stmt->getBody()->getLocStart(), +4);
+            add_indent(stmt->getLocEnd(), -4);
+        }
+    }
+    return Base::WalkUpFromForStmt(stmt);
+}
+
+bool report::WalkUpFromIfStmt(IfStmt *stmt)
+{
+    if (a.is_component(stmt) && !stmt->getIfLoc().isMacroID()) {
+        if (!llvm::dyn_cast<CompoundStmt>(stmt->getThen())) {
+            add_indent(stmt->getIfLoc().getLocWithOffset(2), +4);
+            add_indent(
+                stmt->getElse() ? stmt->getElseLoc() : stmt->getLocEnd(), -4);
+        }
+        if (stmt->getElse() && !llvm::dyn_cast<CompoundStmt>(stmt->getElse())) {
+            add_indent(stmt->getElseLoc().getLocWithOffset(4), +4);
+            add_indent(stmt->getLocEnd(), -4);
+        }
+    }
+    return Base::WalkUpFromIfStmt(stmt);
+}
+
+bool report::WalkUpFromSwitchStmt(SwitchStmt *stmt)
+{
+    if (a.is_component(stmt) && !stmt->getSwitchLoc().isMacroID()) {
+        if (!llvm::dyn_cast<CompoundStmt>(stmt->getBody())) {
+            add_indent(stmt->getBody()->getLocStart(), +4);
+            add_indent(stmt->getLocEnd(), -4);
+        }
+    }
+    return Base::WalkUpFromSwitchStmt(stmt);
+}
+
+bool report::WalkUpFromWhileStmt(WhileStmt *stmt)
+{
+    if (a.is_component(stmt) && !stmt->getWhileLoc().isMacroID()) {
+        if (!llvm::dyn_cast<CompoundStmt>(stmt->getBody())) {
+            add_indent(stmt->getBody()->getLocStart(), +4);
+            add_indent(stmt->getLocEnd(), -4);
+        }
+    }
+    return Base::WalkUpFromWhileStmt(stmt);
+}
+
 bool report::WalkUpFromEnumConstantDecl(EnumConstantDecl *decl)
 {
     auto tag = llvm::dyn_cast<EnumDecl>(decl->getDeclContext());
     if (*tag->enumerator_begin() == decl) {
         SourceLocation tagloc = tag->getDefinition()->getLocation();
         SourceLocation litloc = decl->getLocation();
-        if (tag->getRBraceLoc().isValid() &&
-            !tag->getRBraceLoc().isMacroID() &&
+        if (tag->getBraceRange().isValid() &&
+            !tag->getBraceRange().getEnd().isMacroID() &&
             m.getPresumedLineNumber(tagloc) ==
             m.getPresumedLineNumber(litloc)) {
             int indent = m.getPresumedColumnNumber(litloc) -
                          m.getPresumedColumnNumber(tagloc);
             add_indent(tag->getLocation().getLocWithOffset(1), indent - 4);
-            add_indent(tag->getRBraceLoc(), 4 - indent);
+            add_indent(tag->getBraceRange().getEnd(), 4 - indent);
         }
     }
     return Base::WalkUpFromEnumConstantDecl(decl);
@@ -246,9 +312,10 @@ bool report::WalkUpFromCompoundStmt(CompoundStmt *stmt)
 
 bool report::WalkUpFromTagDecl(TagDecl *tag)
 {
-    if (tag->getRBraceLoc().isValid() && !tag->getRBraceLoc().isMacroID()) {
+    if (tag->getBraceRange().isValid() &&
+        !tag->getBraceRange().getEnd().isMacroID()) {
         add_indent(tag->getLocation().getLocWithOffset(1), +4);
-        add_indent(tag->getRBraceLoc(), -4);
+        add_indent(tag->getBraceRange().getEnd(), -4);
     }
     return Base::WalkUpFromTagDecl(tag);
 }
@@ -596,7 +663,7 @@ void report::operator()(const Token &token,
     Location l(m, token.getLocation());
     if (a.is_component(l.file())) {
         unsigned n;
-        if (args && (n = args->getNumArguments()) > 0) {
+        if (args && (n = args->getNumMacroArguments()) > 0) {
             const Token *begin = args->getUnexpArgument(0);
             Location arg(m, begin->getLocation());
             std::vector<size_t> levels(1, 4);

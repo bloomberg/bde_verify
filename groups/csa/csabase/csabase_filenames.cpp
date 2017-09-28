@@ -4,6 +4,7 @@
 #include <csabase_debug.h>
 #include <llvm/Support/FileSystem.h>
 #include <llvm/Support/Path.h>
+#include <algorithm>
 #include <stddef.h>
 
 // -----------------------------------------------------------------------------
@@ -56,34 +57,40 @@ void csabase::FileName::reset(llvm::StringRef sr)
             full_ = pc;
         }
 
-        llvm::StringRef rfull = full_;
+        std::string rfull = full_;
 
         directory_ = rfull;
         while (directory_.size() > 0 &&
                !llvm::sys::path::is_separator(directory_.back())) {
-            directory_ = directory_.drop_back(1);
+            directory_.pop_back();
         }
 
-        name_ = rfull.drop_front(directory_.size());
-        extension_ = name_.slice(name_.rfind('.'), name_.npos);
-        prefix_ = rfull.drop_back(extension_.size());
-        extra_ = name_.slice(name_.find('.'), name_.rfind('.'));
-        component_ = name_.slice(0, name_.find('.'));
+        name_ = rfull.substr(directory_.size());
+        size_t dot = name_.rfind('.');
+        size_t tod = name_.find('.');
+        if (dot != name_.npos) {
+            extension_ = name_.substr(dot);
+        }
+        prefix_ = rfull.substr(0, rfull.size() - extension_.size());
+        if (dot != tod) {
+            extra_ = name_.substr(tod, dot - tod);
+        }
+        component_ = name_.substr(0, tod);
 
         size_t under = component_.find('_');
         size_t under2 = component_.rfind('_');
         if (under == 1 && under2 != component_.npos) {
             // Typical non-library component file, e.g.,
             // "/some/path/applications/m_NAME/m_NAME_COMP.cpp".
-            package_ = component_.slice(0, under2);
+            package_ = component_.substr(0, under2);
             pkgdir_ = subdir(directory_, package_);
-            tag_ = component_.slice(0, 1);
+            tag_ = component_.substr(0, 1);
         }
         else if (under != component_.npos) {
             // Typical library component file, e.g.,
             // "/some/path/groups/GRP/GRPPKG/GRPPKG_COMP.cpp".
-            package_ = component_.slice(0, under);
-            group_   = package_.slice(0, 3);
+            package_ = component_.substr(0, under);
+            group_   = package_.substr(0, 3);
             pkgdir_ = subdir(directory_, package_);
             grpdir_ = subdir(pkgdir_, group_);
         }

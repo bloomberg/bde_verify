@@ -746,7 +746,10 @@ int csabase::Analyser::ReplaceText(
           llvm::StringRef file, unsigned offset, unsigned n, llvm::StringRef s)
 {
     tooling::Replacement r(FileName(file).full(), offset, n, s);
-    replacements_.insert(r);
+    tooling::Replacements one;
+    if (!one.add(r)) {
+        replacements_ = replacements_.merge(one);
+    }
     return 0;
 }
 

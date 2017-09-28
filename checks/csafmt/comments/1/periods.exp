@@ -1,11 +1,11 @@
 periods.cpp:2:9: warning: PSS01: Use two spaces after a period - consider using bdewrap
-// Hello. Hello.                                                             //
+// He lo. He lo.                                                             //
         ^
 periods.cpp:6:9: warning: PSS01: Use two spaces after a period - consider using bdewrap
-// Hello. 'Hello. Hello.' Hello. 'Hello. Hello.                              //
+// He lo. 'He lo. He lo.' He lo. 'He lo. He lo.                              //
         ^
 periods.cpp:6:32: warning: PSS01: Use two spaces after a period - consider using bdewrap
-// Hello. 'Hello. Hello.' Hello. 'Hello. Hello.                              //
+// He lo. 'He lo. He lo.' He lo. 'He lo. He lo.                              //
                                ^
 periods.cpp:13:24: warning: PSS01: Use two spaces after a period - consider using bdewrap
 // Go with 1, 2, 3, etc. You will be doomed.                                 //

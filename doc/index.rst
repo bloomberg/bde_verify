@@ -290,7 +290,7 @@ for additional checks.
    ``assert-assign``
    ++++++++++++++++++++++++
    * ``AE01``
-     Top-level macro condintion is an assignment.
+     Top-level macro condition is an assignment.
 
 .. only:: bde_verify
 
@@ -351,6 +351,9 @@ for additional checks.
 
    ``bsl-std-string``
    ++++++++++++++++++
+   This check warns that conversions between bsl::string and std::string
+   are occurring (in case they are inadvertant).
+
    * ``ST01``
      Converting std::string to bsl::string.
    * ``ST02``
@@ -426,6 +429,8 @@ for additional checks.
      Friend declaration requires FRIENDS tag.
    * ``KS16``
      Tag requires friend declaration.
+   * ``KS17``
+     Tag requires protected declaration.
 
 .. only:: bde_verify
 
@@ -907,7 +912,7 @@ for additional checks.
      Replacing included files.
    * ``RC01``
      Replacing a name.
-   * ``RD0111``
+   * ``RD01``
      Replacing forward class declaration.
 
 .. only:: bde_verify

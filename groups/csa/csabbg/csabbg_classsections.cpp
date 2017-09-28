@@ -91,21 +91,34 @@ struct TagInfo
 } const tags[] = {
     {"", TagInfo::None},
     {"ACCESSOR", TagInfo::Accessors},
+    {"ACCESSORS", TagInfo::Accessors},
     {"ASPECT", TagInfo::Aspects},
+    {"ASPECTS", TagInfo::Aspects},
     {"CLASS DATA", TagInfo::ClassData},
     {"CLASS METHOD", TagInfo::ClassMethods},
+    {"CLASS METHODS", TagInfo::ClassMethods},
     {"CONSTANT", TagInfo::Constant},
+    {"CONSTANTS", TagInfo::Constant},
     {"CREATOR", TagInfo::Creators},
+    {"CREATORS", TagInfo::Creators},
     {"DATA", TagInfo::Data},
     {"DATA MEMBER", TagInfo::Data},
+    {"DATA MEMBERS", TagInfo::Data},
     {"FREE FUNCTION", TagInfo::FreeFunctions},
+    {"FREE FUNCTIONS", TagInfo::FreeFunctions},
     {"FREE OPERATOR", TagInfo::FreeOperators},
+    {"FREE OPERATORS", TagInfo::FreeOperators},
     {"FRIEND", TagInfo::Friends},
+    {"FRIENDS", TagInfo::Friends},
     {"FUNCTION", TagInfo::Manipulators},
+    {"FUNCTIONS", TagInfo::Manipulators},
     {"MANIPULATOR", TagInfo::Manipulators},
+    {"MANIPULATORS", TagInfo::Manipulators},
     {"NOT IMPLEMENTED", TagInfo::NotImplemented},
     {"TRAIT", TagInfo::Traits},
+    {"TRAITS", TagInfo::Traits},
     {"TYPE", TagInfo::Types},
+    {"TYPES", TagInfo::Types},
 };
 
 struct TagData
@@ -227,7 +240,7 @@ SourceLocation report::getLoc(const Sort &sort) const
     case Sort::RangeStart:
         return getLoc(sort.scope->getOuterLocStart());
     case Sort::RangeEnd:
-        return getLoc(sort.scope->getRBraceLoc());
+        return getLoc(sort.scope->getBraceRange().getEnd());
     }
 }
 
@@ -249,9 +262,9 @@ void report::operator()(const TagDecl *decl)
 {
     if (decl == decl->getCanonicalDecl() &&
         decl->isThisDeclarationADefinition() &&
-        decl->getRBraceLoc().isValid() &&
+        decl->getBraceRange().isValid() &&
         getLoc(decl).isFileID() &&
-        decl->getRBraceLoc().isFileID()) {
+        decl->getBraceRange().getEnd().isFileID()) {
         d.d_defs.insert(decl);
     }
 }
@@ -261,7 +274,8 @@ void report::operator()(const Decl *decl)
     if (decl == decl->getCanonicalDecl() && getLoc(decl).isValid()) {
         if (llvm::dyn_cast<AccessSpecDecl>(decl) ||
             llvm::dyn_cast<UsingDecl>(decl) ||
-            llvm::dyn_cast<UsingShadowDecl>(decl)) {
+            llvm::dyn_cast<UsingShadowDecl>(decl) ||
+            llvm::dyn_cast<IndirectFieldDecl>(decl)) {
             return;                                                   // RETURN
         }
         if (auto rd = llvm::dyn_cast<CXXRecordDecl>(decl)) {
@@ -320,11 +334,7 @@ void report::operator()(SourceRange range)
         }
         if (comment.size() && std::isupper(comment[0] & 0xFFU)) {
             for (const auto& tag : tags) {
-                if (comment.startswith_lower(tag.tag) &&
-                    (comment.size() == tag.tag.size() ||
-                     !isalpha(comment[tag.tag.size()] & 0xFFU) ||
-                     comment[tag.tag.size()] == 's' ||
-                     comment[tag.tag.size()] == 'S')) {
+                if (tag.tag.size() && comment.equals_lower(tag.tag)) {
                     auto type = tag.type;
                     if (saysPublic) {
                         type = TagInfo::TagTypes(type | TagInfo::BitPublic);

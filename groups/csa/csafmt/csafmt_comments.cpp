@@ -403,11 +403,13 @@ void get_displays(llvm::StringRef text,
 llvm::Regex block_comment("((^ *// [^[ ].*\r*$\n?){2,})", llvm::Regex::Newline);
 llvm::Regex banner("^ *(// ?([-=_] ?)+)\r*$", llvm::Regex::Newline);
 llvm::Regex copyright("Copyright.*[[:digit:]]{4}", llvm::Regex::IgnoreCase);
+llvm::Regex sentence_end(" [a-z]+[.] ", llvm::Regex::NoFlags);
 
 void files::check_wrapped(SourceRange range)
 {
     llvm::SmallVector<llvm::StringRef, 7> matches;
     llvm::SmallVector<llvm::StringRef, 7> banners;
+    llvm::SmallVector<llvm::StringRef, 7> periods;
     llvm::SmallVector<std::pair<size_t, size_t>, 7> displays;
     llvm::StringRef comment = d_analyser.get_source(range, true);
 
@@ -445,20 +447,18 @@ void files::check_wrapped(SourceRange range)
         size_t ll = banner.match(text, &banners) ? banners[1].size() - 3 :
                                                    77 - (c - n);
 
-        size_t sp = c;
-        while ((sp = text.find(". ", sp)) != text.npos) {
-            if (sp > 0 &&
-                text[sp - 1] != '.' &&
-                sp + 2 < text.size() && 
-                !std::isspace(text[sp + 2] & 0xFF) &&
-                !std::islower(text[sp + 2] & 0xFF) &&
+        size_t sp = 0;
+        while (sentence_end.match(text.drop_front(sp), &periods)) {
+            sp += text.drop_front(sp).find(periods[0]) + periods[0].size();
+            if (sp < text.size() && 
+                !std::isspace(text[sp] & 0xFF) &&
+                !std::islower(text[sp] & 0xFF) &&
                 !(text.slice(0, sp).count('\'') & 1)) {
                 d_analyser.report(
-                    range.getBegin().getLocWithOffset(matchpos + sp),
+                    range.getBegin().getLocWithOffset(matchpos + sp - 2),
                     check_name, "PSS01",
                     "Use two spaces after a period - consider using bdewrap");
             }
-            sp += 2;
         }
 
         std::pair<size_t, size_t> bad_pos =

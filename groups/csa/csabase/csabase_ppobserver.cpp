@@ -464,12 +464,13 @@ void csabase::PPObserver::MacroDefined(Token const& token,
     do_macro_defined(token, macro);
 }
 
-void csabase::PPObserver::MacroUndefined(Token const& token,
-                                         const MacroDefinition& macro)
+void csabase::PPObserver::MacroUndefined(Token const&            token,
+                                         const MacroDefinition&  macro,
+                                         const MacroDirective   *undef)
 {
-    onPPMacroUndefined(token, macro);
+    onPPMacroUndefined(token, macro, undef);
 
-    do_macro_undefined(token, macro.getLocalDirective());
+    do_macro_undefined(token, undef);
 }
 
 void csabase::PPObserver::Defined(const Token& token,

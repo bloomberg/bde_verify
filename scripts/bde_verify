@@ -10,7 +10,6 @@ use strict;
 use warnings;
 use Getopt::Long qw(:config no_ignore_case);
 use Cwd;
-use Fcntl qw/ :flock /;
 
 my @known_systems = ('AIX', 'HP-UX', 'Linux', 'SunOS');
 chomp(my $system   = `uname -s`);
@@ -62,7 +61,6 @@ my @lflags = (
 my $dummy;
 my @dummy;
 my $std;
-my @std;
 my $warnoff;
 my $diagnose = "component";
 my $rwd;
@@ -224,22 +222,17 @@ push(@incs, (
 my @pass;
 push(@pass, "-m32") if $m32;
 push(@pass, "-m64") if $m64;
+push(@pass, "-std=$std") if $std;
 
-# Get the compiler include paths.  Skip the directory containing stddef.h
-# (unless it's /usr/include) because we want to use the resource directory
-# associated with the bde_verify installation instead; that directory has
-# intrinsics definitions that are right for clang but not gcc.
+# Get the compiler include paths.
 unshift(@incs, xclang(
         map { ( "-isystem", $_ ) }
         map { Cwd::abs_path($_) }
-        grep { $_ eq "/usr/include" or ! -f "$_/stddef.h" }
         grep { -d }
         map { chomp; $_; }
         qx{ $cc -xc++ @pass -E -v /dev/null 2>&1 |
             sed -n '/^#include/,/^End of search list/p' |
             sed -n '/^ [/]/s/ //p'}));
-
-push(@std, "-std=$std") if $std;
 
 @cl = map { plugin("config-line=$_") } @cl;
 
@@ -250,7 +243,7 @@ my @command = (
     "-resource-dir", "${pt}include/bde-verify/clang",
     "-fsyntax-only",
     "-xc++",
-    @std,
+    @pass,
     @debug,
     @config,
     @tlo,

@@ -18,12 +18,12 @@ Supported Platforms:
    o Microsoft Windows Visual Studio
 
 Prerequesites: 
-   o llvm/clang = 3.8 (see below for instructions)
+   o llvm/clang = 4.0 (see below for instructions)
    o gcc >= 4.8.1
    o gnu make
    o aspell
 
-Bde_verify is built with llvm/clang 3.8, available by git as described in
+Bde_verify is built with llvm/clang 4.0, available by git as described in
 <http://llvm.org/docs/GettingStarted.html#git-mirror>.  It, and clang, use
 c++11 constructs, so you will need to build with a sufficiently recent gcc or
 clang.
@@ -33,7 +33,7 @@ clang developers have a distressing habit of changing virtual function
 signatures and breaking such code, hence the limitation to a specific version
 of clang.  (But it's not difficult to get the code to work on other versions.)
 
-To build llvm/clang, download 3.8 sources of LLVM and Clang from
+To build llvm/clang, download 4.0 sources of LLVM and Clang from
 <http://llvm.org/releases/> and then see
 <http://clang.llvm.org/get_started.html>.  Follow directions until
 you are asked to run "../llvm/configure".  A configuration for clang sufficient

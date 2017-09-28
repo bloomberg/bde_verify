@@ -250,8 +250,9 @@ public:
 
     utils::event<decltype(&Base::MacroDefined)> onPPMacroDefined;
 
-    void MacroUndefined(const clang::Token&           MacroNameTok,
-                        const clang::MacroDefinition& MD)
+    void MacroUndefined(const clang::Token&            MacroNameTok,
+                        const clang::MacroDefinition&  MD,
+                        const clang::MacroDirective   *Undef)
     override;
 
     utils::event<decltype(&Base::MacroUndefined)> onPPMacroUndefined;

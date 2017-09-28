@@ -18,7 +18,9 @@ LIBCSABASE  = lib$(LCB).a
 INCFLAGS   += -I$(LLVMDIR)/include
 
 CXXFLAGS   += -m64 -std=c++11
-CXXFLAGS   += -Wall -Wno-unused-local-typedefs
+CXXFLAGS   += -Wall -Wno-unused-local-typedefs -Wno-comment
+CXXFLAGS   += -Wno-ignored-attributes -Wno-unused-function
+CXXFLAGS   += -Wno-deprecated-declarations
 INCFLAGS   += -I$(PREFIX)/include -I/opt/swt/include
 
 # Set up locations and flags for the compiler that will build bde_verify.
@@ -26,10 +28,13 @@ ifeq ($(notdir $(CXX)),clang++)
     CXXFLAGS   += --gcc-toolchain=$(GCCDIR) -Wno-mismatched-tags
 endif
 
+# _GLIBCXX_USE_CXX11_ABI must match how the clang libraries were built
 ifeq ($(SYSTEM),Linux)
     AR          = /usr/bin/ar
+    CXXFLAGS   += -D_GLIBCXX_USE_CXX11_ABI=0
 else ifeq ($(SYSTEM),SunOS)
     AR          = /usr/ccs/bin/ar
+    CXXFLAGS   += -D_GLIBCXX_USE_CXX11_ABI=1
     CXXFLAGS   += -DBYTE_ORDER=BIG_ENDIAN
 endif
 
@@ -92,8 +97,8 @@ install-dev: $(OBJ)/$(LIBCSABASE)
 	mkdir -p $(DESTDIR)/include/bde-verify/utils
 	cp csabase_*.h $(DESTDIR)/include/bde-verify
 	cp utils/*.hpp $(DESTDIR)/include/bde-verify/utils
-	mkdir -p $(DESTDIR)/lib
-	cp $(OBJ)/$(LIBCSABASE) $(DESTDIR)/lib
+	mkdir -p $(DESTDIR)/lib64
+	cp $(OBJ)/$(LIBCSABASE) $(DESTDIR)/lib64
 
 .PHONY: clean
 

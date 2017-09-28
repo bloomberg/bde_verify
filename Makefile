@@ -14,7 +14,7 @@ endif
 ifeq ($(notdir $(CXX)),clang++)
 CLANG      ?= $(CXX)
 else
-CLANG      ?= $(shell which clang++)
+CLANG      ?= $(firstword $(wildcard $(LLVMDIR)/bin/clang++) clang++)
 endif
 
 CLANG_RES  ?= $(shell \
@@ -30,10 +30,12 @@ CSABASEDIR  = groups/csa/csabase
 
 # Set up location of clang headers and libraries needed by bde_verify.
 INCFLAGS   += -I$(LLVMDIR)/include
-LDFLAGS    += -std=c++11 -L$(CSABASEDIR)/$(OBJ)
+LDFLAGS    += -std=c++11 -L$(CSABASEDIR)/$(OBJ) -fno-use-linker-plugin
 
 CXXFLAGS   += -m64 -std=c++11
-CXXFLAGS   += -Wall -Wno-unused-local-typedefs
+CXXFLAGS   += -Wall -Wno-unused-local-typedefs -Wno-comment
+CXXFLAGS   += -Wno-ignored-attributes -Wno-unused-function
+CXXFLAGS   += -Wno-deprecated-declarations
 
 CXXFLAGS   += -DSPELL_CHECK=1
 INCFLAGS   += -I$(PREFIX)/include -I/opt/swt/include
@@ -57,31 +59,35 @@ ifeq ($(notdir $(CXX)),clang++)
     CXXFLAGS   += --gcc-toolchain=$(GCCDIR) -Wno-mismatched-tags
 endif
 
+# _GLIBCXX_USE_CXX11_ABI must match how the clang libraries were built
 ifeq ($(SYSTEM),Linux)
     AR          = /usr/bin/ar
-    LIBDIRS     = $(GCCLOCALLIBDIRS)                                          \
-                  $(LLVMDIR)/lib64                                            \
+    CXXFLAGS   += -D_GLIBCXX_USE_CXX11_ABI=0
+    LIBDIRS     = $(LLVMDIR)/lib64                                            \
                   $(PREFIX)/lib64                                             \
+                  $(GCCLOCALLIBDIRS)                                          \
+                  /lib64                                                      \
                   $(GCCOTHERLIBDIRS)                                          \
                   /opt/swt/lib64
     LDFLAGS    += -Wl,--enable-new-dtags
     LDFLAGS    += -Wl,-rpath,'$$ORIGIN/../../lib64'
     LDFLAGS    += $(foreach L,$(LIBDIRS),                                     \
-                    -Wl,-L,$(abspath $(L)),-rpath,$(abspath $(L)))
+                    -L$(abspath $(L)) -Wl,-rpath,$(abspath $(L)))
     ifneq (,$(wildcard $(foreach L,$(LIBDIRS),$(L)/libtinfo.so)))
         EXTRALIBS += -ltinfo
     endif
 else ifeq ($(SYSTEM),SunOS)
     AR          = /usr/ccs/bin/ar
+    CXXFLAGS   += -D_GLIBCXX_USE_CXX11_ABI=1
     CXXFLAGS   += -DBYTE_ORDER=BIG_ENDIAN
-    LIBDIRS     = $(GCCLOCALLIBDIRS)                                          \
-                  $(LLVMDIR)/lib64                                            \
+    LIBDIRS     = $(LLVMDIR)/lib64                                            \
                   $(PREFIX)/lib64                                             \
+                  $(GCCLOCALLIBDIRS)                                          \
                   $(GCCOTHERLIBDIRS)                                          \
                   /opt/swt/lib64
-    LDFLAGS    += -Wl,-rpath,$$ORIGIN/../../lib64
+    LDFLAGS    += -Wl,-rpath,'$$ORIGIN/../../lib64'
     LDFLAGS    += $(foreach L,$(LIBDIRS),                                     \
-                    -Wl,-L,$(abspath $(L)),-rpath,$(abspath $(L)))
+                    -L$(abspath $(L)) -Wl,-rpath,$(abspath $(L)))
     EXTRALIBS  += -lrt
     ifneq (,$(wildcard $(foreach L,$(LIBDIRS),$(L)/libtinfo.so)))
         EXTRALIBS += -ltinfo
@@ -181,68 +187,78 @@ CXXFILES =                                                                    \
 # -----------------------------------------------------------------------------
 
 DEFFLAGS += -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS
-INCFLAGS += -I. -I$(CSABASEDIR) -Igroups/csa/csadep
+INCFLAGS += -I. -I$(CSABASEDIR)
 CXXFLAGS += -fno-common -fno-strict-aliasing -fno-exceptions -fno-rtti
 
 OFILES = $(CXXFILES:%.cpp=$(OBJ)/%.o)
 
 LIBS     =    -l$(LCB)                                                        \
-              -lLLVMX86Info                                                   \
-              -lLLVMSparcInfo                                                 \
               -lclangFrontendTool                                             \
               -lclangCodeGen                                                  \
-              -lLLVMIRReader                                                  \
-              -lLLVMLinker                                                    \
-              -lLLVMipo                                                       \
-              -lLLVMX86AsmParser                                              \
-              -lLLVMSparcAsmParser                                            \
-              -lLLVMX86CodeGen                                                \
-              -lLLVMSparcCodeGen                                              \
-              -lLLVMSelectionDAG                                              \
-              -lLLVMCodeGen                                                   \
-              -lLLVMScalarOpts                                                \
-              -lLLVMInstCombine                                               \
-              -lLLVMVectorize                                                 \
-              -lLLVMInstrumentation                                           \
-              -lLLVMObjCARCOpts                                               \
-              -lLLVMTransformUtils                                            \
-              -lLLVMAnalysis                                                  \
-              -lclangStaticAnalyzerFrontend                                   \
-              -lclangRewriteFrontend                                          \
               -lclangARCMigrate                                               \
+              -lclangRewriteFrontend                                          \
+              -lclangStaticAnalyzerFrontend                                   \
               -lclangFrontend                                                 \
               -lclangSerialization                                            \
-              -lLLVMProfileData                                               \
-              -lLLVMX86Desc                                                   \
-              -lLLVMSparcDesc                                                 \
-              -lLLVMObject                                                    \
-              -lLLVMBitReader                                                 \
-              -lLLVMTarget                                                    \
-              -lLLVMAsmParser                                                 \
-              -lLLVMBitWriter                                                 \
-              -lLLVMAsmPrinter                                                \
-              -lLLVMX86AsmPrinter                                             \
-              -lLLVMSparcAsmPrinter                                           \
-              -lLLVMX86Utils                                                  \
-              -lLLVMCore                                                      \
+              -lclangDriver                                                   \
               -lclangParse                                                    \
-              -lLLVMMCParser                                                  \
-              -lLLVMMCDisassembler                                            \
               -lclangSema                                                     \
+              -lclangEdit                                                     \
               -lclangStaticAnalyzerCheckers                                   \
               -lclangStaticAnalyzerCore                                       \
-              -lclangASTMatchers                                              \
-              -lclangEdit                                                     \
               -lclangAnalysis                                                 \
-              -lclangAST                                                      \
               -lclangToolingCore                                              \
+              -lclangASTMatchers                                              \
               -lclangRewrite                                                  \
+              -lclangAST                                                      \
               -lclangLex                                                      \
-              -lclangDriver                                                   \
               -lclangBasic                                                    \
-              -lLLVMMC                                                        \
+              -lLLVMLTO                                                       \
+              -lLLVMPasses                                                    \
+              -lLLVMObjCARCOpts                                               \
+              -lLLVMDebugInfoPDB                                              \
+              -lLLVMCoverage                                                  \
+              -lLLVMSparcCodeGen                                              \
+              -lLLVMSparcAsmParser                                            \
+              -lLLVMSparcDesc                                                 \
+              -lLLVMSparcInfo                                                 \
+              -lLLVMSparcAsmPrinter                                           \
               -lLLVMOption                                                    \
+              -lLLVMX86AsmParser                                              \
+              -lLLVMX86CodeGen                                                \
+              -lLLVMGlobalISel                                                \
+              -lLLVMSelectionDAG                                              \
+              -lLLVMAsmPrinter                                                \
+              -lLLVMDebugInfoCodeView                                         \
+              -lLLVMDebugInfoMSF                                              \
+              -lLLVMX86Desc                                                   \
+              -lLLVMMCDisassembler                                            \
+              -lLLVMX86Info                                                   \
+              -lLLVMX86AsmPrinter                                             \
+              -lLLVMX86Utils                                                  \
+              -lLLVMCodeGen                                                   \
+              -lLLVMTarget                                                    \
+              -lLLVMCoroutines                                                \
+              -lLLVMipo                                                       \
+              -lLLVMInstrumentation                                           \
+              -lLLVMVectorize                                                 \
+              -lLLVMScalarOpts                                                \
+              -lLLVMLinker                                                    \
+              -lLLVMIRReader                                                  \
+              -lLLVMAsmParser                                                 \
+              -lLLVMInstCombine                                               \
+              -lLLVMTransformUtils                                            \
+              -lLLVMBitWriter                                                 \
+              -lLLVMAnalysis                                                  \
+              -lLLVMObject                                                    \
+              -lLLVMMCParser                                                  \
+              -lLLVMMC                                                        \
+              -lLLVMBitReader                                                 \
+              -lLLVMProfileData                                               \
+              -lLLVMCore                                                      \
+              -lLLVMBinaryFormat                                              \
               -lLLVMSupport                                                   \
+              -lLLVMDemangle                                                  \
               -lncurses                                                       \
               -lpthread                                                       \
               -ldl                                                            \

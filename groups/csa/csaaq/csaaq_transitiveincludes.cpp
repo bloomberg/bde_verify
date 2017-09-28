@@ -16,6 +16,7 @@
 #include <llvm/ADT/Hashing.h>
 #include <llvm/ADT/StringRef.h>
 
+#include <llvm/Support/Path.h>
 #include <llvm/Support/Regex.h>
 
 #include <cctype>
@@ -553,7 +554,9 @@ struct report : public RecursiveASTVisitor<report>, Report<data>
     void operator()(Token const& token, const MacroDirective *md);
         // Preprocessor callback for macro defined.
 
-    void operator()(Token const& token, const MacroDefinition& md);
+    void operator()(Token const&            token,
+                    const MacroDefinition&  md,
+                    const MacroDirective   *);
         // Preprocessor callback for macro undefined.
 
     void operator()(SourceLocation         where,
@@ -871,7 +874,9 @@ void report::operator()(Token const& token, MacroDirective const *)
 }
 
 // MacroUndefined
-void report::operator()(Token const& token, const MacroDefinition&)
+void report::operator()(Token const& token,
+                        const MacroDefinition&,
+                        const MacroDirective   *)
 {
     llvm::StringRef macro = token.getIdentifierInfo()->getName();
     if (macro == "BSL_OVERRIDES_STD") {
@@ -1089,7 +1094,7 @@ void report::inc_for_decl(llvm::StringRef r, SourceLocation sl, const Decl *ds)
                 }
             }
             if (auto decl = llvm::dyn_cast<TagDecl>(*rb)) {
-                if (decl->getRBraceLoc().isValid()) {
+                if (decl->getBraceRange().isValid()) {
                     prefer = *rb;
                 }
             }
@@ -1127,7 +1132,7 @@ std::string report::name_for(const NamedDecl *decl)
     pp.Indentation = 4;
     pp.SuppressSpecifiers = false;
     pp.SuppressTagKeyword = false;
-    pp.SuppressTag = false;
+    pp.IncludeTagDefinition = true;
     pp.SuppressScope = false;
     pp.SuppressUnwrittenScope = false;
     pp.SuppressInitializers = false;

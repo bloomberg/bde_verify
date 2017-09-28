@@ -1,9 +1,9 @@
 // ----------------------------------------------------------------------------
-// Hello. Hello.                                                             //
-// Hello.  Hello.                                                            //
-// 'Hello. Hello.'                                                           //
-// 'Hello.  Hello.'                                                          //
-// Hello. 'Hello. Hello.' Hello. 'Hello. Hello.                              //
+// He lo. He lo.                                                             //
+// He lo.  He lo.                                                            //
+// 'He lo. He lo.'                                                           //
+// 'He lo.  He lo.'                                                          //
+// He lo. 'He lo. He lo.' He lo. 'He lo. He lo.                              //
 // corresponding deque would be '[ C, ... X ]', its logical length
 // corresponding deque would be [ C, ... X ], its logical length
 // ----------------------------------------------------------------------------

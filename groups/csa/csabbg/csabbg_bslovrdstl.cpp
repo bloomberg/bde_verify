@@ -56,15 +56,6 @@ static std::string const check_name("bsl-overrides-std");
 
 // ----------------------------------------------------------------------------
 
-namespace clang {
-namespace ast_matchers {
-
-const internal::VariadicDynCastAllOfMatcher<Stmt, UnresolvedLookupExpr>
-unresolvedLookupExpr;
-
-}
-}
-
 namespace
 {
 
@@ -585,7 +576,9 @@ struct report : public RecursiveASTVisitor<report>
                     MacroDirective const *md);
         // Preprocessor callback for macro definition.
 
-    void operator()(Token const& token, const MacroDefinition& md);
+    void operator()(Token const&                  token,
+                    const MacroDefinition&        md,
+                    MacroDirective         const *undef);
         // Preprocessor callback for macro undefinition.
 
     void operator()(Token const&           token,
@@ -961,7 +954,9 @@ bool report::is_named(Token const& token, llvm::StringRef name)
 }
 
 // MacroUndefined
-void report::operator()(Token const& token, const MacroDefinition& md)
+void report::operator()(Token const&                  token,
+                        const MacroDefinition&        md,
+                        MacroDirective         const *undef)
 {
     if (is_named(token, "std")) {
         d_data.d_bsl_overrides_std = false;
