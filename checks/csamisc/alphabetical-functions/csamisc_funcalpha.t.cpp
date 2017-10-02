@@ -27,6 +27,18 @@ namespace bde_verify {
         void X::f3() { }
         void X::f2() { }
         void f1() { }
+
+        // - - - -
+
+        void z();
+        void y() { }
+        void x();
+
+        // - - - -
+
+        void zz() { }
+        void y();
+        void x() { }
     }
 }
 

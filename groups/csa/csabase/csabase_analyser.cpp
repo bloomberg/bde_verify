@@ -641,7 +641,8 @@ bool csabase::Analyser::is_ADL_candidate(Decl const* decl)
                         setType(t);
                     }
             } e(pd->getOriginalType().getNonReferenceType());
-            llvm::ArrayRef<Expr *> ar(&e);
+            Expr *ae[1] =  { &e };
+            llvm::ArrayRef<Expr *> ar(&ae[0], 1);
             Sema::AssociatedNamespaceSet ns;
             Sema::AssociatedClassSet cs;
             sema().FindAssociatedClassesAndNamespaces(
