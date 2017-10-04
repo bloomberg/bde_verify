@@ -111,7 +111,7 @@ Note: The build is done in-place in the source directory
  export GCCDIR=/path/to/gcc/dir
 
  # Build and install bde_verify
- CXX=$(GCCDIR)/bin/g++ \
+ CXX=$GCCDIR/bin/g++ \
  LLVMDIR=/path/to/installed/llvm-clang \
  DESTDIR=$BVINS \
  make -C $BVSRC -j 20 install
