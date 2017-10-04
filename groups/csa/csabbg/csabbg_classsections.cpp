@@ -433,7 +433,8 @@ bool report::requireVar(const Decl *decl, data::Tags::const_iterator i)
 bool report::requireType(const Decl *decl, data::Tags::const_iterator i)
 {
     if (!llvm::dyn_cast<TypeDecl>(decl) &&
-        !llvm::dyn_cast<ClassTemplateDecl>(decl)) {
+        !llvm::dyn_cast<ClassTemplateDecl>(decl) &&
+        !llvm::dyn_cast<TypeAliasTemplateDecl>(decl)) {
         a.report(decl, check_name, "KS06", "Tag requires type declaration");
         tagIsHere(i, "KS06");
         return false;                                                 // RETURN
