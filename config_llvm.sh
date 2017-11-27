@@ -48,7 +48,7 @@ SunOS)
     ;;
 esac
 
-W="-Wno-unused-function -Wno-ignored-attributes"
+W="-Wno-unused-function"
 
 cmake                                                                         \
     -DCMAKE_CXX_COMPILER="$CXX"                                               \
