@@ -20,8 +20,8 @@ elif tags.has('bde_verify'):
 else:
     sys.exit("Specify -t bb_cppverify or -t bde_verify in SPHINXOPTS.")
 
-version           = '1.2.16'
-release           = '1.2.16'
+version           = '1.2.18'
+release           = '1.2.18'
 author            = u'Hyman Rosen'
 copyright         = u'2015, %s' % author
 
