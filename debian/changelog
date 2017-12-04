@@ -1,3 +1,64 @@
+bde-verify (1.2.18) unstable; urgency=low
+
+  * 0d9b95f Up version to 1.2.18
+  * eaf7622 Remove a warning option
+  * 6b932f9 Improved building instructions.
+  * e35f35c No parens for shell variable
+  * 1b85fa7 setup => set up
+  * 31f9414 Updated how-to-build directions
+  * 3c416c0 Allow transitive include of bsl_iterator.h from container headers. Alias templates are types for tag-checkinmg purposes.
+  * 41a09a7 Don't require bslstl_stringref.h when bsl_string.h is included. Don't require alphabetical order for definitions and declarations.
+  * dfe8727 Merge branch 'move-to-clang-5' into work
+  * 1fb4836 Use lib64 for lib directory.
+  * 770b67c Fixes for clang 5
+  * 49ede48 Changes to use gcc 5, donated by Andrew Paprocki
+  * 59dfe71 Changelog for version 1.2.16
+  * 19436a2 Changelog for version 1.2.17
+  * 39c0b3d CHanges for clang 5
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Mon, 4 Dec 2017 17:48:09 -0500
+
+bde-verify (1.2.16) git; urgency=low
+
+  * 669e18c Changelog for version 1.2.16
+  * c2db13c Don't allow trailing text in tag comments
+  * 04d8d4d Version 16, and match bb_cppverify to bde_verify
+  * 4065a23 Change docs to refer to llvm/clang 4.0
+  * 9dc83a3 Use gcc 6.4
+  * 01d3571 use gcc 6.4
+  * 63496a3 Rearrange Makefiles a bit
+  * 9bbc0f6 Fix a funny 'specify' message found by Attila.
+  * e6386e6 Merge pull request #5 from dbeer1/feature/libdir_order
+  * 88cacb2 Merge branch 'debian' into feature/libdir_order
+  * 90b6a03 Fix up build/link issues
+  * 43d8e34 Danie; Beer's link fixes
+  * 761631e Fix ordering of library paths
+  * dbe96ba Get vsix extension working for versions past 12.0
+  * c2a83d3 Windows path finder
+  * 1bfe05c Use gcc 4.9
+  * 97ccac8 DRQS 105530463 fix indentation check when no braces.
+  * b9a8f55 handle unset bDE_ROOT for Windows
+  * 7cd731a Changes for using llvm 4.0 and gcc 6.2
+  * cb47266 Some cleanup for llvm 4 and gcc 6
+  * 36ad74b Don't tag-warn about injected anonymous union fields.
+  * 930b303 Add version.lib to Windows link.
+  * c06bb94 Update fopr VS2015
+  * 4418c55 Fix Windows README
+  * e32b953 Line up with clang 4 Makefile
+  * 4b5233c Update for using clang 4
+  * 355db57 Change resource dir include path to use variables which are present.
+  * ff1f326 Fix dangling StringRefs.
+  * 901760b Windows build stuff
+  * 91eee77 Add  docs about rc /nologo issue.
+  * 4302fc7 Improve two-spaces-after-period detection.
+  * adbf1a7 Failed to check for two spaces on first comment line.
+  * 598ce76 Fix bogus detect or // S as tag
+  * f4f0cb0 Merge branch 'gh-pages'
+  * 153d8d2 Doc and minor fixes.
+  * e149765 Generate gh-pages
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Tue, 12 Sep 2017 14:43:49 -0400
+
 bde-verify (1.2.17) unstable; urgency=low
 
   * 0714ad3 Changelog for version 1.2.16
