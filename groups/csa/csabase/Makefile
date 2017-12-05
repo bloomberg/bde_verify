@@ -17,7 +17,7 @@ LIBCSABASE  = lib$(LCB).a
 # Set up location of clang headers and libraries needed by bde_verify.
 INCFLAGS   += -I$(LLVMDIR)/include
 
-CXXFLAGS   += -m64 -std=c++11
+CXXFLAGS   += -m64 -fPIC -O3 -std=c++11
 CXXFLAGS   += -Wall -Wno-unused-local-typedefs -Wno-comment
 CXXFLAGS   += -Wno-ignored-attributes -Wno-unused-function
 CXXFLAGS   += -Wno-deprecated-declarations
@@ -97,8 +97,8 @@ install-dev: $(OBJ)/$(LIBCSABASE)
 	mkdir -p $(DESTDIR)/include/bde-verify/utils
 	cp csabase_*.h $(DESTDIR)/include/bde-verify
 	cp utils/*.hpp $(DESTDIR)/include/bde-verify/utils
-	mkdir -p $(DESTDIR)/lib
-	cp $(OBJ)/$(LIBCSABASE) $(DESTDIR)/lib
+	mkdir -p $(DESTDIR)/lib64
+	cp $(OBJ)/$(LIBCSABASE) $(DESTDIR)/lib64
 
 .PHONY: clean
 

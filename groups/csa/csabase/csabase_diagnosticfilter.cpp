@@ -58,7 +58,7 @@ csabase::DiagnosticFilter::DiagnosticFilter(Analyser const&    analyser,
                 }
                 else if (lines.match(p.first, &matches)) {
                     auto lc = matches[1].split(',');
-                    unsigned line;
+                    unsigned line = 0;
                     lc.first.getAsInteger(10, line);
                     unsigned count = 1;
                     if (lc.second.size()) {

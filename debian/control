@@ -2,26 +2,26 @@ Source: bde-verify
 Section: unknown
 Priority: extra
 Maintainer: Hyman Rosen <hrosen4@bloomberg.net>
-Build-Depends: build-base,
+Build-Depends: gcc-build-base,
                binutils,
                coreutils,
-               gcc-6.4,
-               clang-4.0,
-               llvm-4.0,
+               clang-5.0,
+               llvm-5.0,
                aspell,
                libncurses5-dev,
-               libtinfo-dev,
-               libz-dev,
-               rhel-dts-debhelper [amd64],
-               which
+               libtinfo5,
+               libz-dev
 Standards-Version: 3.8.4
 
 Package: bde-verify
 Architecture: amd64 solaris10-sparc
+#Architecture: amd64
 Description: bde_verify
-Depends: coreutils, gcc, perl, aspell, aspell-en, libncurses5, libtinfo5, libz1
+Depends: ${libgcc-Depends}, ${libstdcpp-Depends},
+         coreutils, perl, aspell, aspell-en
 
 Package: libbde-verify-dev
 Depends: llvm-4.0
 Architecture: amd64 solaris10-sparc
+#Architecture: amd64
 Description: bde_verify base library and headers

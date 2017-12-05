@@ -1,5 +1,26 @@
-bde-verify (1.2.16) unstable; urgency=low
+bde-verify (1.2.18) unstable; urgency=low
 
+  * 0d9b95f Up version to 1.2.18
+  * eaf7622 Remove a warning option
+  * 6b932f9 Improved building instructions.
+  * e35f35c No parens for shell variable
+  * 1b85fa7 setup => set up
+  * 31f9414 Updated how-to-build directions
+  * 3c416c0 Allow transitive include of bsl_iterator.h from container headers. Alias templates are types for tag-checkinmg purposes.
+  * 41a09a7 Don't require bslstl_stringref.h when bsl_string.h is included. Don't require alphabetical order for definitions and declarations.
+  * dfe8727 Merge branch 'move-to-clang-5' into work
+  * 1fb4836 Use lib64 for lib directory.
+  * 770b67c Fixes for clang 5
+  * 49ede48 Changes to use gcc 5, donated by Andrew Paprocki
+  * 59dfe71 Changelog for version 1.2.16
+  * 19436a2 Changelog for version 1.2.17
+  * 39c0b3d CHanges for clang 5
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Mon, 4 Dec 2017 17:48:09 -0500
+
+bde-verify (1.2.16) git; urgency=low
+
+  * 669e18c Changelog for version 1.2.16
   * c2db13c Don't allow trailing text in tag comments
   * 04d8d4d Version 16, and match bb_cppverify to bde_verify
   * 4065a23 Change docs to refer to llvm/clang 4.0
@@ -36,7 +57,20 @@ bde-verify (1.2.16) unstable; urgency=low
   * 153d8d2 Doc and minor fixes.
   * e149765 Generate gh-pages
 
- -- Hyman Rosen <hrosen4@bloomberg.net>  Tue, 12 Sep 2017 14:39:42 -0400
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Tue, 12 Sep 2017 14:43:49 -0400
+
+bde-verify (1.2.17) unstable; urgency=low
+
+  * 0714ad3 Changelog for version 1.2.16
+  * 92ba27e Changes to use gcc 5, donated by Andrew Paprocki
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Tue, 19 Sep 2017 14:59:38 -0400
+
+bde-verify (1.2.16) unstable; urgency=low
+
+  * 92ba27e Changes to use gcc 5, donated by Andrew Paprocki
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Tue, 19 Sep 2017 14:49:49 -0400
 
 bde-verify (1.2.15) unstable; urgency=low
 

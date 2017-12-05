@@ -163,7 +163,9 @@ void report::check_order(std::pair<const FunctionDecl *, const Decl *> p)
         if (nextt) {
             nextf = nextt->getTemplatedDecl();
         }
-        if (nextf && !nextf->isTemplateInstantiation()) {
+        if (nextf && !nextf->isTemplateInstantiation() &&
+            decl->doesThisDeclarationHaveABody() ==
+                nextf->doesThisDeclarationHaveABody()) {
             DeclarationName next_name = nextf->getDeclName();
             if (next_name.isIdentifier() &&
                 !next_name.isEmpty() &&

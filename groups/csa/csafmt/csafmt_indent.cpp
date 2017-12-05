@@ -663,7 +663,7 @@ void report::operator()(const Token &token,
     Location l(m, token.getLocation());
     if (a.is_component(l.file())) {
         unsigned n;
-        if (args && (n = args->getNumArguments()) > 0) {
+        if (args && (n = args->getNumMacroArguments()) > 0) {
             const Token *begin = args->getUnexpArgument(0);
             Location arg(m, begin->getLocation());
             std::vector<size_t> levels(1, 4);

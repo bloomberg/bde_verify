@@ -30,9 +30,9 @@ CSABASEDIR  = groups/csa/csabase
 
 # Set up location of clang headers and libraries needed by bde_verify.
 INCFLAGS   += -I$(LLVMDIR)/include
-LDFLAGS    += -L$(CSABASEDIR)/$(OBJ) -fno-use-linker-plugin
+LDFLAGS    += -std=c++11 -L$(CSABASEDIR)/$(OBJ) -fno-use-linker-plugin
 
-CXXFLAGS   += -m64 -std=c++11
+CXXFLAGS   += -m64 -fPIC -O3 -std=c++11
 CXXFLAGS   += -Wall -Wno-unused-local-typedefs -Wno-comment
 CXXFLAGS   += -Wno-ignored-attributes -Wno-unused-function
 CXXFLAGS   += -Wno-deprecated-declarations
@@ -85,7 +85,7 @@ else ifeq ($(SYSTEM),SunOS)
                   $(GCCLOCALLIBDIRS)                                          \
                   $(GCCOTHERLIBDIRS)                                          \
                   /opt/swt/lib64
-    LDFLAGS    += -Wl,-rpath,$$ORIGIN/../../lib64
+    LDFLAGS    += -Wl,-rpath,'$$ORIGIN/../../lib64'
     LDFLAGS    += $(foreach L,$(LIBDIRS),                                     \
                     -L$(abspath $(L)) -Wl,-rpath,$(abspath $(L)))
     EXTRALIBS  += -lrt
@@ -256,6 +256,7 @@ LIBS     =    -l$(LCB)                                                        \
               -lLLVMBitReader                                                 \
               -lLLVMProfileData                                               \
               -lLLVMCore                                                      \
+              -lLLVMBinaryFormat                                              \
               -lLLVMSupport                                                   \
               -lLLVMDemangle                                                  \
               -lncurses                                                       \
