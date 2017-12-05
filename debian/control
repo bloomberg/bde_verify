@@ -21,7 +21,7 @@ Depends: ${libgcc-Depends}, ${libstdcpp-Depends},
          coreutils, perl, aspell, aspell-en
 
 Package: libbde-verify-dev
-Depends: llvm-4.0
+Depends: llvm-5.0
 Architecture: amd64 solaris10-sparc
 #Architecture: amd64
 Description: bde_verify base library and headers
