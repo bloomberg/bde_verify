@@ -1,5 +1,6 @@
 bde-verify (1.2.18) unstable; urgency=low
 
+  * 177e28f Changelog for version 1.2.18
   * 10bd59a dev library should also depend on llvm 5
   * af49c46 Changelog for version 1.2.18
   * 0d9b95f Up version to 1.2.18
@@ -21,7 +22,7 @@ bde-verify (1.2.18) unstable; urgency=low
   * 0714ad3 Changelog for version 1.2.16
   * 92ba27e Changes to use gcc 5, donated by Andrew Paprocki
 
- -- Hyman Rosen <hrosen4@bloomberg.net>  Tue, 5 Dec 2017 15:22:30 -0500
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Tue, 5 Dec 2017 15:25:51 -0500
 
 bde-verify (1.2.16) git; urgency=low
 
