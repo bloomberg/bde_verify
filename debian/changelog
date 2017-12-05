@@ -1,5 +1,8 @@
 bde-verify (1.2.18) unstable; urgency=low
 
+  * 177e28f Changelog for version 1.2.18
+  * 10bd59a dev library should also depend on llvm 5
+  * af49c46 Changelog for version 1.2.18
   * 0d9b95f Up version to 1.2.18
   * eaf7622 Remove a warning option
   * 6b932f9 Improved building instructions.
@@ -15,8 +18,11 @@ bde-verify (1.2.18) unstable; urgency=low
   * 59dfe71 Changelog for version 1.2.16
   * 19436a2 Changelog for version 1.2.17
   * 39c0b3d CHanges for clang 5
+  * a7557da Changelog for version 1.2.17
+  * 0714ad3 Changelog for version 1.2.16
+  * 92ba27e Changes to use gcc 5, donated by Andrew Paprocki
 
- -- Hyman Rosen <hrosen4@bloomberg.net>  Mon, 4 Dec 2017 17:48:09 -0500
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Tue, 5 Dec 2017 15:25:51 -0500
 
 bde-verify (1.2.16) git; urgency=low
 
