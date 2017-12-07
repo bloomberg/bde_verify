@@ -1116,6 +1116,12 @@ void report::check_wrong_parm(const CXXConstructExpr *expr)
         const Expr* arg = expr->getArg(n - 2);
         for (;;) {
             arg = arg->IgnoreImpCasts();
+
+            if (llvm::dyn_cast<CXXTemporaryObjectExpr>(arg)) {
+                // Actual temporary object requested in the code.
+                break;
+            }
+
             if (const MaterializeTemporaryExpr* mte =
                            llvm::dyn_cast<MaterializeTemporaryExpr>(arg)) {
                 arg = mte->GetTemporaryExpr();
@@ -1202,6 +1208,12 @@ void report::check_uses_allocator(const CXXConstructExpr *expr)
     // We use a loop because elements of the descent can repeat.
     for (;;) {
         arg = arg->IgnoreImpCasts();
+
+        if (llvm::dyn_cast<CXXTemporaryObjectExpr>(arg)) {
+            // Actual temporary object requested in the code.
+            break;
+        }
+
         if (const MaterializeTemporaryExpr *mte =
                 llvm::dyn_cast<MaterializeTemporaryExpr>(arg)) {
             arg = mte->GetTemporaryExpr();
