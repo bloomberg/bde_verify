@@ -215,6 +215,8 @@ struct data
 
     typedef std::set<const VarDecl*> Globals;
     Globals globals_;
+
+    bool traitsDeclared_ = false;
 };
 
 struct report : Report<data>
@@ -327,6 +329,11 @@ struct report : Report<data>
         // Check if the items in the sequence from the specified 'begin' up to
         // but not including the specified 'end' are passed the specified
         // 'palloc' allocator parameter.
+ 
+    bool write_allocator_trait(const CXXRecordDecl *record, bool trait);
+        // Write out an allocator trait (true or false depending on the
+        // specified 'trait') for the specified 'record'.  Return true if the
+        // trait was writeen, and false if it was not.
 
     void check_not_forwarded(const CXXCtorInitializer* init,
                              const ParmVarDecl* palloc);
@@ -931,16 +938,18 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
             !has_true_alloc_trait &&
             !has_false_alloc_trait &&
             d.decls_with_dependent_allocator_trait_.count(record);
-        const CXXRecordDecl *tr = record;
         if (const ClassTemplateSpecializationDecl* ts =
-                llvm::dyn_cast<ClassTemplateSpecializationDecl>(tr)) {
+                llvm::dyn_cast<ClassTemplateSpecializationDecl>(record)) {
             const CXXRecordDecl* tr = ts->getSpecializedTemplate()
                                           ->getTemplatedDecl()
                                           ->getCanonicalDecl();
             if (uses_allocator &&
                 !has_true_alloc_trait &&
                 !has_false_alloc_trait &&
-                !has_dependent_alloc_trait) {
+                !has_dependent_alloc_trait &&
+                (!tr->hasDefinition() ||
+                 takes_allocator(
+                     tr->getTypeForDecl()->getCanonicalTypeInternal()))) {
                 record = tr;
             }
             if (d.decls_with_true_allocator_trait_.count(tr)) {
@@ -979,6 +988,7 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
                              "Class %0 uses allocators but does not have an "
                              "allocator trait")
                         << record;
+                    write_allocator_trait(record, true);
                 }
             }
         }
@@ -1058,6 +1068,95 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
             }
         }
     }
+}
+
+bool report::write_allocator_trait(const CXXRecordDecl *record, bool trait)
+    // Write out an allocator trait for the specified record:
+    //    #include <bslma_usesbslmaallocator.h>
+    //    ...
+    //    namespace BloombergLP {
+    //    namespace bslma {
+    //
+    //    template <> struct UsesBslmaAllocator<rec> : bsl::true_type {};
+    // or
+    //    template <> struct UsesBslmaAllocator<rec> : bsl::false_type {};
+    //
+    //    }  // close namespace bslma
+    //    }  // close enterprise namespace
+{
+    if (!a.is_component(record))
+      return false;
+    std::string name;
+    const PrintingPolicy pp = a.context()->getPrintingPolicy();
+    llvm::raw_string_ostream os(name);
+    record->getNameForDiagnostic(os, pp, true);
+    name = os.str();
+    if (name.substr(0, 13) == "BloombergLP::") {
+        name = name.substr(13);
+    }
+    if (name.substr(0, 7) == "bslma::") {
+        name = name.substr(7);
+    }
+    std::string::size_type anon;
+    while ((anon = name.find("(anonymous namespace)::")) != name.npos) {
+      name.erase(anon, 23);
+    }
+    std::string s;
+    llvm::raw_string_ostream ot(s);
+    ot << "namespace BloombergLP {\n"
+          "namespace bslma {\n"
+          "\n";
+    if (!d.traitsDeclared_ &&
+        a.lookup_name("::BloombergLP::bslma::UsesBslmaAllocator"))
+      d.traitsDeclared_ = true;
+    if (!d.traitsDeclared_) {
+      ot << "template <class Type>\n"
+            "struct UsesBslmaAllocator;\n";
+      d.traitsDeclared_ = true;
+    }
+    ot << "template <";
+    if (auto ctpsd =
+            llvm::dyn_cast<ClassTemplatePartialSpecializationDecl>(record)) {
+      auto tpl = ctpsd->getTemplateParameters();
+      for (unsigned i = 0; i < tpl->size(); ++i) {
+        if (i != 0)
+          ot << ", ";
+        const NamedDecl *p = tpl->getParam(i);
+        if (auto ttp = llvm::dyn_cast<TemplateTypeParmDecl>(p)) {
+          ot << (ttp->wasDeclaredWithTypename() ? "typename " : "class ");
+          if (ttp->isParameterPack())
+            ot << "...";
+          if (p->getIdentifier())
+            ot << p->getName();
+        } else if (auto nttp = llvm::dyn_cast<NonTypeTemplateParmDecl>(p)) {
+          // The following code emulates nttp->print(ot), except that call just
+          // produces blank output.  I don't know why.
+          QualType qt = nttp->getType();
+          auto *pet = qt->getAs<PackExpansionType>();
+          if (pet)
+            qt = pet->getPattern();
+          std::string pname;
+          if (auto *ii = nttp->getIdentifier())
+            pname = ii->getName();
+          if (nttp->isParameterPack() || pet)
+            pname = "..." + pname;
+          qt.print(ot, pp, pname, 0);
+        } else if (auto ttp = dyn_cast<TemplateTemplateParmDecl>(p)) {
+          ttp->print(ot);
+        }
+      }
+    }
+    ot << ">\n"
+          "struct UsesBslmaAllocator< "
+       << name
+       << " > : bsl::"
+       << (trait ? "true_type" : "false_type")
+       << " { };\n"
+          "\n"
+          "}  // close namespace bslma\n"
+          "}  // close enterprise namespace\n";
+    llvm::errs() << ot.str();
+    return true;
 }
 
 void report::check_not_forwarded(const CXXConstructorDecl *decl)
