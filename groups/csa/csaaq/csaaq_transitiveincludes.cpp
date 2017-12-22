@@ -1046,7 +1046,7 @@ void report::require_file(std::string     name,
     name = fn.name();
 
     if (name == ff.name() ||
-        is_top_level(ff.name()) ||
+        (is_top_level(ff.name()) && !a.is_component_header(ff.name())) ||
         is_skipped(ff.name())) {
         return;
     }
