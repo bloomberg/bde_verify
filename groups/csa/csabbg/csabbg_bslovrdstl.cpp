@@ -695,7 +695,7 @@ FileType report::classify(llvm::StringRef name,
     }
 
     if (name.startswith("bsl_stdhdrs_")) {
-        return p.second = e_NIL;                                      // RETURN
+        return p.second = e_SPC;                                      // RETURN
     }
 
     for (llvm::StringRef spc : special_case) {
@@ -1139,8 +1139,8 @@ void report::operator()(SourceLocation        where,
             d_analyser.get_line_range(where).getBegin();
     }
 
-    if (!d_data.d_in_bsl &&
-        !d_data.d_in_std &&
+    if (//!d_data.d_in_bsl &&
+        //!d_data.d_in_std &&
         !m.isInSystemHeader(where) &&
         is_guard(token)) {
         set_guard(tn, where);

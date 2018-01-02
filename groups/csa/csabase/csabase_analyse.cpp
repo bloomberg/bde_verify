@@ -124,32 +124,6 @@ AnalyseConsumer::ReadReplacements(std::string file)
     }
 }
 
-struct CompareReplacements
-{
-    bool operator()(const Replacement &a, const Replacement &b)
-    {
-        if (a.getFilePath() < b.getFilePath()) {
-            return true;
-        }
-        if (b.getFilePath() < a.getFilePath()) {
-            return false;
-        }
-        if (a.getOffset() > b.getOffset()) {
-            return true;
-        }
-        if (b.getOffset() > a.getOffset()) {
-            return false;
-        }
-        if (a.getLength() < b.getLength()) {
-            return false;
-        }
-        if (b.getLength() < a.getLength()) {
-            return true;
-        }
-        return b.getReplacementText() < a.getReplacementText();
-    }
-};
-
 void
 AnalyseConsumer::HandleTranslationUnit(ASTContext&)
 {
@@ -172,9 +146,8 @@ AnalyseConsumer::HandleTranslationUnit(ASTContext&)
             for (const auto &r : analyser_.replacements()) {
                 std::string buf;
                 llvm::raw_string_ostream os(buf);
-                llvm::StringRef c = FileName(r.getFilePath()).full();
-                os << c.size() << " "
-                   << c << " "
+                os << r.getFilePath().size() << " "
+                   << r.getFilePath() << " "
                    << r.getOffset() << " "
                    << r.getLength() << " "
                    << r.getReplacementText().size() << " "
@@ -197,10 +170,18 @@ AnalyseConsumer::HandleTranslationUnit(ASTContext&)
         }
         Rewriter& rw = analyser_.rewriter();
         SourceManager& m = analyser_.manager();
-        std::set<Replacement, CompareReplacements> sr(
-            analyser_.replacements().begin(), analyser_.replacements().end());
-        for (const auto &r : sr) {
-            r.apply(rw);
+        std::map<std::string, clang::tooling::Replacements> mr;
+        for (const auto &r : analyser_.replacements()) {
+            auto &rs = mr[r.getFilePath()];
+            clang::tooling::Replacement shifted(
+                r.getFilePath(),
+                rs.getShiftedCodePosition(r.getOffset()),
+                r.getLength(),
+                r.getReplacementText());
+            rs = rs.merge(clang::tooling::Replacements(shifted));
+        }
+        for (const auto &m : mr) {
+            clang::tooling::applyAllReplacements(m.second, rw);
         }
         Rewriter::buffer_iterator b = rw.buffer_begin();
         Rewriter::buffer_iterator e = rw.buffer_end();

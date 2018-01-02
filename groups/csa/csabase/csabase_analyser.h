@@ -7,6 +7,7 @@
 #include <clang/Basic/Diagnostic.h>
 #include <clang/Basic/SourceLocation.h>
 #include <clang/Tooling/Refactoring.h>
+#include <clang/Tooling/Core/Replacement.h>
 #include <csabase_analyse.h>
 #include <csabase_attachments.h>
 #include <csabase_config.h>
@@ -53,7 +54,8 @@ class Analyser : public Attachments
     clang::Sema&                         sema();
     clang::Rewriter&                     rewriter();
     csabase::PPObserver&                 pp_observer();
-    clang::tooling::Replacements const&  replacements() const;
+    std::set<clang::tooling::Replacement> const&
+                                         replacements() const;
 
     std::string const& toplevel() const;
     std::string const& directory() const;
@@ -178,7 +180,7 @@ private:
     mutable IsGlobalPackage               is_global_package_;
     typedef std::map<std::string, bool>   IsStandardNamespace;
     mutable IsStandardNamespace           is_standard_namespace_;
-    clang::tooling::Replacements          replacements_;
+    std::set<clang::tooling::Replacement> replacements_;
     typedef std::map<std::string, bool>   IsSystemHeader;
     mutable IsSystemHeader                is_system_header_;
     typedef std::map<std::string, bool>   IsTopLevel;

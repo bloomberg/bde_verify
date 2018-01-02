@@ -139,7 +139,8 @@ std::string const& csabase::Analyser::diff_file() const
     return diff_file_;
 }
 
-tooling::Replacements const& csabase::Analyser::replacements() const
+std::set<clang::tooling::Replacement> const&
+csabase::Analyser::replacements() const
 {
     return replacements_;
 }
@@ -746,11 +747,8 @@ int csabase::Analyser::ReplaceText(SourceRange r, llvm::StringRef s)
 int csabase::Analyser::ReplaceText(
           llvm::StringRef file, unsigned offset, unsigned n, llvm::StringRef s)
 {
-    tooling::Replacement r(FileName(file).full(), offset, n, s);
-    tooling::Replacements one;
-    if (!one.add(r)) {
-        replacements_ = replacements_.merge(one);
-    }
+    clang::tooling::Replacement r(FileName(file).full(), offset, n, s);
+    replacements_.insert(r);
     return 0;
 }
 

@@ -96,9 +96,6 @@ bool is_derived(QualType qs, QualType qt)
 
 static void check(Analyser& analyser, ExplicitCastExpr const *expr)
 {
-    //ERRS(); expr->getExprLoc().dump(analyser.manager());
-    //llvm::errs() << " "; expr->dump(); ERNL();
-
     if (expr->getCastKind() != CK_BitCast &&
         expr->getCastKind() != CK_LValueBitCast &&
         expr->getCastKind() != CK_NoOp) {
@@ -131,28 +128,21 @@ static void check(Analyser& analyser, ExplicitCastExpr const *expr)
     bool target_is_ref =
         qt->isReferenceType() || expr->getCastKind() == CK_LValueBitCast;
 
-    //ERRS() << "Ref: " << target_is_ref << "\n" << "src: ";
-    //cqs.dump(); llvm::errs() << "\ntgt: "; cqt.dump(); ERNL();
-
     bool bad = false;
 
     if (cqs == cqt) {
-        //ERRS() << bad; ERNL();
     }
     else if (target_is_ref) {
         if (cqt->isPointerType()) {
             bad = !is_gen(pqt) &&
                   (!cqs->isPointerType() || !are_signed_variations(pqs, pqt));
-            //ERRS() << bad; ERNL();
         }
         else if (cqs->isPointerType()) {
             bad = !is_gen(cqt);
-            //ERRS() << bad; ERNL();
         }
         else {
             bad = !are_signed_variations(cqs, cqt) &&
                   !is_gen(cqs) && !is_gen(cqt);
-            //ERRS() << bad; ERNL();
         }
     }
     else if (cqt->isPointerType() && cqs->isPointerType()) {
@@ -160,10 +150,8 @@ static void check(Analyser& analyser, ExplicitCastExpr const *expr)
               !is_gen(pqs) &&
               !is_gen(pqt) &&
               !is_derived(pqs, pqt);
-        //ERRS() << bad; ERNL(); pqs.dump(); ERNL(); pqt.dump(); ERNL();
     }
     else {
-        //ERRS() << bad; ERNL();
     }
 
     if (bad) {
