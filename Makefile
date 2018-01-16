@@ -58,6 +58,9 @@ GCCOTHERLIBDIRS = ${shell \
 ifeq ($(notdir $(CXX)),clang++)
     CXXFLAGS   += --gcc-toolchain=$(GCCDIR) -Wno-mismatched-tags
 endif
+ifeq ($(notdir $(CXX)),g++)
+    CXXFLAGS   += -Wno-maybe-uninitialized
+endif
 
 # _GLIBCXX_USE_CXX11_ABI must match how the clang libraries were built
 ifeq ($(SYSTEM),Linux)
