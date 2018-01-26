@@ -20,6 +20,7 @@
 #include <csabase_registercheck.h>
 #include <csabase_report.h>
 #include <csabase_util.h>
+#include <csaglb_comments.h>
 #include <llvm/ADT/Optional.h>
 #include <llvm/ADT/StringRef.h>
 #include <llvm/ADT/VariadicFunction.h>
@@ -54,27 +55,6 @@ struct data
     std::set<const ReturnStmt*> d_all_returns;   // All 'return'
     std::set<SourceLocation>    d_rcs;           // Suppression comments
     std::vector<SourceRange>    d_all_macros;    // Expanded macros
-};
-
-// Callback object for inspecting comments.
-struct comments
-{
-    Analyser& d_analyser;
-
-    comments(Analyser& analyser) : d_analyser(analyser) {}
-
-    void operator()(SourceRange range)
-    {
-        Location location(d_analyser.get_location(range.getBegin()));
-        if (d_analyser.is_component(location.file())) {
-            std::string comment(d_analyser.get_source(range));
-            size_t rpos = comment.rfind("// RETURN");
-            if (rpos != comment.npos) {
-                d_analyser.attachment<data>().d_rcs.insert(
-                    range.getBegin().getLocWithOffset(rpos));
-            }
-        }
-    }
 };
 
 internal::DynTypedMatcher return_matcher()
@@ -139,6 +119,16 @@ struct report : Report<data>
 
     void operator()()
     {
+        for (auto& range : a.attachment<CommentData>().d_allComments) {
+            if (a.is_component(range.getBegin())) {
+                llvm::StringRef comment = a.get_source(range);
+                size_t          rpos    = comment.rfind("// RETURN");
+                if (rpos != comment.npos) {
+                    d.d_rcs.insert(range.getBegin().getLocWithOffset(rpos));
+                }
+            }
+        }
+
         MatchFinder mf;
         OnMatch<report, &report::match_return> m1(this);
         mf.addDynamicMatcher(return_matcher(), &m1);
@@ -274,7 +264,6 @@ struct report : Report<data>
 void subscribe(Analyser& analyser, Visitor&, PPObserver& observer)
 {
     analyser.onTranslationUnitDone += report(analyser);
-    observer.onComment += comments(analyser);
     observer.onPPMacroExpands += report(analyser);
 }
 
