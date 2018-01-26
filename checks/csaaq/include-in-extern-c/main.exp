@@ -1,3 +1,13 @@
+main.cpp:6:11: warning: IC01: 'Bloomberg' header included within C linkage specification
+#include <cppfile.h>
+          ^
+main.cpp:4:8: note: IC01: C linkage specification here
+extern "C" {
+       ^
+In file included from main.cpp:1:
+./cppfile.h:7:23: note: IC01: 'Bloomberg' evidence here
+// Copyright (C) 2014 Bloomberg Finance L.P.
+                      ^
 main.cpp:8:10: warning: IC01: 'Bloomberg' header included within C linkage specification
 #include <cppfile.h>
          ^
@@ -27,4 +37,4 @@ In file included from ./deep.h:43:
 ./deep.h:54:23: note: IC01: 'Bloomberg' evidence here
 // Copyright (C) 2014 Bloomberg Finance L.P.
                       ^
-2 warnings generated.
+3 warnings generated.
