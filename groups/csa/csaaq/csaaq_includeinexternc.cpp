@@ -14,7 +14,11 @@
 #include <csabase_registercheck.h>
 #include <csabase_report.h>
 #include <csabase_visitor.h>
+#include <csaglb_comments.h>
+#include <csaglb_includedfiles.h>
+#include <csaglb_skippedranges.h>
 
+#include <llvm/Support/Path.h>
 #include <llvm/Support/Regex.h>
 
 #include <unordered_map>
@@ -53,23 +57,7 @@ struct report : Report<data>
 
     const LinkageSpecDecl *get_local_linkage(SourceLocation sl);
 
-    void operator()(SourceRange range);
-
     void set_prop(SourceLocation sl, llvm::StringRef file);
-
-    void operator()(SourceLocation   HashLoc,
-                    const Token&     IncludeTok,
-                    StringRef        FileName,
-                    bool             IsAngled,
-                    CharSourceRange  FilenameRange,
-                    const FileEntry *File,
-                    StringRef        SearchPath,
-                    StringRef        RelativePath,
-                    const Module    *Imported);
-
-    void operator()(const FileEntry&           ParentFile,
-                    const Token&               FilenameTok,
-                    SrcMgr::CharacteristicKind FileType);
 
     void operator()(SourceLocation        Loc,
                     const Token&          MacroNameTok,
@@ -120,72 +108,6 @@ void report::set_prop(SourceLocation sl, llvm::StringRef file)
     }
 }
 
-// InclusionDirective
-void report::operator()(SourceLocation   HashLoc,
-                        const Token&     IncludeTok,
-                        StringRef        FileName,
-                        bool             IsAngled,
-                        CharSourceRange  FilenameRange,
-                        const FileEntry *File,
-                        StringRef        SearchPath,
-                        StringRef        RelativePath,
-                        const Module    *Imported)
-{
-    if (File) {
-        d.d_includes.insert({FilenameRange.getBegin(), File->getName()});
-    }
-}
-
-// FileSkipped
-void report::operator()(const FileEntry&           SkippedFile,
-                        const Token&               FilenameTok,
-                        SrcMgr::CharacteristicKind FileType)
-{
-    SourceLocation sl = m.getExpansionLoc(FilenameTok.getLocation());
-    llvm::StringRef file = SkippedFile.getName();
-    if (!special.count(file)) {
-        d.d_includes.insert({sl, file});
-    }
-}
-
-// Comment
-// SourceRangeSkipped
-void report::operator()(SourceRange Range)
-{
-    SourceLocation sl = Range.getBegin();
-    llvm::StringRef s = a.get_source(Range);
-    llvm::StringRef f = m.getFilename(sl);
-    llvm::SmallVector<llvm::StringRef, 7> matches;
-    if (d_type == PPObserver::e_FileSkipped) {
-        if (!special.count(f)) {
-            static llvm::Regex r(" *ifn?def *INCLUDED_.*[[:space:]]+"
-                                 "# *include +([<\"]([^\">]*)[\">])");
-            llvm::SmallVector<llvm::StringRef, 7> matches;
-            if (r.match(s, &matches) && s.find(matches[0]) == 0) {
-                llvm::StringRef file = matches[2];
-                bool is_angled = matches[1][0] == '<';
-                sl = sl.getLocWithOffset(s.find(matches[2]));
-                const DirectoryLookup *dl = 0;
-                if (const FileEntry* fe =
-                        a.compiler().getPreprocessor().LookupFile(
-                            sl, file, is_angled, 0, 0, dl, 0, 0, 0, 0)) {
-                    d.d_includes.insert({sl, fe->getName()});
-                }
-            }
-        }
-    }
-    else {
-        if (!d.d_prop[f].isValid()) {
-            llvm::Regex r(a.config()->value("enterprise"),
-                          llvm::Regex::IgnoreCase | llvm::Regex::Newline);
-            if (r.match(s, &matches)) {
-                sl = sl.getLocWithOffset(s.find(matches[0]));
-                set_prop(sl, f);
-            }
-        }
-    }
-}
-
 void report::operator()(const LinkageSpecDecl *decl)
 {
     if (decl->hasBraces()) {
@@ -196,7 +118,44 @@ void report::operator()(const LinkageSpecDecl *decl)
 // TranslationUnitDone
 void report::operator()()
 {
+    for (auto& sf : a.attachment<SkippedRangeData>().d_skippedFiles) {
+        SourceLocation sl = sf.d_file.getBegin();
+        if (!special.count(llvm::sys::path::filename(m.getFilename(sl)))) {
+            const DirectoryLookup *dl = 0;
+            if (const FileEntry *fe =
+                    p.LookupFile(sl,
+                                 a.get_source(sf.d_file),
+                                 a.get_source(sf.d_include)[0] == '<',
+                                 0,
+                                 m.getFileEntryForID(m.getMainFileID()),
+                                 dl, 0, 0, 0, 0)) {
+                d.d_includes.insert({sl, fe->getName()});
+            }
+        }
+    }
+
     llvm::StringRef ns = a.config()->value("enterprise");
+    llvm::Regex nsre(ns, llvm::Regex::IgnoreCase | llvm::Regex::Newline);
+    llvm::SmallVector<llvm::StringRef, 7> matches;
+
+    for (auto& c : a.attachment<CommentData>().d_comments) {
+        llvm::StringRef f = c.first;
+        if (!d.d_prop[f].isValid()) {
+            for (auto r : c.second) {
+                llvm::StringRef s = a.get_source(r);
+                if (nsre.match(s, &matches)) {
+                    SourceLocation sl = r.getBegin();
+                    sl = sl.getLocWithOffset(s.find(matches[0]));
+                    set_prop(sl, f);
+                }
+            }
+        }
+    }
+
+    for (auto& id : a.attachment<IncludedFileData>().d_includedFiles) {
+        d.d_includes.insert({id.first, id.second.full});
+    }
+
     for (;;) {
         auto n = d.d_prop.size();
         for (const auto& f : d.d_includes) {
@@ -234,14 +193,6 @@ void report::operator()()
 void subscribe(Analyser& analyser, Visitor& visitor, PPObserver& observer)
     // Hook up the callback functions.
 {
-    observer.onComment              += report(analyser,
-                                                observer.e_Comment);
-    observer.onPPInclusionDirective += report(analyser,
-                                                observer.e_InclusionDirective);
-    observer.onPPFileSkipped        += report(analyser,
-                                                observer.e_FileSkipped);
-    observer.onPPSourceRangeSkipped += report(analyser,
-                                                observer.e_SourceRangeSkipped);
     analyser.onTranslationUnitDone  += report(analyser);
     visitor.onLinkageSpecDecl       += report(analyser);
 }

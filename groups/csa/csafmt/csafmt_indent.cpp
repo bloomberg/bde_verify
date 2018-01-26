@@ -26,6 +26,7 @@
 #include <csabase_registercheck.h>
 #include <csabase_report.h>
 #include <csabase_util.h>
+#include <csaglb_comments.h>
 #include <llvm/ADT/SmallVector.h>
 #include <llvm/ADT/StringRef.h>
 #include <llvm/Support/Casting.h>
@@ -133,9 +134,6 @@ struct report : public RecursiveASTVisitor<report>, public Report<data>
                     SourceRange,
                     const MacroArgs *);
         // Macro expansion.
-
-    void operator()(SourceRange comment);
-        // Comments.
 
     bool VisitStmt(Stmt *stmt);
     bool VisitDecl(Decl *decl);
@@ -679,29 +677,6 @@ void report::operator()(const Token &token,
     }
 }
 
-llvm::Regex outdent ("^ *// *(v-*)[-^]\r*$");
-llvm::Regex reindent("^ *// *[-^](-*v)\r*$");
-
-void report::operator()(SourceRange comment)
-{
-    if (a.is_test_driver()) {
-        llvm::StringRef line = a.get_source_line(comment.getBegin());
-        Location loc(m, comment.getBegin());
-        llvm::SmallVector<llvm::StringRef, 7> matches;
-        if (line == "//..") {
-            if (a.is_toplevel(loc.file())) {
-                indent ind((d.d_in_dotdot[loc.file()] ^= 1) ? +4 : -4);
-                ind.d_dotdot = true;
-                add_indent(comment.getEnd(), ind);
-            }
-        } else if (outdent.match(line, &matches)) {
-            add_indent(comment.getEnd(), -matches[1].size());
-        } else if (reindent.match(line, &matches)) {
-            add_indent(comment.getEnd(), matches[1].size());
-        }
-    }
-}
-
 void report::get_indent(Location l, int& offset, int& exact, bool& dotdot)
 {
     offset = 0;
@@ -755,6 +730,30 @@ int report::process(Location l, bool greater, int lastdiff)
 
 void report::operator()()
 {
+    if (a.is_test_driver()) {
+        llvm::Regex outdent("^ *// *(v-*)[-^]\r*$");
+        llvm::Regex reindent("^ *// *[-^](-*v)\r*$");
+
+        for (auto& comment : a.attachment<CommentData>().d_allComments) {
+            llvm::StringRef line = a.get_source_line(comment.getBegin());
+            Location        loc(m, comment.getBegin());
+            llvm::SmallVector<llvm::StringRef, 7> matches;
+            if (line == "//..") {
+                if (a.is_toplevel(loc.file())) {
+                    indent ind((d.d_in_dotdot[loc.file()] ^= 1) ? +4 : -4);
+                    ind.d_dotdot = true;
+                    add_indent(comment.getEnd(), ind);
+                }
+            }
+            else if (outdent.match(line, &matches)) {
+                add_indent(comment.getEnd(), -matches[1].size());
+            }
+            else if (reindent.match(line, &matches)) {
+                add_indent(comment.getEnd(), matches[1].size());
+            }
+        }
+    }
+
     TraverseDecl(a.context()->getTranslationUnitDecl());
 
     // Process remnant declarators.
@@ -771,7 +770,6 @@ void subscribe(Analyser& analyser, Visitor& visitor, PPObserver& observer)
 {
     analyser.onTranslationUnitDone += report(analyser);
     observer.onMacroExpands += report(analyser);
-    observer.onComment += report(analyser);
 }
 
 }  // close anonymous namespace
