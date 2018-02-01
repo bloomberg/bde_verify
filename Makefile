@@ -136,9 +136,7 @@ CXXFILES =                                                                    \
         groups/csa/csafmt/csafmt_nonascii.cpp                                 \
         groups/csa/csafmt/csafmt_whitespace.cpp                               \
         groups/csa/csaglb/csaglb_comments.cpp                                 \
-        groups/csa/csaglb/csaglb_includedfiles.cpp                            \
-        groups/csa/csaglb/csaglb_skippedfiles.cpp                             \
-        groups/csa/csaglb/csaglb_skippedranges.cpp                            \
+        groups/csa/csaglb/csaglb_includes.cpp                                 \
         groups/csa/csamisc/csamisc_anonymousnamespaceinheader.cpp             \
         groups/csa/csamisc/csamisc_arrayargument.cpp                          \
         groups/csa/csamisc/csamisc_arrayinitialization.cpp                    \

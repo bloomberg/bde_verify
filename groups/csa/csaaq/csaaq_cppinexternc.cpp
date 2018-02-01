@@ -9,8 +9,7 @@
 #include <csabase_registercheck.h>
 #include <csabase_report.h>
 #include <csabase_visitor.h>
-#include <csaglb_includedfiles.h>
-#include <csaglb_skippedranges.h>
+#include <csaglb_includes.h>
 
 #include <llvm/Support/Path.h>
 #include <llvm/Support/Regex.h>
@@ -40,12 +39,13 @@ std::unordered_set<std::string> special{
 struct data
     // Data attached to analyzer for this check.
 {
-    std::map<SourceLocation, std::pair<std::string, bool>>        d_includes;
-    std::map<SourceRange, const LinkageSpecDecl *>                d_linkages;
-    std::unordered_map<std::string,
-                       std::pair<SourceLocation, LinkageSpecDecl::LanguageIDs>>
-                                                                  d_types;
-    std::unordered_set<SourceLocation>                            d_done;
+    std::map<SourceLocation, std::string>          d_includes;
+    std::map<SourceRange, const LinkageSpecDecl *> d_linkages;
+    std::unordered_map<
+        std::string,
+        std::pair<SourceLocation, LinkageSpecDecl::LanguageIDs> >
+                                                   d_types;
+    std::unordered_set<SourceLocation>             d_done;
 };
 
 struct report : Report<data>
@@ -167,26 +167,19 @@ void report::operator()(const Decl *decl)
 // TranslationUnitDone
 void report::operator()()
 {
-    for (auto& sf : a.attachment<SkippedRangeData>().d_skippedFiles) {
-        SourceLocation sl = sf.d_file.getBegin();
-        if (!special.count(llvm::sys::path::filename(m.getFilename(sl)))) {
-            d.d_includes.insert({sl, {a.get_source(sf.d_file), true}});
-        }
-    }
-
-    for (auto& id : a.attachment<IncludedFileData>().d_includedFiles) {
-        d.d_includes.insert({id.first, {id.second.file, false}});
-    }
-
-    for (const auto& f : d.d_includes) {
-        const LinkageSpecDecl *lsd = get_linkage(f.first);
-        if (!lsd ||
-            lsd->getLanguage() != LinkageSpecDecl::lang_c ||
-            d.d_types[f.second.first].second !=
-                LinkageSpecDecl::lang_cxx) {
+    for (auto& f : a.attachment<IncludesData>().d_inclusions) {
+        FullSourceLoc fsl = f.first;
+        if (special.count(llvm::sys::path::filename(m.getFilename(fsl)))) {
             continue;
         }
-        SourceLocation sl = m.getExpansionLoc(f.first);
+        llvm::StringRef file = a.get_source(f.second.d_file);
+        const LinkageSpecDecl *lsd = get_linkage(fsl);
+        if (!lsd ||
+            lsd->getLanguage() != LinkageSpecDecl::lang_c ||
+            d.d_types[file].second != LinkageSpecDecl::lang_cxx) {
+            continue;
+        }
+        SourceLocation sl = fsl.getExpansionLoc();
         FileID lfid = m.getFileID(m.getExpansionLoc(lsd->getLocation()));
         while (sl.isValid() && m.getFileID(sl) != lfid) {
             sl = m.getIncludeLoc(m.getFileID(sl));
@@ -194,21 +187,21 @@ void report::operator()()
         if (sl.isValid() && d.d_done.count(sl)) {
             continue;
         }
-        bool sys = m.isInSystemHeader(d.d_types[f.second.first].first);
-        d_analyser.report(f.first, check_name, "PC01",
+        bool sys = m.isInSystemHeader(d.d_types[file].first);
+        d_analyser.report(f.second.d_file.getBegin(), check_name, "PC01",
                          "C++ %0 included within C linkage specification")
             << (sys ? "system header" : "header");
         d_analyser.report(lsd->getLocation(), check_name, "PC01",
                           "C linkage specification here",
                           false, DiagnosticIDs::Note);
-        if (sl.isValid() && sl != f.first) {
+        if (sl.isValid() && sl != fsl) {
             d.d_done.insert(sl);
             d_analyser.report(sl, check_name, "PC01",
                               "Top level include within C linkage here",
                               false, DiagnosticIDs::Note);
         }
         if (!sys) {
-            d_analyser.report(d.d_types[f.second.first].first,
+            d_analyser.report(d.d_types[file].first,
                               check_name, "PC01",
                               "Declaration with C++ linkage here",
                               false, DiagnosticIDs::Note);

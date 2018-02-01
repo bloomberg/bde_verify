@@ -15,8 +15,7 @@
 #include <csabase_report.h>
 #include <csabase_visitor.h>
 #include <csaglb_comments.h>
-#include <csaglb_includedfiles.h>
-#include <csaglb_skippedranges.h>
+#include <csaglb_includes.h>
 
 #include <llvm/Support/Path.h>
 #include <llvm/Support/Regex.h>
@@ -118,22 +117,6 @@ void report::operator()(const LinkageSpecDecl *decl)
 // TranslationUnitDone
 void report::operator()()
 {
-    for (auto& sf : a.attachment<SkippedRangeData>().d_skippedFiles) {
-        SourceLocation sl = sf.d_file.getBegin();
-        if (!special.count(llvm::sys::path::filename(m.getFilename(sl)))) {
-            const DirectoryLookup *dl = 0;
-            if (const FileEntry *fe =
-                    p.LookupFile(sl,
-                                 a.get_source(sf.d_file),
-                                 a.get_source(sf.d_include)[0] == '<',
-                                 0,
-                                 m.getFileEntryForID(m.getMainFileID()),
-                                 dl, 0, 0, 0, 0)) {
-                d.d_includes.insert({sl, fe->getName()});
-            }
-        }
-    }
-
     llvm::StringRef ns = a.config()->value("enterprise");
     llvm::Regex nsre(ns, llvm::Regex::IgnoreCase | llvm::Regex::Newline);
     llvm::SmallVector<llvm::StringRef, 7> matches;
@@ -152,10 +135,6 @@ void report::operator()()
         }
     }
 
-    for (auto& id : a.attachment<IncludedFileData>().d_includedFiles) {
-        d.d_includes.insert({id.first, id.second.full});
-    }
-
     for (;;) {
         auto n = d.d_prop.size();
         for (const auto& f : d.d_includes) {
@@ -165,15 +144,31 @@ void report::operator()()
             break;
         }
     }
-    for (const auto& f : d.d_includes) {
-        SourceLocation sl = m.getExpansionLoc(f.first);
+
+    for (const auto& f : a.attachment<IncludesData>().d_inclusions) {
+        FullSourceLoc fsl = f.first;
+        if (special.count(llvm::sys::path::filename(m.getFilename(fsl)))) {
+            continue;
+        }
+        const DirectoryLookup *dl   = 0;
+        StringRef              file = a.get_source(f.second.d_file);
+        if (const FileEntry *fe =
+                p.LookupFile(fsl,
+                             file,
+                             a.get_source(f.second.d_fullFile)[0] == '<',
+                             0,
+                             m.getFileEntryForID(m.getMainFileID()),
+                             dl, 0, 0, 0, 0)) {
+            file = fe->getName();
+        }
+        SourceLocation         sl  = fsl.getExpansionLoc();
         const LinkageSpecDecl *lsd = get_local_linkage(sl);
         if (!lsd ||
             lsd->getLanguage() != LinkageSpecDecl::lang_c ||
-            !d.d_prop[f.second].isValid() ||
+            !d.d_prop[file].isValid() ||
             a.is_system_header(sl) ||
             a.is_system_header(lsd) ||
-            a.is_system_header(d.d_prop[f.second])) {
+            a.is_system_header(d.d_prop[file])) {
             continue;
         }
         a.report(sl, check_name, "IC01",
@@ -183,7 +178,7 @@ void report::operator()()
         a.report(lsd->getLocation(), check_name, "IC01",
                  "C linkage specification here",
                  true, DiagnosticIDs::Note);
-        a.report(d.d_prop[f.second], check_name, "IC01",
+        a.report(d.d_prop[file], check_name, "IC01",
                  "'%0' evidence here",
                  true, DiagnosticIDs::Note)
             << ns;
