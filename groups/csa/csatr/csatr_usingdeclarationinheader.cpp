@@ -12,8 +12,7 @@
 #include <csabase_registercheck.h>
 #include <csabase_report.h>
 #include <csabase_visitor.h>
-#include <csaglb_includedfiles.h>
-#include <csaglb_skippedranges.h>
+#include <csaglb_includes.h>
 #include <llvm/Support/Regex.h>
 #include <string>
 #include <map>
@@ -80,13 +79,8 @@ void report::set_il(SourceLocation& il, SourceLocation sl)
 // TranslationUnitDone
 void report::operator()()
 {
-    for (auto& sf : a.attachment<SkippedRangeData>().d_skippedFiles) {
-        SourceLocation sl = sf.d_include.getBegin();
-        set_il(d.d_ils[m.getFileID(sl)], sl);
-    }
-
-    for (auto& id : a.attachment<IncludedFileData>().d_includedFiles) {
-        set_il(d.d_ils[m.getFileID(id.first)], id.first);
+    for (const auto& f : a.attachment<IncludesData>().d_inclusions) {
+        set_il(d.d_ils[f.first.getFileID()], f.first);
     }
 
     for (const auto& id : d.d_uds) {
