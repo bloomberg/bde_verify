@@ -128,10 +128,12 @@ void report::operator()(SourceLocation Loc, SourceLocation IfLoc)
                     return SourceRange(
                         sl, sl.getLocWithOffset(matches[i].size() - 1));
                 };
-                IncludesData::Inclusion inclusion;
+                SourceRange key = OffRange(7);
+                FullSourceLoc fsl(key.getBegin(), m);
+                IncludesData::Inclusion& inclusion = d.d_inclusions[fsl];
                 inclusion.d_fullRange = SourceRange(IfLoc, Loc);
                 inclusion.d_guard = OffRange(1);
-                inclusion.d_file = OffRange(7);
+                inclusion.d_file = key;
                 inclusion.d_fullFile = OffRange(6);
                 if (matches[3].size()) {
                     inclusion.d_definedGuard = OffRange(4);
@@ -139,8 +141,13 @@ void report::operator()(SourceLocation Loc, SourceLocation IfLoc)
                 if (matches[9].size()) {
                     inclusion.d_definedGuard = OffRange(10);
                 }
-                d.d_inclusions[FullSourceLoc(inclusion.d_file.getBegin(), m)] =
-                    inclusion;
+                if (!inclusion.d_fe) {
+                    const DirectoryLookup *dl = 0;
+                    inclusion.d_fe = p.LookupFile(fsl,
+                             a.get_source(inclusion.d_file),
+                             a.get_source(inclusion.d_fullFile)[0] == '<',
+                             0, 0, dl, 0, 0, 0, 0);
+                }
             }
         }
         d.d_guardStack.pop_back();
@@ -161,13 +168,16 @@ void report::operator()(SourceLocation       HashLoc,
                         StringRef            RelativePath,
                         const clang::Module *Imported)
 {
-    IncludesData::Inclusion inclusion;
-    inclusion.d_fullFile = FilenameRange.getAsRange();
-    inclusion.d_file =
-        SourceRange(FilenameRange.getBegin().getLocWithOffset(1),
+    SourceRange key(FilenameRange.getBegin().getLocWithOffset(1),
                     FilenameRange.getEnd().getLocWithOffset(-2));
+    IncludesData::Inclusion& inclusion =
+        d.d_inclusions[FullSourceLoc(key.getBegin(), m)];
+    inclusion.d_fullFile = FilenameRange.getAsRange();
+    inclusion.d_file = key;
     inclusion.d_fullRange = SourceRange(HashLoc, FilenameRange.getEnd());
-    d.d_inclusions[FullSourceLoc(inclusion.d_file.getBegin(), m)] = inclusion;
+    if (File) {
+        inclusion.d_fe = File;
+    }
 }
 
 void subscribe(Analyser& analyser, Visitor&, PPObserver& observer)

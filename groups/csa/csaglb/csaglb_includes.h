@@ -28,18 +28,23 @@
 namespace csabase {
 struct IncludesData {
     struct Inclusion {
-        clang::SourceRange d_fullRange;
+        Inclusion() : d_fe(0) { }
+
+        clang::SourceRange      d_fullRange;
             // The full range of the inclusion, including the include-guard
             // section if present.
-        clang::SourceRange d_guard;
+        clang::SourceRange      d_guard;
             // The range of the include guard on the #ifndef line if present.
-        clang::SourceRange d_file;
+        clang::SourceRange      d_file;
             // The range of the file name, without bracketing <> or "".
-        clang::SourceRange d_fullFile;
+        clang::SourceRange      d_fullFile;
             // The range of the file name, with bracketing <> or "".
-        clang::SourceRange d_definedGuard;
+        clang::SourceRange      d_definedGuard;
             // The range of the guard definition, if present, including the
             // #define.
+        const clang::FileEntry *d_fe;
+            // The file entry for the included file, if supplied by an
+            // InclusionDirective callback.
     };
 
     typedef std::map<clang::FullSourceLoc,
