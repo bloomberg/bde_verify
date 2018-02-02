@@ -150,19 +150,10 @@ void report::operator()()
         if (special.count(llvm::sys::path::filename(m.getFilename(fsl)))) {
             continue;
         }
-        const DirectoryLookup *dl   = 0;
-        StringRef              file = a.get_source(f.second.d_file);
-        if (const FileEntry *fe =
-                p.LookupFile(fsl,
-                             file,
-                             a.get_source(f.second.d_fullFile)[0] == '<',
-                             0,
-                             m.getFileEntryForID(m.getMainFileID()),
-                             dl, 0, 0, 0, 0)) {
-            file = fe->getName();
-        }
         SourceLocation         sl  = fsl.getExpansionLoc();
         const LinkageSpecDecl *lsd = get_local_linkage(sl);
+        StringRef              file = f.second.d_fe ? f.second.d_fe->getName()
+                                       : a.get_source(f.second.d_file);
         if (!lsd ||
             lsd->getLanguage() != LinkageSpecDecl::lang_c ||
             !d.d_prop[file].isValid() ||
