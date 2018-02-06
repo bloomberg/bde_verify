@@ -105,6 +105,24 @@ bool is_allocator(const Type& type,
     return is_allocator(QualType(&type, 0), c, includeBases, excludeConst);
 }
 
+bool is_allocator_tag(QualType type, ASTContext& c)
+    // Return 'true' iff the specified type is 'bsl::allocator_arg_t'.
+{
+    static const std::string aa = "bsl::allocator_arg_t";
+
+    if (auto r = type.getDesugaredType(c)->getAsCXXRecordDecl()) {
+        if (r->hasDefinition()) {
+            return aa == r->getDefinition()->getQualifiedNameAsString();
+        }
+    }
+    return false;
+}
+
+bool is_allocator_tag(const Type& type, ASTContext& c)
+{
+    return is_allocator_tag(QualType(&type, 0), c);
+}
+
 }
 
 namespace clang {
@@ -129,8 +147,24 @@ AST_MATCHER_P(FunctionDecl, hasLastParameter,
                *Node.getParamDecl(Node.getNumParams() - 1), Finder, Builder);
 }
 
+AST_MATCHER_P(FunctionDecl, hasFirstParameter,
+               internal::Matcher<ParmVarDecl>, InnerMatcher) {
+    return Node.getNumParams() > 0 &&
+           InnerMatcher.matches(*Node.getParamDecl(0), Finder, Builder);
+}
+
+AST_MATCHER_P(FunctionDecl, hasSecondParameter,
+               internal::Matcher<ParmVarDecl>, InnerMatcher) {
+    return Node.getNumParams() > 1 &&
+           InnerMatcher.matches(*Node.getParamDecl(1), Finder, Builder);
+}
+
 AST_MATCHER(Type, isAllocator) {
     return is_allocator(Node, Finder->getASTContext(), true, true);
+}
+
+AST_MATCHER(Type, isAllocatorTag) {
+    return is_allocator_tag(Node, Finder->getASTContext());
 }
 
 }
@@ -138,6 +172,8 @@ AST_MATCHER(Type, isAllocator) {
 
 namespace
 {
+
+enum AllocatorLocation { a_None, a_Last, a_Second };
 
 struct data
     // Data stored for this set of checks.
@@ -160,12 +196,17 @@ struct data
     Cexprs cexprs_;
         // The set of constructor expressions seen.
 
-    typedef std::map<const Type*, bool> TypeTakesAllocator;
+    typedef std::map<const Expr *, const CXXCtorInitializer*> Cinits;
+    Cinits cinits_;
+        // The set of constructor initializers seen.
+
+    typedef std::map<const Type*, AllocatorLocation> TypeTakesAllocator;
     TypeTakesAllocator type_takes_allocator_;
         // A map of whether a type has a constructor with an allocator
         // parameter.
 
-    typedef std::map<const CXXConstructorDecl*, bool> CtorTakesAllocator;
+    typedef std::map<const CXXConstructorDecl *, AllocatorLocation>
+                       CtorTakesAllocator;
     CtorTakesAllocator ctor_takes_allocator_;
         // A map of whether a constructor has an allocator parameter.
 
@@ -200,15 +241,18 @@ struct report : Report<data>
         // specified 'excludeConst' is true, do not consider const-qualified
         // pointers.
 
+    bool is_allocator_tag(QualType type);
+        // Return 'true' iff the specified 'type' is 'bsl::allocator_arg_t'.
+
     bool last_arg_is_explicit_allocator(const CXXConstructExpr* call);
         // Return 'true' iff the specified 'call' to a constructor has
         // arguments and the last argument is an explicitly passed allocator.
 
-    bool takes_allocator(QualType type);
+    AllocatorLocation takes_allocator(QualType type);
         // Return 'true' iff the 'specified' type has a constructor which has a
         // final allocator paramater.
 
-    bool takes_allocator(CXXConstructorDecl const* constructor);
+    AllocatorLocation takes_allocator(CXXConstructorDecl const* constructor);
         // Return 'true' iff the specified 'constructor' has a final allocator
         // pointer paramater.
 
@@ -237,6 +281,9 @@ struct report : Report<data>
 
     void match_ctor_expr(const BoundNodes& nodes);
         // Callback for constructor expressions.
+
+    void match_ctor_init(const BoundNodes& nodes);
+        // Callback for constructor initializers.
 
     void match_return_stmt(const BoundNodes& nodes);
         // Callback for return statements.
@@ -377,6 +424,11 @@ bool report::is_allocator(QualType type, bool includeBases, bool excludeConst)
     return ::is_allocator(type, *a.context(), includeBases, excludeConst);
 }
 
+bool report::is_allocator_tag(QualType type)
+{
+    return ::is_allocator_tag(type, *a.context());
+}
+
 bool report::last_arg_is_explicit_allocator(const CXXConstructExpr* call)
 {
     unsigned n = call ? call->getNumArgs() : 0;
@@ -384,7 +436,7 @@ bool report::last_arg_is_explicit_allocator(const CXXConstructExpr* call)
     return last && !last->isDefaultArgument() && is_allocator(last->getType());
 }
 
-bool report::takes_allocator(QualType type)
+AllocatorLocation report::takes_allocator(QualType type)
 {
     while (type->isArrayType()) {
         type = QualType(type->getArrayElementTypeNoTypeQual(), 0);
@@ -393,24 +445,32 @@ bool report::takes_allocator(QualType type)
         [type.getTypePtr()->getCanonicalTypeInternal().getTypePtr()];
 }
 
-bool report::takes_allocator(CXXConstructorDecl const* constructor)
+AllocatorLocation report::takes_allocator(
+                                         CXXConstructorDecl const *constructor)
 {
     data::CtorTakesAllocator::iterator itr =
         d.ctor_takes_allocator_.find(constructor);
     if (itr != d.ctor_takes_allocator_.end()) {
         return itr->second;
     }
-    d.ctor_takes_allocator_[constructor] = false;
+
     unsigned n = constructor->getNumParams();
 
     if (n == 0 || (constructor->isCopyOrMoveConstructor() && n == 1)) {
-        return false;                                                 // RETURN
+        return d.ctor_takes_allocator_[constructor] = a_None;         // RETURN
+    }
+
+    if (n > 1) {
+        QualType t1 = constructor->getParamDecl(0)->getType();
+        QualType t2 = constructor->getParamDecl(1)->getType();
+        if (is_allocator_tag(t1) && is_allocator(t2, true, true)) {
+            return d.ctor_takes_allocator_[constructor] = a_Second;
+        }
     }
 
     QualType type = constructor->getParamDecl(n - 1)->getType();
-
     return d.ctor_takes_allocator_[constructor] =
-               is_allocator(type, true, true);
+               is_allocator(type, true, true) ? a_Last : a_None;
 }
 
 static internal::DynTypedMatcher nested_allocator_trait_matcher()
@@ -507,12 +567,19 @@ static internal::DynTypedMatcher class_using_allocator_matcher()
     // is a pointer or reference to an allocator or a reference to a class that
     // has such a constructor.
 {
-    return decl(forEachDescendant(recordDecl(
-        has(cxxConstructorDecl(hasLastParameter(parmVarDecl(anyOf(
-            hasType(pointerType(isAllocator())),
-            hasType(referenceType(isAllocator()))
-        )))))
-    ).bind("class")));
+    return decl(forEachDescendant(recordDecl(anyOf(
+            has(cxxConstructorDecl(hasLastParameter(parmVarDecl(anyOf(
+                hasType(pointerType(isAllocator())),
+                hasType(referenceType(isAllocator()))
+            )))).bind("last")),
+            has(cxxConstructorDecl(allOf(
+                hasFirstParameter(hasType(isAllocatorTag())),
+                hasSecondParameter(parmVarDecl(anyOf(
+                    hasType(pointerType(isAllocator())),
+                    hasType(referenceType(isAllocator()))
+                )))
+            )).bind("second"))
+    )).bind("class")));
 }
 
 void report::match_class_using_allocator(const BoundNodes& nodes)
@@ -520,7 +587,9 @@ void report::match_class_using_allocator(const BoundNodes& nodes)
     QualType type = nodes.getNodeAs<CXXRecordDecl>("class")
                         ->getTypeForDecl()
                         ->getCanonicalTypeInternal();
-    d.type_takes_allocator_[type.getTypePtr()] = true;
+    d.type_takes_allocator_[type.getTypePtr()] = AllocatorLocation(
+        (nodes.getNodeAs<Decl>("last")   ? a_Last   : a_None) |
+        (nodes.getNodeAs<Decl>("second") ? a_Second : a_None));
 }
 
 static internal::DynTypedMatcher allocator_trait_matcher(int value)
@@ -697,6 +766,17 @@ void report::match_ctor_expr(const BoundNodes& nodes)
     d.cexprs_.insert(expr);
 }
 
+static internal::DynTypedMatcher ctor_init_matcher()
+{
+    return decl(forEachDescendant(cxxCtorInitializer(anything()).bind("i")));
+}
+
+void report::match_ctor_init(const BoundNodes& nodes)
+{
+    auto init = nodes.getNodeAs<CXXCtorInitializer>("i");
+    d.cinits_[init->getInit()] = init;
+}
+
 static internal::DynTypedMatcher return_stmt_matcher()
 {
     return decl(forEachDescendant(
@@ -764,6 +844,9 @@ void report::operator()()
     OnMatch<report, &report::match_ctor_expr> m1(this);
     mf.addDynamicMatcher(ctor_expr_matcher(), &m1);
 
+    OnMatch<report, &report::match_ctor_init> m11(this);
+    mf.addDynamicMatcher(ctor_init_matcher(), &m11);
+
     OnMatch<report, &report::match_return_stmt> m8(this);
     mf.addDynamicMatcher(return_stmt_matcher(), &m8);
 
@@ -790,16 +873,16 @@ void report::check_globals_use_allocator(data::Globals::const_iterator begin,
                                          data::Globals::const_iterator end)
 {
     for (data::Globals::const_iterator itr = begin; itr != end; ++itr) {
-        const VarDecl *decl = *itr;
+        const VarDecl          *decl = *itr;
         const CXXConstructExpr *expr =
             llvm::dyn_cast<CXXConstructExpr>(decl->getInit());
-        if (takes_allocator(expr->getType()) &&
-            !is_allocator(expr->getType())) {
-            unsigned n = expr->getNumArgs();
-            bool bad = n == 0;
+        if (!is_allocator(expr->getType()) &&
+            takes_allocator(expr->getType()) == a_Last) {
+            unsigned n   = expr->getNumArgs();
+            bool     bad = n == 0;
             if (n > 0) {
                 const Expr *last = expr->getArg(n - 1);
-                bool result;
+                bool        result;
                 if (last->isDefaultArgument() ||
                     (last->EvaluateAsBooleanCondition(result, *a.context()) &&
                      result == false)) {
@@ -905,7 +988,8 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
             uses_allocator &&
             !takes_allocator(decl)) {
             // Warn if the class does not have a constructor that matches this
-            // one, but with a final allocator parameter.
+            // one, but with a final allocator parameter or an initial
+            // allocator_arg_t, allocator pair.
 
             bool found =    // Private copy constructor declarations are OK.
                 decl->getAccess() == AS_private &&
@@ -923,16 +1007,29 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
                             ->getTemplatedDecl()
                             ->getCanonicalDecl();
                 }
+                AllocatorLocation aloc = takes_allocator(ctor);
                 if (ctor == ctor->getCanonicalDecl() &&
                     ctor != decl &&
-                    r == record &&
-                    ctor->getNumParams() == num_parms + 1 &&
-                    takes_allocator(ctor)) {
-                    found = true;
-                    for (unsigned pi = 0; found && pi < num_parms; ++pi) {
-                        if (decl->getParamDecl(pi)->getOriginalType() !=
-                            ctor->getParamDecl(pi)->getOriginalType()) {
-                            found = false;
+                    r == record) {
+                    if (aloc == a_Last &&
+                        ctor->getNumParams() == num_parms + 1) {
+                        found = true;
+                        for (unsigned pi = 0; found && pi < num_parms; ++pi) {
+                            if (decl->getParamDecl(pi)->getOriginalType() !=
+                                ctor->getParamDecl(pi)->getOriginalType()) {
+                                found = false;
+                            }
+                        }
+                    }
+                    if (aloc == a_Second &&
+                        ctor->getNumParams() == num_parms + 2) {
+                        found = true;
+                        for (unsigned pi = 0; found && pi < num_parms; ++pi) {
+                            if (decl->getParamDecl(pi)->getOriginalType() !=
+                                ctor->getParamDecl(pi + 2)
+                                    ->getOriginalType()) {
+                                found = false;
+                            }
                         }
                     }
                 }
@@ -969,13 +1066,15 @@ void report::check_not_forwarded(const CXXConstructorDecl *decl)
         return;                                                       // RETURN
     }
 
-    if (!takes_allocator(decl)) {
+    AllocatorLocation aloc = takes_allocator(decl);
+
+    if (aloc == a_None) {
         return;                                                       // RETURN
     }
 
-    // The allocator parameter is the last one.
-    const ParmVarDecl* palloc =
-        decl->getParamDecl(decl->getNumParams() - 1);
+    // The allocator parameter is the last one or the second one.
+    const ParmVarDecl *palloc =
+        decl->getParamDecl(aloc == a_Last ? decl->getNumParams() - 1 : 1);
 
     // Iterate through the base and member initializers and report those
     // which take an allocator parameter that we do not pass.
@@ -1001,9 +1100,12 @@ void report::check_not_forwarded(const CXXCtorInitializer* init,
         return;                                                       // RETURN
     }
 
-    if (takes_allocator(ctor_expr->getConstructor()) &&
-        last_arg_is_explicit_allocator(ctor_expr)) {
-        // The allocator parameter is passed.
+    AllocatorLocation aloc = takes_allocator(ctor_expr->getConstructor());
+
+    if (a_Second == aloc ||
+        (a_Last == aloc && last_arg_is_explicit_allocator(ctor_expr))) {
+        // The allocator is explicitly passed last, or it's passed second
+        // (where it would not be optional).
         return;                                                       // RETURN
     }
 
@@ -1014,7 +1116,7 @@ void report::check_not_forwarded(const CXXCtorInitializer* init,
                            init->getAnyMember()->getType().getTypePtr() :
                            nullptr;
 
-    if (!type || !takes_allocator(type->getCanonicalTypeInternal())) {
+    if (!type || a_Last != takes_allocator(type->getCanonicalTypeInternal())) {
         return;                                                       // RETURN
     }
 
@@ -1193,12 +1295,17 @@ void report::check_uses_allocator(const CXXConstructExpr *expr)
 
     const CXXConstructorDecl *decl = expr->getConstructor();
 
-    if (decl->getNumParams() != n ||
-        !is_allocator(decl->getParamDecl(n - 1)->getType())) {
+    AllocatorLocation aloc = takes_allocator(decl);
+
+    if (decl->getNumParams() != n || a_None == aloc) {
         return;
     }
 
-    const Expr *arg = expr->getArg(n - 1);
+    if (d.cinits_.find(expr) != d.cinits_.end()) {
+        return;
+    }
+
+    const Expr *arg = expr->getArg(aloc == a_Last ? n - 1 : 1);
 
     if (arg->isDefaultArgument()) {
         return;

@@ -680,10 +680,12 @@ void report::critiqueContract(const FunctionDecl* func, SourceRange comment)
     const SourceLocation cloc = comment.getBegin();
 
     // Check for bad indentation.
-    const int fline = d_manager.getPresumedLineNumber(func->getLocStart());
-    const int fcolm = d_manager.getPresumedColumnNumber(func->getLocStart());
-    const int cline = d_manager.getPresumedLineNumber(cloc);
-    const int ccolm = d_manager.getPresumedColumnNumber(cloc);
+    llvm::StringRef f = d_analyser.get_source_line(func->getLocStart());
+    llvm::StringRef c = d_analyser.get_source_line(cloc);
+    int fline = d_manager.getPresumedLineNumber(func->getLocStart());
+    int fcolm = int(f.find_first_not_of(' '));
+    int cline = d_manager.getPresumedLineNumber(cloc);
+    int ccolm = int(c.find_first_not_of(' '));
     if (fline != cline && ccolm != fcolm + 4) {
         d_analyser.report(cloc, check_name, "FD02",
             "Function contracts should be indented 4, not %0, spaces "
