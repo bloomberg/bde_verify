@@ -68,9 +68,6 @@ struct alloc_p {
 csabbg_allocatorforward.t.cpp:177:22: warning: AM01: Allocator argument initializes non-allocator parameter 1 ('na') of type 'struct bde_verify::csabbg::not_alloc' rather than allocator parameter 2
             object o(a);
                      ^
-csabbg_allocatorforward.t.cpp:71:15: warning: AU01: Verify whether allocator use is appropriate
-    used1_(1, allocator_),
-              ^~~~~~~~~~
 csabbg_allocatorforward.t.cpp:182:17: warning: AR01: Type using allocator is returned by value
                 return o;
                 ^
@@ -89,4 +86,4 @@ bde_verify::csabbg::alloc_a c[2];
 csabbg_allocatorforward.t.cpp:316:29: warning: GA01: Variable with global storage must be initialized with non-default allocator
 bde_verify::csabbg::alloc_a d[2][2];
                             ^
-32 warnings generated.
+31 warnings generated.
