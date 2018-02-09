@@ -40,7 +40,7 @@ $exe         = "${pt}scripts/$enm"              unless -x $exe;
 $exe         = "${pt}$enm"                      unless -x $exe;
 
 my @cl;
-my $cc       = $ENV{CXX} || "g++";
+my $cc       = "";
 my $debug    = "";
 my $verbose  = "";
 my $help     = "";
@@ -193,7 +193,7 @@ if ($ovr == 0) {
 }
 
 my $gccdir   = Cwd::abs_path($cc);
-$gccdir      =~ s{/(bin/)?[^/]*$}{};
+$gccdir      =~ s{/(bin/)?[^/]*$}{} unless -d "${gccdir}";
 
 for (@ARGV) {
     if (! -f) {
@@ -223,7 +223,9 @@ my @pass;
 push(@pass, "-m32") if $m32;
 push(@pass, "-m64") if $m64;
 push(@pass, "-std=$std") if $std;
+push(@pass, "--gcc-toolchain=${gccdir}") if -d "${gccdir}";
 
+if (0) {
 # Get the compiler include paths.
 unshift(@incs, xclang(
         map { ( "-isystem", $_ ) }
@@ -233,13 +235,13 @@ unshift(@incs, xclang(
         qx{ $cc -xc++ @pass -E -v /dev/null 2>&1 |
             sed -n '/^#include/,/^End of search list/p' |
             sed -n '/^ [/]/s/ //p'}));
+}
 
 @cl = map { plugin("config-line=$_") } @cl;
 
 my @command = (
     "$exe",
     xclang("-plugin", "bde_verify"),
-    "--gcc-toolchain=${gccdir}",
     "-resource-dir", "${pt}include/bde-verify/clang",
     "-fsyntax-only",
     "-xc++",
