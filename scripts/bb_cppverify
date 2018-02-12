@@ -40,7 +40,7 @@ $exe         = "${pt}scripts/$enm"              unless -x $exe;
 $exe         = "${pt}$enm"                      unless -x $exe;
 
 my @cl;
-chomp(my $cc = ENV{$CXX} || `which g++`);
+chomp(my $cc = $ENV{CXX} || `which g++`);
 my $debug    = "";
 my $verbose  = "";
 my $help     = "";
