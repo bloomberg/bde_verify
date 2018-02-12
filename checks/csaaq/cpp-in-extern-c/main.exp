@@ -8,9 +8,9 @@ In file included from main.cpp:1:
 ./cppfile.h:3:13: note: PC01: Declaration with C++ linkage here
 inline void cppfile() { }
             ^
-main.cpp:8:10: warning: PC01: C++ header included within C linkage specification
+main.cpp:8:11: warning: PC01: C++ header included within C linkage specification
 #include <cppfile.h>
-         ^
+          ^
 main.cpp:4:8: note: PC01: C linkage specification here
 extern "C" {
        ^
@@ -18,9 +18,9 @@ In file included from main.cpp:1:
 ./cppfile.h:3:13: note: PC01: Declaration with C++ linkage here
 inline void cppfile() { }
             ^
-main.cpp:11:10: warning: PC01: C++ system header included within C linkage specification
+main.cpp:11:11: warning: PC01: C++ system header included within C linkage specification
 #include <string>
-         ^
+          ^
 main.cpp:4:8: note: PC01: C linkage specification here
 extern "C" {
        ^

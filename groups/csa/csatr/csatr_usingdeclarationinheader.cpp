@@ -12,6 +12,7 @@
 #include <csabase_registercheck.h>
 #include <csabase_report.h>
 #include <csabase_visitor.h>
+#include <csaglb_includes.h>
 #include <llvm/Support/Regex.h>
 #include <string>
 #include <map>
@@ -44,22 +45,6 @@ struct report : Report<data>
 
     void set_il(SourceLocation& il, SourceLocation sl);
 
-    void operator()(SourceLocation   HashLoc,
-                    const Token&     IncludeTok,
-                    StringRef        FileName,
-                    bool             IsAngled,
-                    CharSourceRange  FilenameRange,
-                    const FileEntry *File,
-                    StringRef        SearchPath,
-                    StringRef        RelativePath,
-                    const Module    *Imported);
-
-    void operator()(const FileEntry&           ParentFile,
-                    const Token&               FilenameTok,
-                    SrcMgr::CharacteristicKind FileType);
-
-    void operator()(SourceRange Range);
-
     void operator()();
 };
 
@@ -91,47 +76,13 @@ void report::set_il(SourceLocation& il, SourceLocation sl)
     }
 }
 
-// InclusionDirective
-void report::operator()(SourceLocation   HashLoc,
-                        const Token&     IncludeTok,
-                        StringRef        FileName,
-                        bool             IsAngled,
-                        CharSourceRange  FilenameRange,
-                        const FileEntry *File,
-                        StringRef        SearchPath,
-                        StringRef        RelativePath,
-                        const Module    *Imported)
-{
-    SourceLocation sl = FilenameRange.getBegin();
-    set_il(d.d_ils[m.getFileID(sl)], sl);
-}
-
-// FileSkipped
-void report::operator()(const FileEntry&           ParentFile,
-                        const Token&               FilenameTok,
-                        SrcMgr::CharacteristicKind FileType)
-{
-    SourceLocation sl = FilenameTok.getLocation();
-    set_il(d.d_ils[m.getFileID(sl)], sl);
-}
-
-// SourceRangeSkipped
-void report::operator()(SourceRange Range)
-{
-    SourceLocation sl = Range.getBegin();
-    llvm::StringRef s = a.get_source(Range);
-    llvm::SmallVector<llvm::StringRef, 7> matches;
-    static llvm::Regex r(" *ifn?def *INCLUDED_.*[[:space:]]+"
-                        "# *include +([<\"][^\">]*[\">])");
-    if (r.match(s, &matches) && s.find(matches[0]) == 0) {
-        sl = sl.getLocWithOffset(s.find(matches[1]));
-        set_il(d.d_ils[m.getFileID(sl)], sl);
-    }
-}
-
 // TranslationUnitDone
 void report::operator()()
 {
+    for (const auto& f : a.attachment<IncludesData>().d_inclusions) {
+        set_il(d.d_ils[f.first.getFileID()], f.first);
+    }
+
     for (const auto& id : d.d_uds) {
         if (!a.is_header(m.getFilename(m.getLocForStartOfFile(id.first)))) {
             const auto& il = d.d_ils[id.first];
@@ -153,12 +104,6 @@ void subscribe(Analyser& analyser, Visitor& visitor, PPObserver& observer)
     // Hook up the callback functions.
 {
     visitor.onUsingDecl += report(analyser);
-    observer.onPPInclusionDirective += report(analyser,
-                                                observer.e_InclusionDirective);
-    observer.onPPFileSkipped        += report(analyser,
-                                                observer.e_FileSkipped);
-    observer.onPPSourceRangeSkipped += report(analyser,
-                                                observer.e_SourceRangeSkipped);
     analyser.onTranslationUnitDone  += report(analyser);
 }
 

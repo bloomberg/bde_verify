@@ -9,8 +9,10 @@
 #include <csabase_diagnostic_builder.h>
 #include <csabase_ppobserver.h>
 #include <csabase_registercheck.h>
+#include <csabase_report.h>
 #include <csabase_util.h>
 #include <csabase_visitor.h>
+#include <csaglb_comments.h>
 #include <llvm/ADT/SmallVector.h>
 #include <llvm/ADT/StringRef.h>
 #include <llvm/Support/Regex.h>
@@ -37,46 +39,18 @@ static std::string const check_name("banner");
 namespace
 {
 
-struct comments
-    // Data holding seen comments.
+struct data
 {
-    typedef std::vector<SourceRange> Ranges;
-    typedef std::map<std::string, Ranges> Comments;
-    Comments d_comments;
-
-    void append(Analyser& analyser, SourceRange range);
-
     SourceLocation d_inline_banner;      // banner for inline definitions
     SourceLocation d_inline_definition;  // first inline definition
 };
 
-void comments::append(Analyser& analyser, SourceRange range)
+struct report : Report<data>
 {
-    SourceManager& m = analyser.manager();
-    comments::Ranges& c = d_comments[m.getFilename(range.getBegin())];
-    if (c.size() != 0 && areConsecutive(m, c.back(), range)) {
-        c.back().setEnd(range.getEnd());
-    } else {
-        c.push_back(range);
-    }
-}
-
-struct files
-    // Callback object for inspecting files.
-{
-    Analyser& d_analyser;                   // Analyser object.
-
-    files(Analyser& analyser);
-        // Create a 'files' object, accessing the specified 'analyser'.
-
-    void operator()(SourceRange range);
-        // The specified comment 'range' is added to the stored data.
+    INHERIT_REPORT_CTOR(report, Report, data);
 
     void check_comment(SourceRange comment_range);
         // Check banner in one comment.
-
-    void check_file_comments(comments::Ranges& comments);
-        // Check all banners in a file.
 
     void operator()();
         // Report improper banners.
@@ -84,16 +58,6 @@ struct files
     void operator()(const FunctionDecl *func);
         // Look for inline function definitions ahead of banner.
 };
-
-files::files(Analyser& analyser)
-: d_analyser(analyser)
-{
-}
-
-void files::operator()(SourceRange range)
-{
-    d_analyser.attachment<comments>().append(d_analyser, range);
-}
 
 #undef  aba
 #define aba(a, b) "(" a "(" b a ")*)"
@@ -144,16 +108,15 @@ void get_displays(llvm::StringRef text,
     }
 }
 
-void files::check_comment(SourceRange comment_range)
+void report::check_comment(SourceRange comment_range)
 {
-    if (!d_analyser.is_component(comment_range.getBegin())) {
+    if (!a.is_component(comment_range.getBegin())) {
         return;                                                       // RETURN
     }
 
-    SourceManager& manager = d_analyser.manager();
     llvm::SmallVector<llvm::StringRef, 8> matches;
 
-    llvm::StringRef comment = d_analyser.get_source(comment_range, true);
+    llvm::StringRef comment = a.get_source(comment_range, true);
     llvm::SmallVector<std::pair<size_t, size_t>, 7> displays;
     get_displays(comment, &displays);
 
@@ -173,7 +136,7 @@ void files::check_comment(SourceRange comment_range)
             continue;
         SourceLocation separator_start =
             comment_range.getBegin().getLocWithOffset(separator_pos);
-        if (manager.getPresumedColumnNumber(separator_start) == 1 &&
+        if (m.getPresumedColumnNumber(separator_start) == 1 &&
             matches[3].size() != 79 &&
             matches[4].size() <= 1 &&
             separator.size() != matches[1].size()) {
@@ -184,13 +147,12 @@ void files::check_comment(SourceRange comment_range)
                 expected_banner += extra;
             }
             expected_banner = expected_banner.substr(0, 79);
-            d_analyser.report(separator_start,
-                              check_name, "BAN02",
-                              "Banner ends at column %0 instead of 79")
+            a.report(separator_start, check_name, "BAN02",
+                     "Banner ends at column %0 instead of 79")
                 << static_cast<int>(matches[3].size());
-            SourceRange line_range = d_analyser.get_line_range(separator_start);
+            SourceRange line_range = a.get_line_range(separator_start);
             if (line_range.isValid()) {
-                d_analyser.ReplaceText(line_range, expected_banner);
+                a.ReplaceText(line_range, expected_banner);
             }
         }
     }
@@ -211,23 +173,22 @@ void files::check_comment(SourceRange comment_range)
             continue;
         SourceLocation banner_start =
             comment_range.getBegin().getLocWithOffset(banner_pos);
-        if (manager.getPresumedColumnNumber(banner_start) != 1) {
+        if (m.getPresumedColumnNumber(banner_start) != 1) {
             continue;
         }
         llvm::StringRef text = matches[4];
         if (text == "INLINE DEFINITIONS") {
-            SourceLocation& ib =
-                d_analyser.attachment<comments>().d_inline_banner;
+            SourceLocation& ib = d.d_inline_banner;
             if (!ib.isValid()) {
                 ib = banner_start;
             }
         }
         size_t text_pos = banner.find(text);
         size_t actual_last_space_pos =
-            manager.getPresumedColumnNumber(
+            m.getPresumedColumnNumber(
                     banner_start.getLocWithOffset(text_pos)) - 1;
         size_t banner_slack = std::strtoul(
-            d_analyser.config()->value("banner_slack", banner_start).c_str(),
+            a.config()->value("banner_slack", banner_start).c_str(),
             0, 10);
         size_t expected_last_space_pos =
             ((79 - 2 - text.size()) / 2 + 2) & ~3;
@@ -245,14 +206,13 @@ void files::check_comment(SourceRange comment_range)
                 " (not reachable using tab key)" :
                 "Improperly centered banner text";
             SourceLocation sl = banner_start.getLocWithOffset(text_pos);
-            d_analyser.report(sl, check_name, "BAN03", error);
-            d_analyser.report(sl, check_name, "BAN03",
-                              "Correct text is\n%0",
-                              false, DiagnosticIDs::Note)
+            a.report(sl, check_name, "BAN03", error);
+            a.report(sl, check_name, "BAN03", "Correct text is\n%0",
+                     false, DiagnosticIDs::Note)
                 << expected_text;
-            SourceRange line_range = d_analyser.get_line_range(sl);
+            SourceRange line_range = a.get_line_range(sl);
             if (line_range.isValid()) {
-                d_analyser.ReplaceText(line_range, expected_text);
+                a.ReplaceText(line_range, expected_text);
             }
         }
 
@@ -267,66 +227,50 @@ void files::check_comment(SourceRange comment_range)
             std::string expected_text =
                 "//" + std::string(expected_last_space_pos - 2, ' ') +
                 bottom_rule.str();
-            d_analyser.report(bottom_loc,
-                              check_name, "BAN04",
-                              "Improperly centered underlining");
-            d_analyser.report(bottom_loc,
-                              check_name, "BAN04",
-                              "Correct version is\n%0",
-                              false, DiagnosticIDs::Note)
+            a.report(bottom_loc, check_name, "BAN04",
+                     "Improperly centered underlining");
+            a.report(bottom_loc, check_name, "BAN04", "Correct version is\n%0",
+                     false, DiagnosticIDs::Note)
                 << expected_text;
-            SourceRange line_range = d_analyser.get_line_range(bottom_loc);
+            SourceRange line_range = a.get_line_range(bottom_loc);
             if (line_range.isValid()) {
-                d_analyser.ReplaceText(line_range, expected_text);
+                a.ReplaceText(line_range, expected_text);
             }
         }
     }
 }
 
-void files::check_file_comments(comments::Ranges& comments)
+void report::operator()()
 {
-    comments::Ranges::iterator b = comments.begin();
-    comments::Ranges::iterator e = comments.end();
-    for (comments::Ranges::iterator itr = b; itr != e; ++itr) {
-        check_comment(*itr);
-    }
-}
-
-void files::operator()()
-{
-    comments::Comments& file_comments =
-        d_analyser.attachment<comments>().d_comments;
-    comments::Comments::iterator b = file_comments.begin();
-    comments::Comments::iterator e = file_comments.end();
-
-    for (comments::Comments::iterator itr = b; itr != e; ++itr) {
-        if (d_analyser.is_component(itr->first)) {
-            check_file_comments(itr->second);
+    for (const auto& c : a.attachment<CommentData>().d_comments) {
+        if (a.is_component(c.first)) {
+            for (const auto& r : c.second) {
+                check_comment(r);
+            }
         }
     }
 
-    SourceLocation& ib = d_analyser.attachment<comments>().d_inline_banner;
-    SourceLocation& id = d_analyser.attachment<comments>().d_inline_definition;
+    SourceLocation& ib = d.d_inline_banner;
+    SourceLocation& id = d.d_inline_definition;
     if (id.isValid() &&
-        !(ib.isValid() &&
-          d_analyser.manager().isBeforeInTranslationUnit(ib, id))) {
-        d_analyser.report(id, check_name, "FB01",
-                         "Inline functions in header must be preceded by an "
-                         "INLINE DEFINITIONS banner");
+        !(ib.isValid() && m.isBeforeInTranslationUnit(ib, id))) {
+        a.report(id, check_name, "FB01",
+                 "Inline functions in header must be preceded by an INLINE "
+                 "DEFINITIONS banner");
     }
 }
 
-void files::operator()(const FunctionDecl *func)
+void report::operator()(const FunctionDecl *func)
 {
     // Process only function definition.
     const CXXMethodDecl *md = llvm::dyn_cast<CXXMethodDecl>(func);
-    SourceLocation& id = d_analyser.attachment<comments>().d_inline_definition;
+    SourceLocation& id = d.d_inline_definition;
     if (!id.isValid() &&
         !func->getDeclContext()->isRecord() &&
         func->doesThisDeclarationHaveABody() &&
         func->isInlineSpecified() &&
         (!md || md->isUserProvided()) &&
-        d_analyser.is_component_header(func)) {
+        a.is_component_header(func)) {
         id = func->getLocation();
     }
 }
@@ -334,9 +278,8 @@ void files::operator()(const FunctionDecl *func)
 void subscribe(Analyser& analyser, Visitor& visitor, PPObserver& observer)
     // Hook up the callback functions.
 {
-    analyser.onTranslationUnitDone += files(analyser);
-    visitor.onFunctionDecl         += files(analyser);
-    observer.onComment             += files(analyser);
+    analyser.onTranslationUnitDone += report(analyser);
+    visitor.onFunctionDecl         += report(analyser);
 }
 
 }  // close anonymous namespace

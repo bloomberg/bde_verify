@@ -18,6 +18,7 @@
 #include <csabase_registercheck.h>
 #include <csabase_report.h>
 #include <csabase_util.h>
+#include <csaglb_comments.h>
 #include <ctype.h>
 #include <llvm/ADT/SmallVector.h>
 #include <llvm/ADT/StringRef.h>
@@ -181,9 +182,6 @@ struct report : public Report<data>
     void operator()();
         // Invoked to process reports.
 
-    void operator()(SourceRange range);
-        // Callback function for processing comments.
-
     template <typename A, typename B>
     bool operator()(const A& a, const B& b) const;
         // Compare the specified 'a' and 'b' by translation unit position.
@@ -305,50 +303,6 @@ void report::operator()(const Decl *decl)
         }
         if (include) {
             d.d_decls.insert(decl);
-        }
-    }
-}
-
-void report::operator()(SourceRange range)
-{
-    llvm::StringRef comment = a.get_source(range);
-    if (range.isValid() && comment.startswith("//")) {
-        comment = comment.drop_front(2).trim();
-        bool saysPublic = false;
-        bool saysPrivate = false;
-        bool saysProtected = false;
-        if (comment.startswith_lower("public ")) {
-            comment = comment.drop_front(6).trim();
-            saysPublic = true;
-        }
-        else if (comment.startswith_lower("private ")) {
-            comment = comment.drop_front(7).trim();
-            saysPrivate = true;
-        }
-        else if (comment.startswith_lower("protected ")) {
-            comment = comment.drop_front(9).trim();
-            saysProtected = true;
-        }
-        if (comment.startswith_lower("instance ")) {
-            comment = comment.drop_front(8).trim();
-        }
-        if (comment.size() && std::isupper(comment[0] & 0xFFU)) {
-            for (const auto& tag : tags) {
-                if (tag.tag.size() && comment.equals_lower(tag.tag)) {
-                    auto type = tag.type;
-                    if (saysPublic) {
-                        type = TagInfo::TagTypes(type | TagInfo::BitPublic);
-                    }
-                    else if (saysPrivate) {
-                        type = TagInfo::TagTypes(type | TagInfo::BitPrivate);
-                    }
-                    else if (saysProtected) {
-                        type = TagInfo::TagTypes(type | TagInfo::BitProtected);
-                    }
-                    d.d_tags.emplace_back(range, type, nullptr);
-                    break;
-                }
-            }
         }
     }
 }
@@ -574,6 +528,50 @@ void report::operator()()
         return;                                                       // RETURN
     }
 
+    for (SourceRange range : a.attachment<CommentData>().d_allComments) {
+        llvm::StringRef comment = a.get_source(range);
+        if (!comment.startswith("//")) {
+            continue;
+        }
+        comment            = comment.drop_front(2).trim();
+        bool saysPublic    = false;
+        bool saysPrivate   = false;
+        bool saysProtected = false;
+        if (comment.startswith_lower("public ")) {
+            comment    = comment.drop_front(6).trim();
+            saysPublic = true;
+        }
+        else if (comment.startswith_lower("private ")) {
+            comment     = comment.drop_front(7).trim();
+            saysPrivate = true;
+        }
+        else if (comment.startswith_lower("protected ")) {
+            comment       = comment.drop_front(9).trim();
+            saysProtected = true;
+        }
+        if (comment.startswith_lower("instance ")) {
+            comment = comment.drop_front(8).trim();
+        }
+        if (comment.size() && std::isupper(comment[0] & 0xFFU)) {
+            for (const auto& tag : tags) {
+                if (tag.tag.size() && comment.equals_lower(tag.tag)) {
+                    auto type = tag.type;
+                    if (saysPublic) {
+                        type = TagInfo::TagTypes(type | TagInfo::BitPublic);
+                    }
+                    else if (saysPrivate) {
+                        type = TagInfo::TagTypes(type | TagInfo::BitPrivate);
+                    }
+                    else if (saysProtected) {
+                        type = TagInfo::TagTypes(type | TagInfo::BitProtected);
+                    }
+                    d.d_tags.emplace_back(range, type, nullptr);
+                    break;
+                }
+            }
+        }
+    }
+
     std::vector<Sort> sorts;
     for (auto& tag : d.d_tags) {
         sorts.emplace_back(Sort::Comment, &tag);
@@ -586,13 +584,13 @@ void report::operator()()
     std::vector<const TagDecl *> scopes(1, nullptr);
     for (const auto& sort : sorts) {
         switch (sort.type) {
-        case Sort::Comment:
+          case Sort::Comment:
             sort.comment->decl = scopes.back();
             break;
-        case Sort::RangeStart:
+          case Sort::RangeStart:
             scopes.emplace_back(sort.scope);
             break;
-        case Sort::RangeEnd:
+          case Sort::RangeEnd:
             if (scopes.size() > 1) {
                 scopes.pop_back();
             }
@@ -610,13 +608,11 @@ void report::operator()()
         }
         bool without = i == d.d_tags.begin();
         if (!without) {
-            while (--i != d.d_tags.begin() &&
-                   i->decl != rd &&
+            while (--i != d.d_tags.begin() && i->decl != rd &&
                    i->decl != nullptr) {
             }
         }
-        if (without ||
-            !m.isWrittenInSameFile(getLoc(decl), getLoc(*i)) ||
+        if (without || !m.isWrittenInSameFile(getLoc(decl), getLoc(*i)) ||
             m.isBeforeInTranslationUnit(getLoc(i->range.getBegin()),
                                         getDCLoc(decl))) {
             if (!decl->isInAnonymousNamespace()) {
@@ -628,7 +624,9 @@ void report::operator()()
             TagInfo::TagTypes(i->type & ~TagInfo::AccessBits);
         if (llvm::dyn_cast<FriendDecl>(decl)) {
             if (base_type != TagInfo::Friends) {
-                a.report(decl, check_name, "KS15",
+                a.report(decl,
+                         check_name,
+                         "KS15",
                          "Friend declaration requires FRIENDS tag");
                 tagIsHere(i, "KS15");
             }
@@ -638,88 +636,90 @@ void report::operator()()
             llvm::dyn_cast<CXXDestructorDecl>(decl)) {
             if (base_type != TagInfo::Creators &&
                 base_type != TagInfo::NotImplemented) {
-                a.report(decl, check_name, "KS09",
+                a.report(decl,
+                         check_name,
+                         "KS09",
                          "Constructor or destructor requires CREATORS tag");
                 tagIsHere(i, "KS09");
                 continue;
             }
         }
         switch (base_type) {
-        case TagInfo::Accessors: {
+          case TagInfo::Accessors: {
             if (!requireConstMethod(decl, i)) {
                 continue;
             }
-        } break;
-        case TagInfo::Aspects: {
+          } break;
+          case TagInfo::Aspects: {
             if (!requireFunction(decl, i)) {
                 continue;
             }
-        } break;
-        case TagInfo::Creators: {
+          } break;
+          case TagInfo::Creators: {
             if (!requireCDtor(decl, i)) {
                 continue;
             }
-        } break;
-        case TagInfo::ClassMethods: {
+          } break;
+          case TagInfo::ClassMethods: {
             if (!requireStaticMethod(decl, i)) {
                 continue;
             }
-        } break;
-        case TagInfo::FreeOperators: {
+          } break;
+          case TagInfo::FreeOperators: {
             if (!requireFreeOperator(decl, i)) {
                 continue;
             }
-        } break;
-        case TagInfo::Manipulators: {
+          } break;
+          case TagInfo::Manipulators: {
             if (!requireNotConstMethod(decl, i)) {
                 continue;
             }
-        } break;
-        case TagInfo::NotImplemented: {
+          } break;
+          case TagInfo::NotImplemented: {
             if (!requireFunction(decl, i)) {
                 continue;
             }
-        } break;
-        case TagInfo::Traits: {
+          } break;
+          case TagInfo::Traits: {
             if (!requireConversionMethod(decl, i)) {
                 continue;
             }
-        } break;
-        case TagInfo::ClassData: {
+          } break;
+          case TagInfo::ClassData: {
             if (!requireVar(decl, i)) {
                 continue;
             }
-        } break;
-        case TagInfo::Data: {
+          } break;
+          case TagInfo::Data: {
             if (!requireField(decl, i)) {
                 continue;
             }
-        } break;
-        case TagInfo::Constant: {
+          } break;
+          case TagInfo::Constant: {
             if (!requireConstVar(decl, i)) {
                 continue;
             }
-        } break;
-        case TagInfo::Friends: {
-            a.report(decl, check_name, "KS16",
-                     "Tag requires friend declaration");
+          } break;
+          case TagInfo::Friends: {
+            a.report(
+                decl, check_name, "KS16", "Tag requires friend declaration");
             tagIsHere(i, "KS16");
             continue;
-        } break;
-        case TagInfo::None: {
-        } break;
-        case TagInfo::Types: {
+          } break;
+          case TagInfo::None: {
+          } break;
+          case TagInfo::Types: {
             if (!requireType(decl, i)) {
                 continue;
             }
-        } break;
-        case TagInfo::FreeFunctions: {
+          } break;
+          case TagInfo::FreeFunctions: {
             if (!requireFreeFunction(decl, i)) {
                 continue;
             }
-        } break;
-        default: {
-        } break;
+          } break;
+          default: {
+          } break;
         }
         if (i->type & TagInfo::BitPrivate) {
             requirePrivate(decl, i);
@@ -745,7 +745,6 @@ void subscribe(Analyser& analyser, Visitor& visitor, PPObserver& observer)
     analyser.onTranslationUnitDone += report(analyser);
     visitor.onTagDecl += report(analyser);
     visitor.onDecl += report(analyser);
-    observer.onComment += report(analyser);
 }
 
 }  // close anonymous namespace

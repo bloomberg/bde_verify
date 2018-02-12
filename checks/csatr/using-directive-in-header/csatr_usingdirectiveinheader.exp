@@ -8,7 +8,7 @@ using namespace bde_verify;
 csatr_usingdirectiveinheader.t.cpp:6:17: warning: AQJ02: Using directive precedes header inclusion
 using namespace bde_verify;
                 ^
-csatr_usingdirectiveinheader.t.cpp:18:10: note: AQJ02: Header included here
+csatr_usingdirectiveinheader.t.cpp:18:11: note: AQJ02: Header included here
 #include <bsl_cstddef.h>
-         ^
+          ^
 3 warnings generated.
