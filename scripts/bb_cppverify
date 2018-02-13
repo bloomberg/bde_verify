@@ -192,8 +192,14 @@ if ($ovr == 0) {
     push(@defs, "-UBSL_OVERRIDES_STD");
 }
 
-my $gccdir   = Cwd::abs_path($cc);
-$gccdir      =~ s{/(bin/)?[^/]*$}{} unless -d "${gccdir}";
+my $gccdir = "";
+if (-f "${cc}" && -x "${cc}") {
+    chomp($gccdir = qx{"${cc}" -### 2>&1 |
+                       sed -n 's/.*--prefix=\\([^ ]*\\).*/\\1/p'});
+}
+elsif (-d "${cc}") {
+    $gccdir = $cc;
+}
 
 for (@ARGV) {
     if (! -f) {
