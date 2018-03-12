@@ -854,32 +854,24 @@ void report::critiqueContract(const FunctionDecl* func, SourceRange comment)
             }
         }
 
-        // Warn about unquoted parameters unless they're on the whitelist or
-        // they're English words.
+        // Warn about unquoted parameters unless they're English words.
         if (really_matched && parm_info[i].is_not_quoted) {
-            std::string ok =
-                " " + llvm::StringRef(d_analyser.config()->value(
-                                          "ok_unquoted", comment.getBegin()))
-                          .lower() +
-                " ";
             std::string mw = " " + parms[i].lower() + " ";
-            if (ok.find(mw) == ok.npos) {
-                for (size_t j = first_index; j < words.size(); ++j) {
-                    const Word& word = words[j];
-                    if (word.parm == i &&
-                        !word.is_quoted &&
-                        !word.is_noise &&
-                        !(parm_info[i].is_quoted && word.is_spelled_ok)) {
-                        SourceRange r = word_range(comment, word);
-                        d_analyser.report(
-                                r.getBegin(),
-                                check_name, "FD04",
-                                "Parameter '%0' is not single-quoted in the "
-                                "function contract")
-                            << parms[i]
-                            << r;
-                        note_double_tick(&dt, "FD04");
-                    }
+            for (size_t j = first_index; j < words.size(); ++j) {
+                const Word& word = words[j];
+                if (word.parm == i &&
+                    !word.is_quoted &&
+                    !word.is_noise &&
+                    !(parm_info[i].is_quoted && word.is_spelled_ok)) {
+                    SourceRange r = word_range(comment, word);
+                    d_analyser.report(
+                            r.getBegin(),
+                            check_name, "FD04",
+                            "Parameter '%0' is not single-quoted in the "
+                            "function contract")
+                        << parms[i]
+                        << r;
+                    note_double_tick(&dt, "FD04");
                 }
             }
         }

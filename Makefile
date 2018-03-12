@@ -271,6 +271,7 @@ LIBS     =    -l$(LCB)                                                        \
               -lz                                                             \
               -lstdc++                                                        \
               -laspell                                                        \
+              -lm                                                             \
               $(EXTRALIBS)
 
 default: $(OBJ)/$(TARGET)

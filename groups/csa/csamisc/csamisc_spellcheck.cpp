@@ -118,28 +118,36 @@ void report::operator()()
         // Words considered bad by the spell checker but we like.
         " accessor{,s}"
         " adl"
+        " align{as,of}"
         " allocator{,s}"
+        " asm"
         " bde"
         " bdewrap"
-        " bitwise"
+        " bit{and,or,wise}"
         " bloomberg"
         " BLP"
+        " bool"
         " bsl{,m{a,f}}"
+        " compl"
         " const{,ness}"
         " deallocate{,d,s}"
+        " decltype"
         " dereference{,d,s}"
         " destructor{,s}"
         " drqs"
         " enum"
         " enqueu{e{,d},ing}"
+        " extern"
         " filename"
         " functor{,s}"
         " gcc"
         " {g,u}uid{,s}"
+        " goto"
         " indices"
         " initiali{s,z}er{,s}"
         " inlin{e,ing}"
         " instantia{ble,tion{,s}}"
+        " int"
         " {i,io,o}stream{,s}"
         " leveli{s,z}{ation,e{,d}}"
         " {l,r}hs"
@@ -149,7 +157,9 @@ void report::operator()()
         " metafunction{,s}"
         " multi"
         " namespace{,s}"
+        " noexcept"
         " noninfringement"
+        " nullptr"
         " parameteri{s,z}ed"
         " portably"
         " pragma"
@@ -157,20 +167,23 @@ void report::operator()()
         " resiz{e{,d,s},ing}"
         " runtime{,s}"
         " sfinae"
+        " sizeof"
         " stl"
         " struct"
         " sublicense"
         " subrange{,s}"
         " subsequence{,s}"
         " templati{s,z}ed"
-        " typedef{,s}"
+        " type{de,o}f{,s}"
         " unary"
         " unbuffered"
         " unticked"
         " utc"
         " variadic"
         " vtable{,s}"
+        " wchar"
         " xlc"
+        " xor"
     ;
 
     AspellConfig *spell_config = new_aspell_config();
@@ -374,10 +387,12 @@ internal::DynTypedMatcher parameter_matcher()
 void report::match_parameter(const BoundNodes &nodes)
 {
     static std::set<llvm::StringRef> ok{
+        "arg",
         "argc", // main argument
         "argv", // main argument
         "cb",   // callback
         "dst",  // destination
+        "fn",
         "id",   // identifier (not identity)
         "init", // initializ(e,er)
         "iter", // iterator

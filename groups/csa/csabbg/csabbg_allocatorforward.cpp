@@ -20,9 +20,12 @@
 #include <csabase_analyser.h>
 #include <csabase_debug.h>
 #include <csabase_diagnostic_builder.h>
+#include <csabase_filenames.h>
 #include <csabase_registercheck.h>
 #include <csabase_report.h>
 #include <csabase_util.h>
+#include <csaglb_comments.h>
+#include <csaglb_includes.h>
 #include <llvm/ADT/APSInt.h>
 #include <llvm/ADT/Optional.h>
 #include <llvm/ADT/VariadicFunction.h>
@@ -216,7 +219,12 @@ struct data
     typedef std::set<const VarDecl*> Globals;
     Globals globals_;
 
-    bool traitsDeclared_ = false;
+    typedef std::map<FileID, std::set<llvm::StringRef>> AddedFiles;
+    AddedFiles added_;
+
+    bool nestedTraitsDeclared_ = false;
+    bool bslmaTtraitsDeclared_ = false;
+    bool bslmfTtraitsDeclared_ = false;
 };
 
 struct report : Report<data>
@@ -329,11 +337,16 @@ struct report : Report<data>
         // Check if the items in the sequence from the specified 'begin' up to
         // but not including the specified 'end' are passed the specified
         // 'palloc' allocator parameter.
- 
-    bool write_allocator_trait(const CXXRecordDecl *record, bool trait);
-        // Write out an allocator trait (true or false depending on the
-        // specified 'trait') for the specified 'record'.  Return true if the
-        // trait was writeen, and false if it was not.
+
+    bool write_allocator_trait(const CXXRecordDecl *record, bool bslma);
+        // Write out a true allocator trait for the specified 'record'.  Write
+        // a 'UsesBslmaAllocator' trait if the specified 'bslma' is true, and a
+        // 'UsesAllocatorArgT' trait otherwise.  Return true if the trait was
+        // writen, and false if it was not.
+
+    void include(SourceLocation loc, llvm::StringRef name);
+        // Generate a file inclusion of the specified 'name' in the file
+        // containing the specified 'loc'.
 
     void check_not_forwarded(const CXXCtorInitializer* init,
                              const ParmVarDecl* palloc);
@@ -530,8 +543,10 @@ void report::match_nested_allocator_trait(const BoundNodes& nodes)
         type.find("bdealg_TypeTraitUsesBdemaAllocator::"
                   "NestedTraitDeclaration<") == 0) {
         d.decls_with_true_allocator_trait_.insert(nd);
-    } else if (type.find("BloombergLP::bslmf::NestedTraitDeclaration<") == 0 &&
-               type.find(", bslma::UsesBslmaAllocator") != type.npos) {
+    }
+    else if (type.find("BloombergLP::bslmf::NestedTraitDeclaration<") == 0 &&
+             (type.find(", bslma::UsesBslmaAllocator") != type.npos ||
+              type.find(", bslmf::UsesAllocatorArgT") != type.npos)) {
         auto ts = qt->getAs<TemplateSpecializationType>();
         if (ts && ts->getNumArgs() == 3) {
             const TemplateArgument& ta = ts->getArg(2);
@@ -548,22 +563,27 @@ void report::match_nested_allocator_trait(const BoundNodes& nodes)
                     found = false;
                 }
                 if (found) {
-                    if (value) {
-                        d.decls_with_true_allocator_trait_.insert(nd);
-                    } else {
-                        d.decls_with_false_allocator_trait_.insert(nd);
-                    }
+                    (value ? d.decls_with_true_allocator_trait_
+                           : d.decls_with_false_allocator_trait_)
+                        .insert(nd);
                     return;
                 }
             }
         }
         if (type.find(", bslma::UsesBslmaAllocator, true>") != type.npos ||
-            type.find(", bslma::UsesBslmaAllocator>") != type.npos) {
+            type.find(", bslma::UsesBslmaAllocator>") != type.npos ||
+            type.find(", bslmf::UsesAllocatorArgT, true>") != type.npos ||
+            type.find(", bslmf::UsesAllocatorArgT>") != type.npos) {
             d.decls_with_true_allocator_trait_.insert(nd);
-        } else if (type.find(", bslma::UsesBslmaAllocator, false>") !=
-                   type.npos) {
+        }
+        else if (type.find(", bslma::UsesBslmaAllocator, false>") !=
+                     type.npos ||
+                 type.find(", bslmf::UsesAllocatorArgT, false>") !=
+                     type.npos) {
             d.decls_with_false_allocator_trait_.insert(nd);
-        } else if (type.find(", bslma::UsesBslmaAllocator,") != type.npos) {
+        }
+        else if (type.find(", bslma::UsesBslmaAllocator,") != type.npos ||
+                 type.find(", bslmf::UsesAllocatorArgT,") != type.npos) {
             d.decls_with_dependent_allocator_trait_.insert(nd);
         }
     }
@@ -574,7 +594,7 @@ static internal::DynTypedMatcher class_using_allocator_matcher()
     // is a pointer or reference to an allocator or a reference to a class that
     // has such a constructor.
 {
-    return decl(forEachDescendant(recordDecl(anyOf(
+    return decl(forEachDescendant(recordDecl(eachOf(
             has(cxxConstructorDecl(hasLastParameter(parmVarDecl(anyOf(
                 hasType(pointerType(isAllocator())),
                 hasType(referenceType(isAllocator()))
@@ -594,9 +614,10 @@ void report::match_class_using_allocator(const BoundNodes& nodes)
     QualType type = nodes.getNodeAs<CXXRecordDecl>("class")
                         ->getTypeForDecl()
                         ->getCanonicalTypeInternal();
-    d.type_takes_allocator_[type.getTypePtr()] = AllocatorLocation(
-        (nodes.getNodeAs<Decl>("last")   ? a_Last   : a_None) |
-        (nodes.getNodeAs<Decl>("second") ? a_Second : a_None));
+    auto &t = d.type_takes_allocator_[type.getTypePtr()];
+    t = AllocatorLocation(t | (nodes.getNodeAs<Decl>("second") ? a_Second :
+                               nodes.getNodeAs<Decl>("last")   ? a_Last   :
+                                                                 a_None));
 }
 
 static internal::DynTypedMatcher allocator_trait_matcher(int value)
@@ -868,7 +889,11 @@ void report::operator()()
     check_not_forwarded(d.ctors_.begin(), d.ctors_.end());
     check_wrong_parm(d.cexprs_.begin(), d.cexprs_.end());
     check_uses_allocator(d.cexprs_.begin(), d.cexprs_.end());
-    check_alloc_returns(d.returns_.begin(), d.returns_.end());
+
+    std::set<data::Returns::value_type, csabase::SortByLocation>
+        sorted_returns(
+            d.returns_.begin(), d.returns_.end(), csabase::SortByLocation(m));
+    check_alloc_returns(sorted_returns.begin(), sorted_returns.end());
 
     std::set<data::Globals::value_type, csabase::SortByLocation>
         sorted_globals(
@@ -928,7 +953,7 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
     for (auto itr = begin; itr != end; ++itr) {
         const CXXConstructorDecl *decl = *itr;
         const CXXRecordDecl* record = decl->getParent()->getCanonicalDecl();
-        bool uses_allocator = takes_allocator(
+        AllocatorLocation uses_allocator = takes_allocator(
                    record->getTypeForDecl()->getCanonicalTypeInternal());
         bool has_true_alloc_trait =
             d.decls_with_true_allocator_trait_.count(record);
@@ -946,10 +971,7 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
             if (uses_allocator &&
                 !has_true_alloc_trait &&
                 !has_false_alloc_trait &&
-                !has_dependent_alloc_trait &&
-                (!tr->hasDefinition() ||
-                 takes_allocator(
-                     tr->getTypeForDecl()->getCanonicalTypeInternal()))) {
+                !has_dependent_alloc_trait) {
                 record = tr;
             }
             if (d.decls_with_true_allocator_trait_.count(tr)) {
@@ -988,7 +1010,12 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
                              "Class %0 uses allocators but does not have an "
                              "allocator trait")
                         << record;
-                    write_allocator_trait(record, true);
+                    if (uses_allocator & a_Last) {
+                        write_allocator_trait(record, true);
+                    }
+                    if (uses_allocator & a_Second) {
+                        write_allocator_trait(record, false);
+                    }
                 }
             }
         }
@@ -1070,92 +1097,115 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
     }
 }
 
-bool report::write_allocator_trait(const CXXRecordDecl *record, bool trait)
-    // Write out an allocator trait for the specified record:
-    //    #include <bslma_usesbslmaallocator.h>
-    //    ...
-    //    namespace BloombergLP {
-    //    namespace bslma {
-    //
-    //    template <> struct UsesBslmaAllocator<rec> : bsl::true_type {};
-    // or
-    //    template <> struct UsesBslmaAllocator<rec> : bsl::false_type {};
-    //
-    //    }  // close namespace bslma
-    //    }  // close enterprise namespace
+void report::include(SourceLocation loc, llvm::StringRef name)
 {
-    if (!a.is_component(record))
+    for (auto &x : d.added_) {
+        if (x.first == m.getFileID(loc) && x.second.count(name)) {
+            return;
+        }
+    }
+
+    FullSourceLoc ins_loc(loc, m);
+    FileName ins(ins_loc.getFileEntry()->getName());
+
+    for (const auto& f : a.attachment<IncludesData>().d_inclusions) {
+        if (FileName(f.second.d_fe->getName()).name() == name) {
+            FileName src(f.first.getFileEntry()->getName());
+            if (src.name() == ins.name() ||
+                a.is_component_header(src.name())) {
+                d.added_[ins_loc.getFileID()].insert(name);
+                return;
+            }
+        }
+    }
+
+    SourceLocation ip;
+    bool insert_after = true;
+    for (const auto& f : a.attachment<IncludesData>().d_inclusions) {
+        if (f.first.getFileID() == m.getFileID(loc)) {
+            if (insert_after) {
+                ip = f.second.d_fullRange.getEnd();
+                FileName fn(f.second.d_fe->getName());
+                if (!a.is_component(fn.name()) && fn.name() > name) {
+                    insert_after = false;
+                    ip = f.second.d_fullRange.getBegin();
+                    break;
+                }
+            }
+        }
+    }
+
+    std::string header = "#include <" + name.str() + ">\n";
+    if (!ip.isValid()) {
+        SourceLocation l = m.getLocForStartOfFile(m.getFileID(loc));
+        a.report(l, check_name, "AT020",
+                 "Header needed for allocator trait\n%0",
+                 false, DiagnosticIDs::Note) << header;
+        a.InsertTextBefore(l, header);
+    }
+    else if (insert_after) {
+        SourceLocation l = a.get_line_range(ip).getEnd().getLocWithOffset(1);
+        a.report(l, check_name, "AT020",
+                 "Header needed for allocator trait\n%0",
+                 false, DiagnosticIDs::Note) << header;
+        a.ReplaceText(l, 0, header);
+    }
+    else {
+        SourceLocation l = a.get_line_range(ip).getBegin();
+        a.report(l, check_name, "AT020",
+                 "Header needed for allocator trait\n%0",
+                 false, DiagnosticIDs::Note) << header;
+        a.InsertTextBefore(l, header);
+    }
+
+    d.added_[ins_loc.getFileID()].insert(name);
+}
+
+bool report::write_allocator_trait(const CXXRecordDecl *record, bool bslma)
+    // Write out an allocator trait for the specified record.  If necessary
+    // emit
+    //    #include <bslmf_nestedtraitdeclaration.h>
+    // If 'bslma' is true, then if necessary emit
+    //    #include <bslma_usesbslmaallocator.h>
+    // If 'bslma' is false, then if necessary emit
+    //    #include <bslmf_usesallocatorargt.h>
+    // If 'bslma' is true, emit within 'record'
+    //    BSLMF_NESTED_TRAIT_DECLARATION(Record, bslma::UsesBslmaAllocator);
+    // If 'bslma' is false, emit within 'record'
+    //    BSLMF_NESTED_TRAIT_DECLARATION(Record, bslma::UsesAllocatorArgt);
+{
+    if (!a.is_component(record) || !record->hasDefinition())
       return false;
-    std::string name;
-    const PrintingPolicy pp = a.context()->getPrintingPolicy();
-    llvm::raw_string_ostream os(name);
-    record->getNameForDiagnostic(os, pp, true);
-    name = os.str();
-    if (name.substr(0, 13) == "BloombergLP::") {
-        name = name.substr(13);
-    }
-    if (name.substr(0, 7) == "bslma::") {
-        name = name.substr(7);
-    }
-    std::string::size_type anon;
-    while ((anon = name.find("(anonymous namespace)::")) != name.npos) {
-      name.erase(anon, 23);
-    }
+
+    record = record->getDefinition();
+
     std::string s;
     llvm::raw_string_ostream ot(s);
-    ot << "namespace BloombergLP {\n"
-          "namespace bslma {\n"
-          "\n";
-    if (!d.traitsDeclared_ &&
-        a.lookup_name("::BloombergLP::bslma::UsesBslmaAllocator"))
-      d.traitsDeclared_ = true;
-    if (!d.traitsDeclared_) {
-      ot << "template <class Type>\n"
-            "struct UsesBslmaAllocator;\n";
-      d.traitsDeclared_ = true;
-    }
-    ot << "template <";
-    if (auto ctpsd =
-            llvm::dyn_cast<ClassTemplatePartialSpecializationDecl>(record)) {
-      auto tpl = ctpsd->getTemplateParameters();
-      for (unsigned i = 0; i < tpl->size(); ++i) {
-        if (i != 0)
-          ot << ", ";
-        const NamedDecl *p = tpl->getParam(i);
-        if (auto ttp = llvm::dyn_cast<TemplateTypeParmDecl>(p)) {
-          ot << (ttp->wasDeclaredWithTypename() ? "typename " : "class ");
-          if (ttp->isParameterPack())
-            ot << "...";
-          if (p->getIdentifier())
-            ot << p->getName();
-        } else if (auto nttp = llvm::dyn_cast<NonTypeTemplateParmDecl>(p)) {
-          // The following code emulates nttp->print(ot), except that call just
-          // produces blank output.  I don't know why.
-          QualType qt = nttp->getType();
-          auto *pet = qt->getAs<PackExpansionType>();
-          if (pet)
-            qt = pet->getPattern();
-          std::string pname;
-          if (auto *ii = nttp->getIdentifier())
-            pname = ii->getName();
-          if (nttp->isParameterPack() || pet)
-            pname = "..." + pname;
-          qt.print(ot, pp, pname, 0);
-        } else if (auto ttp = dyn_cast<TemplateTemplateParmDecl>(p)) {
-          ttp->print(ot);
-        }
-      }
-    }
-    ot << ">\n"
-          "struct UsesBslmaAllocator< "
-       << name
-       << " > : bsl::"
-       << (trait ? "true_type" : "false_type")
-       << " { };\n"
-          "\n"
-          "}  // close namespace bslma\n"
-          "}  // close enterprise namespace\n";
-    llvm::errs() << ot.str();
+
+    include(record->getLocation(), "bslmf_nestedtraitdeclaration.h");
+
+    llvm::StringRef header =
+        bslma ? "bslma_usesbslmaallocator.h" : "bslmf_usesallocatorargt.h";
+    llvm::StringRef trait =
+        bslma ? "bslma::UsesBslmaAllocator" : "bslmf::UsesAllocatorArgT";
+
+    include(record->getLocation(), header);
+
+    SourceLocation ins_loc = record->getBraceRange().getEnd();
+    llvm::StringRef spaces =
+        a.get_source_line(ins_loc).take_until([](char c) { return c != ' '; });
+
+    ot                                                        << "\n" << spaces
+       << "  public:"                                         << "\n" << spaces
+       << "    // TRAITS"                                     << "\n" << spaces
+       << "    BSLMF_NESTED_TRAIT_DECLARATION("
+       <<          record->getName() << ", " << trait << ");" << "\n" << spaces
+       ;
+
+    a.report(ins_loc, check_name, "AT021",
+             "Allocator trait for class %0\n%1",
+             false, DiagnosticIDs::Note) << record->getName() << ot.str();
+    a.InsertTextBefore(ins_loc, ot.str());
     return true;
 }
 
@@ -1215,7 +1265,7 @@ void report::check_not_forwarded(const CXXCtorInitializer* init,
                            init->getAnyMember()->getType().getTypePtr() :
                            nullptr;
 
-    if (!type || a_Last != takes_allocator(type->getCanonicalTypeInternal())) {
+    if (!type || !takes_allocator(type->getCanonicalTypeInternal())) {
         return;                                                       // RETURN
     }
 
@@ -1485,8 +1535,13 @@ void report::check_uses_allocator(const CXXConstructExpr *expr)
 template <typename Iter>
 void report::check_alloc_returns(Iter begin, Iter end)
 {
+    SourceLocation loc;
     for (Iter itr = begin; itr != end; ++itr) {
-        check_alloc_return(*itr);
+        const ReturnStmt *stmt = *itr;
+        if (loc != stmt->getReturnLoc()) {
+            check_alloc_return(stmt);
+            loc = stmt->getReturnLoc();
+        }
     }
 }
 
