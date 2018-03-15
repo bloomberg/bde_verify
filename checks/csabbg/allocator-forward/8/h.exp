@@ -127,9 +127,28 @@ h.cpp:115:1: note: AT021: Allocator trait for class Y
 
 };
 ^
-h.cpp:120:27: warning: AT02: Class 'Y' uses allocators but does not have an allocator trait
-template <class T> struct Y;
+h.cpp:121:27: warning: AT02: Class 'Y<T *>' uses allocators but does not have an allocator trait
+template <class T> struct Y<T*> {
                           ^
+h.cpp:123:1: note: AT021: Allocator trait for class Y
+
+  public:
+    // TRAITS
+    BSLMF_NESTED_TRAIT_DECLARATION(Y, bslma::UsesBslmaAllocator);
+
+};
+^
+h.cpp:124:20: warning: AT02: Class 'Y<int>' uses allocators but does not have an allocator trait
+template <> struct Y<int> {
+                   ^
+h.cpp:126:1: note: AT021: Allocator trait for class Y
+
+  public:
+    // TRAITS
+    BSLMF_NESTED_TRAIT_DECLARATION(Y, bslma::UsesBslmaAllocator);
+
+};
+^
 h.cpp:130:12: warning: AT02: Class 'Y' uses allocators but does not have an allocator trait
     struct Y {
            ^
@@ -152,15 +171,26 @@ h.cpp:140:5: note: AT021: Allocator trait for class Y
     
     };
     ^
-h.cpp:145:12: warning: AT02: Class 'Y' uses allocators but does not have an allocator trait
-    struct Y { };
-           ^
-h.cpp:145:16: note: AT021: Allocator trait for class Y
+h.cpp:149:11: warning: AT02: Class 'Y<Y<T>, 1, Y>' uses allocators but does not have an allocator trait
+struct M::Y<Y<T>, 1, Y> {
+          ^
+h.cpp:151:1: note: AT021: Allocator trait for class Y
 
-      public:
-        // TRAITS
-        BSLMF_NESTED_TRAIT_DECLARATION(Y, bslma::UsesBslmaAllocator);
-    
-    struct Y { };
-               ^
-15 warnings generated.
+  public:
+    // TRAITS
+    BSLMF_NESTED_TRAIT_DECLARATION(Y, bslma::UsesBslmaAllocator);
+
+};
+^
+h.cpp:154:11: warning: AT02: Class 'Y<T *, N, X>' uses allocators but does not have an allocator trait
+struct M::Y<T*, N, X> {
+          ^
+h.cpp:156:1: note: AT021: Allocator trait for class Y
+
+  public:
+    // TRAITS
+    BSLMF_NESTED_TRAIT_DECLARATION(Y, bslma::UsesBslmaAllocator);
+
+};
+^
+17 warnings generated.

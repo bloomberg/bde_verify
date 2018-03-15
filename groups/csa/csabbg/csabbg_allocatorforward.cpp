@@ -963,8 +963,8 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
             !has_true_alloc_trait &&
             !has_false_alloc_trait &&
             d.decls_with_dependent_allocator_trait_.count(record);
-        if (const ClassTemplateSpecializationDecl* ts =
-                llvm::dyn_cast<ClassTemplateSpecializationDecl>(record)) {
+        auto *ts = llvm::dyn_cast<ClassTemplateSpecializationDecl>(record);
+        if (ts && !ts->isExplicitSpecialization()) {
             const CXXRecordDecl* tr = ts->getSpecializedTemplate()
                                           ->getTemplatedDecl()
                                           ->getCanonicalDecl();
