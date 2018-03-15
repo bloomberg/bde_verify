@@ -968,10 +968,7 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
             const CXXRecordDecl* tr = ts->getSpecializedTemplate()
                                           ->getTemplatedDecl()
                                           ->getCanonicalDecl();
-            if (uses_allocator &&
-                !has_true_alloc_trait &&
-                !has_false_alloc_trait &&
-                !has_dependent_alloc_trait) {
+            if (uses_allocator) {
                 record = tr;
             }
             if (d.decls_with_true_allocator_trait_.count(tr)) {
