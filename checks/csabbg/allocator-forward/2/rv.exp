@@ -13,5 +13,23 @@ rv.cpp:31:15: note: RV01: instead of through pointer parameter
 rv.cpp:3:8: warning: AT02: Class 'A' uses allocators but does not have an allocator trait
 struct A { explicit A(BloombergLP::bslma::Allocator * = 0); };
        ^
+rv.cpp:1:1: note: AT020: Header needed for allocator trait
+#include <bslmf_nestedtraitdeclaration.h>
+
+namespace BloombergLP { namespace bslma { class Allocator; } }
+^
+rv.cpp:1:1: note: AT020: Header needed for allocator trait
+#include <bslma_usesbslmaallocator.h>
+
+rv.cpp:3:61: note: AT021: Allocator trait for class A
+
+  public:
+    // TRAITS
+    BSLMF_NESTED_TRAIT_DECLARATION(A, bslma::UsesBslmaAllocator);
+
+struct A { explicit A(BloombergLP::bslma::Allocator * = 0); };
+                                                            ^
 rv.cpp:3:8: warning: AC02: Implicit copy constructor cannot be called with an allocator as the final argument
+struct A { explicit A(BloombergLP::bslma::Allocator * = 0); };
+       ^
 4 warnings generated.

@@ -27,6 +27,7 @@ CSABASE     = csabase
 LCB         = bde-verify
 LIBCSABASE  = lib$(LCB).a
 CSABASEDIR  = groups/csa/csabase
+CSAGLBDIR   = groups/csa/csaglb
 
 # Set up location of clang headers and libraries needed by bde_verify.
 INCFLAGS   += -I$(LLVMDIR)/include
@@ -57,6 +58,9 @@ GCCOTHERLIBDIRS = ${shell \
 # Set up locations and flags for the compiler that will build bde_verify.
 ifeq ($(notdir $(CXX)),clang++)
     CXXFLAGS   += --gcc-toolchain=$(GCCDIR) -Wno-mismatched-tags
+endif
+ifeq ($(notdir $(CXX)),g++)
+    CXXFLAGS   += -Wno-maybe-uninitialized
 endif
 
 # _GLIBCXX_USE_CXX11_ABI must match how the clang libraries were built
@@ -134,6 +138,8 @@ CXXFILES =                                                                    \
         groups/csa/csafmt/csafmt_longlines.cpp                                \
         groups/csa/csafmt/csafmt_nonascii.cpp                                 \
         groups/csa/csafmt/csafmt_whitespace.cpp                               \
+        groups/csa/csaglb/csaglb_comments.cpp                                 \
+        groups/csa/csaglb/csaglb_includes.cpp                                 \
         groups/csa/csamisc/csamisc_anonymousnamespaceinheader.cpp             \
         groups/csa/csamisc/csamisc_arrayargument.cpp                          \
         groups/csa/csamisc/csamisc_arrayinitialization.cpp                    \
@@ -187,7 +193,7 @@ CXXFILES =                                                                    \
 # -----------------------------------------------------------------------------
 
 DEFFLAGS += -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS
-INCFLAGS += -I. -I$(CSABASEDIR)
+INCFLAGS += -I. -I$(CSABASEDIR) -I$(CSAGLBDIR)
 CXXFLAGS += -fno-common -fno-strict-aliasing -fno-exceptions -fno-rtti
 
 OFILES = $(CXXFILES:%.cpp=$(OBJ)/%.o)
@@ -265,6 +271,7 @@ LIBS     =    -l$(LCB)                                                        \
               -lz                                                             \
               -lstdc++                                                        \
               -laspell                                                        \
+              -lm                                                             \
               $(EXTRALIBS)
 
 default: $(OBJ)/$(TARGET)

@@ -3,6 +3,7 @@
 #include <csabase_checkregistry.h>
 #include <csabase_analyser.h>
 #include <csabase_config.h>
+#include <csabase_debug.h>
 #include <llvm/Support/raw_ostream.h>
 #include <map>
 #include <utility>
@@ -55,7 +56,8 @@ csabase::CheckRegistry::attach(Analyser& analyser,
 
     for (const auto& check : checks()) {
         checks_type::const_iterator cit(config.find(check.first));
-        if ((config.end() != cit && cit->second == Config::on) ||
+        if (check.first.size() == 0 ||
+            (config.end() != cit && cit->second == Config::on) ||
             (config.end() == cit && analyser.config()->all())) {
             check.second(analyser, visitor, observer);
         }

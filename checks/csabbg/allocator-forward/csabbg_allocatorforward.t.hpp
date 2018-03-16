@@ -6,7 +6,7 @@
 #ifndef INCLUDED_BDES_IDENT
 #  include <bdes_ident.h>
 #endif
-#ifndef INCLUDED_BSLMF_BSLMF_INTEGRALCONSTANT
+#ifndef INCLUDED_BSLMF_INTEGRALCONSTANT
 #include <bslmf_integralconstant.h>
 #endif
 #ifndef INCLUDED_CSASCM_VERSION

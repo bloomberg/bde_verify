@@ -67,23 +67,28 @@ std::string csabase::to_lower(llvm::StringRef s)
 
 bool csabase::contains_word(llvm::StringRef have, llvm::StringRef want)
 {
-    std::pair<size_t, size_t> m = mid_match(have, want);
-    if (m.first == have.npos) {
-        return false;
-    }
-    if (m.first > 0) {
-        char c = have[m.first - 1];
-        if (std::isalnum(c) || c == '_') {
-            return false;
+    size_t i = 0;
+    size_t match;
+    while ((match = have.find(want, i)) != want.npos) {
+        bool found = true;
+        if (match > 0) {
+            char c = have[match - 1];
+            if (std::isalnum(c) || c == '_') {
+                found = false;
+            }
         }
-    }
-    if (m.second > 0) {
-        char c = have[have.size() - m.second];
-        if (std::isalnum(c) || c == '_') {
-            return false;
+        if (found && match + want.size() < have.size()) {
+            char c = have[match + want.size()];
+            if (std::isalnum(c) || c == '_') {
+                found = false;
+            }
         }
+        if (found) {
+            return true;
+        }
+        i = match + want.size() + 1;
     }
-    return true;
+    return false;
 }
 
 bool csabase::are_numeric_cognates(llvm::StringRef a, llvm::StringRef b)

@@ -9,7 +9,9 @@
 #include <csabase_location.h>
 #include <csabase_ppobserver.h>
 #include <csabase_registercheck.h>
+#include <csabase_report.h>
 #include <csabase_util.h>
+#include <csaglb_comments.h>
 #include <llvm/ADT/SmallVector.h>
 #include <llvm/ADT/StringRef.h>
 #include <llvm/ADT/Twine.h>
@@ -39,107 +41,61 @@ static std::string const check_name("comments");
 namespace
 {
 
-struct comments
-    // Data holding seen comments.
+struct data
 {
-    typedef std::vector<SourceRange> Ranges;
-    typedef std::map<std::string, Ranges> Comments;
-    Comments d_comments;
-
     typedef std::set<Range> Reported;
     Reported d_reported;
-
-    void append(Analyser& analyser, SourceRange range);
 };
 
-void comments::append(Analyser& analyser, SourceRange range)
+struct report : Report<data>
+    // Callback object for inspecting report.
 {
-    SourceManager& m = analyser.manager();
-    comments::Ranges& c = d_comments[m.getFilename(range.getBegin())];
-    if (c.size() != 0 && areConsecutive(m, c.back(), range)) {
-        c.back().setEnd(range.getEnd());
-    } else {
-        c.push_back(range);
-    }
-}
-
-struct files
-    // Callback object for inspecting files.
-{
-    Analyser& d_analyser;                   // Analyser object.
-
-    files(Analyser& analyser);
-        // Create a 'files' object, accessing the specified 'analyser'.
-
-    void operator()(SourceRange range);
-        // The specified comment 'range' is added to the stored data.
+    INHERIT_REPORT_CTOR(report, Report, data);
 
     void operator()();
         // Inspect all comments.
 
-    void check_fvs(SourceRange range);
+    void check_fvs(SourceRange range, llvm::StringRef comment);
         // Warn about comment containing "fully value semantic".
 
-    void check_pp(SourceRange range);
+    void check_pp(SourceRange range, llvm::StringRef comment);
         // Warn about comment containing "pure procedure(s)".
 
-    void check_mr(SourceRange range);
+    void check_mr(SourceRange range, llvm::StringRef comment);
         // Warn about comment containing "modifiable reference".
 
-    void check_bubble(SourceRange range);
+    void check_bubble(SourceRange range, llvm::StringRef comment);
         // Warn about comment containing badly formed inheritance diagram.
 
     void report_bubble(const Range &r, llvm::StringRef text);
         // Warn about a single bad inheritance bubble at the specified 'r'
         // containing the specified 'text'.
 
-    void check_wrapped(SourceRange range);
+    void check_wrapped(SourceRange range, llvm::StringRef comment);
         // Warn about comment containing incorrectly wrapped text.
 
-    void check_purpose(SourceRange range);
+    void check_purpose(SourceRange range, llvm::StringRef comment);
         // Warn about incorrectly formatted @PURPOSE line.
 
-    void check_description(SourceRange range);
+    void check_description(SourceRange range, llvm::StringRef comment);
         // Warn if the @DESCRIPTION doesn't contain the component name.
 };
 
-files::files(Analyser& analyser)
-: d_analyser(analyser)
+void report::operator()()
 {
-}
-
-void files::operator()(SourceRange range)
-{
-    d_analyser.attachment<comments>().append(d_analyser, range);
-}
-
-void files::operator()()
-{
-    comments::Comments& file_comments =
-        d_analyser.attachment<comments>().d_comments;
-
-    for (comments::Comments::iterator file_begin = file_comments.begin(),
-                                      file_end   = file_comments.end(),
-                                      file_itr   = file_begin;
-         file_itr != file_end;
-         ++file_itr) {
-        const std::string &file_name = file_itr->first;
-        if (!d_analyser.is_component(file_name)) {
-            continue;
-        }
-        comments::Ranges& comments = file_itr->second;
-        for (comments::Ranges::iterator comments_begin = comments.begin(),
-                                        comments_end   = comments.end(),
-                                        comments_itr   = comments_begin;
-             comments_itr != comments_end;
-             ++comments_itr) {
-            check_fvs(*comments_itr);
-            check_pp(*comments_itr);
-            check_mr(*comments_itr);
-            check_bubble(*comments_itr);
-            check_wrapped(*comments_itr);
-            check_purpose(*comments_itr);
-            check_description(*comments_itr);
+    for (auto& c : a.attachment<CommentData>().d_comments) {
+        const std::string& file_name = c.first;
+        if (a.is_component(file_name)) {
+            for (auto& r : c.second) {
+                llvm::StringRef comment = a.get_source(r, true);
+                check_fvs(r, comment);
+                check_pp(r, comment);
+                check_mr(r, comment);
+                check_bubble(r, comment);
+                check_wrapped(r, comment);
+                check_purpose(r, comment);
+                check_description(r, comment);
+            }
         }
     }
 }
@@ -148,22 +104,21 @@ llvm::Regex fvs(
     "fully" "[^_[:alnum:]]*" "value" "[^_[:alnum:]]*" "semantic",
     llvm::Regex::IgnoreCase);
 
-void files::check_fvs(SourceRange range)
+void report::check_fvs(SourceRange range, llvm::StringRef comment)
 {
     llvm::SmallVector<llvm::StringRef, 7> matches;
-    llvm::StringRef comment = d_analyser.get_source(range, true);
 
     size_t offset = 0;
     llvm::StringRef s;
     while (fvs.match(s = comment.drop_front(offset), &matches)) {
         llvm::StringRef text = matches[0];
-        std::pair<size_t, size_t> m = mid_match(s, text);
-        size_t matchpos = offset + m.first;
+        std::pair<size_t, size_t> mm = mid_match(s, text);
+        size_t matchpos = offset + mm.first;
         offset = matchpos + text.size();
-        d_analyser.report(range.getBegin().getLocWithOffset(matchpos),
-                          check_name, "FVS01",
-                          "The term \"%0\" is deprecated; use a description "
-                          "appropriate to the component type")
+        a.report(range.getBegin().getLocWithOffset(matchpos),
+                 check_name, "FVS01",
+                 "The term \"%0\" is deprecated; use a description "
+                 "appropriate to the component type")
             << text
             << getOffsetRange(range, matchpos, offset - 1 - matchpos);
     }
@@ -173,21 +128,20 @@ llvm::Regex pp(
     "pure" "[^_[:alnum:]]*" "procedure(s?)",
     llvm::Regex::IgnoreCase);
 
-void files::check_pp(SourceRange range)
+void report::check_pp(SourceRange range, llvm::StringRef comment)
 {
     llvm::SmallVector<llvm::StringRef, 7> matches;
-    llvm::StringRef comment = d_analyser.get_source(range, true);
 
     size_t offset = 0;
     llvm::StringRef s;
     while (pp.match(s = comment.drop_front(offset), &matches)) {
         llvm::StringRef text = matches[0];
-        std::pair<size_t, size_t> m = mid_match(s, text);
-        size_t matchpos = offset + m.first;
+        std::pair<size_t, size_t> mm = mid_match(s, text);
+        size_t matchpos = offset + mm.first;
         offset = matchpos + text.size();
-        d_analyser.report(range.getBegin().getLocWithOffset(matchpos),
-                          check_name, "PP01",
-                          "The term \"%0\" is deprecated; use 'function%1'")
+        a.report(range.getBegin().getLocWithOffset(matchpos),
+                 check_name, "PP01",
+                 "The term \"%0\" is deprecated; use 'function%1'")
             << text
             << (matches[1].size() == 1 ? "s" : "")
             << getOffsetRange(range, matchpos, offset - 1 - matchpos);
@@ -198,22 +152,21 @@ llvm::Regex mr(
     "((non-?)?" "modifiable)" "[^_[:alnum:]]*" "(references?)",
     llvm::Regex::IgnoreCase);
 
-void files::check_mr(SourceRange range)
+void report::check_mr(SourceRange range, llvm::StringRef comment)
 {
     llvm::SmallVector<llvm::StringRef, 7> matches;
-    llvm::StringRef comment = d_analyser.get_source(range, true);
 
     size_t offset = 0;
     llvm::StringRef s;
     while (mr.match(s = comment.drop_front(offset), &matches)) {
         llvm::StringRef text = matches[0];
-        std::pair<size_t, size_t> m = mid_match(s, text);
-        size_t matchpos = offset + m.first;
+        std::pair<size_t, size_t> mm = mid_match(s, text);
+        size_t matchpos = offset + mm.first;
         offset = matchpos + text.size();
-        d_analyser.report(range.getBegin().getLocWithOffset(matchpos),
-                          check_name, "MOR01",
-                          "The term \"%0 %1\" is deprecated; use \"%1 "
-                          "offering %0 access\"")
+        a.report(range.getBegin().getLocWithOffset(matchpos),
+                 check_name, "MOR01",
+                 "The term \"%0 %1\" is deprecated; use \"%1 "
+                 "offering %0 access\"")
             << matches[1]
             << matches[3]
             << getOffsetRange(range, matchpos, offset - 1 - matchpos);
@@ -249,26 +202,24 @@ std::string bubble(llvm::StringRef s, size_t column)
            lead + " `"  + std::string(s.size() + 1, '-') + "'";
 }
 
-void files::report_bubble(const Range &r, llvm::StringRef text)
+void report::report_bubble(const Range &r, llvm::StringRef text)
 {
-    comments::Reported& reported_ranges =
-        d_analyser.attachment<comments>().d_reported;
+    auto& reported_ranges = d.d_reported;
     if (!reported_ranges.count(r)) {
         reported_ranges.insert(r);
-        d_analyser.report(r.from().location(), check_name, "BADB01",
-                          "Incorrectly formed inheritance bubble")
+        a.report(r.from().location(), check_name, "BADB01",
+                 "Incorrectly formed inheritance bubble")
             << SourceRange(r.from().location(), r.to().location());
-        d_analyser.report(r.from().location(), check_name, "BADB01",
-                          "Correct format is%0",
-                          false, DiagnosticIDs::Note)
+        a.report(r.from().location(), check_name, "BADB01",
+                 "Correct format is%0",
+                 false, DiagnosticIDs::Note)
             << bubble(text, r.from().column());
     }
 }
 
-void files::check_bubble(SourceRange range)
+void report::check_bubble(SourceRange range, llvm::StringRef comment)
 {
     llvm::SmallVector<llvm::StringRef, 7> matches;
-    llvm::StringRef comment = d_analyser.get_source(range, true);
 
     size_t offset = 0;
     llvm::StringRef s;
@@ -277,8 +228,8 @@ void files::check_bubble(SourceRange range)
 
     while (good_bubble.match(s = comment.drop_front(offset), &matches)) {
         llvm::StringRef text = matches[0];
-        std::pair<size_t, size_t> m = mid_match(s, text);
-        size_t matchpos = offset + m.first;
+        std::pair<size_t, size_t> mm = mid_match(s, text);
+        size_t matchpos = offset + mm.first;
         offset = matchpos + text.size();
         if (matches[1].size() < left_offset) {
             left_offset = matches[1].size();
@@ -287,25 +238,23 @@ void files::check_bubble(SourceRange range)
         }
     }
     if (left_offset != 2 && left_offset != comment.size()) {
-        d_analyser.report(
-                range.getBegin().getLocWithOffset(leftmost_position + 4),
-                check_name, "AD01",
-                "Display should begin in column 5 (from start of comment)");
+        a.report(range.getBegin().getLocWithOffset(leftmost_position + 4),
+                 check_name, "AD01",
+                 "Display should begin in column 5 (from start of comment)");
     }
 
     offset = 0;
     while (bad_bubble.match(s = comment.drop_front(offset), &matches)) {
         llvm::StringRef text = matches[0];
-        std::pair<size_t, size_t> m = mid_match(s, text);
-        size_t matchpos = offset + m.first;
+        std::pair<size_t, size_t> mm = mid_match(s, text);
+        size_t matchpos = offset + mm.first;
         offset = matchpos + matches[1].size();
 
-        Range b1(d_analyser.manager(),
-                 getOffsetRange(range, matchpos, matches[1].size() - 1));
+        Range b1(m, getOffsetRange(range, matchpos, matches[1].size() - 1));
         report_bubble(b1, matches[2]);
 
         Range b2(
-            d_analyser.manager(),
+            m,
             getOffsetRange(range,
                            matchpos + matches[0].size() - matches[5].size(),
                            matches[5].size() - 1));
@@ -388,8 +337,8 @@ void get_displays(llvm::StringRef text,
     displays->clear();
     while (display.match(s = text.drop_front(offset), &matches)) {
         llvm::StringRef d = matches[0];
-        std::pair<size_t, size_t> m = mid_match(s, d);
-        size_t matchpos = offset + m.first;
+        std::pair<size_t, size_t> mm = mid_match(s, d);
+        size_t matchpos = offset + mm.first;
         offset = matchpos + d.size();
 
         if (n++ & 1) {
@@ -405,13 +354,12 @@ llvm::Regex banner("^ *(// ?([-=_] ?)+)\r*$", llvm::Regex::Newline);
 llvm::Regex copyright("Copyright.*[[:digit:]]{4}", llvm::Regex::IgnoreCase);
 llvm::Regex sentence_end(" [a-z]+[.] ", llvm::Regex::NoFlags);
 
-void files::check_wrapped(SourceRange range)
+void report::check_wrapped(SourceRange range, llvm::StringRef comment)
 {
     llvm::SmallVector<llvm::StringRef, 7> matches;
     llvm::SmallVector<llvm::StringRef, 7> banners;
     llvm::SmallVector<llvm::StringRef, 7> periods;
     llvm::SmallVector<std::pair<size_t, size_t>, 7> displays;
-    llvm::StringRef comment = d_analyser.get_source(range, true);
 
     if (copyright.match(comment) && banner.match(comment)) {
         return;                                                       // RETURN
@@ -422,14 +370,12 @@ void files::check_wrapped(SourceRange range)
     size_t dnum = 0;
     size_t offset = 0;
     llvm::StringRef s;
-    size_t wrap_slack =
-        std::strtoul(d_analyser.config()->value("wrap_slack",
-                                                range.getBegin()).c_str(),
-                     0, 10);
+    size_t wrap_slack = std::strtoul(
+        a.config()->value("wrap_slack", range.getBegin()).c_str(), 0, 10);
     while (block_comment.match(s = comment.drop_front(offset), &matches)) {
         llvm::StringRef text = matches[0];
-        std::pair<size_t, size_t> m = mid_match(s, text);
-        size_t matchpos = offset + m.first;
+        std::pair<size_t, size_t> mm = mid_match(s, text);
+        size_t matchpos = offset + mm.first;
         offset = matchpos + text.size();
 
         while (dnum < displays.size() && displays[dnum].second < matchpos) {
@@ -454,7 +400,7 @@ void files::check_wrapped(SourceRange range)
                 !std::isspace(text[sp] & 0xFF) &&
                 !std::islower(text[sp] & 0xFF) &&
                 !(text.slice(0, sp).count('\'') & 1)) {
-                d_analyser.report(
+                a.report(
                     range.getBegin().getLocWithOffset(matchpos + sp - 2),
                     check_name, "PSS01",
                     "Use two spaces after a period - consider using bdewrap");
@@ -464,7 +410,7 @@ void files::check_wrapped(SourceRange range)
         std::pair<size_t, size_t> bad_pos =
             bad_wrap_pos(text, ll - wrap_slack);
         if (bad_pos.first != text.npos) {
-            d_analyser.report(
+            a.report(
                 range.getBegin().getLocWithOffset(matchpos + bad_pos.first),
                 check_name, "BW01",
                 "This text fits on the previous line - consider using bdewrap")
@@ -491,33 +437,30 @@ llvm::Regex strict_purpose(
     "^//@PURPOSE: [^[:blank:]].*[^.[:blank:]][.]\r*$",
     llvm::Regex::Newline);
 
-void files::check_purpose(SourceRange range)
+void report::check_purpose(SourceRange range, llvm::StringRef comment)
 {
     llvm::SmallVector<llvm::StringRef, 7> matches;
-    llvm::StringRef comment = d_analyser.get_source(range, true);
 
     size_t offset = 0;
     llvm::StringRef s;
     while (loose_purpose.match(s = comment.drop_front(offset), &matches)) {
         llvm::StringRef text = matches[0];
-        std::pair<size_t, size_t> m = mid_match(s, text);
-        size_t matchpos = offset + m.first;
+        std::pair<size_t, size_t> mm = mid_match(s, text);
+        size_t matchpos = offset + mm.first;
         offset = matchpos + text.size();
 
         if (!strict_purpose.match(text)) {
             std::string expected =
                 "//@PURPOSE: " + matches[1].trim().str() + ".";
-            std::pair<size_t, size_t> m = mid_mismatch(text, expected);
-            d_analyser.report(
-                    range.getBegin().getLocWithOffset(matchpos + m.first),
-                    check_name, "PRP01",
-                    "Invalid format for @PURPOSE line")
+            std::pair<size_t, size_t> mm = mid_mismatch(text, expected);
+            a.report(range.getBegin().getLocWithOffset(matchpos + mm.first),
+                     check_name, "PRP01",
+                     "Invalid format for @PURPOSE line")
                 << text;
-            d_analyser.report(
-                range.getBegin().getLocWithOffset(matchpos + m.first),
-                    check_name, "PRP01",
-                    "Correct format is\n%0",
-                    false, DiagnosticIDs::Note)
+            a.report(range.getBegin().getLocWithOffset(matchpos + mm.first),
+                     check_name, "PRP01",
+                     "Correct format is\n%0",
+                     false, DiagnosticIDs::Note)
                 << expected;
         }
     }
@@ -529,9 +472,8 @@ llvm::Regex classes(
                "(" "::[[:alpha:]][[:alnum:]<_>]*" ")*"
            ")" "( *: *[^:].*)?");
 
-void files::check_description(SourceRange range)
+void report::check_description(SourceRange range, llvm::StringRef comment)
 {
-    llvm::StringRef comment = d_analyser.get_source(range, true);
     size_t cpos = comment.find("//@CLASSES:");
     size_t end = comment.find("//\n", cpos);
     if (end == comment.npos) {
@@ -549,12 +491,12 @@ void files::check_description(SourceRange range)
         return;                                                       // RETURN
     }
 
-    if (d_analyser.get_source_line(range.getBegin().getLocWithOffset(cpos))
-                .trim() != "//@CLASSES:") {
-        d_analyser.report(range.getBegin().getLocWithOffset(cpos + 11),
-                          check_name, "CLS01",
-                          "'//@CLASSES:' line should contain no other text "
-                          "(classes go on subsequent lines, one per line)");
+    if (a.get_source_line(range.getBegin().getLocWithOffset(cpos)).trim() !=
+        "//@CLASSES:") {
+        a.report(range.getBegin().getLocWithOffset(cpos + 11),
+                 check_name, "CLS01",
+                 "'//@CLASSES:' line should contain no other text "
+                 "(classes go on subsequent lines, one per line)");
     }
     else {
         cpos = comment.find('\n', cpos) + 1;
@@ -563,25 +505,24 @@ void files::check_description(SourceRange range)
     while (cpos < end) {
         llvm::SmallVector<llvm::StringRef, 7> matches;
         if (!classes.match(comment.slice(cpos, end), &matches)) {
-            d_analyser.report(range.getBegin().getLocWithOffset(cpos),
-                              check_name, "CLS03",
-                              "Badly formatted class line; should be "
-                              "'//  class: description'");
+            a.report(range.getBegin().getLocWithOffset(cpos),
+                     check_name, "CLS03",
+                     "Badly formatted class line; should be "
+                     "'//  class: description'");
         } else {
             cpos += comment.slice(cpos, end).find(matches[2]) +
                     matches[2].size();
             if (matches[4].empty()) {
-                d_analyser.report(range.getBegin().getLocWithOffset(cpos),
-                                  check_name, "CLS02",
-                                  "Class name must be followed by "
-                                  "': description'");
+                a.report(range.getBegin().getLocWithOffset(cpos),
+                         check_name, "CLS02",
+                         "Class name must be followed by ': description'");
             }
             std::string qc = ("'" + matches[2] + "'").str();
             if (dpos != comment.npos && desc.find(qc) == desc.npos) {
-                d_analyser.report(range.getBegin().getLocWithOffset(dpos),
-                                  check_name, "DC01",
-                                  "Description should contain single-quoted "
-                                  "class name %0")
+                a.report(range.getBegin().getLocWithOffset(dpos),
+                         check_name, "DC01",
+                         "Description should contain single-quoted "
+                         "class name %0")
                     << qc;
             }
         }
@@ -595,8 +536,7 @@ void files::check_description(SourceRange range)
 void subscribe(Analyser& analyser, Visitor&, PPObserver& observer)
     // Hook up the callback functions.
 {
-    analyser.onTranslationUnitDone += files(analyser);
-    observer.onComment             += files(analyser);
+    analyser.onTranslationUnitDone += report(analyser);
 }
 
 }  // close anonymous namespace
