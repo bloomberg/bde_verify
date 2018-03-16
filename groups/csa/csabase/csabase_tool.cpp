@@ -171,17 +171,29 @@ int csabase::run(int argc_, const char **argv_)
     }
 
     bool CanonicalPrefixes = true;
+    raw_ostream *ForVersion = 0;
     for (int i = 1, size = argv.size(); i < size; ++i) {
         // Skip end-of-line response file markers
         if (argv[i] == nullptr)
             continue;
         if (StringRef(argv[i]) == "-no-canonical-prefixes") {
             CanonicalPrefixes = false;
-            break;
+        }
+        else if (StringRef(argv[i]) == "--version") {
+            ForVersion = &outs();
+        }
+        else if (!ForVersion && StringRef(argv[i]) == "-v") {
+            ForVersion = &errs();
         }
     }
 
     std::string Path = GetExecutablePath(argv[0], CanonicalPrefixes);
+    StringRef ExFile = StringRef(sys::path::filename(Path));
+
+    if (ForVersion) {
+        StringRef Name = ExFile.drop_back(ExFile.endswith("_bin") ? 4 : 0);
+        *ForVersion << Name << " version 1.2.19 based on\n";
+    }
 
     IntrusiveRefCntPtr<DiagnosticOptions> DiagOpts = new DiagnosticOptions;
     std::unique_ptr<OptTable>  Opts(createDriverOptTable());
@@ -191,7 +203,7 @@ int csabase::run(int argc_, const char **argv_)
 
     TextDiagnosticPrinter *DiagClient =
         new TextDiagnosticPrinter(errs(), &*DiagOpts);
-    DiagClient->setPrefix(StringRef(sys::path::filename(Path)));
+    DiagClient->setPrefix(ExFile);
 
     IntrusiveRefCntPtr<DiagnosticIDs> DiagID(new DiagnosticIDs());
 
