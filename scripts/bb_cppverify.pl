@@ -33,6 +33,7 @@ $exe         = "$enm.exe"                          unless -x $exe;
 my @cl;
 my $debug    = "";
 my $verbose  = "";
+my $version  = "";
 my $help     = "";
 my $definc   = 1;
 my $defdef   = 1;
@@ -91,6 +92,7 @@ usage: $0 [options] [additional compiler options] file.cpp ...
     --tag=string
     --debug
     --verbose
+    --version
     --help
 
 For full documentation, see {TEAM BDE:BB_CPPVERIFY<GO>} or
@@ -114,6 +116,7 @@ GetOptions(
     'diff=s'                       => \$diff,
     'exe=s'                        => \$exe,
     'verbose|v'                    => \$verbose,
+    'version'                      => \$version,
     'definc!'                      => \$definc,
     'defdef!'                      => \$defdef,
     'ovr!'                         => \$ovr,
@@ -138,7 +141,7 @@ GetOptions(
     "m64"                          => \$m64,
     "pipe|pthread|MMD|g|c|S"       => \$dummy,
     "O|MF|o|march|mtune=s"         => \@dummy,
-) and !$help and $#ARGV >= 0 or usage();
+) and !$help and ($#ARGV >= 0 or $version) or usage();
 
 sub xclang(@) { return map { ( "-Xclang", $_ ) } @_; }
 sub plugin(@) { return xclang( "-plugin-arg-bde_verify", @_ ); }
@@ -210,6 +213,7 @@ push(@incs, (
 my @pass;
 push(@pass, "-m32") if $m32;
 push(@pass, "-m64") if $m64;
+push(@pass, "--version") if $version;
 
 # Try to find include paths if INCLUDE is not specified.
 my $inc = $ENV{INCLUDE};
