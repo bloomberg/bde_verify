@@ -410,6 +410,16 @@ struct report : Report<data>
         // takes allocators.
 };
 
+static internal::DynTypedMatcher allocator_method_matcher()
+{
+    return cxxRecordDecl(
+        hasMethod(allOf(hasName("allocator"),
+                        isConst(),
+                        parameterCountIs(0),
+                        returns(asString("BloombergLP::bslma::Allocator*")))));
+}
+
+
 const CXXRecordDecl *report::get_record_decl(QualType type)
 {
     const TemplateSpecializationType *tst =
