@@ -1294,6 +1294,8 @@ bool report::write_allocator_trait(const CXXRecordDecl *record, bool bslma)
     include(record->getLocation(), header);
 
     SourceLocation ins_loc = record->getBraceRange().getEnd();
+    llvm::StringRef range = a.get_source(record->getBraceRange());
+    int end_spaces = range.size() - range.drop_back(1).rtrim().size() - 1;
     llvm::StringRef spaces =
         a.get_source_line(ins_loc).take_until([](char c) { return c != ' '; });
 
@@ -1307,7 +1309,7 @@ bool report::write_allocator_trait(const CXXRecordDecl *record, bool bslma)
     a.report(ins_loc, check_name, "AT02",
              "Allocator trait for class %0\n%1",
              false, DiagnosticIDs::Note) << record->getName() << ot.str();
-    a.InsertTextBefore(ins_loc, ot.str());
+    a.ReplaceText(ins_loc.getLocWithOffset(-end_spaces), end_spaces, ot.str());
     return true;
 }
 
@@ -1326,6 +1328,8 @@ bool report::write_allocator_method_declaration(const CXXRecordDecl *record,
     llvm::raw_string_ostream ot(s);
 
     SourceLocation ins_loc = record->getBraceRange().getEnd();
+    llvm::StringRef range = a.get_source(record->getBraceRange());
+    int end_spaces = range.size() - range.drop_back(1).rtrim().size() - 1;
     llvm::StringRef spaces =
         a.get_source_line(ins_loc).take_until([](char c) { return c != ' '; });
 
@@ -1338,7 +1342,7 @@ bool report::write_allocator_method_declaration(const CXXRecordDecl *record,
     a.report(ins_loc, check_name, "AL01",
              "Allocator method declaration for class %0\n%1",
              false, DiagnosticIDs::Note) << record->getName() << ot.str();
-    a.InsertTextBefore(ins_loc, ot.str());
+    a.ReplaceText(ins_loc.getLocWithOffset(-end_spaces), end_spaces, ot.str());
     return true;
 }
 
