@@ -222,9 +222,15 @@ struct data
     typedef std::map<FileID, std::set<llvm::StringRef>> AddedFiles;
     AddedFiles added_;
 
-    bool nestedTraitsDeclared_ = false;
-    bool bslmaTtraitsDeclared_ = false;
-    bool bslmfTtraitsDeclared_ = false;
+    typedef std::map<const CXXRecordDecl *, const CXXMethodDecl *>
+        AllocatorMethods;
+    AllocatorMethods allocator_methods_;
+        // A map of the 'allocator()' methods of records.
+
+    typedef std::map<const CXXRecordDecl *, const FieldDecl *>
+        AllocatorMembers;
+    AllocatorMembers allocator_members_;
+        // A map of the 'd_allocator_p' members of records.
 };
 
 struct report : Report<data>
@@ -322,6 +328,12 @@ struct report : Report<data>
     bool has_public_copy_constructor(const CXXRecordDecl *decl);
         // Whether the class has a publicly accessible copy constructor.
 
+    void match_allocator_method(const BoundNodes& nodes);
+        // Callback for allocator method declaration.
+
+    void match_allocator_member(const BoundNodes& nodes);
+        // Callback for 'd_allocator_p' member declaration.
+
     void check_not_forwarded(data::Ctors::const_iterator begin,
                              data::Ctors::const_iterator end);
         // Invoke the forwarding check on the items in the range from the
@@ -343,6 +355,13 @@ struct report : Report<data>
         // a 'UsesBslmaAllocator' trait if the specified 'bslma' is true, and a
         // 'UsesAllocatorArgT' trait otherwise.  Return true if the trait was
         // writen, and false if it was not.
+
+    bool write_allocator_method_declaration(const CXXRecordDecl *record,
+                                            AllocatorLocation    kind);
+        // Write out an allocator method declaration for the specified
+        // 'record', basing its return type on whether the specified 'kind'
+        // refers to a 'bslma::Allocator *' or a 'bsl::allocator_arg'.  Return
+        // true if the declaration was written, and false if it wa snot.
 
     void include(SourceLocation loc, llvm::StringRef name);
         // Generate a file inclusion of the specified 'name' in the file
@@ -409,16 +428,6 @@ struct report : Report<data>
         // Check that the specified return 'stmt' does not return an item that 
         // takes allocators.
 };
-
-static internal::DynTypedMatcher allocator_method_matcher()
-{
-    return cxxRecordDecl(
-        hasMethod(allOf(hasName("allocator"),
-                        isConst(),
-                        parameterCountIs(0),
-                        returns(asString("BloombergLP::bslma::Allocator*")))));
-}
-
 
 const CXXRecordDecl *report::get_record_decl(QualType type)
 {
@@ -857,6 +866,42 @@ void report::match_ctor_decl(const BoundNodes& nodes)
     d.ctors_.push_back(decl);
 }
 
+static internal::DynTypedMatcher allocator_method_matcher()
+{
+    return decl(forEachDescendant(
+        cxxRecordDecl(
+            hasMethod(
+                cxxMethodDecl(
+                    allOf(hasName("allocator"),
+                          isConst(),
+                          isPublic(),
+                          parameterCountIs(0),
+                          returns(asString("BloombergLP::bslma::Allocator*"))))
+                    .bind("a")))
+            .bind("r")));
+}
+
+void report::match_allocator_method(const BoundNodes& nodes)
+{
+    d.allocator_methods_[nodes.getNodeAs<CXXRecordDecl>("r")] =
+        nodes.getNodeAs<CXXMethodDecl>("a");
+}
+
+static internal::DynTypedMatcher allocator_member_matcher()
+{
+    return decl(forEachDescendant(
+        cxxRecordDecl(has(fieldDecl(allOf(hasName("d_allocator_p"),
+                                          hasType(pointerType(isAllocator()))))
+                              .bind("p")))
+            .bind("r")));
+}
+
+void report::match_allocator_member(const BoundNodes& nodes)
+{
+    d.allocator_members_[nodes.getNodeAs<CXXRecordDecl>("r")] =
+        nodes.getNodeAs<FieldDecl>("p");
+}
+
 void report::operator()()
 {
     MatchFinder mf;
@@ -893,6 +938,12 @@ void report::operator()()
 
     OnMatch<report, &report::match_ctor_decl> m10(this);
     mf.addDynamicMatcher(ctor_decl_matcher(), &m10);
+
+    OnMatch<report, &report::match_allocator_method> m12(this);
+    mf.addDynamicMatcher(allocator_method_matcher(), &m12);
+
+    OnMatch<report, &report::match_allocator_member> m13(this);
+    mf.addDynamicMatcher(allocator_member_matcher(), &m13);
 
     mf.match(*a.context()->getTranslationUnitDecl(), *a.context());
 
@@ -1024,6 +1075,53 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
                         write_allocator_trait(record, false);
                     }
                 }
+
+                if (uses_allocator && !d.allocator_methods_.count(record)) {
+                    a.report(record, check_name, "AL01",
+                             "Class %0 uses allocators but does not have an "
+                             "allocator() method")
+                        << record;
+                    write_allocator_method_declaration(record, uses_allocator);
+                }
+
+                if (uses_allocator && d.allocator_members_.count(record)) {
+                    const CXXBaseSpecifier *base_with_allocator = 0;
+                    for (const auto& base : record->bases()) {
+                        if (takes_allocator(
+                            base.getType()->getCanonicalTypeInternal())) {
+                            base_with_allocator = &base;
+                            break;
+                        }
+                    }
+                    const FieldDecl *field_with_allocator = 0;
+                    for (const auto *field : record->fields()) {
+                        if (takes_allocator(
+                                field->getType()
+                                    ->getCanonicalTypeInternal())) {
+                            field_with_allocator = field;
+                            break;
+                        }
+                    }
+                    if (base_with_allocator || field_with_allocator) {
+                        a.report(d.allocator_members_[record],
+                                 check_name, "AP01",
+                                 "Class %0 has unnecessary d_allocator_p.")
+                            << record;
+                        if (base_with_allocator) {
+                            a.report(base_with_allocator->getLocStart(),
+                                     check_name, "AP01",
+                                     "Use allocator of base class %0 instead.",
+                                     false, DiagnosticIDs::Note)
+                                << base_with_allocator->getType();
+                        }
+                        else {
+                            a.report(field_with_allocator, check_name, "AP01",
+                                     "Use allocator of field %0 instead.",
+                                     false, DiagnosticIDs::Note)
+                                << field_with_allocator;
+                        }
+                    }
+                }
             }
         }
 
@@ -1145,21 +1243,21 @@ void report::include(SourceLocation loc, llvm::StringRef name)
     std::string header = "#include <" + name.str() + ">\n";
     if (!ip.isValid()) {
         SourceLocation l = m.getLocForStartOfFile(m.getFileID(loc));
-        a.report(l, check_name, "AT020",
+        a.report(l, check_name, "AT02",
                  "Header needed for allocator trait\n%0",
                  false, DiagnosticIDs::Note) << header;
         a.InsertTextBefore(l, header);
     }
     else if (insert_after) {
         SourceLocation l = a.get_line_range(ip).getEnd().getLocWithOffset(1);
-        a.report(l, check_name, "AT020",
+        a.report(l, check_name, "AT02",
                  "Header needed for allocator trait\n%0",
                  false, DiagnosticIDs::Note) << header;
         a.ReplaceText(l, 0, header);
     }
     else {
         SourceLocation l = a.get_line_range(ip).getBegin();
-        a.report(l, check_name, "AT020",
+        a.report(l, check_name, "AT02",
                  "Header needed for allocator trait\n%0",
                  false, DiagnosticIDs::Note) << header;
         a.InsertTextBefore(l, header);
@@ -1209,8 +1307,39 @@ bool report::write_allocator_trait(const CXXRecordDecl *record, bool bslma)
        <<          record->getName() << ", " << trait << ");" << "\n" << spaces
        ;
 
-    a.report(ins_loc, check_name, "AT021",
+    a.report(ins_loc, check_name, "AT02",
              "Allocator trait for class %0\n%1",
+             false, DiagnosticIDs::Note) << record->getName() << ot.str();
+    a.InsertTextBefore(ins_loc, ot.str());
+    return true;
+}
+
+bool report::write_allocator_method_declaration(const CXXRecordDecl *record,
+                                                AllocatorLocation    kind)
+{
+    if (!a.is_component(record) || !record->hasDefinition())
+      return false;
+
+    if (!(kind & a_Last))
+      return false;  // TBD: deal with get_allocator();
+
+    record = record->getDefinition();
+
+    std::string s;
+    llvm::raw_string_ostream ot(s);
+
+    SourceLocation ins_loc = record->getBraceRange().getEnd();
+    llvm::StringRef spaces =
+        a.get_source_line(ins_loc).take_until([](char c) { return c != ' '; });
+
+    ot                                                        << "\n" << spaces
+       << "  public:"                                         << "\n" << spaces
+       << "    // PUBLIC ACCESSORS"                           << "\n" << spaces
+       << "    bslma::Allocator *allocator() const;"          << "\n" << spaces
+       ;
+
+    a.report(ins_loc, check_name, "AL01",
+             "Allocator method declaration for class %0\n%1",
              false, DiagnosticIDs::Note) << record->getName() << ot.str();
     a.InsertTextBefore(ins_loc, ot.str());
     return true;

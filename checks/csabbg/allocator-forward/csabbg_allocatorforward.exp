@@ -2,17 +2,17 @@ In file included from csabbg_allocatorforward.t.cpp:3:
 ./csabbg_allocatorforward.t.hpp:34:15: warning: AT02: Class 'allocatorforward_alloc_used' uses allocators but does not have an allocator trait
         class allocatorforward_alloc_used;
               ^
-./csabbg_allocatorforward.t.hpp:12:1: note: AT020: Header needed for allocator trait
+./csabbg_allocatorforward.t.hpp:12:1: note: AT02: Header needed for allocator trait
 #include <bslmf_nestedtraitdeclaration.h>
 
 #ifndef INCLUDED_CSASCM_VERSION
 ^
-./csabbg_allocatorforward.t.hpp:9:1: note: AT020: Header needed for allocator trait
+./csabbg_allocatorforward.t.hpp:9:1: note: AT02: Header needed for allocator trait
 #include <bslma_usesbslmaallocator.h>
 
 #ifndef INCLUDED_BSLMF_INTEGRALCONSTANT
 ^
-./csabbg_allocatorforward.t.hpp:55:1: note: AT021: Allocator trait for class allocatorforward_alloc_used
+./csabbg_allocatorforward.t.hpp:55:1: note: AT02: Allocator trait for class allocatorforward_alloc_used
 
   public:
     // TRAITS
@@ -26,7 +26,7 @@ class bde_verify::csabbg::allocatorforward_alloc_used
 csabbg_allocatorforward.t.cpp:15:19: warning: AT02: Class 'test' uses allocators but does not have an allocator trait
             class test:
                   ^
-csabbg_allocatorforward.t.cpp:29:13: note: AT021: Allocator trait for class test
+csabbg_allocatorforward.t.cpp:29:13: note: AT02: Allocator trait for class test
 
               public:
                 // TRAITS
@@ -52,7 +52,7 @@ csabbg_allocatorforward.t.cpp:70:5: warning: MA02: Allocator not passed to membe
 csabbg_allocatorforward.t.cpp:85:20: warning: AT02: Class 'tbase' uses allocators but does not have an allocator trait
             struct tbase
                    ^
-csabbg_allocatorforward.t.cpp:92:13: note: AT021: Allocator trait for class tbase
+csabbg_allocatorforward.t.cpp:92:13: note: AT02: Allocator trait for class tbase
 
               public:
                 // TRAITS
@@ -69,7 +69,7 @@ csabbg_allocatorforward.t.cpp:85:20: warning: AC02: Implicit copy constructor ca
 csabbg_allocatorforward.t.cpp:130:24: warning: AT02: Class 'M' uses allocators but does not have an allocator trait
                 struct M { M(BloombergLP::bslma::Allocator*) {} };
                        ^
-csabbg_allocatorforward.t.cpp:130:65: note: AT021: Allocator trait for class M
+csabbg_allocatorforward.t.cpp:130:65: note: AT02: Allocator trait for class M
 
                   public:
                     // TRAITS
@@ -80,7 +80,7 @@ csabbg_allocatorforward.t.cpp:130:65: note: AT021: Allocator trait for class M
 csabbg_allocatorforward.t.cpp:132:24: warning: AT02: Class 'S' uses allocators but does not have an allocator trait
                 struct S { S(const T*) {} S(const T*, const A&) {} };
                        ^
-csabbg_allocatorforward.t.cpp:132:68: note: AT021: Allocator trait for class S
+csabbg_allocatorforward.t.cpp:132:68: note: AT02: Allocator trait for class S
 
                   public:
                     // TRAITS
@@ -97,7 +97,7 @@ csabbg_allocatorforward.t.cpp:136:53: warning: MA02: Allocator not passed to mem
 csabbg_allocatorforward.t.cpp:134:20: warning: AT02: Class 'C' uses allocators but does not have an allocator trait
             struct C {
                    ^
-csabbg_allocatorforward.t.cpp:137:13: note: AT021: Allocator trait for class C
+csabbg_allocatorforward.t.cpp:137:13: note: AT02: Allocator trait for class C
 
               public:
                 // TRAITS
@@ -108,7 +108,7 @@ csabbg_allocatorforward.t.cpp:137:13: note: AT021: Allocator trait for class C
 csabbg_allocatorforward.t.cpp:148:16: warning: AT02: Class 'not_alloc' uses allocators but does not have an allocator trait
         struct not_alloc {
                ^
-csabbg_allocatorforward.t.cpp:150:9: note: AT021: Allocator trait for class not_alloc
+csabbg_allocatorforward.t.cpp:150:9: note: AT02: Allocator trait for class not_alloc
 
           public:
             // TRAITS
@@ -131,7 +131,7 @@ struct alloc_a {
 csabbg_allocatorforward.t.cpp:215:8: warning: AT02: Class 'alloc_d' uses allocators but does not have an allocator trait
 struct alloc_d {
        ^
-csabbg_allocatorforward.t.cpp:217:1: note: AT021: Allocator trait for class alloc_d
+csabbg_allocatorforward.t.cpp:217:1: note: AT02: Allocator trait for class alloc_d
 
   public:
     // TRAITS
@@ -142,7 +142,7 @@ csabbg_allocatorforward.t.cpp:217:1: note: AT021: Allocator trait for class allo
 csabbg_allocatorforward.t.cpp:282:8: warning: AT02: Class 'alloc_o' uses allocators but does not have an allocator trait
 struct alloc_o {
        ^
-csabbg_allocatorforward.t.cpp:284:1: note: AT021: Allocator trait for class alloc_o
+csabbg_allocatorforward.t.cpp:284:1: note: AT02: Allocator trait for class alloc_o
 
   public:
     // TRAITS
@@ -153,7 +153,7 @@ csabbg_allocatorforward.t.cpp:284:1: note: AT021: Allocator trait for class allo
 csabbg_allocatorforward.t.cpp:287:8: warning: AT02: Class 'alloc_p' uses allocators but does not have an allocator trait
 struct alloc_p {
        ^
-csabbg_allocatorforward.t.cpp:289:1: note: AT021: Allocator trait for class alloc_p
+csabbg_allocatorforward.t.cpp:289:1: note: AT02: Allocator trait for class alloc_p
 
   public:
     // TRAITS
