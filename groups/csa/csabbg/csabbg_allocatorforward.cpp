@@ -869,15 +869,12 @@ void report::match_ctor_decl(const BoundNodes& nodes)
 static internal::DynTypedMatcher allocator_method_matcher()
 {
     return decl(forEachDescendant(
-        cxxRecordDecl(
-            hasMethod(
-                cxxMethodDecl(
-                    allOf(hasName("allocator"),
-                          isConst(),
-                          isPublic(),
-                          parameterCountIs(0),
-                          returns(asString("BloombergLP::bslma::Allocator*"))))
-                    .bind("a")))
+        cxxRecordDecl(has(cxxMethodDecl(hasName("allocator"),
+                                        isConst(),
+                                        isPublic(),
+                                        parameterCountIs(0),
+                                        returns(pointerType(isAllocator())))
+                              .bind("a")))
             .bind("r")));
 }
 
