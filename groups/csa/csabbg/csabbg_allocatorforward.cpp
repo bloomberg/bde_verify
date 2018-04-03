@@ -7,6 +7,7 @@
 #include <clang/AST/DeclTemplate.h>
 #include <clang/AST/Expr.h>
 #include <clang/AST/ExprCXX.h>
+#include <clang/AST/CXXInheritance.h>
 #include <clang/AST/Stmt.h>
 #include <clang/AST/TemplateBase.h>
 #include <clang/AST/TemplateName.h>
@@ -17,6 +18,7 @@
 #include <clang/ASTMatchers/ASTMatchersMacros.h>
 #include <clang/Basic/SourceLocation.h>
 #include <clang/Basic/Specifiers.h>
+#include <clang/Sema/Sema.h>
 #include <csabase_analyser.h>
 #include <csabase_debug.h>
 #include <csabase_diagnostic_builder.h>
@@ -869,17 +871,35 @@ void report::match_ctor_decl(const BoundNodes& nodes)
 static internal::DynTypedMatcher allocator_method_matcher()
 {
     return decl(forEachDescendant(
-        cxxRecordDecl(has(cxxMethodDecl(hasName("allocator"),
-                                        isConst(),
-                                        isPublic(),
-                                        parameterCountIs(0),
-                                        returns(pointerType(isAllocator())))
-                              .bind("a")))
+        cxxRecordDecl(isSameOrDerivedFrom(
+                          cxxRecordDecl(has(cxxMethodDecl(hasName("allocator"),
+                                                          isConst(),
+                                                          isPublic(),
+                                                          parameterCountIs(0),
+                                                          returns(pointerType(
+                                                              isAllocator())))
+                                                .bind("a")))
+                              .bind("b")))
             .bind("r")));
 }
 
 void report::match_allocator_method(const BoundNodes& nodes)
 {
+    const auto *r = nodes.getNodeAs<CXXRecordDecl>("r");
+    const auto *b = nodes.getNodeAs<CXXRecordDecl>("b");
+    const auto *a = nodes.getNodeAs<CXXMethodDecl>("a");
+    if (r != b) {
+        CXXBasePaths Paths;
+        if (!r->lookupInBases(
+                [&](const CXXBaseSpecifier *Specifier, CXXBasePath& Path) {
+                    return Path.Access == AS_public &&
+                           Specifier->getType().getTypePtr() ==
+                               a->getParent()->getTypeForDecl();
+                },
+                Paths)) {
+            return;
+        }
+    }
     d.allocator_methods_[nodes.getNodeAs<CXXRecordDecl>("r")] =
         nodes.getNodeAs<CXXMethodDecl>("a");
 }
