@@ -363,7 +363,12 @@ struct report : Report<data>
         // Write out an allocator method declaration for the specified
         // 'record', basing its return type on whether the specified 'kind'
         // refers to a 'bslma::Allocator *' or a 'bsl::allocator_arg'.  Return
-        // true if the declaration was written, and false if it wa snot.
+        // true if the declaration was written, and false if it was not.
+
+    bool write_d_allocator_p_declaration(const CXXRecordDecl *record);
+        // Write out the declaration for a private 'd_allocator_p' pointer
+        // member for the specified 'record'.  Return true if the declaration
+        // was written, and false if it was not.
 
     void include(SourceLocation loc, llvm::StringRef name);
         // Generate a file inclusion of the specified 'name' in the file
@@ -1101,7 +1106,7 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
                     write_allocator_method_declaration(record, uses_allocator);
                 }
 
-                if (uses_allocator && d.allocator_members_.count(record)) {
+                if (uses_allocator) {
                     const CXXBaseSpecifier *base_with_allocator = 0;
                     for (const auto& base : record->bases()) {
                         if (takes_allocator(
@@ -1119,7 +1124,9 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
                             break;
                         }
                     }
-                    if (base_with_allocator || field_with_allocator) {
+
+                    if (d.allocator_members_.count(record) &&
+                        (base_with_allocator || field_with_allocator)) {
                         a.report(d.allocator_members_[record],
                                  check_name, "AP01",
                                  "Class %0 has unnecessary d_allocator_p.")
@@ -1137,6 +1144,15 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
                                      false, DiagnosticIDs::Note)
                                 << field_with_allocator;
                         }
+                    }
+
+                    if (!d.allocator_methods_.count(record) &&
+                        !d.allocator_members_.count(record) &&
+                        !(base_with_allocator || field_with_allocator)) {
+                        a.report(record, check_name, "AP02",
+                                 "Class %0 needs d_allocator_p member")
+                            << record;
+                        write_d_allocator_p_declaration(record);
                     }
                 }
             }
@@ -1361,6 +1377,35 @@ bool report::write_allocator_method_declaration(const CXXRecordDecl *record,
 
     a.report(ins_loc, check_name, "AL01",
              "Allocator method declaration for class %0\n%1",
+             false, DiagnosticIDs::Note) << record->getName() << ot.str();
+    a.ReplaceText(ins_loc.getLocWithOffset(-end_spaces), end_spaces, ot.str());
+    return true;
+}
+
+bool report::write_d_allocator_p_declaration(const CXXRecordDecl *record)
+{
+    if (!a.is_component(record) || !record->hasDefinition())
+      return false;
+
+    record = record->getDefinition();
+
+    std::string s;
+    llvm::raw_string_ostream ot(s);
+
+    SourceLocation ins_loc = record->getBraceRange().getEnd();
+    llvm::StringRef range = a.get_source(record->getBraceRange());
+    int end_spaces = range.size() - range.drop_back(1).rtrim().size() - 1;
+    llvm::StringRef spaces =
+        a.get_source_line(ins_loc).take_until([](char c) { return c != ' '; });
+
+    ot                                                        << "\n" << spaces
+       << "  private:"                                        << "\n" << spaces
+       << "    // PRIVATE DATA"                               << "\n" << spaces
+       << "    bslma::Allocator *d_allocator_p;"              << "\n" << spaces
+       ;
+
+    a.report(ins_loc, check_name, "AP02",
+             "Allocator member declaration for class %0\n%1",
              false, DiagnosticIDs::Note) << record->getName() << ot.str();
     a.ReplaceText(ins_loc.getLocWithOffset(-end_spaces), end_spaces, ot.str());
     return true;
