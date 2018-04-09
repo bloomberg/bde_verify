@@ -29,7 +29,29 @@ rv.cpp:3:61: note: AT02: Allocator trait for class A
 
 struct A { explicit A(BloombergLP::bslma::Allocator * = 0); };
                                                             ^
+rv.cpp:3:8: warning: AL01: Class 'A' uses allocators but does not have an allocator() method
+struct A { explicit A(BloombergLP::bslma::Allocator * = 0); };
+       ^
+rv.cpp:3:61: note: AL01: Allocator method declaration for class A
+
+  public:
+    // PUBLIC ACCESSORS
+    bslma::Allocator *allocator() const;
+
+struct A { explicit A(BloombergLP::bslma::Allocator * = 0); };
+                                                            ^
+rv.cpp:3:8: warning: AP02: Class 'A' needs d_allocator_p member
+struct A { explicit A(BloombergLP::bslma::Allocator * = 0); };
+       ^
+rv.cpp:3:61: note: AP02: Allocator member declaration for class A
+
+  private:
+    // PRIVATE DATA
+    bslma::Allocator *d_allocator_p;
+
+struct A { explicit A(BloombergLP::bslma::Allocator * = 0); };
+                                                            ^
 rv.cpp:3:8: warning: AC02: Implicit copy constructor cannot be called with an allocator as the final argument
 struct A { explicit A(BloombergLP::bslma::Allocator * = 0); };
        ^
-4 warnings generated.
+6 warnings generated.
