@@ -370,6 +370,14 @@ struct report : Report<data>
         // member for the specified 'record'.  Return true if the declaration
         // was written, and false if it was not.
 
+    bool write_ctor_with_allocator_declaration(
+                                              const CXXRecordDecl      *record,
+                                              const CXXConstructorDecl *decl);
+        // Write out the declaration for a constructor for the specified
+        // 'record' that mirrors the specified 'decl' constructor but which
+        // also takes a final allocator parameter.  Return true if the
+        // declaration was written, and false if it was not.
+
     void include(SourceLocation loc, llvm::StringRef name);
         // Generate a file inclusion of the specified 'name' in the file
         // containing the specified 'loc'.
@@ -1223,6 +1231,7 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
                              "that can be called with an allocator as the "
                              "final argument")
                         << decl;
+                    write_ctor_with_allocator_declaration(record, decl);
                 }
                 else {
                     a.report(decl, check_name, "AC02",
@@ -1407,6 +1416,50 @@ bool report::write_d_allocator_p_declaration(const CXXRecordDecl *record)
     a.report(ins_loc, check_name, "AP02",
              "Allocator member declaration for class %0\n%1",
              false, DiagnosticIDs::Note) << record->getName() << ot.str();
+    a.ReplaceText(ins_loc.getLocWithOffset(-end_spaces), end_spaces, ot.str());
+    return true;
+}
+
+bool report::write_ctor_with_allocator_declaration(
+                                              const CXXRecordDecl      *record,
+                                              const CXXConstructorDecl *decl)
+{
+    if (!a.is_component(record) || !record->hasDefinition())
+      return false;
+
+    record = record->getDefinition();
+
+    std::string s;
+    llvm::raw_string_ostream ot(s);
+
+    SourceLocation ins_loc = record->getBraceRange().getEnd();
+    llvm::StringRef range = a.get_source(record->getBraceRange());
+    int end_spaces = range.size() - range.drop_back(1).rtrim().size() - 1;
+    llvm::StringRef spaces =
+        a.get_source_line(ins_loc).take_until([](char c) { return c != ' '; });
+
+    ot                                                        << "\n" << spaces
+       << "  public:"                                         << "\n" << spaces
+       << "    // PUBLIC CREATORS"                            << "\n" << spaces
+       ;
+    if (decl->getNumParams() == 0) {
+        ot << "    explicit " << record->getName()
+           << "(bslma::Allocator *basicAllocator);"           << "\n" << spaces
+           ;
+    }
+    else {
+        ot << "    " << record->getName() << "("
+           << a.get_source(SourceRange(
+                  decl->parameters().front()->getSourceRange().getBegin(),
+                  decl->parameters().back()->getSourceRange().getEnd()))
+           << ","                                             << "\n" << spaces
+           << "        bslma::Allocator *basicAllocator);"    << "\n" << spaces
+           ;
+    }
+
+    a.report(ins_loc, check_name, "AC01",
+             "Version with allocator%0",
+             false, DiagnosticIDs::Note) << ot.str();
     a.ReplaceText(ins_loc.getLocWithOffset(-end_spaces), end_spaces, ot.str());
     return true;
 }
