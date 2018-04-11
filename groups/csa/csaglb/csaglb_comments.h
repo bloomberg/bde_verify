@@ -1,4 +1,6 @@
 // csaglb_comments.h                                                  -*-C++-*-
+#ifndef INCLUDED_CSAGLB_COMMENTS
+#define INCLUDED_CSAGLB_COMMENTS
 
 #include <clang/Basic/SourceLocation.h>
 #include <map>
@@ -19,6 +21,8 @@ struct CommentData
     void append(Analyser& analyser, clang::SourceRange range);
 };
 }
+
+#endif
 
 // ----------------------------------------------------------------------------
 // Copyright (C) 2017 Bloomberg Finance L.P.
