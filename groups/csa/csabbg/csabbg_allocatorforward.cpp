@@ -1231,7 +1231,6 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
                              "that can be called with an allocator as the "
                              "final argument")
                         << decl;
-                    write_ctor_with_allocator_declaration(record, decl);
                 }
                 else {
                     a.report(decl, check_name, "AC02",
@@ -1239,6 +1238,7 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
                              "called with an allocator as the final argument")
                         << decl;
                 }
+                write_ctor_with_allocator_declaration(record, decl);
             }
         }
     }
@@ -1447,7 +1447,7 @@ bool report::write_ctor_with_allocator_declaration(
            << "(bslma::Allocator *basicAllocator);"           << "\n" << spaces
            ;
     }
-    else {
+    else if (decl->isUserProvided()) {
         ot << "    " << record->getName() << "("
            << a.get_source(SourceRange(
                   decl->parameters().front()->getSourceRange().getBegin(),
@@ -1455,6 +1455,21 @@ bool report::write_ctor_with_allocator_declaration(
            << ","                                             << "\n" << spaces
            << "        bslma::Allocator *basicAllocator);"    << "\n" << spaces
            ;
+    }
+    else if (decl->isCopyConstructor()) {
+        ot << "    " << record->getName()
+           << "(const " << record->getName() << "& original, "
+           << "bslma::Allocator *basicAllocator = 0);"        << "\n" << spaces
+           ;
+    }
+    else if (decl->isMoveConstructor()) {
+        ot << "    " << record->getName()
+           << "(" << record->getName() << "&& original, "
+           << "bslma::Allocator *basicAllocator = 0);"        << "\n" << spaces
+           ;
+    }
+    else {
+        return false;
     }
 
     a.report(ins_loc, check_name, "AC01",
