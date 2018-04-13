@@ -1043,7 +1043,13 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
 
     for (auto itr = begin; itr != end; ++itr) {
         const CXXConstructorDecl *decl = *itr;
+        if (decl->isTemplateInstantiation()) {
+            continue;
+        }
         const CXXRecordDecl* record = decl->getParent()->getCanonicalDecl();
+        if (record->getTemplateInstantiationPattern()) {
+            continue;
+        }
         AllocatorLocation uses_allocator = takes_allocator(
                    record->getTypeForDecl()->getCanonicalTypeInternal());
         bool has_true_alloc_trait =
@@ -1183,7 +1189,13 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
             unsigned num_parms = decl->getNumParams();
             for (auto ci = begin; !found && ci != end; ++ci) {
                 const CXXConstructorDecl *ctor = *ci;
+                if (ctor->isTemplateInstantiation()) {
+                    continue;
+                }
                 auto r = ctor->getParent()->getCanonicalDecl();
+                if (r->getTemplateInstantiationPattern()) {
+                    continue;
+                }
                 if (auto ts =
                         llvm::dyn_cast<ClassTemplateSpecializationDecl>(r)) {
                     r = ts->getSpecializedTemplate()
@@ -1344,7 +1356,7 @@ bool report::write_allocator_trait(const CXXRecordDecl *record, bool bslma)
     llvm::StringRef spaces =
         a.get_source_line(ins_loc).take_until([](char c) { return c != ' '; });
 
-    ot                                                        << "\n" << spaces
+    ot << "\n"                                                << "\n" << spaces
        << "  public:"                                         << "\n" << spaces
        << "    // TRAITS"                                     << "\n" << spaces
        << "    BSLMF_NESTED_TRAIT_DECLARATION("
@@ -1378,7 +1390,7 @@ bool report::write_allocator_method_declaration(const CXXRecordDecl *record,
     llvm::StringRef spaces =
         a.get_source_line(ins_loc).take_until([](char c) { return c != ' '; });
 
-    ot                                                        << "\n" << spaces
+    ot << "\n"                                                << "\n" << spaces
        << "  public:"                                         << "\n" << spaces
        << "    // PUBLIC ACCESSORS"                           << "\n" << spaces
        << "    bslma::Allocator *allocator() const;"          << "\n" << spaces
@@ -1407,7 +1419,7 @@ bool report::write_d_allocator_p_declaration(const CXXRecordDecl *record)
     llvm::StringRef spaces =
         a.get_source_line(ins_loc).take_until([](char c) { return c != ' '; });
 
-    ot                                                        << "\n" << spaces
+    ot << "\n"                                                << "\n" << spaces
        << "  private:"                                        << "\n" << spaces
        << "    // PRIVATE DATA"                               << "\n" << spaces
        << "    bslma::Allocator *d_allocator_p;"              << "\n" << spaces
@@ -1438,10 +1450,32 @@ bool report::write_ctor_with_allocator_declaration(
     llvm::StringRef spaces =
         a.get_source_line(ins_loc).take_until([](char c) { return c != ' '; });
 
-    ot                                                        << "\n" << spaces
+    const FunctionDecl *def = decl->getDefinition();
+    if (def) {
+        if (decl == def) {
+            //ERRS() << "decl == def "; decl->dump(); ERNL();
+        }
+        else {
+            //ERRS() << "decl != def "; decl->dump(); ERNL();
+            //ERRS() << "decl != def "; def->dump(); ERNL();
+        }
+    }
+    else {
+        //ERRS() << "decl "; decl->dump(); ERNL();
+    }
+
+    ot << "\n"                                                << "\n" << spaces
        << "  public:"                                         << "\n" << spaces
        << "    // PUBLIC CREATORS"                            << "\n" << spaces
        ;
+    if (const auto *ft = decl->getDescribedFunctionTemplate()) {
+        ot << "    "
+           << a.get_source(SourceRange(
+                  ft->getSourceRange().getBegin(),
+                  decl->getSourceRange().getBegin().getLocWithOffset(-1)))
+                                                              << "\n" << spaces
+           ;
+    }
     if (decl->getNumParams() == 0) {
         ot << "    explicit " << record->getName()
            << "(bslma::Allocator *basicAllocator);"           << "\n" << spaces
@@ -1472,7 +1506,7 @@ bool report::write_ctor_with_allocator_declaration(
         return false;
     }
 
-    a.report(ins_loc, check_name, "AC01",
+    a.report(ins_loc, check_name, decl->isUserProvided() ? "AC01" : "AC02",
              "Version with allocator%0",
              false, DiagnosticIDs::Note) << ot.str();
     a.ReplaceText(ins_loc.getLocWithOffset(-end_spaces), end_spaces, ot.str());
