@@ -54,4 +54,12 @@ struct A { explicit A(BloombergLP::bslma::Allocator * = 0); };
 rv.cpp:3:8: warning: AC02: Implicit copy constructor cannot be called with an allocator as the final argument
 struct A { explicit A(BloombergLP::bslma::Allocator * = 0); };
        ^
+rv.cpp:3:61: note: AC02: Version with allocator
+
+  public:
+    // PUBLIC CREATORS
+    A(const A& original, bslma::Allocator *basicAllocator = 0);
+
+struct A { explicit A(BloombergLP::bslma::Allocator * = 0); };
+                                                            ^
 6 warnings generated.

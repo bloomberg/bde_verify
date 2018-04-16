@@ -34,4 +34,12 @@ h.cpp:12:1: note: AP02: Allocator member declaration for class MyAllocator
 h.cpp:9:8: warning: AC02: Implicit copy constructor cannot be called with an allocator as the final argument
 struct MyAllocator : public bslma::Allocator
        ^
+h.cpp:12:1: note: AC02: Version with allocator
+
+  public:
+    // PUBLIC CREATORS
+    MyAllocator(const MyAllocator& original, bslma::Allocator *basicAllocator = 0);
+
+};
+^
 4 warnings generated.

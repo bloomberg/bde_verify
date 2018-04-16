@@ -1040,16 +1040,11 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
                                  data::Ctors::const_iterator end)
 {
     std::set<std::pair<bool, const CXXRecordDecl *> > records;
+    std::set<Range> processed;
 
     for (auto itr = begin; itr != end; ++itr) {
         const CXXConstructorDecl *decl = *itr;
-        if (decl->isTemplateInstantiation()) {
-            continue;
-        }
         const CXXRecordDecl* record = decl->getParent()->getCanonicalDecl();
-        if (record->getTemplateInstantiationPattern()) {
-            continue;
-        }
         AllocatorLocation uses_allocator = takes_allocator(
                    record->getTypeForDecl()->getCanonicalTypeInternal());
         bool has_true_alloc_trait =
@@ -1180,7 +1175,7 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
             // one, but with a final allocator parameter or an initial
             // allocator_arg_t, allocator pair.
 
-            bool found =    // Private copy constructor declarations are OK.
+            bool found =  // Private copy constructor declarations are OK.
                 decl->getAccess() == AS_private &&
                 decl->isCopyOrMoveConstructor() &&
                 decl->isUserProvided() &&
@@ -1189,13 +1184,7 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
             unsigned num_parms = decl->getNumParams();
             for (auto ci = begin; !found && ci != end; ++ci) {
                 const CXXConstructorDecl *ctor = *ci;
-                if (ctor->isTemplateInstantiation()) {
-                    continue;
-                }
                 auto r = ctor->getParent()->getCanonicalDecl();
-                if (r->getTemplateInstantiationPattern()) {
-                    continue;
-                }
                 if (auto ts =
                         llvm::dyn_cast<ClassTemplateSpecializationDecl>(r)) {
                     r = ts->getSpecializedTemplate()
@@ -1230,7 +1219,8 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
                 }
             }
 
-            if (!found) {
+            if (!found && !processed.count(Range(m, decl->getSourceRange()))) {
+                processed.insert(Range(m, decl->getSourceRange()));
                 std::string type =
                     decl->isDefaultConstructor() ? "default " :
                     decl->isCopyConstructor()    ? "copy "    :
@@ -1364,7 +1354,7 @@ bool report::write_allocator_trait(const CXXRecordDecl *record, bool bslma)
        ;
 
     a.report(ins_loc, check_name, "AT02",
-             "Allocator trait for class %0\n%1",
+             "Allocator trait for class %0%1",
              false, DiagnosticIDs::Note) << record->getName() << ot.str();
     a.ReplaceText(ins_loc.getLocWithOffset(-end_spaces), end_spaces, ot.str());
     return true;
@@ -1397,7 +1387,7 @@ bool report::write_allocator_method_declaration(const CXXRecordDecl *record,
        ;
 
     a.report(ins_loc, check_name, "AL01",
-             "Allocator method declaration for class %0\n%1",
+             "Allocator method declaration for class %0%1",
              false, DiagnosticIDs::Note) << record->getName() << ot.str();
     a.ReplaceText(ins_loc.getLocWithOffset(-end_spaces), end_spaces, ot.str());
     return true;
@@ -1426,7 +1416,7 @@ bool report::write_d_allocator_p_declaration(const CXXRecordDecl *record)
        ;
 
     a.report(ins_loc, check_name, "AP02",
-             "Allocator member declaration for class %0\n%1",
+             "Allocator member declaration for class %0%1",
              false, DiagnosticIDs::Note) << record->getName() << ot.str();
     a.ReplaceText(ins_loc.getLocWithOffset(-end_spaces), end_spaces, ot.str());
     return true;
