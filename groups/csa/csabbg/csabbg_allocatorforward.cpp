@@ -378,6 +378,15 @@ struct report : Report<data>
         // also takes a final allocator parameter.  Return true if the
         // declaration was written, and false if it was not.
 
+    bool write_ctor_with_allocator_definition(
+                                              const CXXRecordDecl      *record,
+                                              const CXXConstructorDecl *decl,
+                                              bool  init_allocator);
+        // Write out the definition for a constructor for the specified
+        // 'record' that mirrors the specified 'decl' constructor but which
+        // also takes a final allocator parameter.  Return true if the
+        // definition was written, and false if it was not.
+
     void include(SourceLocation loc, llvm::StringRef name);
         // Generate a file inclusion of the specified 'name' in the file
         // containing the specified 'loc'.
@@ -1041,9 +1050,13 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
 {
     std::set<std::pair<bool, const CXXRecordDecl *> > records;
     std::set<Range> processed;
+    std::set<const CXXRecordDecl *> added_d_allocator;
 
     for (auto itr = begin; itr != end; ++itr) {
         const CXXConstructorDecl *decl = *itr;
+        if (decl->isFunctionTemplateSpecialization()) {
+            continue;
+        }
         const CXXRecordDecl* record = decl->getParent()->getCanonicalDecl();
         AllocatorLocation uses_allocator = takes_allocator(
                    record->getTypeForDecl()->getCanonicalTypeInternal());
@@ -1161,13 +1174,16 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
                         a.report(record, check_name, "AP02",
                                  "Class %0 needs d_allocator_p member")
                             << record;
-                        write_d_allocator_p_declaration(record);
+                        if (write_d_allocator_p_declaration(record)) {
+                            added_d_allocator.insert(record);
+                        }
                     }
                 }
             }
         }
 
-        if (decl == decl->getCanonicalDecl() &&
+        if ((decl == decl->getCanonicalDecl() ||
+             decl->isThisDeclarationADefinition()) &&
             !decl->isMoveConstructor() &&
             uses_allocator &&
             !takes_allocator(decl)) {
@@ -1184,6 +1200,9 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
             unsigned num_parms = decl->getNumParams();
             for (auto ci = begin; !found && ci != end; ++ci) {
                 const CXXConstructorDecl *ctor = *ci;
+                if (ctor->isFunctionTemplateSpecialization()) {
+                    continue;
+                }
                 auto r = ctor->getParent()->getCanonicalDecl();
                 if (auto ts =
                         llvm::dyn_cast<ClassTemplateSpecializationDecl>(r)) {
@@ -1199,8 +1218,11 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
                         ctor->getNumParams() == num_parms + 1) {
                         found = true;
                         for (unsigned pi = 0; found && pi < num_parms; ++pi) {
-                            if (decl->getParamDecl(pi)->getOriginalType() !=
-                                ctor->getParamDecl(pi)->getOriginalType()) {
+                            auto d = decl->getParamDecl(pi)->getOriginalType();
+                            auto c = ctor->getParamDecl(pi)->getOriginalType();
+                            if (!(d->isTemplateTypeParmType() &&
+                                  c->isTemplateTypeParmType()) &&
+                                d != c) {
                                 found = false;
                             }
                         }
@@ -1209,9 +1231,12 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
                         ctor->getNumParams() == num_parms + 2) {
                         found = true;
                         for (unsigned pi = 0; found && pi < num_parms; ++pi) {
-                            if (decl->getParamDecl(pi)->getOriginalType() !=
-                                ctor->getParamDecl(pi + 2)
-                                    ->getOriginalType()) {
+                            auto d = decl->getParamDecl(pi)->getOriginalType();
+                            auto c =
+                                ctor->getParamDecl(pi + 2)->getOriginalType();
+                            if (!(d->isTemplateTypeParmType() &&
+                                  c->isTemplateTypeParmType()) &&
+                                d != c) {
                                 found = false;
                             }
                         }
@@ -1219,14 +1244,14 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
                 }
             }
 
+            std::string type =
+                decl->isDefaultConstructor() ? "default " :
+                decl->isCopyConstructor()    ? "copy "    :
+                decl->isMoveConstructor()    ? "move "    :
+                                               "";
+
             if (!found && !processed.count(Range(m, decl->getSourceRange()))) {
                 processed.insert(Range(m, decl->getSourceRange()));
-                std::string type =
-                    decl->isDefaultConstructor() ? "default " :
-                    decl->isCopyConstructor()    ? "copy "    :
-                    decl->isMoveConstructor()    ? "move "    :
-                                                   "";
-
                 if (decl->isUserProvided()) {
                     a.report(decl, check_name, "AC01",
                              "This " + type + "constructor has no version "
@@ -1240,7 +1265,19 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
                              "called with an allocator as the final argument")
                         << decl;
                 }
-                write_ctor_with_allocator_declaration(record, decl);
+                auto def = decl;
+                if (!decl->isThisDeclarationADefinition()) {
+                    write_ctor_with_allocator_declaration(record, decl);
+                    def = 0;
+                    if (decl->isDefined()) {
+                        def = llvm::dyn_cast<CXXConstructorDecl>(
+                            decl->getDefinition());
+                    }
+                }
+                if (def) {
+                    write_ctor_with_allocator_definition(
+                        record, def, added_d_allocator.count(record));
+                }
             }
         }
     }
@@ -1422,12 +1459,181 @@ bool report::write_d_allocator_p_declaration(const CXXRecordDecl *record)
     return true;
 }
 
+bool report::write_ctor_with_allocator_definition(
+                                      const CXXRecordDecl      *record,
+                                      const CXXConstructorDecl *decl,
+                                      bool                      init_allocator)
+{
+    if (!a.is_component(record))
+        return false;
+
+    bool up = decl->isUserProvided();
+
+    record = record->getDefinition();
+    llvm::StringRef range = a.get_source(record->getBraceRange());
+
+    std::string s;
+    llvm::raw_string_ostream ot(s);
+
+    SourceLocation  ins_loc;
+    int             end_spaces;
+    llvm::StringRef indent;
+
+    if (up) {
+        ins_loc    = decl->getLocStart();
+        end_spaces = 0;
+    }
+    else {
+        ins_loc    = record->getBraceRange().getEnd();
+        end_spaces = range.size() - range.drop_back(1).rtrim().size() - 1;
+        indent     = "    ";
+    }
+    llvm::StringRef spaces =
+        a.get_source_line(ins_loc).take_until([](char c) { return c != ' '; });
+
+    if (!up) {
+        ot << "\n"                                            << "\n" << spaces
+           << "  public:"                                     << "\n" << spaces
+           << "    // PUBLIC CREATORS"                        << "\n" << spaces
+           ;
+    }
+
+    if (const auto *ft = decl->getDescribedFunctionTemplate()) {
+        ot << indent << a.get_source(SourceRange(
+                  ft->getSourceRange().getBegin(),
+                  decl->getSourceRange().getBegin().getLocWithOffset(-1)))
+                                                              << "\n" << spaces
+           ;
+    }
+    if (up) {
+        ot << indent
+           << a.get_source(SourceRange(decl->getLocStart(),
+                                       decl->getNameInfo().getLocEnd()))
+           << '(';
+    }
+    else {
+        ot << indent << record->getName() << '(';
+    }
+    if (decl->getNumParams() == 0) {
+    }
+    else if (up) {
+        ot << a.get_source(SourceRange(
+                  decl->parameters().front()->getSourceRange().getBegin(),
+                  decl->parameters().back()->getSourceRange().getEnd()))
+           << ","                                             << "\n" << spaces
+           << "        "
+           ;
+    }
+    else if (decl->isCopyConstructor()) {
+        ot << "const " << record->getName() << "& original, "
+           ;
+    }
+    else if (decl->isMoveConstructor()) {
+        ot << record->getName() << "&& original, "
+           ;
+    }
+    else {
+        return false;
+    }
+    ot << "bslma::Allocator *basicAllocator";
+    if (!up) {
+        ot << " = 0";
+    }
+    ot << ")"                                                 << "\n" << spaces
+       ;
+    char sep = ':';
+    for (auto init : decl->inits()) {
+        bool pass_allocator = false;
+        std::string name;
+        if (auto b = init->getBaseClass()) {
+            name = b->getAsCXXRecordDecl()->getNameAsString();
+            if (takes_allocator(b->getCanonicalTypeInternal())) {
+                pass_allocator = true;
+            }
+        }
+        if (auto f = init->getMember()) {
+            name = f->getNameAsString();
+            if (takes_allocator(f->getType())) {
+                pass_allocator = true;
+            }
+        }
+        if (init->isWritten()) {
+            if (auto ce = llvm::dyn_cast<CXXConstructExpr>(init->getInit())) {
+                ot << indent << sep << ' '
+                   << a.get_source(SourceRange(
+                          init->getSourceRange().getBegin(),
+                          init->getRParenLoc().getLocWithOffset(-1)));
+                if (pass_allocator) {
+                    if (ce->getNumArgs() > 0) {
+                        ot << ", ";
+                    }
+                    ot << "basicAllocator";
+                }
+                ot << ")"                                     << "\n" << spaces
+                   ;
+            }
+            else {
+                ot << indent << sep << ' '
+                   << a.get_source(init->getSourceRange())    << "\n" << spaces
+                   ;
+            }
+            sep = ',';
+        }
+        else if (pass_allocator) {
+            ot << indent << sep << ' ' << name << '(';
+            if (decl->isCopyOrMoveConstructor()) {
+                ot << "original";
+                if (init->getMember()) {
+                    ot << '.' << name;
+                }
+                ot << ", ";
+            }
+            ot << "basicAllocator)"                           << "\n" << spaces
+               ;
+            sep = ',';
+        } else if (decl->isCopyOrMoveConstructor()) {
+            if (name == "d_allocator_p") {
+                init_allocator = true;
+            }
+            else {
+                ot << indent << sep << ' ' << name << "(original";
+                if (init->getMember()) {
+                    ot << '.' << name;
+                }
+                ot << ")"                                     << "\n" << spaces
+                   ;
+                sep = ',';
+            }
+        }
+    }
+    if (init_allocator) {
+        ot << indent << sep
+           << " d_allocator_p(basicAllocator)"                << "\n" << spaces
+           ;
+        sep = ',';
+    }
+    ot << indent
+       << (up && decl->doesThisDeclarationHaveABody()
+               ? a.get_source(decl->getBody()->getSourceRange())
+               : "{ }")                                       << "\n" << spaces
+       ;
+
+    a.report(ins_loc, check_name, up ? "AC03" : "AC04",
+             "Definition for version with allocator\n%1%0",
+             false, DiagnosticIDs::Note) << ot.str() << spaces;
+    a.ReplaceText(ins_loc.getLocWithOffset(-end_spaces), end_spaces, ot.str());
+    return true;
+}
+
 bool report::write_ctor_with_allocator_declaration(
                                               const CXXRecordDecl      *record,
                                               const CXXConstructorDecl *decl)
 {
     if (!a.is_component(record) || !record->hasDefinition())
-      return false;
+        return false;
+
+    if (!decl->isUserProvided() || decl->isThisDeclarationADefinition())
+        return false;
 
     record = record->getDefinition();
 
@@ -1439,20 +1645,6 @@ bool report::write_ctor_with_allocator_declaration(
     int end_spaces = range.size() - range.drop_back(1).rtrim().size() - 1;
     llvm::StringRef spaces =
         a.get_source_line(ins_loc).take_until([](char c) { return c != ' '; });
-
-    const FunctionDecl *def = decl->getDefinition();
-    if (def) {
-        if (decl == def) {
-            //ERRS() << "decl == def "; decl->dump(); ERNL();
-        }
-        else {
-            //ERRS() << "decl != def "; decl->dump(); ERNL();
-            //ERRS() << "decl != def "; def->dump(); ERNL();
-        }
-    }
-    else {
-        //ERRS() << "decl "; decl->dump(); ERNL();
-    }
 
     ot << "\n"                                                << "\n" << spaces
        << "  public:"                                         << "\n" << spaces
@@ -1477,7 +1669,11 @@ bool report::write_ctor_with_allocator_declaration(
                   decl->parameters().front()->getSourceRange().getBegin(),
                   decl->parameters().back()->getSourceRange().getEnd()))
            << ","                                             << "\n" << spaces
-           << "        bslma::Allocator *basicAllocator);"    << "\n" << spaces
+           << "        bslma::Allocator *basicAllocator";
+        if (decl->isDefaultConstructor()) {
+            ot << " = 0";
+        }
+        ot << ");"                                            << "\n" << spaces
            ;
     }
     else if (decl->isCopyConstructor()) {
@@ -1497,7 +1693,7 @@ bool report::write_ctor_with_allocator_declaration(
     }
 
     a.report(ins_loc, check_name, decl->isUserProvided() ? "AC01" : "AC02",
-             "Version with allocator%0",
+             "Declaration for version with allocator%0",
              false, DiagnosticIDs::Note) << ot.str();
     a.ReplaceText(ins_loc.getLocWithOffset(-end_spaces), end_spaces, ot.str());
     return true;
