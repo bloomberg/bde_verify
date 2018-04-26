@@ -225,9 +225,9 @@ struct data
     AddedFiles added_;
 
     typedef std::map<const CXXRecordDecl *, const CXXMethodDecl *>
-        AllocatorMethods;
+                     AllocatorMethods;
     AllocatorMethods allocator_methods_;
-        // A map of the 'allocator()' methods of records.
+        // The 'allocator()' methods of records.
 
     typedef std::map<const CXXRecordDecl *, const FieldDecl *>
         AllocatorMembers;
@@ -358,12 +358,16 @@ struct report : Report<data>
         // 'UsesAllocatorArgT' trait otherwise.  Return true if the trait was
         // writen, and false if it was not.
 
-    bool write_allocator_method_declaration(const CXXRecordDecl *record,
-                                            AllocatorLocation    kind);
-        // Write out an allocator method declaration for the specified
-        // 'record', basing its return type on whether the specified 'kind'
-        // refers to a 'bslma::Allocator *' or a 'bsl::allocator_arg'.  Return
-        // true if the declaration was written, and false if it was not.
+    bool write_allocator_method_definition(const CXXRecordDecl    *record,
+                                           AllocatorLocation       kind,
+                                           const CXXBaseSpecifier *base,
+                                           const FieldDecl        *field);
+        // Write out an allocator method definition for the specified 'record',
+        // basing its return type on whether the specified 'kind' refers to a
+        // 'bslma::Allocator *' or a 'bsl::allocator_arg'.  Return true if the
+        // declaration was written, and false if it was not.  The method
+        // forwards to the first of the specified non-null 'base' or 'field' if 
+        // one exists, and to an assumed 'd_allocator_p' member otherwise.
 
     bool write_d_allocator_p_declaration(const CXXRecordDecl *record);
         // Write out the declaration for a private 'd_allocator_p' pointer
@@ -893,37 +897,20 @@ void report::match_ctor_decl(const BoundNodes& nodes)
 static internal::DynTypedMatcher allocator_method_matcher()
 {
     return decl(forEachDescendant(
-        cxxRecordDecl(isSameOrDerivedFrom(
-                          cxxRecordDecl(has(cxxMethodDecl(hasName("allocator"),
-                                                          isConst(),
-                                                          isPublic(),
-                                                          parameterCountIs(0),
-                                                          returns(pointerType(
-                                                              isAllocator())))
-                                                .bind("a")))
-                              .bind("b")))
+        cxxRecordDecl(has(cxxMethodDecl(hasName("allocator"),
+                                        isConst(),
+                                        isPublic(),
+                                        parameterCountIs(0),
+                                        returns(pointerType(isAllocator())))
+                              .bind("a")))
             .bind("r")));
 }
 
 void report::match_allocator_method(const BoundNodes& nodes)
 {
     const auto *r = nodes.getNodeAs<CXXRecordDecl>("r");
-    const auto *b = nodes.getNodeAs<CXXRecordDecl>("b");
     const auto *a = nodes.getNodeAs<CXXMethodDecl>("a");
-    if (r != b) {
-        CXXBasePaths Paths;
-        if (!r->lookupInBases(
-                [&](const CXXBaseSpecifier *Specifier, CXXBasePath& Path) {
-                    return Path.Access == AS_public &&
-                           Specifier->getType().getTypePtr() ==
-                               a->getParent()->getTypeForDecl();
-                },
-                Paths)) {
-            return;
-        }
-    }
-    d.allocator_methods_[nodes.getNodeAs<CXXRecordDecl>("r")] =
-        nodes.getNodeAs<CXXMethodDecl>("a");
+    d.allocator_methods_[r] = a;
 }
 
 static internal::DynTypedMatcher allocator_member_matcher()
@@ -1049,28 +1036,27 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
                                  data::Ctors::const_iterator end)
 {
     std::set<std::pair<bool, const CXXRecordDecl *> > records;
-    std::set<Range> processed;
-    std::set<const CXXRecordDecl *> added_d_allocator;
+    std::set<Range>                                   processed;
+    std::set<const CXXRecordDecl *>                   added_d_allocator;
 
     for (auto itr = begin; itr != end; ++itr) {
         const CXXConstructorDecl *decl = *itr;
         if (decl->isFunctionTemplateSpecialization()) {
             continue;
         }
-        const CXXRecordDecl* record = decl->getParent()->getCanonicalDecl();
-        AllocatorLocation uses_allocator = takes_allocator(
-                   record->getTypeForDecl()->getCanonicalTypeInternal());
-        bool has_true_alloc_trait =
-            d.decls_with_true_allocator_trait_.count(record);
-        bool has_false_alloc_trait =
-            d.decls_with_false_allocator_trait_.count(record);
+        const CXXRecordDecl *record = decl->getParent()->getCanonicalDecl();
+        AllocatorLocation    uses_allocator = takes_allocator(
+            record->getTypeForDecl()->getCanonicalTypeInternal());
+        bool has_true_alloc_trait = d.decls_with_true_allocator_trait_.count(
+                                                                        record);
+        bool has_false_alloc_trait = d.decls_with_false_allocator_trait_.count(
+                                                                        record);
         bool has_dependent_alloc_trait =
-            !has_true_alloc_trait &&
-            !has_false_alloc_trait &&
+            !has_true_alloc_trait && !has_false_alloc_trait &&
             d.decls_with_dependent_allocator_trait_.count(record);
         auto *ts = llvm::dyn_cast<ClassTemplateSpecializationDecl>(record);
         if (ts && !ts->isExplicitSpecialization()) {
-            const CXXRecordDecl* tr = ts->getSpecializedTemplate()
+            const CXXRecordDecl *tr = ts->getSpecializedTemplate()
                                           ->getTemplatedDecl()
                                           ->getCanonicalDecl();
             if (uses_allocator) {
@@ -1091,8 +1077,9 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
             continue;
         }
 
-        std::pair<bool, const CXXRecordDecl *> rp =
-            std::make_pair(uses_allocator, record);
+        std::pair<bool, const CXXRecordDecl *> rp = std::make_pair(
+                                                               uses_allocator,
+                                                               record);
 
         check_not_forwarded(decl);
 
@@ -1105,9 +1092,10 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
                              "Class %0 does not use allocators but has a "
                              "positive allocator trait")
                         << record;
-                } else if (uses_allocator &&
-                           !has_true_alloc_trait &&
-                           !has_dependent_alloc_trait) {
+                }
+                else if (uses_allocator &&
+                         !has_true_alloc_trait &&
+                         !has_dependent_alloc_trait) {
                     a.report(record, check_name, "AT02",
                              "Class %0 uses allocators but does not have an "
                              "allocator trait")
@@ -1120,19 +1108,11 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
                     }
                 }
 
-                if (uses_allocator && !d.allocator_methods_.count(record)) {
-                    a.report(record, check_name, "AL01",
-                             "Class %0 uses allocators but does not have an "
-                             "allocator() method")
-                        << record;
-                    write_allocator_method_declaration(record, uses_allocator);
-                }
-
                 if (uses_allocator) {
                     const CXXBaseSpecifier *base_with_allocator = 0;
                     for (const auto& base : record->bases()) {
                         if (takes_allocator(
-                            base.getType()->getCanonicalTypeInternal())) {
+                                base.getType()->getCanonicalTypeInternal())) {
                             base_with_allocator = &base;
                             break;
                         }
@@ -1147,36 +1127,46 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
                         }
                     }
 
-                    if (d.allocator_members_.count(record) &&
-                        (base_with_allocator || field_with_allocator)) {
-                        a.report(d.allocator_members_[record],
-                                 check_name, "AP01",
-                                 "Class %0 has unnecessary d_allocator_p.")
-                            << record;
-                        if (base_with_allocator) {
-                            a.report(base_with_allocator->getLocStart(),
+                    if (d.allocator_members_.count(record)) {
+                        if (base_with_allocator || field_with_allocator) {
+                            a.report(d.allocator_members_[record],
                                      check_name, "AP01",
-                                     "Use allocator of base class %0 instead.",
-                                     false, DiagnosticIDs::Note)
-                                << base_with_allocator->getType();
-                        }
-                        else {
-                            a.report(field_with_allocator, check_name, "AP01",
-                                     "Use allocator of field %0 instead.",
-                                     false, DiagnosticIDs::Note)
-                                << field_with_allocator;
+                                     "Class %0 has unnecessary d_allocator_p")
+                                << record;
+                            if (base_with_allocator) {
+                                a.report(base_with_allocator->getLocStart(),
+                                         check_name, "AP01",
+                                         "Use allocator of base class %0",
+                                         false, DiagnosticIDs::Note)
+                                    << base_with_allocator->getType();
+                            }
+                            else {
+                                a.report(field_with_allocator,
+                                         check_name, "AP01",
+                                         "Use allocator of field %0",
+                                         false, DiagnosticIDs::Note)
+                                    << field_with_allocator;
+                            }
                         }
                     }
-
-                    if (!d.allocator_methods_.count(record) &&
-                        !d.allocator_members_.count(record) &&
-                        !(base_with_allocator || field_with_allocator)) {
+                    else if (!base_with_allocator && !field_with_allocator) {
                         a.report(record, check_name, "AP02",
                                  "Class %0 needs d_allocator_p member")
                             << record;
                         if (write_d_allocator_p_declaration(record)) {
                             added_d_allocator.insert(record);
                         }
+                    }
+
+                    if (!d.allocator_methods_.count(record)) {
+                        a.report(record, check_name, "AL01",
+                                 "Class %0 needs allocator() method")
+                            << record;
+                        write_allocator_method_definition(
+                                                         record,
+                                                         uses_allocator,
+                                                         base_with_allocator,
+                                                         field_with_allocator);
                     }
                 }
             }
@@ -1187,15 +1177,14 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
             !decl->isMoveConstructor() &&
             uses_allocator &&
             !takes_allocator(decl)) {
-            // Warn if the class does not have a constructor that matches this
-            // one, but with a final allocator parameter or an initial
+            // Warn if the class does not have a constructor that matches
+            // this one, but with a final allocator parameter or an initial
             // allocator_arg_t, allocator pair.
 
             bool found =  // Private copy constructor declarations are OK.
                 decl->getAccess() == AS_private &&
                 decl->isCopyOrMoveConstructor() &&
-                decl->isUserProvided() &&
-                !decl->hasBody();
+                decl->isUserProvided() && !decl->hasBody();
 
             unsigned num_parms = decl->getNumParams();
             for (auto ci = begin; !found && ci != end; ++ci) {
@@ -1244,25 +1233,26 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
                 }
             }
 
-            std::string type =
-                decl->isDefaultConstructor() ? "default " :
-                decl->isCopyConstructor()    ? "copy "    :
-                decl->isMoveConstructor()    ? "move "    :
-                                               "";
+            std::string type = decl->isDefaultConstructor() ? "default " :
+                               decl->isCopyConstructor()    ? "copy "    :
+                               decl->isMoveConstructor()    ? "move "    :
+                                                              "";
 
-            if (!found && !processed.count(Range(m, decl->getSourceRange()))) {
+            if (!found &&
+                !processed.count(Range(m, decl->getSourceRange()))) {
                 processed.insert(Range(m, decl->getSourceRange()));
                 if (decl->isUserProvided()) {
                     a.report(decl, check_name, "AC01",
-                             "This " + type + "constructor has no version "
-                             "that can be called with an allocator as the "
-                             "final argument")
+                        "This " + type + "constructor has no version "
+                        "that can be called with an allocator as the "
+                        "final argument")
                         << decl;
                 }
                 else {
                     a.report(decl, check_name, "AC02",
                              "Implicit " + type + "constructor cannot be "
-                             "called with an allocator as the final argument")
+                             "called with an allocator as the final "
+                             "argument")
                         << decl;
                 }
                 auto def = decl;
@@ -1397,8 +1387,10 @@ bool report::write_allocator_trait(const CXXRecordDecl *record, bool bslma)
     return true;
 }
 
-bool report::write_allocator_method_declaration(const CXXRecordDecl *record,
-                                                AllocatorLocation    kind)
+bool report::write_allocator_method_definition(const CXXRecordDecl    *record,
+                                               AllocatorLocation       kind,
+                                               const CXXBaseSpecifier *base,
+                                               const FieldDecl        *field)
 {
     if (!a.is_component(record) || !record->hasDefinition())
       return false;
@@ -1420,7 +1412,34 @@ bool report::write_allocator_method_declaration(const CXXRecordDecl *record,
     ot << "\n"                                                << "\n" << spaces
        << "  public:"                                         << "\n" << spaces
        << "    // PUBLIC ACCESSORS"                           << "\n" << spaces
-       << "    bslma::Allocator *allocator() const;"          << "\n" << spaces
+       << "    bslma::Allocator *allocator() const {"         << "\n" << spaces
+       << "        return "
+       ;
+    if (base) {
+        auto prune = [](llvm::StringRef name, llvm::StringRef kill) {
+            if (name.startswith(kill)) {
+                auto killed = name.drop_front(kill.size());
+                auto rest = killed.ltrim();
+                if (killed != rest) {
+                    name = rest;
+                }
+            }
+            return name;
+        };
+        auto name = a.get_source(base->getSourceRange()).trim();
+        name = prune(name, "public");
+        name = prune(name, "private");
+        name = prune(name, "protected");
+        ot << name << "::allocator()";
+    }
+    else if (field) {
+        ot << field->getName() << ".allocator()";
+    }
+    else {
+        ot << "d_allocator_p";
+    }
+    ot << ";"                                                 << "\n" << spaces
+       << "    }"                                             << "\n" << spaces
        ;
 
     a.report(ins_loc, check_name, "AL01",
