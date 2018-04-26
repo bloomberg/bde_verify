@@ -57,6 +57,17 @@ static std::string const check_name("allocator-forward");
 
 namespace {
 
+llvm::StringRef prune(llvm::StringRef name, llvm::StringRef kill) {
+    if (name.startswith(kill)) {
+        auto killed = name.drop_front(kill.size());
+        auto rest = killed.ltrim();
+        if (killed != rest) {
+            name = rest;
+        }
+    }
+    return name;
+};
+
 bool is_allocator(QualType    type,
                   ASTContext& c,
                   bool        includeBases = true,
@@ -1174,7 +1185,6 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
 
         if ((decl == decl->getCanonicalDecl() ||
              decl->isThisDeclarationADefinition()) &&
-            !decl->isMoveConstructor() &&
             uses_allocator &&
             !takes_allocator(decl)) {
             // Warn if the class does not have a constructor that matches
@@ -1416,20 +1426,12 @@ bool report::write_allocator_method_definition(const CXXRecordDecl    *record,
        << "        return "
        ;
     if (base) {
-        auto prune = [](llvm::StringRef name, llvm::StringRef kill) {
-            if (name.startswith(kill)) {
-                auto killed = name.drop_front(kill.size());
-                auto rest = killed.ltrim();
-                if (killed != rest) {
-                    name = rest;
-                }
-            }
-            return name;
-        };
         auto name = a.get_source(base->getSourceRange()).trim();
+        name = prune(name, "virtual");
         name = prune(name, "public");
         name = prune(name, "private");
         name = prune(name, "protected");
+        name = prune(name, "virtual");
         ot << name << "::allocator()";
     }
     else if (field) {
@@ -1565,7 +1567,10 @@ bool report::write_ctor_with_allocator_definition(
         bool pass_allocator = false;
         std::string name;
         if (auto b = init->getBaseClass()) {
-            name = b->getAsCXXRecordDecl()->getNameAsString();
+            name = b->getCanonicalTypeInternal().getAsString();
+            name = prune(name, "class");
+            name = prune(name, "struct");
+            name = prune(name, "union");
             if (takes_allocator(b->getCanonicalTypeInternal())) {
                 pass_allocator = true;
             }
