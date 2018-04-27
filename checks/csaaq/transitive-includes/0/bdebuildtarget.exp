@@ -22,4 +22,16 @@ bdebuildtarget.cpp:16:9: warning: AQK02: Use of BDE_BUILD_TARGET_MT macro requir
 bdebuildtarget.cpp:18:9: warning: AQK02: Use of BDE_BUILD_TARGET_NO_MT macro requires inclusion of <bsls_buildtarget.h>
 #ifndef BDE_BUILD_TARGET_NO_MT
         ^
-8 warnings generated.
+bdebuildtarget.cpp:21:13: warning: AQK02: Use of BDE_BUILD_TARGET_EXC macro requires inclusion of <bsls_buildtarget.h>
+#if defined(BDE_BUILD_TARGET_EXC) || defined(BDE_BUILD_TARGET_NO_EXC) || \
+            ^
+bdebuildtarget.cpp:21:46: warning: AQK02: Use of BDE_BUILD_TARGET_NO_EXC macro requires inclusion of <bsls_buildtarget.h>
+#if defined(BDE_BUILD_TARGET_EXC) || defined(BDE_BUILD_TARGET_NO_EXC) || \
+                                             ^
+bdebuildtarget.cpp:22:13: warning: AQK02: Use of BDE_BUILD_TARGET_MT macro requires inclusion of <bsls_buildtarget.h>
+    defined(BDE_BUILD_TARGET_MT)  || defined(BDE_BUILD_TARGET_NO_MT)
+            ^
+bdebuildtarget.cpp:22:46: warning: AQK02: Use of BDE_BUILD_TARGET_NO_MT macro requires inclusion of <bsls_buildtarget.h>
+    defined(BDE_BUILD_TARGET_MT)  || defined(BDE_BUILD_TARGET_NO_MT)
+                                             ^
+12 warnings generated.
