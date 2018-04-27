@@ -973,10 +973,19 @@ void report::operator()(const Token&          token,
                         const MacroDefinition&,
                         SourceRange           range)
 {
+    llvm::StringRef tn = token.getIdentifierInfo()->getName();
+
     clear_guard();
 
     if (is_guard(token)) {
-        set_guard(token.getIdentifierInfo()->getName(), range.getBegin());
+        set_guard(tn, range.getBegin());
+    }
+
+    if (tn.startswith("BDE_BUILD_TARGET_") &&
+        !d.d_all_includes.count("bsls_buildtarget.h")) {
+        a.report(token.getLocation(), check_name, "AQK02",
+                 "Use of %0 macro requires inclusion of <bsls_buildtarget.h>")
+            << tn;
     }
 }
 
