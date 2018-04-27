@@ -19,6 +19,10 @@
 #ifndef BDE_BUILD_TARGET_NO_MT
 #endif
 
+#if defined(BDE_BUILD_TARGET_EXC) || defined(BDE_BUILD_TARGET_NO_EXC) || \
+    defined(BDE_BUILD_TARGET_MT)  || defined(BDE_BUILD_TARGET_NO_MT)
+#endif
+
 // ----------------------------------------------------------------------------
 // Copyright (C) 2018 Bloomberg Finance L.P.
 //
