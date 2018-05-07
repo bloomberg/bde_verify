@@ -245,14 +245,19 @@ bool report::WalkUpFromForStmt(ForStmt *stmt)
 bool report::WalkUpFromIfStmt(IfStmt *stmt)
 {
     if (a.is_component(stmt) && !stmt->getIfLoc().isMacroID()) {
+        // 'break' and 'continue' have locEnd equal to locStart
+        auto end = Lexer::getLocForEndOfToken(
+            stmt->getLocEnd(), 0, m, a.context()->getLangOpts());
         if (!llvm::dyn_cast<CompoundStmt>(stmt->getThen())) {
             add_indent(stmt->getIfLoc().getLocWithOffset(2), +4);
-            add_indent(
-                stmt->getElse() ? stmt->getElseLoc() : stmt->getLocEnd(), -4);
+            add_indent(stmt->getElse() ? stmt->getElseLoc() : end, -4);
         }
-        if (stmt->getElse() && !llvm::dyn_cast<CompoundStmt>(stmt->getElse())) {
-            add_indent(stmt->getElseLoc().getLocWithOffset(4), +4);
-            add_indent(stmt->getLocEnd(), -4);
+        if (stmt->getElse() &&
+            (!llvm::dyn_cast<CompoundStmt>(stmt->getElse()) &&
+             m.getPresumedLineNumber(stmt->getElse()->getLocStart()) !=
+             m.getPresumedLineNumber(stmt->getElseLoc()))) {
+            add_indent(stmt->getElse()->getLocStart(), +4);
+            add_indent(end, -4);
         }
     }
     return Base::WalkUpFromIfStmt(stmt);
