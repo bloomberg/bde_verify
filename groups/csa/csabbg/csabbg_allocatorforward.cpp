@@ -394,9 +394,10 @@ struct report : Report<data>
         // declaration was written, and false if it was not.
 
     bool write_ctor_with_allocator_definition(
-                                              const CXXRecordDecl      *record,
-                                              const CXXConstructorDecl *decl,
-                                              bool  init_allocator);
+                                  const CXXRecordDecl      *record,
+                                  const CXXConstructorDecl *decl,
+                                  bool                      init_allocator,
+                                  bool                      default_allocator);
         // Write out the definition for a constructor for the specified
         // 'record' that mirrors the specified 'decl' constructor but which
         // also takes a final allocator parameter.  Return true if the
@@ -664,18 +665,45 @@ static internal::DynTypedMatcher class_using_allocator_matcher()
                     hasType(referenceType(isAllocator()))
                 )))
             )).bind("second"))
-    )).bind("class")));
+    )).bind("r")));
 }
 
 void report::match_class_using_allocator(const BoundNodes& nodes)
 {
-    QualType type = nodes.getNodeAs<CXXRecordDecl>("class")
-                        ->getTypeForDecl()
-                        ->getCanonicalTypeInternal();
+    auto r = const_cast<CXXRecordDecl *>(nodes.getNodeAs<CXXRecordDecl>("r"));
+    if (r->isDependentContext()) {
+        // ???
+        // This is a template.  If it doesn't have user-declared copy, move, or
+        // defualt constructors, we can't force clang to make them for us.  We
+        // need to do something else here.
+    }
+    else {
+        a.sema().ForceDeclarationOfImplicitMembers(r);
+    }
+    QualType type = r->getTypeForDecl()->getCanonicalTypeInternal();
     auto &t = d.type_takes_allocator_[type.getTypePtr()];
     t = AllocatorLocation(t | (nodes.getNodeAs<Decl>("second") ? a_Second :
                                nodes.getNodeAs<Decl>("last")   ? a_Last   :
                                                                  a_None));
+    for (auto c : r->ctors()) {
+        if (c->isDefaulted() &&
+            !c->isDeleted() &&
+            !c->doesThisDeclarationHaveABody()) {
+            switch (a.sema().getSpecialMember(c)) {
+              case Sema::CXXDefaultConstructor:
+                a.sema().DefineImplicitDefaultConstructor(c->getLocStart(), c);
+                break;
+              case Sema::CXXCopyConstructor:
+                a.sema().DefineImplicitCopyConstructor(c->getLocStart(), c);
+                break;
+              case Sema::CXXMoveConstructor:
+                a.sema().DefineImplicitMoveConstructor(c->getLocStart(), c);
+                break;
+              default:
+                break;
+            }
+        }
+    }
 }
 
 static internal::DynTypedMatcher allocator_trait_matcher(int value)
@@ -1160,7 +1188,9 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
                             }
                         }
                     }
-                    else if (!base_with_allocator && !field_with_allocator) {
+                    else if (!base_with_allocator &&
+                             !field_with_allocator &&
+                             !d.allocator_methods_.count(record)) {
                         a.report(record, check_name, "AP02",
                                  "Class %0 needs d_allocator_p member")
                             << record;
@@ -1183,8 +1213,8 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
             }
         }
 
-        if ((decl == decl->getCanonicalDecl() ||
-             decl->isThisDeclarationADefinition()) &&
+        if (decl == decl->getCanonicalDecl() &&
+            !decl->isMoveConstructor() &&
             uses_allocator &&
             !takes_allocator(decl)) {
             // Warn if the class does not have a constructor that matches
@@ -1253,16 +1283,14 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
                 processed.insert(Range(m, decl->getSourceRange()));
                 if (decl->isUserProvided()) {
                     a.report(decl, check_name, "AC01",
-                        "This " + type + "constructor has no version "
-                        "that can be called with an allocator as the "
-                        "final argument")
+                        "This " + type + "constructor has no allocator-aware "
+                        "version")
                         << decl;
                 }
                 else {
                     a.report(decl, check_name, "AC02",
-                             "Implicit " + type + "constructor cannot be "
-                             "called with an allocator as the final "
-                             "argument")
+                             "Implicit " + type + "constructor is not "
+                             "allocator-aware")
                         << decl;
                 }
                 auto def = decl;
@@ -1276,7 +1304,10 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
                 }
                 if (def) {
                     write_ctor_with_allocator_definition(
-                        record, def, added_d_allocator.count(record));
+                        record,
+                        def,
+                        added_d_allocator.count(record),
+                        def == decl);
                 }
             }
         }
@@ -1365,6 +1396,9 @@ bool report::write_allocator_trait(const CXXRecordDecl *record, bool bslma)
 
     record = record->getDefinition();
 
+    if (a.config()->suppressed("AT02", record->getLocation()))
+        return false;
+
     std::string s;
     llvm::raw_string_ostream ot(s);
 
@@ -1403,12 +1437,15 @@ bool report::write_allocator_method_definition(const CXXRecordDecl    *record,
                                                const FieldDecl        *field)
 {
     if (!a.is_component(record) || !record->hasDefinition())
-      return false;
+        return false;
 
     if (!(kind & a_Last))
-      return false;  // TBD: deal with get_allocator();
+        return false;  // TBD: deal with get_allocator();
 
     record = record->getDefinition();
+
+    if (a.config()->suppressed("AL01", record->getLocation()))
+        return false;
 
     std::string s;
     llvm::raw_string_ostream ot(s);
@@ -1445,8 +1482,10 @@ bool report::write_allocator_method_definition(const CXXRecordDecl    *record,
        ;
 
     a.report(ins_loc, check_name, "AL01",
-             "Allocator method declaration for class %0%1",
-             false, DiagnosticIDs::Note) << record->getName() << ot.str();
+             "Allocator method definition for class %0%1",
+             false, DiagnosticIDs::Note)
+        << record->getName()
+        << ot.str();
     a.ReplaceText(ins_loc.getLocWithOffset(-end_spaces), end_spaces, ot.str());
     return true;
 }
@@ -1457,6 +1496,9 @@ bool report::write_d_allocator_p_declaration(const CXXRecordDecl *record)
       return false;
 
     record = record->getDefinition();
+
+    if (a.config()->suppressed("AP02", record->getLocation()))
+        return false;
 
     std::string s;
     llvm::raw_string_ostream ot(s);
@@ -1475,15 +1517,18 @@ bool report::write_d_allocator_p_declaration(const CXXRecordDecl *record)
 
     a.report(ins_loc, check_name, "AP02",
              "Allocator member declaration for class %0%1",
-             false, DiagnosticIDs::Note) << record->getName() << ot.str();
+             false, DiagnosticIDs::Note)
+        << record->getName()
+        << ot.str();
     a.ReplaceText(ins_loc.getLocWithOffset(-end_spaces), end_spaces, ot.str());
     return true;
 }
 
 bool report::write_ctor_with_allocator_definition(
-                                      const CXXRecordDecl      *record,
-                                      const CXXConstructorDecl *decl,
-                                      bool                      init_allocator)
+                                   const CXXRecordDecl      *record,
+                                   const CXXConstructorDecl *decl,
+                                   bool                      init_allocator,
+                                   bool                      default_allocator)
 {
     if (!a.is_component(record))
         return false;
@@ -1491,6 +1536,10 @@ bool report::write_ctor_with_allocator_definition(
     bool up = decl->isUserProvided();
 
     record = record->getDefinition();
+
+    if (a.config()->suppressed(up ? "AC03" : "AC04", record->getLocation()))
+        return false;
+
     llvm::StringRef range = a.get_source(record->getBraceRange());
 
     std::string s;
@@ -1541,8 +1590,7 @@ bool report::write_ctor_with_allocator_definition(
         ot << a.get_source(SourceRange(
                   decl->parameters().front()->getSourceRange().getBegin(),
                   decl->parameters().back()->getSourceRange().getEnd()))
-           << ","                                             << "\n" << spaces
-           << "        "
+           << ", "
            ;
     }
     else if (decl->isCopyConstructor()) {
@@ -1557,7 +1605,7 @@ bool report::write_ctor_with_allocator_definition(
         return false;
     }
     ot << "bslma::Allocator *basicAllocator";
-    if (!up) {
+    if (default_allocator) {
         ot << " = 0";
     }
     ot << ")"                                                 << "\n" << spaces
@@ -1615,7 +1663,8 @@ bool report::write_ctor_with_allocator_definition(
             ot << "basicAllocator)"                           << "\n" << spaces
                ;
             sep = ',';
-        } else if (decl->isCopyOrMoveConstructor()) {
+        }
+        else if (decl->isCopyOrMoveConstructor()) {
             if (name == "d_allocator_p") {
                 init_allocator = true;
             }
@@ -1644,7 +1693,9 @@ bool report::write_ctor_with_allocator_definition(
 
     a.report(ins_loc, check_name, up ? "AC03" : "AC04",
              "Definition for version with allocator\n%1%0",
-             false, DiagnosticIDs::Note) << ot.str() << spaces;
+             false, DiagnosticIDs::Note)
+        << ot.str()
+        << spaces;
     a.ReplaceText(ins_loc.getLocWithOffset(-end_spaces), end_spaces, ot.str());
     return true;
 }
@@ -1656,10 +1707,15 @@ bool report::write_ctor_with_allocator_declaration(
     if (!a.is_component(record) || !record->hasDefinition())
         return false;
 
-    if (!decl->isUserProvided() || decl->isThisDeclarationADefinition())
+    bool up = decl->isUserProvided();
+
+    if (!up || decl->isThisDeclarationADefinition())
         return false;
 
     record = record->getDefinition();
+
+    if (a.config()->suppressed(up ? "AC01" : "AC02", record->getLocation()))
+        return false;
 
     std::string s;
     llvm::raw_string_ostream ot(s);
@@ -1687,13 +1743,12 @@ bool report::write_ctor_with_allocator_declaration(
            << "(bslma::Allocator *basicAllocator);"           << "\n" << spaces
            ;
     }
-    else if (decl->isUserProvided()) {
+    else if (up) {
         ot << "    " << record->getName() << "("
            << a.get_source(SourceRange(
                   decl->parameters().front()->getSourceRange().getBegin(),
                   decl->parameters().back()->getSourceRange().getEnd()))
-           << ","                                             << "\n" << spaces
-           << "        bslma::Allocator *basicAllocator";
+           << ", bslma::Allocator *basicAllocator";
         if (decl->isDefaultConstructor()) {
             ot << " = 0";
         }
@@ -1716,9 +1771,10 @@ bool report::write_ctor_with_allocator_declaration(
         return false;
     }
 
-    a.report(ins_loc, check_name, decl->isUserProvided() ? "AC01" : "AC02",
+    a.report(ins_loc, check_name, up ? "AC01" : "AC02",
              "Declaration for version with allocator%0",
-             false, DiagnosticIDs::Note) << ot.str();
+             false, DiagnosticIDs::Note)
+        << ot.str();
     a.ReplaceText(ins_loc.getLocWithOffset(-end_spaces), end_spaces, ot.str());
     return true;
 }
@@ -1811,7 +1867,8 @@ void report::check_not_forwarded(const CXXCtorInitializer* init,
     } else {
         a.report(loc, check_name, "MA02",
                  "Allocator not passed to member %0")
-            << init->getAnyMember()->getNameAsString() << range;
+            << init->getAnyMember()->getNameAsString()
+            << range;
     }
 }
 
@@ -2073,7 +2130,7 @@ void report::check_alloc_return(const ReturnStmt *stmt)
     }
 }
 
-void subscribe(Analyser& analyser, Visitor&, PPObserver&)
+void subscribe(Analyser& analyser, Visitor& visitor, PPObserver&)
     // Create a callback within the specified 'analyser' which will be invoked
     // after a translation unit has been processed.
 {

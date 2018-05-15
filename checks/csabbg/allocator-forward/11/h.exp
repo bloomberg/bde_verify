@@ -1,0 +1,266 @@
+h.cpp:8:8: warning: AT02: Class 'X' uses allocators but does not have an allocator trait
+struct X {
+       ^
+h.cpp:10:1: note: AT02: Allocator trait for class X
+
+  public:
+    // TRAITS
+    BSLMF_NESTED_TRAIT_DECLARATION(X, bslma::UsesBslmaAllocator);
+
+};
+^
+h.cpp:8:8: warning: AP02: Class 'X' needs d_allocator_p member
+struct X {
+       ^
+h.cpp:10:1: note: AP02: Allocator member declaration for class X
+
+  private:
+    // PRIVATE DATA
+    bslma::Allocator *d_allocator_p;
+
+};
+^
+h.cpp:8:8: warning: AL01: Class 'X' needs allocator() method
+struct X {
+       ^
+h.cpp:10:1: note: AL01: Allocator method definition for class X
+
+  public:
+    // PUBLIC ACCESSORS
+    bslma::Allocator *allocator() const {
+        return d_allocator_p;
+    }
+
+};
+^
+h.cpp:8:8: warning: AC02: Implicit copy constructor is not allocator-aware
+struct X {
+       ^
+h.cpp:10:1: note: AC04: Definition for version with allocator
+
+
+  public:
+    // PUBLIC CREATORS
+    X(const X& original, bslma::Allocator *basicAllocator = 0)
+    : d_allocator_p(basicAllocator)
+    { }
+
+};
+^
+h.cpp:11:8: warning: AT02: Class 'Y' uses allocators but does not have an allocator trait
+struct Y : X {
+       ^
+h.cpp:16:1: note: AT02: Allocator trait for class Y
+
+  public:
+    // TRAITS
+    BSLMF_NESTED_TRAIT_DECLARATION(Y, bslma::UsesBslmaAllocator);
+
+};
+^
+h.cpp:12:23: warning: AP01: Class 'Y' has unnecessary d_allocator_p
+    bslma::Allocator *d_allocator_p;
+                      ^
+h.cpp:11:12: note: AP01: Use allocator of base class 'X'
+struct Y : X {
+           ^
+h.cpp:11:8: warning: AL01: Class 'Y' needs allocator() method
+struct Y : X {
+       ^
+h.cpp:16:1: note: AL01: Allocator method definition for class Y
+
+  public:
+    // PUBLIC ACCESSORS
+    bslma::Allocator *allocator() const {
+        return X::allocator();
+    }
+
+};
+^
+h.cpp:14:5: warning: AC01: This constructor has no allocator-aware version
+    Y(int);
+    ^
+h.cpp:16:1: note: AC01: Declaration for version with allocator
+
+  public:
+    // PUBLIC CREATORS
+    Y(int,
+        bslma::Allocator *basicAllocator);
+
+};
+^
+h.cpp:15:5: warning: AC01: This default constructor has no allocator-aware version
+    Y(double d = 1.5, int a = 7);
+    ^
+h.cpp:16:1: note: AC01: Declaration for version with allocator
+
+  public:
+    // PUBLIC CREATORS
+    Y(double d = 1.5, int a = 7,
+        bslma::Allocator *basicAllocator = 0);
+
+};
+^
+h.cpp:11:8: warning: AC02: Implicit copy constructor is not allocator-aware
+struct Y : X {
+       ^
+h.cpp:16:1: note: AC04: Definition for version with allocator
+
+
+  public:
+    // PUBLIC CREATORS
+    Y(const Y& original, bslma::Allocator *basicAllocator = 0)
+    : X(original, basicAllocator)
+    , d_allocator_p(basicAllocator)
+    { }
+
+};
+^
+h.cpp:17:8: warning: AT02: Class 'Z' uses allocators but does not have an allocator trait
+struct Z {
+       ^
+h.cpp:21:1: note: AT02: Allocator trait for class Z
+
+  public:
+    // TRAITS
+    BSLMF_NESTED_TRAIT_DECLARATION(Z, bslma::UsesBslmaAllocator);
+
+};
+^
+h.cpp:19:23: warning: AP01: Class 'Z' has unnecessary d_allocator_p
+    bslma::Allocator *d_allocator_p;
+                      ^
+h.cpp:18:23: note: AP01: Use allocator of field 'x'
+    X                 x;
+                      ^
+h.cpp:17:8: warning: AL01: Class 'Z' needs allocator() method
+struct Z {
+       ^
+h.cpp:21:1: note: AL01: Allocator method definition for class Z
+
+  public:
+    // PUBLIC ACCESSORS
+    bslma::Allocator *allocator() const {
+        return x.allocator();
+    }
+
+};
+^
+h.cpp:17:8: warning: AC02: Implicit copy constructor is not allocator-aware
+struct Z {
+       ^
+h.cpp:21:1: note: AC04: Definition for version with allocator
+
+
+  public:
+    // PUBLIC CREATORS
+    Z(const Z& original, bslma::Allocator *basicAllocator = 0)
+    : x(original.x, basicAllocator)
+    , d_allocator_p(basicAllocator)
+    { }
+
+};
+^
+h.cpp:22:8: warning: AT02: Class 'W' uses allocators but does not have an allocator trait
+struct W {
+       ^
+h.cpp:26:1: note: AT02: Allocator trait for class W
+
+  public:
+    // TRAITS
+    BSLMF_NESTED_TRAIT_DECLARATION(W, bslma::UsesBslmaAllocator);
+
+};
+^
+h.cpp:22:8: warning: AP02: Class 'W' needs d_allocator_p member
+struct W {
+       ^
+h.cpp:26:1: note: AP02: Allocator member declaration for class W
+
+  private:
+    // PRIVATE DATA
+    bslma::Allocator *d_allocator_p;
+
+};
+^
+h.cpp:22:8: warning: AL01: Class 'W' needs allocator() method
+struct W {
+       ^
+h.cpp:26:1: note: AL01: Allocator method definition for class W
+
+  public:
+    // PUBLIC ACCESSORS
+    bslma::Allocator *allocator() const {
+        return d_allocator_p;
+    }
+
+};
+^
+h.cpp:24:5: warning: AC01: This default constructor has no allocator-aware version
+    W();
+    ^
+h.cpp:26:1: note: AC01: Declaration for version with allocator
+
+  public:
+    // PUBLIC CREATORS
+    explicit W(bslma::Allocator *basicAllocator);
+
+};
+^
+h.cpp:27:1: note: AC03: Definition for version with allocator
+W::W(bslma::Allocator *basicAllocator)
+: d_allocator_p(basicAllocator)
+{ }
+
+W::W() { }
+^
+h.cpp:25:5: warning: AC01: This constructor has no allocator-aware version
+    W(const char *) { }
+    ^
+h.cpp:25:5: note: AC03: Definition for version with allocator
+    W(const char *,
+            bslma::Allocator *basicAllocator)
+    : d_allocator_p(basicAllocator)
+    { }
+    
+h.cpp:22:8: warning: AC02: Implicit copy constructor is not allocator-aware
+struct W {
+       ^
+h.cpp:26:1: note: AC04: Definition for version with allocator
+
+
+  public:
+    // PUBLIC CREATORS
+    W(const W& original, bslma::Allocator *basicAllocator = 0)
+    : d_allocator_p(basicAllocator)
+    { }
+
+};
+^
+h.cpp:36:8: warning: AL01: Class 'B' needs allocator() method
+struct B : A {
+       ^
+h.cpp:42:1: note: AL01: Allocator method definition for class B
+
+  public:
+    // PUBLIC ACCESSORS
+    bslma::Allocator *allocator() const {
+        return A::allocator();
+    }
+
+};
+^
+h.cpp:50:8: warning: AL01: Class 'D' needs allocator() method
+struct D : private A {
+       ^
+h.cpp:56:1: note: AL01: Allocator method definition for class D
+
+  public:
+    // PUBLIC ACCESSORS
+    bslma::Allocator *allocator() const {
+        return A::allocator();
+    }
+
+};
+^
+22 warnings generated.

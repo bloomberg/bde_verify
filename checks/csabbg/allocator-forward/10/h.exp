@@ -17,10 +17,10 @@ h.cpp:10:1: note: AT02: Allocator trait for class BaseWithAllocator
 
 };
 ^
-h.cpp:8:8: warning: AL01: Class 'BaseWithAllocator' uses allocators but does not have an allocator() method
+h.cpp:8:8: warning: AL01: Class 'BaseWithAllocator' needs allocator() method
 struct BaseWithAllocator {
        ^
-h.cpp:10:1: note: AL01: Allocator method declaration for class BaseWithAllocator
+h.cpp:10:1: note: AL01: Allocator method definition for class BaseWithAllocator
 
   public:
     // PUBLIC ACCESSORS
@@ -50,10 +50,10 @@ h.cpp:15:1: note: AT02: Allocator trait for class FieldWithAllocator
 
 };
 ^
-h.cpp:13:8: warning: AL01: Class 'FieldWithAllocator' uses allocators but does not have an allocator() method
+h.cpp:13:8: warning: AL01: Class 'FieldWithAllocator' needs allocator() method
 struct FieldWithAllocator {
        ^
-h.cpp:15:1: note: AL01: Allocator method declaration for class FieldWithAllocator
+h.cpp:15:1: note: AL01: Allocator method definition for class FieldWithAllocator
 
   public:
     // PUBLIC ACCESSORS
@@ -83,10 +83,10 @@ h.cpp:19:1: note: AT02: Allocator trait for class C1
 
 };
 ^
-h.cpp:16:8: warning: AL01: Class 'C1' uses allocators but does not have an allocator() method
+h.cpp:16:8: warning: AL01: Class 'C1' needs allocator() method
 struct C1 : BaseWithoutAllocator, BaseWithAllocator<1>, BaseWithAllocator<2> {
        ^
-h.cpp:19:1: note: AL01: Allocator method declaration for class C1
+h.cpp:19:1: note: AL01: Allocator method definition for class C1
 
   public:
     // PUBLIC ACCESSORS
@@ -111,10 +111,10 @@ h.cpp:26:1: note: AT02: Allocator trait for class C2
 
 };
 ^
-h.cpp:20:8: warning: AL01: Class 'C2' uses allocators but does not have an allocator() method
+h.cpp:20:8: warning: AL01: Class 'C2' needs allocator() method
 struct C2 {
        ^
-h.cpp:26:1: note: AL01: Allocator method declaration for class C2
+h.cpp:26:1: note: AL01: Allocator method definition for class C2
 
   public:
     // PUBLIC ACCESSORS
@@ -139,10 +139,10 @@ h.cpp:33:1: note: AT02: Allocator trait for class C3
 
 };
 ^
-h.cpp:27:8: warning: AL01: Class 'C3' uses allocators but does not have an allocator() method
+h.cpp:27:8: warning: AL01: Class 'C3' needs allocator() method
 struct C3 : BaseWithoutAllocator, BaseWithAllocator<1>, BaseWithAllocator<2> {
        ^
-h.cpp:33:1: note: AL01: Allocator method declaration for class C3
+h.cpp:33:1: note: AL01: Allocator method definition for class C3
 
   public:
     // PUBLIC ACCESSORS

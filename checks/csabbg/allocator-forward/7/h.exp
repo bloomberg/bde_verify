@@ -1,7 +1,7 @@
-h.cpp:10:8: warning: AL01: Class 'X' uses allocators but does not have an allocator() method
+h.cpp:10:8: warning: AL01: Class 'X' needs allocator() method
 struct X {
        ^
-h.cpp:14:1: note: AL01: Allocator method declaration for class X
+h.cpp:14:1: note: AL01: Allocator method definition for class X
 
   public:
     // PUBLIC ACCESSORS
