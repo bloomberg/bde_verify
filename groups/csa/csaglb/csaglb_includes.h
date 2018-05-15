@@ -1,4 +1,6 @@
 // csaglb_includes.h                                                  -*-C++-*-
+#ifndef INCLUDED_CSAGLB_INCLUDES
+#define INCLUDED_CSAGLB_INCLUDES
 
 #include <llvm/ADT/StringRef.h>
 #include <clang/Basic/SourceLocation.h>
@@ -57,8 +59,9 @@ struct IncludesData {
     typedef std::vector<const clang::Token *> GuardStack;
     GuardStack d_guardStack;
 };
-
 }
+
+#endif
 
 // ----------------------------------------------------------------------------
 // Copyright (C) 2017 Bloomberg Finance L.P.
