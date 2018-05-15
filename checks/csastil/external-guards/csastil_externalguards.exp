@@ -1,4 +1,13 @@
 In file included from csastil_externalguards.t.cpp:3:
+./csastil_externalguards.t.h:7:1: warning: SEG04: Include of 'bdes_ident.h' with external include guard 'INCLUDED_BDES_IDENT'
+#  include <bdes_ident.h>
+^
+./csastil_externalguards.t.h:11:1: warning: SEG04: Include of 'csascm_version.h' with external include guard 'INCLUDED_CSASCM_VERSION'
+#  include <csascm_version.h>
+^
+./csastil_externalguards.t.h:14:1: warning: SEG04: Include of 'csascm_version.h' with external include guard 'INCLUDED_CSASCMVERSION'
+#  include <csascm_version.h>
+^
 ./csastil_externalguards.t.h:13:2: warning: SEG02: Include guard 'INCLUDED_CSASCMVERSION' mismatch for included file 'csascm_version.h' - use 'INCLUDED_CSASCM_VERSION'
 #ifndef INCLUDED_CSASCMVERSION
  ^
@@ -26,4 +35,4 @@ In file included from csastil_externalguards.t.cpp:3:
 ./csastil_externalguards.t.h:42:1: warning: SEG03: Include of 'bdes_ident.h' without external include guard 'INCLUDED_BDES_IDENT'
 #  include <bdes_ident.h>
 ^
-9 warnings generated.
+12 warnings generated.
