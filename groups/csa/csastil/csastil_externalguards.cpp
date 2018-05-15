@@ -155,19 +155,29 @@ static void onInclude(Analyser* analyser,
                       std::string const& file)
 {
     ExternalGuards& context(analyser->attachment<ExternalGuards>());
-    if (analyser->is_component_header(where)
-        && (context.d_conditions.empty()
-            || context.d_conditions.top().first.empty()
-            || context.d_conditions.top().first
-                == "INCLUDED_" + llvm::StringRef(analyser->component()).upper()
-            )
-        )
-    {
-        analyser->report(where, check_name, "SEG03",
-                         "Include of '%0' without external include guard "
-                         "'%1'")
-            << file
-            << "INCLUDED_" + FileName(file).component().upper();
+
+    bool unguarded =
+        context.d_conditions.empty() ||
+        context.d_conditions.top().first.empty() ||
+        context.d_conditions.top().first ==
+            "INCLUDED_" + llvm::StringRef(analyser->component()).upper();
+
+    if (analyser->is_component_header(where)) {
+        if (unguarded) {
+            analyser->report(where, check_name, "SEG03",
+                             "Include of '%0' without external include guard "
+                             "'%1'")
+                << file
+                << "INCLUDED_" + FileName(file).component().upper();
+        }
+        else {
+            std::string guard = context.d_conditions.top().first;
+            analyser->report(where, check_name, "SEG04",
+                             "Include of '%0' with external include guard "
+                             "'%1'")
+                << file
+                << guard;
+        }
     }
 }
 

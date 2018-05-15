@@ -124,6 +124,13 @@ Config Entry                    Description
                                 *tag* or *files* (but not both) may be ``*``.
                                 The *tag* may be a group *name*, suppressing
                                 all members (including subgroups).
+``unsuppress`` *tag* *files*... Messages with the specified *tag* are
+                                unsuppressed for the specified *files*. Either
+                                *tag* or *files* (but not both) may be ``*``.
+                                The *tag* may be a group *name*, unsuppressing
+                                all members (including subgroups).  Note that
+                                only previously suppressed tag/file pairs can
+                                be unsuppressed.
 =============================== ===============================================
 
 If the configuration file attempts to name a non-existent check, the tool will 
