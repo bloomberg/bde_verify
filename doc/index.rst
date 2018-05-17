@@ -535,6 +535,8 @@ for additional checks.
      Missing ``break`` before ``case``.
    * ``ZF02``
      ``case 0`` does not just fall through to next case.
+   * ``SM01``
+     Missing cases in switch.
 
 .. only:: bde_verify or bb_cppverify
 
@@ -597,6 +599,8 @@ for additional checks.
      Include guard does not match include file.
    * ``SEG03``
      File included in header without include guard test.
+   * ``SEG04``
+     File included in header with include guard test.
 
 .. only:: bde_verify
 

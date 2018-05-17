@@ -47,4 +47,5 @@ csamisc_contiguousswitch.t.cpp:107:9: warning: CS02: Test code should be within 
 csamisc_contiguousswitch.t.cpp:109:5: warning: MB01: Missing `break;` before this case
     case 10: {
     ^
-17 warnings generated.
+csamisc_contiguousswitch.t.cpp:109:5: warning: SM01: Switch missing case values below 10
+18 warnings generated.
