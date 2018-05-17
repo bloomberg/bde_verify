@@ -1561,10 +1561,14 @@ bool report::write_ctor_with_allocator_definition(
     llvm::StringRef spaces =
         a.get_source_line(ins_loc).take_until([](char c) { return c != ' '; });
 
+    static llvm::StringRef accesses[] = {
+        "public", "protected", "private", "public"};
+    StringRef access = accesses[decl->getAccess()];
+
     if (!up) {
         ot << "\n"                                            << "\n" << spaces
-           << "  public:"                                     << "\n" << spaces
-           << "    // PUBLIC CREATORS"                        << "\n" << spaces
+           << "  " << access << ":"                           << "\n" << spaces
+           << "    // " << access.upper() << " CREATORS"      << "\n" << spaces
            ;
     }
 
@@ -1725,10 +1729,13 @@ bool report::write_ctor_with_allocator_declaration(
     int end_spaces = range.size() - range.drop_back(1).rtrim().size() - 1;
     llvm::StringRef spaces =
         a.get_source_line(ins_loc).take_until([](char c) { return c != ' '; });
+    static llvm::StringRef accesses[] = {
+        "public", "protected", "private", "public"};
+    StringRef access = accesses[decl->getAccess()];
 
     ot << "\n"                                                << "\n" << spaces
-       << "  public:"                                         << "\n" << spaces
-       << "    // PUBLIC CREATORS"                            << "\n" << spaces
+       << "  " << access << ":"                               << "\n" << spaces
+       << "    // " << access.upper() << " CREATORS"          << "\n" << spaces
        ;
     if (const auto *ft = decl->getDescribedFunctionTemplate()) {
         ot << "    "
