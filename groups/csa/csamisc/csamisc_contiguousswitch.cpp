@@ -7,6 +7,7 @@
 #include <csabase_analyser.h>
 #include <csabase_cast_ptr.h>
 #include <csabase_diagnostic_builder.h>
+#include <csabase_report.h>
 #include <csabase_registercheck.h>
 #include <csabase_visitor.h>
 #include <llvm/ADT/APSInt.h>
@@ -35,20 +36,13 @@ struct data
     // This class contains data needed for checking test-driver switch
     // statements.
 {
-    data();
-        // Create an object of this type.
 };
 
-data::data()
-{
-}
-
-struct report
+struct report : Report<data> {
     // This class contains methods and callbacks for checking test-driver
     // switch statements.
-{
-    report(Analyser& analyser);
-        // Create an object of this type using the specified 'analyser'.
+
+    INHERIT_REPORT_CTOR(report, Report, data);
 
     bool getValue(Expr const *expr, long& value);
         // Return 'true' if the specified 'expr' can be evaluated as an integer
@@ -65,21 +59,12 @@ struct report
         // If the last statement in the specified range 's' is a 'break'
         // statement (including within nested compund statements), return it,
         // otherwise return null.
-
-    Analyser& d_analyser;   // analyser object
-    data& d_data;           // persistant data
 };
-
-report::report(Analyser& analyser)
-: d_analyser(analyser)
-, d_data(analyser.attachment<data>())
-{
-}
 
 bool report::getValue(Expr const *expr, long& value)
 {
     llvm::APSInt result;
-    if (expr->EvaluateAsInt(result, *d_analyser.context())) {
+    if (expr->EvaluateAsInt(result, *a.context())) {
         value = result.getSExtValue();
         return true;
     }
@@ -88,7 +73,7 @@ bool report::getValue(Expr const *expr, long& value)
 
 void report::operator()(FunctionDecl const *decl)
 {
-    if (!decl->isMain() || !decl->hasBody() || !d_analyser.is_test_driver()) {
+    if (!decl->isMain() || !decl->hasBody() || !a.is_test_driver()) {
         return;                                                       // RETURN
     }
     if (cast_ptr<CompoundStmt> body = decl->getBody()) {
@@ -119,8 +104,8 @@ void report::check_switch(SwitchStmt const* stmt)
 
         if (sc) {
             if (!saw_break) {
-                d_analyser.report(sc, check_name, "MB01",
-                                  "Missing `break;` before this case");
+                a.report(sc, check_name, "MB01",
+                         "Missing `break;` before this case");
             }
             Stmt         const* sub = sc->stripLabelLikeStatements();
             CompoundStmt const* cs = llvm::dyn_cast<CompoundStmt>(sub);
@@ -132,9 +117,9 @@ void report::check_switch(SwitchStmt const* stmt)
             } else if (!ns) {
                 saw_break = 0 != bs;
                 if (!saw_break) {
-                    d_analyser.report(sub, check_name, "CS01",
-                                      "Test code should be within compound "
-                                      "(brace-enclosed) statement");
+                    a.report(sub, check_name, "CS01",
+                             "Test code should be within compound "
+                             "(brace-enclosed) statement");
                 }
                 multi = true;
             }
@@ -145,9 +130,9 @@ void report::check_switch(SwitchStmt const* stmt)
         }
         else if (!ns) {
             if (!multi) {
-                d_analyser.report(*b, check_name, "CS02",
-                                  "Test code should be within single compound "
-                                  "(brace-enclosed) statement");
+                a.report(*b, check_name, "CS02",
+                         "Test code should be within single compound "
+                         "(brace-enclosed) statement");
                 multi = true;
             }
             CompoundStmt const* cs = llvm::dyn_cast<CompoundStmt>(*b);
@@ -170,7 +155,7 @@ void report::check_switch(SwitchStmt const* stmt)
         }
     }
     if (cases.empty()) {
-        d_analyser.report(stmt, check_name, "ES01", "Empty switch statement");
+        a.report(stmt, check_name, "ES01", "Empty switch statement");
         return;
     }
     std::reverse(cases.begin(), cases.end());
@@ -178,22 +163,24 @@ void report::check_switch(SwitchStmt const* stmt)
     const_iterator e = cases.end();
 
     if (!ds) {
-        d_analyser.report(stmt, check_name, "ED01",
-                          "Switch doesn't end with `default:` label");
+        a.report(stmt, check_name, "ED01",
+                 "Switch doesn't end with `default:` label");
     } else if (!llvm::dyn_cast<DefaultStmt>(cases.back())) {
         if (llvm::dyn_cast<DefaultStmt>(cases.front())) {
-            d_analyser.report(ds, check_name, "SD01", 
-                              "Switch starts with `default:` label");
+            a.report(ds, check_name, "SD01", 
+                     "Switch starts with `default:` label");
             ++b;
         } else {
-            d_analyser.report(ds, check_name, "MD01",
-                            "`default:` label in the middle of labels");
+            a.report(ds, check_name, "MD01",
+                     "`default:` label in the middle of labels");
         }
     } else {
         --e;
     }
     
     long previous_label = 0;
+    long min_label = 0;
+    const CaseStmt *min_case = 0;
 
     for (const_iterator it = b; it != e; ++it) {
         if (CaseStmt const* cs = llvm::dyn_cast<CaseStmt>(*it)) {
@@ -201,30 +188,39 @@ void report::check_switch(SwitchStmt const* stmt)
             if (!getValue(cs->getLHS(), value)) {
                 continue;
             }
+            if (value > 0 && (min_label == 0 || value < min_label)) {
+                min_label = value;
+                min_case = cs;
+            }
             if (previous_label > 0 &&
                 value > 0 &&
                 previous_label - 1 != value) {
-                d_analyser.report(cs, check_name, "LO01",
-                                  "Case label out of order: "
-                                  "previous=%0 value=%1")
+                a.report(cs, check_name, "LO01",
+                         "Case label out of order: "
+                         "previous=%0 value=%1")
                     << previous_label
                     << value;
             }
             previous_label = value;
             if ((value == 0) != (it == b)) {
-                d_analyser.report(cs, check_name, "SZ01",
-                                  "Switch should start with `case 0:`");
+                a.report(cs, check_name, "SZ01",
+                         "Switch should start with `case 0:`");
             }
             if (value == 0) {
                 if (!llvm::dyn_cast<SwitchCase>(cs->getSubStmt())) {
-                    d_analyser.report(cs, check_name, "ZF02",
-                                      "`case 0:` should simply fall through "
-                                      "to next case");
+                    a.report(cs, check_name, "ZF02",
+                             "`case 0:` should simply fall through "
+                             "to next case");
                 } else {
                     continue;
                 }
             }
         }
+    }
+    if (min_label > 1) {
+        a.report(min_case, check_name, "SM01",
+                 "Switch missing case values below %0")
+            << min_label;
     }
 }
 
