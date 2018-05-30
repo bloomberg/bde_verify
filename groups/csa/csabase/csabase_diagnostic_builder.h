@@ -20,26 +20,10 @@ class diagnostic_builder
     template <typename T>
     diagnostic_builder& operator<<(T const& argument);
 
-    static bool failed();
-    static void failed(bool status);
-
   private:
     bool empty_;
     clang::DiagnosticBuilder builder_;
-    static bool failed_;
 };
-
-inline
-bool diagnostic_builder::failed()
-{
-    return failed_;
-}
-
-inline
-void diagnostic_builder::failed(bool status)
-{
-    failed_ = status;
-}
 
 inline
 diagnostic_builder::diagnostic_builder()

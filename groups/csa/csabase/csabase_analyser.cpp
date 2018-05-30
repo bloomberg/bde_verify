@@ -2,6 +2,7 @@
 
 #include <csabase_analyser.h>
 #include <csabase_filenames.h>
+#include <csabase_util.h>
 #include <clang/AST/Decl.h>
 #include <clang/AST/DeclBase.h>
 #include <clang/AST/DeclCXX.h>
@@ -409,13 +410,17 @@ csabase::Analyser::report(SourceLocation where,
                           DiagnosticIDs::Level level)
 {
     if (!config()->suppressed(tag, where)) {
+        if (DiagnosticIDs::Warning == level) {
+            const std::string &fs = config()->value("failstatus", where);
+            if (csabase::contains_word(fs, "*") ||
+                csabase::contains_word(fs, check) ||
+                csabase::contains_word(fs, tag)) {
+                level = DiagnosticIDs::Error;
+            }
+        }
         unsigned int id(
             compiler_.getDiagnostics().getDiagnosticIDs()->getCustomDiagID(
                 level, tool_name() + tag + ": " + message));
-        const std::string &fs = config()->value("failstatus", where);
-        if (fs.find(check) != fs.npos || fs.find(tag) != fs.npos) {
-            csabase::DiagnosticFilter::fail_on(id);
-        }
         return csabase::diagnostic_builder(
             compiler_.getDiagnostics().Report(where, id), always);
     }
