@@ -26,28 +26,12 @@ class DiagnosticFilter : public clang::TextDiagnosticPrinter
     void HandleDiagnostic(clang::DiagnosticsEngine::Level level,
                           clang::Diagnostic const&        info) override;
 
-    static void fail_on(unsigned id);
-    static bool is_fail(unsigned id);
-
   private:
     const Analyser                                    *d_analyser;
     std::string                                        d_diagnose;
     bool                                               d_prev_handle;
-    static std::set<unsigned>                          s_fail_ids;
     static std::map<std::string, std::set<unsigned> >  s_diff_lines;
 };
-}
-
-inline
-void csabase::DiagnosticFilter::fail_on(unsigned id)
-{
-    s_fail_ids.insert(id);
-}
-
-inline
-bool csabase::DiagnosticFilter::is_fail(unsigned id)
-{
-    return s_fail_ids.count(id);
 }
 
 #endif

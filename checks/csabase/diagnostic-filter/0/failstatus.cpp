@@ -1,8 +1,27 @@
-// csabase_diagnostic_builder.cpp                                     -*-C++-*-
-#include <csabase_diagnostic_builder.h>
+// failstatus.cpp                                                     -*-C++-*-
+
+// BDE_VERIFY pragma: set failstatus KS00
+struct X {
+    int d_a;
+};
+
+// BDE_VERIFY pragma: set failstatus class-sections
+struct Y {
+    int d_a;
+};
+
+// BDE_VERIFY pragma: set failstatus *
+struct Z {
+    int d_a;
+};
+
+// BDE_VERIFY pragma: set failstatus *9 class-section9 KS009
+struct W {
+    int d_a;
+};
 
 // ----------------------------------------------------------------------------
-// Copyright (C) 2014 Bloomberg Finance L.P.
+// Copyright (C) 2018 Bloomberg Finance L.P.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
