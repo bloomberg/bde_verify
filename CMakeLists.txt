@@ -110,6 +110,7 @@ set(G ${CMAKE_CURRENT_SOURCE_DIR}/groups/csa)
 
 include_directories(
     ${G}/csabase
+    ${G}/csaglb
     ${LLVM_INCLUDE_DIRS}
     /opt/bb/include
     /opt/swt/include
