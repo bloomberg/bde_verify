@@ -174,6 +174,8 @@ add_executable(bde_verify_bin
     ${G}/csafmt/csafmt_longlines.cpp
     ${G}/csafmt/csafmt_nonascii.cpp
     ${G}/csafmt/csafmt_whitespace.cpp
+    ${G}/csaglb/csaglb_comments.cpp
+    ${G}/csaglb/csaglb_includes.cpp
     ${G}/csamisc/csamisc_anonymousnamespaceinheader.cpp
     ${G}/csamisc/csamisc_arrayargument.cpp
     ${G}/csamisc/csamisc_arrayinitialization.cpp
@@ -361,7 +363,7 @@ install(FILES
     bb_cppverify.cfg
     DESTINATION etc/bde-verify)
 
-file(GLOB headers "${G}/csabase/csabase_*.h")
+file(GLOB headers "${G}/csabase/csabase_*.h" "${G}/csaglb/csaglb_*.h")
 
 install(FILES ${headers} DESTINATION include/bde-verify)
 install(FILES ${CLANG_RESOURCE_FILES}
