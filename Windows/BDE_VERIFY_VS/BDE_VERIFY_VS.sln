@@ -1,10 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2014
-VisualStudioVersion = 14.0.25430.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.26228.12
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{7A942500-D79B-4865-AA99-3F29C47D5FDA}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BDE_VERIFY_VS", "BDE_VERIFY_VS\BDE_VERIFY_VS.csproj", "{B96A4047-E51E-4562-BDED-B331BFAA4F6D}"
 EndProject
 Global
@@ -15,7 +13,6 @@ Global
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{B96A4047-E51E-4562-BDED-B331BFAA4F6D}.Debug|Any CPU.ActiveCfg = Release|Any CPU
 		{B96A4047-E51E-4562-BDED-B331BFAA4F6D}.Debug|Any CPU.Build.0 = Release|Any CPU
-		{B96A4047-E51E-4562-BDED-B331BFAA4F6D}.Debug|Any CPU.Deploy.0 = Release|Any CPU
 		{B96A4047-E51E-4562-BDED-B331BFAA4F6D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B96A4047-E51E-4562-BDED-B331BFAA4F6D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
