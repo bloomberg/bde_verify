@@ -1,22 +1,35 @@
-﻿using EnvDTE;
-using Microsoft.Win32;
-using Microsoft.VisualStudio.Editor;
-using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.TextManager.Interop;
+﻿//===-- BdeFormatPackages.cs - VSPackage for bde-verify ---------*- C# -*-===//
+//
+//===----------------------------------------------------------------------===//
+//
+// This class contains a VS extension package that runs bde-verify over a
+// VS text editor buffer.
+//
+//===----------------------------------------------------------------------===/
+
+using EnvDTE;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.VCProjectEngine;
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
+using System.Collections;
 using System.ComponentModel;
 using System.ComponentModel.Design;
-using System.Diagnostics;
-using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
-using System.Text.RegularExpressions;
+using System.Xml.Linq;
+using System.Linq;
+
+//using Microsoft.Win32;
+//using Microsoft.VisualStudio.Editor;
+//using Microsoft.VisualStudio.TextManager.Interop;
+//using Microsoft.VisualStudio.VCProjectEngine;
+//using System.Collections.Generic;
+//using System.Collections.ObjectModel;
+//using System.Diagnostics;
+//using System.Globalization;
+//using System.Text.RegularExpressions;
 
 namespace BloombergLP.BDE_VERIFY_VS {
     /// <summary>
@@ -480,3 +493,19 @@ namespace BloombergLP.BDE_VERIFY_VS {
         }
     }
 }
+
+// ----------------------------------------------------------------------------
+// Copyright (C) 2018 Bloomberg Finance L.P.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+// ----------------------------- END-OF-FILE ----------------------------------
