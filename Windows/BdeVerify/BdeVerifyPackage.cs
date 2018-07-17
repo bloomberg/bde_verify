@@ -31,7 +31,7 @@ using System.Linq;
 //using System.Globalization;
 //using System.Text.RegularExpressions;
 
-namespace BloombergLP.BDE_VERIFY_VS {
+namespace BloombergLP.BdeVerify {
     /// <summary>
     /// An enumeration specifying for which files included in the compilation
     /// unit diagnostics should be emitted.
@@ -116,9 +116,10 @@ namespace BloombergLP.BDE_VERIFY_VS {
     [InstalledProductRegistration("#110", "#112", "1.0", IconResourceID = 400)]
     // This attribute is needed to let the shell know that this package exposes some menus.
     [ProvideMenuResource("Menus.ctmenu", 1)]
-    [Guid(GuidList.guidBDE_VERIFY_VSPkgString)]
-    [ProvideOptionPage(typeof(OptionPageGrid), "BDE Verify", "General", 0, 0, true)]
-    public sealed class BDE_VERIFY_VSPackage : Package {
+    [ProvideAutoLoad(UIContextGuids80.SolutionExists)] // Load package on solution load
+    [Guid(GuidList.guidBdeVerifyPkgString)]
+    [ProvideOptionPage(typeof(OptionPageGrid), "BDE", "BdeVerify", 0, 0, true)]
+    public sealed class BdeVerifyPackage : Package {
         #region Package Variables
         /// <summary>
         /// Set of error-list providers mapped by top-level file name as passed to bde_verify.
@@ -152,7 +153,7 @@ namespace BloombergLP.BDE_VERIFY_VS {
         /// not sited yet inside Visual Studio environment. The place to do all the other 
         /// initialization is the Initialize method.
         /// </summary>
-        public BDE_VERIFY_VSPackage() {
+        public BdeVerifyPackage() {
             elps = new Dictionary<string, ErrorListProvider>();
             rx = new Regex("^(?<file>.*):(?<line>[0-9]+):(?<column>[0-9]+): ((?<error>error)|(?<warning>warning)|(?<note>note)): (?<message>.*)$");
             re = new Regex("^[0-9] .* generated[.]$");
@@ -175,12 +176,17 @@ namespace BloombergLP.BDE_VERIFY_VS {
             var mcs = GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
             if (null != mcs) {
                 // Create the command for the menu item.
-                var menuCommandID = new CommandID(GuidList.guidBDE_VERIFY_VSCmdSet, (int)PkgCmdIDList.cmdidBVCMD);
+                var menuCommandID = new CommandID(GuidList.guidBdeVerifyCmdSet, (int)PkgCmdIDList.cmdidBVCMD);
                 var menuItem = new MenuCommand(MenuItemCallback, menuCommandID);
                 mcs.AddCommand(menuItem);
             }
         }
         #endregion
+
+        OptionPageGrid GetUserOptions()
+        {
+            return (OptionPageGrid)GetDialogPage(typeof(OptionPageGrid));
+        }
 
         /// <summary>
         /// This function is the callback used to execute a command when the a menu item is clicked.
@@ -189,6 +195,7 @@ namespace BloombergLP.BDE_VERIFY_VS {
         /// </summary>
         private void MenuItemCallback(object sender, EventArgs e) {
             string message = null;
+            OptionPageGrid options = GetUserOptions();
             // If command is invoked on a non-C++ buffer, or there's no project, and so forth, some
             // of the data structure traversals below will encounter null dereferences.  Rather than
             // testing for null everywhere, we just handle the exception and bail.
@@ -212,11 +219,11 @@ namespace BloombergLP.BDE_VERIFY_VS {
                 var process = new System.Diagnostics.Process();
                 var si = process.StartInfo;
                 si.UseShellExecute = false;
-                si.FileName = FindExecutable(GetExe(), "bde_verify_bin.exe");
-                if (GetExe() == "") {
-                    (GetDialogPage(typeof(OptionPageGrid)) as OptionPageGrid).Exe = si.FileName;
+                si.FileName = FindExecutable(options.Exe, "bde_verify_bin.exe");
+                if (options.Exe == "") {
+                    options.Exe = si.FileName;
                 }
-                string cfg = FindConfigFile(GetConfig(), si.FileName, "bde_verify.cfg");
+                string cfg = FindConfigFile(options.Config, si.FileName, "bde_verify.cfg");
                 si.CreateNoWindow = true;
                 si.RedirectStandardInput = false;
                 si.RedirectStandardOutput = false;
@@ -225,17 +232,17 @@ namespace BloombergLP.BDE_VERIFY_VS {
                 si.Arguments += xclang("-plugin") + xclang("bde_verify");
                 if (cfg != null) {
                     si.Arguments += plugin("config=" + Quote(cfg));
-                    if (GetConfig() == "") {
-                        (GetDialogPage(typeof(OptionPageGrid)) as OptionPageGrid).Config = cfg;
+                    if (options.Config == "") {
+                        options.Config = cfg;
                     }
                 }
-                if (GetOff()) {
+                if (options.Off) {
                     si.Arguments += plugin("config-line=" + Quote("all off"));
                 }
-                foreach (string s in GetExtra()) {
+                foreach (string s in options.Extra) {
                     si.Arguments += plugin("config-line=" + Quote(s));
                 }
-                si.Arguments += plugin("diagnose=" + GetDiagnose());
+                si.Arguments += plugin("diagnose=" + options.diagnose);
                 si.Arguments += " -fcxx-exceptions";
                 si.Arguments += " -fexceptions";
                 si.Arguments += " -fdiagnostics-show-note-include-stack";
@@ -330,7 +337,7 @@ namespace BloombergLP.BDE_VERIFY_VS {
                         }
                     };
                     process.BeginErrorReadLine();
-                    if (GetVerbose()) {
+                    if (options.verbose) {
                         message = (Quote(si.FileName) + " " + si.Arguments).Replace(" -", "\n-");
                     }
                 } catch (Exception x) {
@@ -348,7 +355,7 @@ namespace BloombergLP.BDE_VERIFY_VS {
                 Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(uiShell.ShowMessageBox(
                            0,
                            ref clsid,
-                           "BDE_VERIFY_VS",
+                           "BdeVerify",
                            string.Format(CultureInfo.CurrentCulture, "{0}\n{1}", this.ToString(), message),
                            string.Empty,
                            0,
@@ -407,22 +414,25 @@ namespace BloombergLP.BDE_VERIFY_VS {
             try {
                 result = Path.GetFullPath(Environment.ExpandEnvironmentVariables(exe));
             } catch { }
+            if (String.IsNullOrEmpty(result) || !File.Exists(result)) {
+                result = Path.GetDirectoryName(typeof(BdeVerifyPackage).Assembly.Location) + "\\bde_verify_bin.exe";
+            }
             string apkey = Path.Combine(new string[] {
                     "SOFTWARE", "Microsoft", "Windows", "CurrentVersion", "App Paths", name
             });
-            if (result == null || !File.Exists(result)) {
+            if (String.IsNullOrEmpty(result) || !File.Exists(result)) {
                 var reg = Registry.GetValue(Path.Combine("HKEY_CURRENT_USER", apkey), null, null);
                 if (reg != null) {
                     result = reg.ToString();
                 }
             }
-            if (result == null || !File.Exists(result)) {
+            if (String.IsNullOrEmpty(result) || !File.Exists(result)) {
                 var reg = Registry.GetValue(Path.Combine("HKEY_LOCAL_MACHINE", apkey), null, null);
                 if (reg != null) {
                     result = reg.ToString();
                 }
             }
-            if (result == null || !File.Exists(result)) {
+            if (String.IsNullOrEmpty(result) || !File.Exists(result)) {
                 foreach (var dir in Environment.GetEnvironmentVariable("PATH").Split(';')) {
                     string file = Path.Combine(dir, name);
                     if (File.Exists(file)) {
@@ -431,7 +441,7 @@ namespace BloombergLP.BDE_VERIFY_VS {
                     }
                 }
             }
-            if (result == null || !File.Exists(result)) {
+            if (String.IsNullOrEmpty(result) || !File.Exists(result)) {
                 result = Path.Combine(new string[] {
                         Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
                         "BDE Verify", "libexec", "bde-verify", name
@@ -457,39 +467,15 @@ namespace BloombergLP.BDE_VERIFY_VS {
             try {
                 result = Path.GetFullPath(Environment.ExpandEnvironmentVariables(cfg));
             } catch { }
-            if (result == null || !File.Exists(result)) {
+            if (String.IsNullOrEmpty(result) || !File.Exists(result)) {
                 result = Path.Combine(
                     Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(exe))),
                     "etc", "bde-verify", name);
             }
-            if (result == null || !File.Exists(result)) {
+            if (String.IsNullOrEmpty(result) || !File.Exists(result)) {
                 return null;
             }
             return result;
-        }
-
-        private string GetConfig() {
-            return (GetDialogPage(typeof(OptionPageGrid)) as OptionPageGrid).Config;
-        }
-
-        private string GetExe() {
-            return (GetDialogPage(typeof(OptionPageGrid)) as OptionPageGrid).Exe;
-        }
-
-        private bool GetOff() {
-            return (GetDialogPage(typeof(OptionPageGrid)) as OptionPageGrid).Off;
-        }
-
-        private Collection<string> GetExtra() {
-            return (GetDialogPage(typeof(OptionPageGrid)) as OptionPageGrid).Extra;
-        }
-
-        private DiagnoseWhat GetDiagnose() {
-            return (GetDialogPage(typeof(OptionPageGrid)) as OptionPageGrid).Diagnose;
-        }
-
-        private bool GetVerbose() {
-            return (GetDialogPage(typeof(OptionPageGrid)) as OptionPageGrid).Verbose;
         }
     }
 }

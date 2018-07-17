@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.TextManager.Interop;
 using System;
 using System.IO;
 
-namespace BloombergLP.BDE_VERIFY_VS
+namespace BloombergLP.BdeVerify
 {
     internal sealed class Vsix
     {

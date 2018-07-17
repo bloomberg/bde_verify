@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26228.12
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BDE_VERIFY_VS", "BDE_VERIFY_VS\BDE_VERIFY_VS.csproj", "{B96A4047-E51E-4562-BDED-B331BFAA4F6D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BdeVerify", "BdeVerify\BdeVerify.csproj", "{B96A4047-E51E-4562-BDED-B331BFAA4F6D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

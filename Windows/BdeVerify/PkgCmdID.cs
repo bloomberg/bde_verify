@@ -2,7 +2,7 @@
 // MUST match PkgCmdID.h
 using System;
 
-namespace BloombergLP.BDE_VERIFY_VS
+namespace BloombergLP.BdeVerify
 {
     static class PkgCmdIDList
     {

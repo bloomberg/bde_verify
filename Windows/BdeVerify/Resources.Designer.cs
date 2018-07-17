@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace BloombergLP.BDE_VERIFY_VS {
+namespace BloombergLP.BdeVerify {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace BloombergLP.BDE_VERIFY_VS {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("BloombergLP.BDE_VERIFY_VS.Resources", typeof(Resources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("BloombergLP.BdeVerify.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;

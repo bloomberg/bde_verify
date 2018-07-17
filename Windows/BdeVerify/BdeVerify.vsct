@@ -25,7 +25,7 @@
 
   <!--The Commands section is where we the commands, menus and menu groups are defined.
       This section uses a Guid to identify the package that provides the command defined inside it. -->
-  <Commands package="guidBDE_VERIFY_VSPkg">
+  <Commands package="guidBdeVerifyPkg">
     <!-- Inside this section we have different sub-sections: one for the menus, another  
     for the menu groups, one for the buttons (the actual commands), one for the combos 
     and the last one for the bitmaps used. Each element is identified by a command id that  
@@ -41,7 +41,7 @@
          must be a menu. -->
     <Groups>
 
-      <Group guid="guidBDE_VERIFY_VSCmdSet" id="MyMenuGroup" priority="0x0600">
+      <Group guid="guidBdeVerifyCmdSet" id="MyMenuGroup" priority="0x0600">
         <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_TOOLS"/>
       </Group>
       
@@ -61,11 +61,11 @@
               <CommandFlag>DynamicVisibility</CommandFlag>
           If you do not want an image next to your command, remove the Icon node /> -->
 
-      <Button guid="guidBDE_VERIFY_VSCmdSet" id="cmdidBDE_VERIFY_VSCMD" priority="0x0100" type="Button">
-        <Parent guid="guidBDE_VERIFY_VSCmdSet" id="MyMenuGroup" />
+      <Button guid="guidBdeVerifyCmdSet" id="cmdidBdeVerifyDocument" priority="0x0100" type="Button">
+        <Parent guid="guidBdeVerifyCmdSet" id="MyMenuGroup" />
         <Icon guid="guidImages" id="bmpPic1" />
         <Strings>
-          <ButtonText>BDE Verify</ButtonText>
+          <ButtonText>BDE Verify Document</ButtonText>
         </Strings>
       </Button>
 
@@ -86,23 +86,26 @@
   </Commands>
 
 
+  <KeyBindings>
+    <KeyBinding guid="guidBdeVerifyCmdSet" id="cmdidBdeVerifyDocument" editor="guidTextEditor" key1="R" mod1="Control" key2="V" mod2="Control"/>
+  </KeyBindings>
 
 
 
   <Symbols>
     <!-- This is the package guid. -->
-    <GuidSymbol name="guidBDE_VERIFY_VSPkg" value="{69a97314-26d2-4daa-9cd8-39ca54016999}" />
+    <GuidSymbol name="guidBdeVerifyPkg" value="{69a97314-26d2-4daa-9cd8-39ca54016999}" />
     
     <!-- This is the guid used to group the menu commands together -->
-    <GuidSymbol name="guidBDE_VERIFY_VSCmdSet" value="{5a7e0cdd-d1ea-40ae-95ef-b33ced83f4e5}">
+    <GuidSymbol name="guidBdeVerifyCmdSet" value="{5a7e0cdd-d1ea-40ae-95ef-b33ced83f4e5}">
 
       <IDSymbol name="MyMenuGroup" value="0x1020" />
-      <IDSymbol name="cmdidBDE_VERIFY_VSCMD" value="0x0100" />
-      <IDSymbol name="cmdidBDE_VERIFY_VSWIN" value="0x0101" />
+      <IDSymbol name="cmdidBdeVerifyDocument" value="0x0100" />
     </GuidSymbol>
-    
-    
-    
+
+    <GuidSymbol name="guidTextEditor" value="{8B382828-6202-11d1-8870-0000F87579D2}" />
+ 
+ 
     <GuidSymbol name="guidImages" value="{4b7e802c-f457-4cb3-9506-628e5b7732b8}" >
       <IDSymbol name="bmpPic1" value="1" />
       <IDSymbol name="bmpPic2" value="2" />
