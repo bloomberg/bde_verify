@@ -107,7 +107,7 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 endif()
 
 option(BUILD_BDE_VERIFY_VS_PLUGIN "Build bde_verify VS plugin" OFF)
-if (BUILD_BDE_FORMAT_VS_PLUGIN)
+if (BUILD_BDE_VERIFY_VS_PLUGIN)
   add_custom_target(bde_verify_exe_for_vsix
       ${CMAKE_COMMAND} -E copy_if_different
       "bde_verify_bin.exe"
