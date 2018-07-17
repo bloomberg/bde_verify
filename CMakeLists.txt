@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.1)
 
 project(bde_verify)
 
+add_clang_subdirectory(bde-verify-vs)
+
 find_package(LLVM REQUIRED)
 set(CLANG_RESOURCE_DIR
     "${LLVM_INSTALL_PREFIX}/lib/clang/${LLVM_PACKAGE_VERSION}"
