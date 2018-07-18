@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.1)
 
 project(bde_verify)
 
-add_clang_subdirectory(bde-verify-vs)
+add_subdirectory(bde-verify-vs)
 
 find_package(LLVM REQUIRED)
 set(CLANG_RESOURCE_DIR
@@ -26,7 +26,7 @@ if(MSVC)
     set(CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL ON)
     set(CPACK_NSIS_MODIFY_PATH ON)
     set(CPACK_NSIS_MUI_ICON
-        "${CMAKE_CURRENT_SOURCE_DIR}/Windows/BDE_Verify.ico")
+        "${CMAKE_CURRENT_SOURCE_DIR}/bde-verify-vs/BDE_Verify.ico")
     set(CPACK_NSIS_DISPLAY_NAME "BDE Verify")
     set(CPACK_NSIS_PACKAGE_NAME "BDE Verify")
     set(APREGKEY
@@ -143,7 +143,7 @@ add_library(csabase
 target_compile_features(csabase PUBLIC cxx_auto_type)
 
 if(MSVC)
-    set(RC ${CMAKE_CURRENT_SOURCE_DIR}/Windows/bde_verify_bin.rc)
+    set(RC ${CMAKE_CURRENT_SOURCE_DIR}/bde-verify-vs/bde_verify_bin.rc)
 endif()
 
 add_executable(bde_verify_bin

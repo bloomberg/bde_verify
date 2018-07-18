@@ -1,21 +1,21 @@
-option(BUILD_BDEVERIFY_VS_PLUGIN "Build bde-verify VS plugin" OFF)
-if (BUILD_BDEVERIFY_VS_PLUGIN)
+option(BUILD_BDE_VERIFY_VS_PLUGIN "Build bde-verify VS plugin" OFF)
+if (BUILD_BDE_VERIFY_VS_PLUGIN)
   add_custom_target(bde_verify_exe_for_vsix
       ${CMAKE_COMMAND} -E copy_if_different
-      "${LLVM_TOOLS_BINARY_DIR}/bde-verify.exe"
-      "${CMAKE_CURRENT_SOURCE_DIR}/BdeVerify/bde-verify.exe"
+      "${CMAKE_BINARY_DIR}/${CMAKE_CFG_INTDIR}/bde_verify_bin.exe"
+      "${CMAKE_CURRENT_SOURCE_DIR}/BdeVerify/bde_verify_bin.exe"
       DEPENDS bde-verify)
 
   add_custom_target(bde_verify_license
       ${CMAKE_COMMAND} -E copy_if_different
-      "${CLANG_SOURCE_DIR}/LICENSE.TXT"
+      "${CMAKE_CURRENT_SOURCE_DIR}/../LICENSE"
       "${CMAKE_CURRENT_SOURCE_DIR}/BdeVerify/license.txt")
 
   # Build number added to Clang version to ensure that new VSIX can be upgraded
-  string(TIMESTAMP BDEVERIFY_VSIX_BUILD %y%m%d%H%M UTC)
+  string(TIMESTAMP BDE_VERIFY_VSIX_BUILD %y%m%d%H%M UTC)
 
-  if (NOT BDEVERIFY_VS_VERSION)
-    set(BDEVERIFY_VS_VERSION "${LLVM_VERSION_MAJOR}.${LLVM_VERSION_MINOR}.${LLVM_VERSION_PATCH}.${BDEVERIFY_VSIX_BUILD}")
+  if (NOT BDE_VERIFY_VS_VERSION)
+    set(BDE_VERIFY_VS_VERSION "${LLVM_VERSION_MAJOR}.${LLVM_VERSION_MINOR}.${LLVM_VERSION_PATCH}.${BDE_VERIFY_VSIX_BUILD}")
   endif()
 
   configure_file("source.extension.vsixmanifest.in"
@@ -34,7 +34,7 @@ if (BUILD_BDEVERIFY_VS_PLUGIN)
       DEPENDS bde_verify_exe_for_vsix "${CMAKE_CURRENT_SOURCE_DIR}/BdeVerify/source.extension.vsixmanifest"
       COMMAND ${CMAKE_COMMAND} -E copy_if_different
       "${CMAKE_CURRENT_SOURCE_DIR}/BdeVerify/bin/Release/BdeVerify.vsix"
-      "${LLVM_TOOLS_BINARY_DIR}/BdeVerify.vsix"
+      "${CMAKE_CURRENT_BINARY_DIR}/BdeVerify.vsix"
       DEPENDS bde_verify_exe_for_vsix bde_verify_license)
 
   add_custom_target(bde_verify_vsix ALL

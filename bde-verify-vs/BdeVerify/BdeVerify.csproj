@@ -207,7 +207,7 @@
     <None Include="Resources\Images.png" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="bde_verify.exe">
+    <Content Include="bde_verify_bin.exe">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="license.txt">

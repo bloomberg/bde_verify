@@ -77,8 +77,8 @@ the same arguments as the Unix bde_verify driver script.  See
 documentation.
 
 Then build the Visual Studio plugin:  From Visual Studio, open the solution
-$BVSRC/Windows/BdeVerify.sln and build it, producing
-$BVSRC/Windows/BdeVerify/bin/Release/BdeVerify.vsix.
+$BVSRC/bde-verify-vs/BdeVerify.sln and build it, producing
+$BVSRC/bde-verify-vs/BdeVerify/bin/Release/BdeVerify.vsix.
 Run that file to install the BDE Verify extension into Visual Studio.
 
 Once installed, the TOOLS menu will have a BDE Verify entry and there will be a

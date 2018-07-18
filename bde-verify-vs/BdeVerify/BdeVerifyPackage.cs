@@ -21,15 +21,14 @@ using System.Runtime.InteropServices;
 using System.Xml.Linq;
 using System.Linq;
 
-//using Microsoft.Win32;
-//using Microsoft.VisualStudio.Editor;
-//using Microsoft.VisualStudio.TextManager.Interop;
-//using Microsoft.VisualStudio.VCProjectEngine;
-//using System.Collections.Generic;
-//using System.Collections.ObjectModel;
-//using System.Diagnostics;
-//using System.Globalization;
-//using System.Text.RegularExpressions;
+using Microsoft.Win32;
+using Microsoft.VisualStudio.Editor;
+using Microsoft.VisualStudio.TextManager.Interop;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.Globalization;
+using System.Text.RegularExpressions;
 
 namespace BloombergLP.BdeVerify {
     /// <summary>
@@ -212,10 +211,10 @@ namespace BloombergLP.BdeVerify {
                 message = "File must be part of a project";
                 var document = (host as IWpfTextViewHost).TextView.TextBuffer.Properties.GetProperty(typeof(ITextDocument)) as ITextDocument;
                 var project = dte.Solution.FindProjectItem(document.FilePath).ContainingProject;
-                var vcproject = project.Object as VCProject;
+                dynamic vcproject = project.Object;
                 var configuration = vcproject.Configurations.Item(dte.Solution.SolutionBuild.ActiveConfiguration.Name);
                 message = null;
-                var vctool = configuration.Tools.Item("VCCLCompilerTool") as VCCLCompilerTool;
+                dynamic vctool = configuration.Tools.Item("VCCLCompilerTool");
                 var process = new System.Diagnostics.Process();
                 var si = process.StartInfo;
                 si.UseShellExecute = false;
@@ -242,7 +241,7 @@ namespace BloombergLP.BdeVerify {
                 foreach (string s in options.Extra) {
                     si.Arguments += plugin("config-line=" + Quote(s));
                 }
-                si.Arguments += plugin("diagnose=" + options.diagnose);
+                si.Arguments += plugin("diagnose=" + options.Diagnose);
                 si.Arguments += " -fcxx-exceptions";
                 si.Arguments += " -fexceptions";
                 si.Arguments += " -fdiagnostics-show-note-include-stack";
@@ -337,7 +336,7 @@ namespace BloombergLP.BdeVerify {
                         }
                     };
                     process.BeginErrorReadLine();
-                    if (options.verbose) {
+                    if (options.Verbose) {
                         message = (Quote(si.FileName) + " " + si.Arguments).Replace(" -", "\n-");
                     }
                 } catch (Exception x) {
