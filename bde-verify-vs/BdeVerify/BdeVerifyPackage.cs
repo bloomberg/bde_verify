@@ -467,6 +467,9 @@ namespace BloombergLP.BdeVerify {
                 result = Path.GetFullPath(Environment.ExpandEnvironmentVariables(cfg));
             } catch { }
             if (String.IsNullOrEmpty(result) || !File.Exists(result)) {
+                result = Path.Combine(Path.GetDirectoryName(exe), name);
+            }
+            if (String.IsNullOrEmpty(result) || !File.Exists(result)) {
                 result = Path.Combine(
                     Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(exe))),
                     "etc", "bde-verify", name);
