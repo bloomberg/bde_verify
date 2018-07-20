@@ -32,8 +32,8 @@ if(MSVC)
     set(CPACK_NSIS_MODIFY_PATH "ON")
     set(CPACK_NSIS_MUI_ICON
         "${CMAKE_CURRENT_SOURCE_DIR}/bde-verify-vs/BDE_Verify.ico")
-    set(CPACK_NSIS_DISPLAY_NAME "BDE Verify")
-    set(CPACK_NSIS_PACKAGE_NAME "BDE Verify")
+    set(CPACK_NSIS_DISPLAY_NAME "BdeVerify")
+    set(CPACK_NSIS_PACKAGE_NAME "BdeVerify")
     set(APREGKEY
         "Software\\\\Microsoft\\\\Windows\\\\CurrentVersion\\\\App Paths\\\\")
     set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "
@@ -377,7 +377,7 @@ install(FILES ${headers} DESTINATION include/bde-verify)
 install(FILES ${CLANG_RESOURCE_FILES}
         DESTINATION include/bde-verify/clang/include)
 
-set(CPACK_PACKAGE_INSTALL_DIRECTORY "BDE Verify")
+set(CPACK_PACKAGE_INSTALL_DIRECTORY "BdeVerify")
 set(CPACK_PACKAGE_VENDOR "Bloomberg Finance L.P.")
 set(CPACK_PACKAGE_VERSION_MAJOR ${BDE_VERIFY_VERSION_MAJOR})
 set(CPACK_PACKAGE_VERSION_MINOR ${BDE_VERIFY_VERSION_MINOR})
