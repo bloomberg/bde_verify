@@ -16,11 +16,11 @@ if (BUILD_BDE_VERIFY_VS_PLUGIN)
       "${CMAKE_CURRENT_SOURCE_DIR}/../bde_verify.cfg"
       "${CMAKE_CURRENT_SOURCE_DIR}/BdeVerify/bde_verify.cfg")
 
-  # Build number added to Clang version to ensure that new VSIX can be upgraded
+  # Build number added to version to ensure that new VSIX can be upgraded
   string(TIMESTAMP BDE_VERIFY_VSIX_BUILD %y%m%d%H%M UTC)
 
   if (NOT BDE_VERIFY_VS_VERSION)
-    set(BDE_VERIFY_VS_VERSION "${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}.${BDE_VERIFY_VSIX_BUILD}")
+    set(BDE_VERIFY_VS_VERSION "${BDE_VERIFY_VERSION}.${BDE_VERIFY_VSIX_BUILD}")
   endif()
 
   configure_file("source.extension.vsixmanifest.in"
