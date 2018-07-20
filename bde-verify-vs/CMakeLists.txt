@@ -11,6 +11,11 @@ if (BUILD_BDE_VERIFY_VS_PLUGIN)
       "${CMAKE_CURRENT_SOURCE_DIR}/../LICENSE"
       "${CMAKE_CURRENT_SOURCE_DIR}/BdeVerify/license.txt")
 
+  add_custom_target(bde_verify_config
+      ${CMAKE_COMMAND} -E copy_if_different
+      "${CMAKE_CURRENT_SOURCE_DIR}/../bde_verify.cfg"
+      "${CMAKE_CURRENT_SOURCE_DIR}/BdeVerify/bde_verify.cfg")
+
   # Build number added to Clang version to ensure that new VSIX can be upgraded
   string(TIMESTAMP BDE_VERIFY_VSIX_BUILD %y%m%d%H%M UTC)
 
@@ -35,12 +40,11 @@ if (BUILD_BDE_VERIFY_VS_PLUGIN)
       COMMAND ${CMAKE_COMMAND} -E copy_if_different
       "${CMAKE_CURRENT_SOURCE_DIR}/BdeVerify/bin/Release/BdeVerify.vsix"
       "${CMAKE_CURRENT_BINARY_DIR}/BdeVerify.vsix"
-      DEPENDS bde_verify_exe_for_vsix bde_verify_license)
+      DEPENDS bde_verify_exe_for_vsix bde_verify_license bde_verify_config)
 
   add_custom_target(bde_verify_vsix ALL
       DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/BdeVerify/bin/Release/BdeVerify.vsix")
 
-  install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/BdeVerify/bin/Release/BdeVerify.vsix"
-          DESTINATION share/clang
-          COMPONENT bde-verify)
+  install(FILES "${CMAKE_CURRENT_BINARY_DIR}/BdeVerify.vsix"
+          DESTINATION share/bde-verify)
 endif()

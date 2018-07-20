@@ -213,6 +213,9 @@
     <Content Include="license.txt">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <Content Include="bde_verify.cfg">
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Content Include="Resources\Package.ico" />
   </ItemGroup>
   <ItemGroup>
