@@ -1,7 +1,7 @@
 h.cpp:9:8: warning: AT02: Class 'MyAllocator' uses allocators but does not have an allocator trait
 struct MyAllocator : public bslma::Allocator
        ^
-h.cpp:12:1: note: AT021: Allocator trait for class MyAllocator
+h.cpp:12:1: note: AT02: Allocator trait for class MyAllocator
 
   public:
     // TRAITS
@@ -9,7 +9,37 @@ h.cpp:12:1: note: AT021: Allocator trait for class MyAllocator
 
 };
 ^
-h.cpp:9:8: warning: AC02: Implicit copy constructor cannot be called with an allocator as the final argument
+h.cpp:9:8: warning: AL01: Class 'MyAllocator' needs allocator() method
 struct MyAllocator : public bslma::Allocator
        ^
-2 warnings generated.
+h.cpp:12:1: note: AL01: Allocator method definition for class MyAllocator
+
+  public:
+    // PUBLIC ACCESSORS
+    bslma::Allocator *allocator() const;
+
+};
+^
+h.cpp:9:8: warning: AP02: Class 'MyAllocator' needs d_allocator_p member
+struct MyAllocator : public bslma::Allocator
+       ^
+h.cpp:12:1: note: AP02: Allocator member declaration for class MyAllocator
+
+  private:
+    // PRIVATE DATA
+    bslma::Allocator *d_allocator_p;
+
+};
+^
+h.cpp:9:8: warning: AC02: Implicit copy constructor is not allocator-aware
+struct MyAllocator : public bslma::Allocator
+       ^
+h.cpp:12:1: note: AC02: Version with allocator
+
+  public:
+    // PUBLIC CREATORS
+    MyAllocator(const MyAllocator& original, bslma::Allocator *basicAllocator = 0);
+
+};
+^
+4 warnings generated.

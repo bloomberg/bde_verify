@@ -1,0 +1,12 @@
+h.cpp:8:8: warning: AL01: Class 'X' needs allocator() method
+struct X {
+       ^
+h.cpp:14:1: note: AL01: Allocator method definition for class X
+
+  public:
+    // PUBLIC ACCESSORS
+    bslma::Allocator *allocator() const;
+
+};
+^
+1 warning generated.
