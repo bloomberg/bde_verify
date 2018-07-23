@@ -1084,8 +1084,28 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
             continue;
         }
         const CXXRecordDecl *record = decl->getParent()->getCanonicalDecl();
-        AllocatorLocation    uses_allocator = takes_allocator(
+
+        llvm::StringRef to_transform =
+            a.config()->value("allocator_transform", record->getLocation());
+        llvm::StringRef name = record->getNameAsString();
+        bool do_transform = false;
+        for (size_t colons = 0; ; colons += 2) {
+            do_transform =
+                contains_word(to_transform, name.drop_front(colons));
+            if (do_transform) {
+                break;
+            }
+            colons = name.find("::", colons);
+            if (colons == name.npos) {
+                break;
+            }
+        }
+
+        AllocatorLocation uses_allocator = takes_allocator(
             record->getTypeForDecl()->getCanonicalTypeInternal());
+        if (uses_allocator == a_None && do_transform) {
+            uses_allocator = a_Last;
+        }
         bool has_true_alloc_trait = d.decls_with_true_allocator_trait_.count(
                                                                         record);
         bool has_false_alloc_trait = d.decls_with_false_allocator_trait_.count(
@@ -1139,11 +1159,13 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
                              "Class %0 uses allocators but does not have an "
                              "allocator trait")
                         << record;
-                    if (uses_allocator & a_Last) {
-                        write_allocator_trait(record, true);
-                    }
-                    if (uses_allocator & a_Second) {
-                        write_allocator_trait(record, false);
+                    if (do_transform) {
+                        if (uses_allocator & a_Last) {
+                            write_allocator_trait(record, true);
+                        }
+                        if (uses_allocator & a_Second) {
+                            write_allocator_trait(record, false);
+                        }
                     }
                 }
 
@@ -1194,8 +1216,10 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
                         a.report(record, check_name, "AP02",
                                  "Class %0 needs d_allocator_p member")
                             << record;
-                        if (write_d_allocator_p_declaration(record)) {
-                            added_d_allocator.insert(record);
+                        if (do_transform) {
+                            if (write_d_allocator_p_declaration(record)) {
+                                added_d_allocator.insert(record);
+                            }
                         }
                     }
 
@@ -1203,11 +1227,13 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
                         a.report(record, check_name, "AL01",
                                  "Class %0 needs allocator() method")
                             << record;
-                        write_allocator_method_definition(
+                        if (do_transform) {
+                            write_allocator_method_definition(
                                                          record,
                                                          uses_allocator,
                                                          base_with_allocator,
                                                          field_with_allocator);
+                        }
                     }
                 }
             }
@@ -1295,7 +1321,9 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
                 }
                 auto def = decl;
                 if (!decl->isThisDeclarationADefinition()) {
-                    write_ctor_with_allocator_declaration(record, decl);
+                    if (do_transform) {
+                        write_ctor_with_allocator_declaration(record, decl);
+                    }
                     def = 0;
                     if (decl->isDefined()) {
                         def = llvm::dyn_cast<CXXConstructorDecl>(
@@ -1303,11 +1331,13 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
                     }
                 }
                 if (def) {
-                    write_ctor_with_allocator_definition(
-                        record,
-                        def,
-                        added_d_allocator.count(record),
-                        def == decl);
+                    if (do_transform) {
+                        write_ctor_with_allocator_definition(
+                            record,
+                            def,
+                            added_d_allocator.count(record),
+                            !decl->isDefaultConstructor());
+                    }
                 }
             }
         }
