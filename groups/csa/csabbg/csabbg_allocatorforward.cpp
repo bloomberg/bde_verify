@@ -1567,7 +1567,7 @@ bool report::write_ctor_with_allocator_definition(
 
     record = record->getDefinition();
 
-    if (a.config()->suppressed(up ? "AC03" : "AC04", record->getLocation()))
+    if (a.config()->suppressed(up ? "AC01" : "AC02", record->getLocation()))
         return false;
 
     llvm::StringRef range = a.get_source(record->getBraceRange());
@@ -1725,7 +1725,7 @@ bool report::write_ctor_with_allocator_definition(
                : "{ }")                                       << "\n" << spaces
        ;
 
-    a.report(ins_loc, check_name, up ? "AC03" : "AC04",
+    a.report(ins_loc, check_name, up ? "AC01" : "AC02",
              "Definition for version with allocator\n%1%0",
              false, DiagnosticIDs::Note)
         << ot.str()
