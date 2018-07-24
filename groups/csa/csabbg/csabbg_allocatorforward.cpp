@@ -1135,6 +1135,12 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
         if (has_false_alloc_trait) {
             continue;
         }
+        if (!has_true_alloc_trait &&
+            !has_dependent_alloc_trait &&
+            !do_transform &&
+            is_allocator(QualType(record->getTypeForDecl(), 0))) {
+            continue;
+        }
 
         std::pair<bool, const CXXRecordDecl *> rp = std::make_pair(
                                                                uses_allocator,
@@ -1309,14 +1315,14 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
                 processed.insert(Range(m, decl->getSourceRange()));
                 if (decl->isUserProvided()) {
                     a.report(decl, check_name, "AC01",
-                        "This " + type + "constructor has no allocator-aware "
-                        "version")
+                             "Class %0 " + type +
+                             "constructor has no allocator-aware version")
                         << decl;
                 }
                 else {
                     a.report(decl, check_name, "AC02",
-                             "Implicit " + type + "constructor is not "
-                             "allocator-aware")
+                             "Class %0 implicit " + type +
+                             "constructor is not allocator-aware")
                         << decl;
                 }
                 auto def = decl;

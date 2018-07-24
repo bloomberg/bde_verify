@@ -14,6 +14,7 @@ namespace BloombergLP {
 struct RP {
     BSLALG_DECLARE_NESTED_TRAITS(RP, bslalg_TypeTraitUsesBslmaAllocator);
     explicit RP(bslma_Allocator *basicAllocator = 0);
+    RP(const RP&, bslma_Allocator *basicAllocator = 0);
     bslma::Allocator *allocator() const;
 };
 }

@@ -249,6 +249,12 @@ for additional checks.
      This is intended to catch assignment idioms like
      ``MyClass(other, this->allocator()).swap(*this)`` that can exhaust
      sequential allocators (but are sometimes necessary).
+   * ``AP01``
+     A class has an unnecessary ``d_allocator_p`` pointer.  (The allocator can
+     be retrieved from a subobject.)
+   * ``AP02``
+     A class is lacking a necessary ``d_allocator_p`` pointer.  (The class
+     uses allocators and has no allocator-aware subobjects.)
 
 .. only:: bde_verify or bb_cppverify
 
@@ -1121,6 +1127,8 @@ for additional checks.
    +++++++++++++++++++++++++++
    * ``AQK01``
      Header included transitively should be included directly.
+   * ``AQK02``
+     ``<bsls_buildtarget.h>`` needed for ``BDE_BUILD_TARGET_...`` macros.
 
 .. only:: bde_verify or bb_cppverify
 

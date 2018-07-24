@@ -13,53 +13,7 @@ rv.cpp:31:15: note: RV01: instead of through pointer parameter
 rv.cpp:3:8: warning: AT02: Class 'A' uses allocators but does not have an allocator trait
 struct A { explicit A(BloombergLP::bslma::Allocator * = 0); };
        ^
-rv.cpp:1:1: note: AT02: Header needed for allocator trait
-#include <bslmf_nestedtraitdeclaration.h>
-
-namespace BloombergLP { namespace bslma { class Allocator; } }
-^
-rv.cpp:1:1: note: AT02: Header needed for allocator trait
-#include <bslma_usesbslmaallocator.h>
-
-rv.cpp:3:61: note: AT02: Allocator trait for class A
-
-  public:
-    // TRAITS
-    BSLMF_NESTED_TRAIT_DECLARATION(A, bslma::UsesBslmaAllocator);
-
-struct A { explicit A(BloombergLP::bslma::Allocator * = 0); };
-                                                            ^
-rv.cpp:3:8: warning: AL01: Class 'A' needs allocator() method
-struct A { explicit A(BloombergLP::bslma::Allocator * = 0); };
-       ^
-rv.cpp:3:61: note: AL01: Allocator method definition for class A
-
-  public:
-    // PUBLIC ACCESSORS
-    bslma::Allocator *allocator() const;
-
-struct A { explicit A(BloombergLP::bslma::Allocator * = 0); };
-                                                            ^
 rv.cpp:3:8: warning: AP02: Class 'A' needs d_allocator_p member
-struct A { explicit A(BloombergLP::bslma::Allocator * = 0); };
-       ^
-rv.cpp:3:61: note: AP02: Allocator member declaration for class A
-
-  private:
-    // PRIVATE DATA
-    bslma::Allocator *d_allocator_p;
-
-struct A { explicit A(BloombergLP::bslma::Allocator * = 0); };
-                                                            ^
-rv.cpp:3:8: warning: AC02: Implicit copy constructor is not allocator-aware
-struct A { explicit A(BloombergLP::bslma::Allocator * = 0); };
-       ^
-rv.cpp:3:61: note: AC02: Version with allocator
-
-  public:
-    // PUBLIC CREATORS
-    A(const A& original, bslma::Allocator *basicAllocator = 0);
-
-struct A { explicit A(BloombergLP::bslma::Allocator * = 0); };
-                                                            ^
+rv.cpp:3:8: warning: AL01: Class 'A' needs allocator() method
+rv.cpp:3:8: warning: AC02: Class 'A' implicit copy constructor is not allocator-aware
 6 warnings generated.
