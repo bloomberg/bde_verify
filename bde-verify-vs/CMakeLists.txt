@@ -4,7 +4,7 @@ if (BUILD_BDE_VERIFY_VS_PLUGIN)
       ${CMAKE_COMMAND} -E copy_if_different
       "${CMAKE_BINARY_DIR}/${CMAKE_CFG_INTDIR}/bde_verify_bin.exe"
       "${CMAKE_CURRENT_SOURCE_DIR}/BdeVerify/bde_verify_bin.exe"
-      DEPENDS bde-verify)
+      DEPENDS bde_verify_bin)
 
   add_custom_target(bde_verify_license
       ${CMAKE_COMMAND} -E copy_if_different
