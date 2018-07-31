@@ -132,7 +132,9 @@ Building bde_verify on Windows
  # Run it to install bde_verify.  When asked, set the path for all users.
 
  # Now build the Visual Studio bde_verify add-in
- # Open $BVSRC/Windows/BDE_VERIFY_VS/BDE_VERIFY_VS.sln in Visual Studio.
- # Build the solution.  The result is
- # $BVSRC/Windows/BDE_VERIFY_VS/BDE_VERIFY_VS/bin/Release/BDE_VERIFY_VS.vsix
+
+ cmake --build . --target bde_verify_vsix --config MinSizeRel
+
+ # The result is $BVBLD/bde-verify-vs/BdeVerify.vsix
  # Running that file installs the extension into Visual Studio.
+ # (It installs its own private copy of the bde_verify executable.)

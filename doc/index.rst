@@ -38,9 +38,16 @@ changes by itself and place the modified files in the specified directory with
 ``-rewritten`` appended to the file names. (Not much rewriting is being done
 yet; we plan to increase this over time.)
 
-|Bv| is supported on SunOS and Linux. In the BloombergLP development
+|Bv| is supported on SunOS, Linux, and Windows. In the BloombergLP development
 environment, running ``/opt/bb/bin/``\ |bv| will launch the appropriate
 version.
+
+|bv| now contains the experimental feature of automatically rewriting a class
+to be allocator-aware.  To use it, enable the ``allocator-forward`` check, set
+the ``allocator_transform`` configuration variable to contain the name(s) of
+the classes to be modfied, and enable rewriting as specified above.  The
+rewritten class does not yet fully comply with the BDE coding standard (|bv|
+will complain!)
 
 Options
 -------
