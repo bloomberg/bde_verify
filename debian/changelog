@@ -1,3 +1,121 @@
+bde-verify (1.2.19) unstable; urgency=low
+
+  * 3dab7db use bbgithub
+  * f32b408 Change somne build instructions and document allocator_transform.
+  * 7731c40 Bump version
+  * e27fa2c Merge commit '00f1d84'
+  * 00f1d84 Fix dependecy of vsix on executable
+  * a0be74d Fix up expected allocator result files.
+  * 2b4c120 Use AC01/AC02 instead of AC03/AC04
+  * bb233ca Merge branch 'productionize-allocator-gen'
+  * 05fbec9 Merge branch 'allocator-method_drqs-101913180'
+  * d039da4 Name change
+  * f1a6ddb Fix versioning
+  * a9cb6c4 Merge branch 'changes-for-VS2017' of bbgithub:hrosen4/bde-verify into changes-for-VS2017
+  * df5ff4d Set version number
+  * 5e6aafc More VS2017 changes
+  * 1d12a0d Fixes for VS 2017
+  * c860607 Add packages.config file
+  * 8b2e291 Some renaming and including
+  * 13abe5a Fix CMakeLists.txt
+  * 9a7fd86 Typo
+  * a4fb5a8 Add cmake code for vsix
+  * 5cd1189 Make more similar to bde-format vsix.
+  * 3b9f019 Use allocator_transform config variable for picking classes to change.
+  * 4f221b6 Update solution file
+  * 257411d Upgrade project files
+  * 7f90fdf Another spot fot the csaglb files to be mentioned.
+  * 33fc958 Add the csaglb files to CMakeLists.txt
+  * 262d77c Merge branch 'master' into allocator-method_drqs-101913180
+  * 08221f6 Merge pull request #8 from hrosen4/failstatus_drqs-122606971
+  * 3744a7e Handle failstatus by changing warning level to error as needed.
+  * 0455128 Merge branch 'master' into allocator-method_drqs-101913180
+  * 4cac874 Add a couple of missing warnings to doc.
+  * 62db07f Check for missing case labels.
+  * 53607f7 Preserve generated constructor access.
+  * 320327d Merge branch 'master' into allocator-method_drqs-101913180
+  * 96fbf96 Merge pull request #7 from hrosen4/header-guards_drqs-121763331
+  * 11f472b Add check for files included within external guards.
+  * 0636271 Pick in a few minor changes
+  * ada3de7 More allocator generation stuff
+  * b0d1ddd Merge branch 'master' into allocator-method_drqs-101913180
+  * 3ecb9e7 Merge pull request #6 from hrosen4/else-if-indent_drqs-121250395
+  * de6b548 Add checks for indentation fix.
+  * e5bdb11 Fix else-if indentation
+  * 01ef962 Merge remote-tracking branch 'origin/master' into allocator-method_drqs-101913180
+  * 81f08d4 Merge pull request #5 from hrosen4/BDE_BUILD_TARGET_drqs-120635370
+  * fe65a0a Add defined(BDE_BUILD_TARGET_...) check.
+  * 5507f09 Merge remote-tracking branch 'origin/master' into allocator-method_drqs-101913180
+  * 804ee6e Merge pull request #4 from hrosen4/BDE_BUILD_TARGET_drqs-120635370
+  * 1a61c4e Negative check for bsls_buildtarget.h inclusion.
+  * 26294bf Add check for missing bsls_buildtarget.h include.
+  * 0e28e1a Deal with base class template specializations.
+  * d1fcf69 Define missing allocator methods.
+  * 78e15eb Add constructor-with-allocator writing.
+  * 7346f8e Avoid multiple warnings for instantiations.
+  * b74938b Deal with class templates and templated constructors.
+  * f1710d9 Write explicit versionms of implicit ctors correctly.
+  * a2f9e26 Write out declaration for constructors with allocators.
+  * da49804 Add include guards
+  * 1a6288a Don't suppress AT02
+  * 2364ae1 Suppress the new allocator checks by default.
+  * 28f9a08 Modify exp files for new allocator messages.
+  * 8b484cd Add code for requiring d_allocator_p.
+  * 4f289fd Skip non-public inherited allocator methods.
+  * d2db9b8 Avoid trailing spaces on allocator/trait insertions.
+  * 9651282 Fix looking for allocator() method.
+  * e4c3384 Checks for unnecessary d_allocator_p and missing allovator method.
+  * 8ac5c75 Starting to work with allocator method.  Drive by spell change.
+  * cb6f7e5 Merge pull request #3 from hrosen4/gen-alloc-traits_drqs-112529599
+  * cfded5c Merge pull request #2 from hrosen4/report-version_drqs-113613881
+  * de65252 Report bde-verify version number when requested.
+  * 2bf57e1 Fix trait warnings for instantiated vs. explictily specialized classes.
+  * baaa254 Avoid reporting on multiple instantiations.
+  * f6b2b9f Another test case
+  * 5054afa Spelling, SEG03, and allocator traits
+  * f68787f Merge branch 'gen-alloc-traits_drqs-112529599' of bbgithub:hrosen4/bde-verify into gen-alloc-traits_drqs-112529599
+  * 2a4638a Store a FileEntry with the include information.
+  * 6ed513a Unify (some) comment gathering and include file tracking.
+  * 3168f3f More universal comment usage
+  * f8d9ee1 Use global comment set for mid-return check.
+  * f2cb8af Unifying repetitive collection of preprocessor information.
+  * d81313d Add a warning-disabling flag
+  * 0f99288 Start work on allocator trait generation
+  * 747eafe Merge branch 'globally-used-data' into gen-alloc-traits_drqs-112529599
+  * a46b10b Merge branch 'master' into gen-alloc-traits_drqs-112529599
+  * a395939 Merge pull request #1 from hrosen4/gcc-toolchain_drqs-115927546
+  * 8bc84a3 Typo
+  * ac7b7da Always try to find a gcc toolchain.
+  * 8f3d06b Change gcc toolchain and isystem handling.
+  * 7197471 Merge branch 'master' into globally-used-data
+  * 0bdefd1 Merge branch 'master' of bbgithub:bde/bde-verify
+  * 01dd469 Fix contract indentation check when function has prior macro.
+  * dc16649 Store a FileEntry with the include information.
+  * 2988b35 Unify (some) comment gathering and include file tracking.
+  * 1c7555e More universal comment usage
+  * d93af62 Use global comment set for mid-return check.
+  * 5398d9c Unifying repetitive collection of preprocessor information.
+  * b88e77b Merge pull request #11 from hrosen4/cpp11-allocators_drqs-114130662
+  * 23894dd Accept allocator_tag_t styles.
+  * 7319eec Add a warning-disabling flag
+  * ae51802 Start work on allocator trait generation
+  * b32d75d Merge pull request #10 from hrosen4/bad-rewrite_drqs-101748313
+  * f6aa1a5 Fix overlapping rewrites error.
+  * e878f7c Merge pull request #9 from hrosen4/bde-transitive-includes_drqs-113120808
+  * 72a1755 Allow transitive include checks within bde components.
+  * 7e4d257 Merge pull request #8 from hrosen4/AM01-false-positive_drqs-112271457
+  * be42bfd Fix AM01 false positive issue
+  * 68f9e4e More project updates
+  * dd99c1e Merge pull request #7 from hrosen4/master
+  * 05bd852 Update project for VS2015
+  * 6815acc Merge pull request #6 from hrosen4/master
+  * d970029 Changelog for version 1.2.18
+  * aee5117 Merge pull request #5 from hrosen4/master
+  * ee1c47a Merge pull request #4 from hrosen4/master
+  * 1e2bc0c Merge pull request #1 from hrosen4/master
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Tue, 31 Jul 2018 17:19:51 -0400
+
 bde-verify (1.2.18) unstable; urgency=low
 
   * No commits found
