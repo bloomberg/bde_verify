@@ -1,0 +1,1461 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>BDE_VERIFY &#8212; bde_verify 1.2.19 documentation</title>
+    
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.2.19',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="top" title="bde_verify 1.2.19 documentation" href="#" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="nav-item nav-item-0"><a href="#">bde_verify 1.2.19 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <blockquote>
+<div></div></blockquote>
+<div class="section" id="bv">
+<h1><code class="docutils literal"><span class="pre">BDE_VERIFY</span></code><a class="headerlink" href="#bv" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+</div>
+<div class="section" id="name">
+<h2>Name<a class="headerlink" href="#name" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal"><span class="pre">bde_verify</span></code> - static C++-compiler-based checking tool</p>
+</div>
+<div class="section" id="synopsis">
+<h2>Synopsis<a class="headerlink" href="#synopsis" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal"><span class="pre">bde_verify</span></code> <code class="docutils literal"><span class="pre">[options...]</span> <span class="pre">[compiler</span> <span class="pre">options...]</span> <span class="pre">file...</span></code></p>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>The <code class="docutils literal"><span class="pre">bde_verify</span></code> command performs a variety of checks intended to foster improved
+adherence to BDE design rules, coding standards, and practices and to detect
+potential errors. It is built within the <strong>clang</strong> C++ compiler tool system,
+and therefore has access to proper syntax and type information about the
+program it is examining, unlike text-based scanning tools. The tool was
+originally developed (as <code class="docutils literal"><span class="pre">coolyser</span></code>) by <a class="reference external" href="mailto:dkuhl&#37;&#52;&#48;bloomberg&#46;net">Dietmar Kuhl</a> and is now being
+maintained and enhanced by <a class="reference external" href="mailto:hrosen4&#37;&#52;&#48;bloomberg&#46;net">Hyman Rosen</a>. This is the <a class="reference external" href="https://github.com/dietmarkuehl/coolyser">original project</a> and
+this is the <a class="reference external" href="https://github.com/dietmarkuehl/coolyser/wiki/Overview">original list of implemented checks</a>. (You may need to request
+permission from Dietmar to visit those pages.)</p>
+<p>If the <code class="docutils literal"><span class="pre">--rewrite=dir</span></code> option is specified, <code class="docutils literal"><span class="pre">bde_verify</span></code> will make some suggested
+changes by itself and place the modified files in the specified directory with
+<code class="docutils literal"><span class="pre">-rewritten</span></code> appended to the file names. (Not much rewriting is being done
+yet; we plan to increase this over time.)</p>
+<p><code class="docutils literal"><span class="pre">Bde_verify</span></code> is supported on SunOS, Linux, and Windows. In the BloombergLP development
+environment, running <code class="docutils literal"><span class="pre">/opt/bb/bin/</span></code><code class="docutils literal"><span class="pre">bde_verify</span></code> will launch the appropriate
+version.</p>
+<p><code class="docutils literal"><span class="pre">bde_verify</span></code> now contains the experimental feature of automatically rewriting a class
+to be allocator-aware.  To use it, enable the <code class="docutils literal"><span class="pre">allocator-forward</span></code> check, set
+the <code class="docutils literal"><span class="pre">allocator_transform</span></code> configuration variable to contain the name(s) of
+the classes to be modfied, and enable rewriting as specified above.  The
+rewritten class does not yet fully comply with the BDE coding standard (<code class="docutils literal"><span class="pre">bde_verify</span></code>
+will complain!)</p>
+</div>
+<div class="section" id="options">
+<h2>Options<a class="headerlink" href="#options" title="Permalink to this headline">¶</a></h2>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd><span class="option">--config <var>file</var></span></kbd></td>
+<td>configuration file</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--cl <var>line</var></span></kbd></td>
+<td>additional configuration lines</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--bb <var>dir</var></span></kbd></td>
+<td>base directory for BDE header includes</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--exe <var>binary</var></span></kbd></td>
+<td>bde_verify executable file</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--cc <var>compiler</var></span></kbd></td>
+<td>C++ compiler used to find system include directories</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--definc</span></kbd></td>
+<td>set up default include paths</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--diff <var>file</var></span></kbd></td>
+<td>restrict output using git diff in file (<code class="docutils literal"><span class="pre">-</span></code> for stdin)</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--nodefinc</span></kbd></td>
+<td>do not set up default include paths</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--defdef</span></kbd></td>
+<td>set up default macro definitions</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--nodefdef</span></kbd></td>
+<td>do not set up default macro definitions</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--ovr</span></kbd></td>
+<td>define BSL_OVERRIDES_STD</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--noovr</span></kbd></td>
+<td>do not define BSL_OVERRIDES_STD</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd><span class="option">--rewrite-dir <var>dir</var></span></kbd></td>
+</tr>
+<tr><td>&nbsp;</td><td>place rewritten files (as name-rewritten) in dir</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--rewrite <var>dir</var></span></kbd></td>
+<td>(same as &#8211;rewrite-dir)</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--rd <var>dir</var></span></kbd></td>
+<td>(same as &#8211;rewrite-dir)</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd><span class="option">--rewrite-file <var>file</var></span></kbd></td>
+</tr>
+<tr><td>&nbsp;</td><td>accumulate rewrite specifications into file</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--rf <var>file</var></span></kbd></td>
+<td>(same as &#8211;rewrite-file)</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--std <var>type</var></span></kbd></td>
+<td>specify C++ version</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--tag <var>string</var></span></kbd></td>
+<td>make first line of each warning contain [string]</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd><span class="option">--diagnose <var>type</var></span></kbd></td>
+</tr>
+<tr><td>&nbsp;</td><td>report and rewrite only for main, component, nogen, or all</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--m32</span></kbd></td>
+<td>process in 32-bit mode</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--m64</span></kbd></td>
+<td>process in 64-bit mode</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--nsa</span></kbd></td>
+<td>allow logging for purposes of tracking usage</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--nonsa</span></kbd></td>
+<td>disallow logging for purposes of tracking usage</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--debug</span></kbd></td>
+<td>display internal information as checks are performed</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--verbose</span></kbd></td>
+<td>display command line passed to clang</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">-v</span></kbd></td>
+<td>(same as &#8211;verbose)</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--help</span></kbd></td>
+<td>display this help message (also -?)</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">-I <var>directory</var></span></kbd></td>
+<td>add directory to header search path</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">-D <var>macro</var></span></kbd></td>
+<td>define macro</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">-W <var>warning</var></span></kbd></td>
+<td>enable warning</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">-f <var>flag</var></span></kbd></td>
+<td>specify compiler flag</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">-w</span></kbd></td>
+<td>disable normal compiler warnings</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="git-diff-output-restriction">
+<h2>Git-Diff Output Restriction<a class="headerlink" href="#git-diff-output-restriction" title="Permalink to this headline">¶</a></h2>
+<p>The output of <code class="docutils literal"><span class="pre">bde_verify</span></code> can be restricted to include only those warnings whose line
+numbers fall within a set of changes given by the output of a <code class="docutils literal"><span class="pre">git</span> <span class="pre">diff</span></code>
+command.  Such output contains lines beginning with <code class="docutils literal"><span class="pre">+++</span></code> representing a file
+with changes and lines starting with <code class="docutils literal"><span class="pre">&#64;</span></code> and containing <code class="docutils literal"><span class="pre">+LINE_NUMBER</span></code> or
+<code class="docutils literal"><span class="pre">+LINE_NUMBER,NUMBER_OF_LINES</span></code> representing which lines in the file have
+changed.  Such diffs may be saved in a file and given to <code class="docutils literal"><span class="pre">bde_verify</span></code> via the option
+<code class="docutils literal"><span class="pre">--diff=file</span></code> or they may be piped into <code class="docutils literal"><span class="pre">bde_verify</span></code> via the option <code class="docutils literal"><span class="pre">--diff=-</span></code> in
+which case standard input will be read for the diffs.</p>
+<p>Note that (for now) the file names upon which <code class="docutils literal"><span class="pre">bde_verify</span></code> will operate must still be
+specified on the command line; they are not picked up from the diff.</p>
+</div>
+<div class="section" id="configuration">
+<h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h2>
+<p>The configuration file allows individual or groups of checks to enabled or
+disabled, and specifies the enterprise namespace in which components live. By
+default, that namespace is <code class="docutils literal"><span class="pre">BloombergLP</span></code>, and almost all checks are enabled.
+The configuration file consists of a set of options, one per line, processed
+in order. Additional configuration lines may be supplied on the command line
+as described above. In particular, specifying <code class="docutils literal"><span class="pre">-cl='load</span> <span class="pre">file'</span></code> will
+augment the default configuration with the contents of <code class="docutils literal"><span class="pre">file</span></code>.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="40%" />
+<col width="60%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Config Entry</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">#</span></code> <em>text</em></td>
+<td>Comment text.</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">namespace</span></code> <em>name</em></td>
+<td>Enterprise namespace.</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">all</span> <span class="pre">on</span></code></td>
+<td>Turn all checks on.</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">all</span> <span class="pre">off</span></code></td>
+<td>Turn all checks off.</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">group</span></code> <em>groupname</em> <em>name</em>...</td>
+<td>Make <em>groupname</em> a synonym for the list of
+<em>name</em>s (which may themselves be group
+names).</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">check</span></code> <em>name</em> <code class="docutils literal"><span class="pre">on</span></code></td>
+<td>Turn specific check or group on.</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">check</span></code> <em>name</em> <code class="docutils literal"><span class="pre">off</span></code></td>
+<td>Turn specific check or group off.</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">load</span></code> <em>file</em></td>
+<td>Read and process configuration lines from the
+<em>file</em>.</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">set</span></code> <em>parameter</em> <em>value</em></td>
+<td>Set a parameter used by a check.</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">append</span></code> <em>parameter</em> <em>value</em></td>
+<td>Append to a parameter used by a check.</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">prepend</span></code> <em>parameter</em> <em>value</em></td>
+<td>Prepend to a parameter used by a check.</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">suppress</span></code> <em>tag</em> <em>files</em>...</td>
+<td>Messages with the specified <em>tag</em> are
+suppressed for the specified <em>files</em>. Either
+<em>tag</em> or <em>files</em> (but not both) may be <code class="docutils literal"><span class="pre">*</span></code>.
+The <em>tag</em> may be a group <em>name</em>, suppressing
+all members (including subgroups).</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">unsuppress</span></code> <em>tag</em> <em>files</em>...</td>
+<td>Messages with the specified <em>tag</em> are
+unsuppressed for the specified <em>files</em>. Either
+<em>tag</em> or <em>files</em> (but not both) may be <code class="docutils literal"><span class="pre">*</span></code>.
+The <em>tag</em> may be a group <em>name</em>, unsuppressing
+all members (including subgroups).  Note that
+only previously suppressed tag/file pairs can
+be unsuppressed.</td>
+</tr>
+</tbody>
+</table>
+<p>If the configuration file attempts to name a non-existent check, the tool will
+report a list of all known checks and then exit. Do this deliberately to
+obtain an accurate list of checks if you suspect this documentation is out of
+date.</p>
+</div>
+<div class="section" id="local-suppressions">
+<h2>Local Suppressions<a class="headerlink" href="#local-suppressions" title="Permalink to this headline">¶</a></h2>
+<p>The <code class="docutils literal"><span class="pre">bde_verify</span></code> command can locally suppress or enable individual message tags within
+a source file region, using <code class="docutils literal"><span class="pre">#pragma</span></code> <code class="docutils literal"><span class="pre">bde_verify</span></code> constructs or <code class="docutils literal"><span class="pre">//</span></code> <code class="docutils literal"><span class="pre">BDE_VERIFY</span></code>
+<code class="docutils literal"><span class="pre">pragma:</span></code> structured comments.</p>
+<p>Note that programs are often compiled with options that generate warnings for
+unknown pragmas; <code class="docutils literal"><span class="pre">bde_verify</span></code> defines the macro <code class="docutils literal"><span class="pre">BDE_VERIFY</span></code> to enable enclosing these pragmas
+within <code class="docutils literal"><span class="pre">#ifdef</span></code> <code class="docutils literal"><span class="pre">BDE_VERIFY</span></code> blocks.</p>
+<p>Local suppressions operate within a single file, and will not have any effect
+on warnings in files that this file includes or in files that include this one.</p>
+<p>Note that this cannot enable a check which was disabled by <code class="docutils literal"><span class="pre">check</span> <span class="pre">name</span> <span class="pre">off</span></code>
+in the configuration.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="39%" />
+<col width="61%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Pragma</th>
+<th class="head">Effect</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">#pragma</span></code> <code class="docutils literal"><span class="pre">bde_verify</span></code> <code class="docutils literal"><span class="pre">-TAG</span></code></td>
+<td rowspan="2">From this point forward in the file, do not
+report <em>TAG</em> messages. <em>TAG</em> may be a group
+<em>name</em>.</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">//</span></code> <code class="docutils literal"><span class="pre">BDE_VERIFY</span></code> <code class="docutils literal"><span class="pre">pragma:</span> <span class="pre">-TAG</span></code></td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">#pragma</span></code> <code class="docutils literal"><span class="pre">bde_verify</span></code> <code class="docutils literal"><span class="pre">+TAG</span></code></td>
+<td rowspan="2">From this point forward in the file, report
+<em>TAG</em> messages. <em>TAG</em> may be a group <em>name</em>.</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">//</span></code> <code class="docutils literal"><span class="pre">BDE_VERIFY</span></code> <code class="docutils literal"><span class="pre">pragma:</span> <span class="pre">+TAG</span></code></td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">#pragma</span></code> <code class="docutils literal"><span class="pre">bde_verify</span></code> <code class="docutils literal"><span class="pre">push</span></code></td>
+<td rowspan="2">Save the suppressions and parameters state
+of the current file.</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">//</span></code> <code class="docutils literal"><span class="pre">BDE_VERIFY</span></code> <code class="docutils literal"><span class="pre">pragma:</span> <span class="pre">push</span></code></td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">#pragma</span></code> <code class="docutils literal"><span class="pre">bde_verify</span></code> <code class="docutils literal"><span class="pre">pop</span></code></td>
+<td rowspan="2">Restore the suppressions and parameters
+state of the current file as of the most
+recent active <code class="docutils literal"><span class="pre">push</span></code>.</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">//</span></code> <code class="docutils literal"><span class="pre">BDE_VERIFY</span></code> <code class="docutils literal"><span class="pre">pragma:</span> <span class="pre">pop</span></code></td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">#pragma</span></code> <code class="docutils literal"><span class="pre">bde_verify</span></code>
+<code class="docutils literal"><span class="pre">set</span> <span class="pre">parameter</span> <span class="pre">value</span></code></td>
+<td rowspan="2">Set the configuration <em>parameter</em> to
+<em>value</em>.</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">//</span></code> <code class="docutils literal"><span class="pre">BDE_VERIFY</span></code> <code class="docutils literal"><span class="pre">pragma:</span></code>
+<code class="docutils literal"><span class="pre">set</span> <span class="pre">parameter</span> <span class="pre">value</span></code></td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">#pragma</span></code> <code class="docutils literal"><span class="pre">bde_verify</span></code>
+<code class="docutils literal"><span class="pre">append</span> <span class="pre">parameter</span> <span class="pre">value</span></code></td>
+<td rowspan="2">Append <em>value</em> to the configuration
+<em>parameter</em>.</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">//</span></code> <code class="docutils literal"><span class="pre">BDE_VERIFY</span></code> <code class="docutils literal"><span class="pre">pragma:</span></code>
+<code class="docutils literal"><span class="pre">append</span> <span class="pre">parameter</span> <span class="pre">value</span></code></td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">#pragma</span></code> <code class="docutils literal"><span class="pre">bde_verify</span></code>
+<code class="docutils literal"><span class="pre">prepend</span> <span class="pre">parameter</span> <span class="pre">value</span></code></td>
+<td rowspan="2">Prepend <em>value</em> to the configuration
+<em>parameter</em>.</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">//</span></code> <code class="docutils literal"><span class="pre">BDE_VERIFY</span></code> <code class="docutils literal"><span class="pre">pragma:</span></code>
+<code class="docutils literal"><span class="pre">prepend</span> <span class="pre">parameter</span> <span class="pre">value</span></code></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="exit-status">
+<h2>Exit Status<a class="headerlink" href="#exit-status" title="Permalink to this headline">¶</a></h2>
+<p>Normally, the exit status of a <code class="docutils literal"><span class="pre">bde_verify</span></code> run is 0 (success) unless the code has
+actual errors.  If a particular check or tag is produced and that check or tag
+is set in the <em>failstatus</em> configuration parameter, the exit status will be 1
+(failure).  This allows for the creation of wrapper scripts whose exit status
+indicates that some condition fails to hold.</p>
+</div>
+<div class="section" id="checks">
+<h2>Checks<a class="headerlink" href="#checks" title="Permalink to this headline">¶</a></h2>
+<p>These are the checks supported by the tool. A few are of dubious value and may
+be removed in the future. The tag prefixes (especially the <code class="docutils literal"><span class="pre">TR</span></code><em>nn</em> ones)
+are subject to change as tests are refined or updated. We welcome suggestions
+for additional checks.</p>
+<div class="section" id="allocator-forward">
+<h3><code class="docutils literal"><span class="pre">allocator-forward</span></code><a class="headerlink" href="#allocator-forward" title="Permalink to this headline">¶</a></h3>
+<p>Checks dealing with allocator forwarding and traits.</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">AT01</span></code>
+Class does not use allocators but has an affirmative allocator trait.</li>
+<li><code class="docutils literal"><span class="pre">AT02</span></code>
+Class uses allocators but has no affirmative or negative allocator trait.</li>
+<li><code class="docutils literal"><span class="pre">AC01</span></code>
+A class which uses allocators has a constructor with no variant that can
+be called with an allocator.</li>
+<li><code class="docutils literal"><span class="pre">AC02</span></code>
+A class which uses allocators has an implicit copy constructor that cannot
+be called with an allocator.</li>
+<li><code class="docutils literal"><span class="pre">MA01</span></code>
+A constructor of a class that uses allocators and takes an allocator does
+not pass the allocator to constructors of base classes that take
+allocators.</li>
+<li><code class="docutils literal"><span class="pre">MA02</span></code>
+A constructor of a class that uses allocators and takes an allocator does
+not pass the allocator to constructors of class members that take
+allocators.</li>
+<li><code class="docutils literal"><span class="pre">AM01</span></code>
+An explicit allocator argument to a constructor expression initializes a
+non-allocator parameter of that constructor.</li>
+<li><code class="docutils literal"><span class="pre">AR01</span></code>
+An object of a type with an affirmative allocator trait is returned by
+value.</li>
+<li><code class="docutils literal"><span class="pre">GA01</span></code>
+A variable with global storage must be initialized with a non-default
+allocator.</li>
+<li><code class="docutils literal"><span class="pre">BT01</span></code>
+A class trait declaration does not mention its class name.</li>
+<li><code class="docutils literal"><span class="pre">RV01</span></code>
+Function should return by value rather than through pointer parameter.</li>
+<li><code class="docutils literal"><span class="pre">AU01</span></code>
+An allocator argument needs to be manually checked for appropriateness.
+This is intended to catch assignment idioms like
+<code class="docutils literal"><span class="pre">MyClass(other,</span> <span class="pre">this-&gt;allocator()).swap(*this)</span></code> that can exhaust
+sequential allocators (but are sometimes necessary).</li>
+<li><code class="docutils literal"><span class="pre">AP01</span></code>
+A class has an unnecessary <code class="docutils literal"><span class="pre">d_allocator_p</span></code> pointer.  (The allocator can
+be retrieved from a subobject.)</li>
+<li><code class="docutils literal"><span class="pre">AP02</span></code>
+A class is lacking a necessary <code class="docutils literal"><span class="pre">d_allocator_p</span></code> pointer.  (The class
+uses allocators and has no allocator-aware subobjects.)</li>
+</ul>
+</div>
+<div class="section" id="allocator-new">
+<h3><code class="docutils literal"><span class="pre">allocator-new</span></code><a class="headerlink" href="#allocator-new" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">ANP01</span></code>
+Calls to placement new with an argument that is a pointer to an allocator.</li>
+</ul>
+</div>
+<div class="section" id="alphabetical-functions">
+<h3><code class="docutils literal"><span class="pre">alphabetical-functions</span></code><a class="headerlink" href="#alphabetical-functions" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">FABC01</span></code>
+Functions in a component section that are not in alphanumeric order.</li>
+</ul>
+<p>Note that the ordering resets in certain cases, such as when a pair of
+functions are not from the same context.</p>
+<p>Ordering also resets across single-line comments such as
+<code class="docutils literal"><span class="pre">//</span> <span class="pre">CLASS</span> <span class="pre">METHODS</span></code> and line banners.</p>
+</div>
+<div class="section" id="anon-namespace">
+<h3><code class="docutils literal"><span class="pre">anon-namespace</span></code><a class="headerlink" href="#anon-namespace" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">ANS01</span></code>
+Anonymous namespace in header.</li>
+</ul>
+</div>
+<div class="section" id="array-argument">
+<h3><code class="docutils literal"><span class="pre">array-argument</span></code><a class="headerlink" href="#array-argument" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">AA01</span></code>
+Sized array parameter is really a pointer.</li>
+</ul>
+</div>
+<div class="section" id="array-initialization">
+<h3><code class="docutils literal"><span class="pre">array-initialization</span></code><a class="headerlink" href="#array-initialization" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">II01</span></code>
+Incomplete array initialization in which the last value is not the default
+member value.</li>
+</ul>
+</div>
+<div class="section" id="assert-assign">
+<h3><code class="docutils literal"><span class="pre">assert-assign</span></code><a class="headerlink" href="#assert-assign" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">AE01</span></code>
+Top-level macro condition is an assignment.</li>
+</ul>
+</div>
+<div class="section" id="banner">
+<h3><code class="docutils literal"><span class="pre">banner</span></code><a class="headerlink" href="#banner" title="Permalink to this headline">¶</a></h3>
+<p>Malformed banners.</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">BAN02</span></code>
+Banner rule lines do not extend to column 79.</li>
+<li><code class="docutils literal"><span class="pre">BAN03</span></code>
+Banner text is not centered properly within configuration file parameter
+<code class="docutils literal"><span class="pre">banner_slack</span></code> spaces left or right (default 5).</li>
+<li><code class="docutils literal"><span class="pre">BAN04</span></code>
+Banner text underlining is not centered properly.</li>
+<li><code class="docutils literal"><span class="pre">FB01</span></code>
+Inline functions in header require <code class="docutils literal"><span class="pre">//</span> <span class="pre">INLINE</span> <span class="pre">DEFINITIONS</span></code> banner.</li>
+</ul>
+</div>
+<div class="section" id="base">
+<h3><code class="docutils literal"><span class="pre">base</span></code><a class="headerlink" href="#base" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">PR01</span></code>
+<code class="docutils literal"><span class="pre">#pragma</span></code> <code class="docutils literal"><span class="pre">bde_verify</span></code> <code class="docutils literal"><span class="pre">pop</span></code> when stack is empty.</li>
+<li><code class="docutils literal"><span class="pre">PR02</span></code>
+<code class="docutils literal"><span class="pre">#pragma</span></code> <code class="docutils literal"><span class="pre">bde_verify</span></code> <code class="docutils literal"><span class="pre">push</span></code> is never popped.</li>
+</ul>
+</div>
+<div class="section" id="boolcomparison">
+<h3><code class="docutils literal"><span class="pre">boolcomparison</span></code><a class="headerlink" href="#boolcomparison" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">BC01</span></code>
+Comparison of a Boolean expression with literal <code class="docutils literal"><span class="pre">true</span></code> or <code class="docutils literal"><span class="pre">false</span></code>.</li>
+</ul>
+</div>
+<div class="section" id="bsl-overrides-std">
+<h3><code class="docutils literal"><span class="pre">bsl-overrides-std</span></code><a class="headerlink" href="#bsl-overrides-std" title="Permalink to this headline">¶</a></h3>
+<p>Rewrite code which compiles with <code class="docutils literal"><span class="pre">BSL_OVERRIDES_STD</span></code> defined to not
+require that.
+Use the <code class="docutils literal"><span class="pre">-rewrite</span></code> option to generate the rewritten file.</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">IS01</span></code>
+Include of header is needed to declare a symbol.</li>
+<li><code class="docutils literal"><span class="pre">IS02</span></code>
+Inserting include of header.</li>
+<li><code class="docutils literal"><span class="pre">SB01</span></code>
+Replacing one header with another.</li>
+<li><code class="docutils literal"><span class="pre">SB02</span></code>
+Replacing one include guard with another.</li>
+<li><code class="docutils literal"><span class="pre">SB03</span></code>
+Removing include guard definition.</li>
+<li><code class="docutils literal"><span class="pre">SB04</span></code>
+Replacing use of macro <code class="docutils literal"><span class="pre">std</span></code> with <code class="docutils literal"><span class="pre">bsl</span></code>.</li>
+<li><code class="docutils literal"><span class="pre">SB07</span></code>
+Replacing <code class="docutils literal"><span class="pre">std</span></code> with <code class="docutils literal"><span class="pre">bsl</span></code> in macro definition.</li>
+</ul>
+</div>
+<div class="section" id="bsl-std-string">
+<h3><code class="docutils literal"><span class="pre">bsl-std-string</span></code><a class="headerlink" href="#bsl-std-string" title="Permalink to this headline">¶</a></h3>
+<p>This check warns that conversions between bsl::string and std::string
+are occurring (in case they are inadvertant).</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">ST01</span></code>
+Converting std::string to bsl::string.</li>
+<li><code class="docutils literal"><span class="pre">ST02</span></code>
+Converting bsl::string to std::string.</li>
+</ul>
+</div>
+<div class="section" id="c-cast">
+<h3><code class="docutils literal"><span class="pre">c-cast</span></code><a class="headerlink" href="#c-cast" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">CC01</span></code>
+C-style cast expression. (Dispensation is granted to <code class="docutils literal"><span class="pre">(void)expr</span></code>.)</li>
+</ul>
+</div>
+<div class="section" id="char-classification-range">
+<h3><code class="docutils literal"><span class="pre">char-classification-range</span></code><a class="headerlink" href="#char-classification-range" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">ISC01</span></code>
+<code class="docutils literal"><span class="pre">char</span></code> variable passed to <code class="docutils literal"><span class="pre">is...</span></code> function may sign-extend, causing
+undefined behavior.</li>
+<li><code class="docutils literal"><span class="pre">ISC02</span></code>
+<code class="docutils literal"><span class="pre">char</span></code> constant passed to <code class="docutils literal"><span class="pre">is...</span></code> function may sign-extend, causing
+undefined behavior.</li>
+<li><code class="docutils literal"><span class="pre">ISC03</span></code>
+Out-of-range value passed to <code class="docutils literal"><span class="pre">is...</span></code> function may cause undefined
+behavior.</li>
+</ul>
+</div>
+<div class="section" id="char-vs-string">
+<h3><code class="docutils literal"><span class="pre">char-vs-string</span></code><a class="headerlink" href="#char-vs-string" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">ADC01</span></code>
+Passing the address of a single character as an argument to a
+<code class="docutils literal"><span class="pre">const</span> <span class="pre">char</span> <span class="pre">*</span></code> parameter.</li>
+</ul>
+</div>
+<div class="section" id="class-sections">
+<h3><code class="docutils literal"><span class="pre">class-sections</span></code><a class="headerlink" href="#class-sections" title="Permalink to this headline">¶</a></h3>
+<p>BDE coding standards require that class member declarations appear in tagged
+sections (e.g., <code class="docutils literal"><span class="pre">//</span> <span class="pre">MANIPULATORS</span></code>, <code class="docutils literal"><span class="pre">//</span> <span class="pre">CREATORS</span></code>, et al.)</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">KS00</span></code>
+Declaration without tag.</li>
+<li><code class="docutils literal"><span class="pre">KS01</span></code>
+Tag requires public declaration.</li>
+<li><code class="docutils literal"><span class="pre">KS02</span></code>
+Tag requires private declaration.</li>
+<li><code class="docutils literal"><span class="pre">KS03</span></code>
+Tag requires function declaration.</li>
+<li><code class="docutils literal"><span class="pre">KS04</span></code>
+Tag requires instance data field declaration.</li>
+<li><code class="docutils literal"><span class="pre">KS05</span></code>
+Tag requires static data field declaration.</li>
+<li><code class="docutils literal"><span class="pre">KS06</span></code>
+Tag requires type declaration.</li>
+<li><code class="docutils literal"><span class="pre">KS07</span></code>
+Tag requires const method declaration.</li>
+<li><code class="docutils literal"><span class="pre">KS08</span></code>
+Tag requires non-const method declaration.</li>
+<li><code class="docutils literal"><span class="pre">KS09</span></code>
+Constructor or destructor requires CREATORS tag.</li>
+<li><code class="docutils literal"><span class="pre">KS10</span></code>
+Tag requires constant data declaration.</li>
+<li><code class="docutils literal"><span class="pre">KS11</span></code>
+Tag requires static method declaration.</li>
+<li><code class="docutils literal"><span class="pre">KS12</span></code>
+Tag requires free operator declaration.</li>
+<li><code class="docutils literal"><span class="pre">KS13</span></code>
+Tag requires free function declaration.</li>
+<li><code class="docutils literal"><span class="pre">KS14</span></code>
+Tag requires conversion operator declaration.</li>
+<li><code class="docutils literal"><span class="pre">KS15</span></code>
+Friend declaration requires FRIENDS tag.</li>
+<li><code class="docutils literal"><span class="pre">KS16</span></code>
+Tag requires friend declaration.</li>
+<li><code class="docutils literal"><span class="pre">KS17</span></code>
+Tag requires protected declaration.</li>
+</ul>
+</div>
+<div class="section" id="comments">
+<h3><code class="docutils literal"><span class="pre">comments</span></code><a class="headerlink" href="#comments" title="Permalink to this headline">¶</a></h3>
+<p>Comments containing erroneous or deprecated text.</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">FVS01</span></code>
+Deprecate the phrase <em>fully value semantic</em>.</li>
+<li><code class="docutils literal"><span class="pre">BADB01</span></code>
+Single-line inheritance bubbles in comments.</li>
+<li><code class="docutils literal"><span class="pre">AD01</span></code>
+Bubble display picture should begin in column 5.</li>
+<li><code class="docutils literal"><span class="pre">BW01</span></code>
+Comment text could fit at end of previous comment line, leaving it less
+than 80 - parameter <code class="docutils literal"><span class="pre">wrap_slack</span></code> (default 1) characters long.</li>
+<li><code class="docutils literal"><span class="pre">PRP01</span></code>
+<code class="docutils literal"><span class="pre">//&#64;PURPOSE:</span></code> line is recognizable but malformed.</li>
+<li><code class="docutils literal"><span class="pre">PP01</span></code>
+Deprecate the phrase <em>pure procedure</em>.</li>
+<li><code class="docutils literal"><span class="pre">DC01</span></code>
+<code class="docutils literal"><span class="pre">//&#64;DESCRIPTION:</span></code> should contain single-quoted class name.</li>
+<li><code class="docutils literal"><span class="pre">CLS01</span></code>
+<code class="docutils literal"><span class="pre">//&#64;CLASSES:</span></code> should not contain class names on that line.</li>
+<li><code class="docutils literal"><span class="pre">CLS02</span></code>
+<code class="docutils literal"><span class="pre">//&#64;CLASSES:</span></code> classes should be followed by colon and description.</li>
+<li><code class="docutils literal"><span class="pre">CLS03</span></code>
+Badly formatted class line.</li>
+<li><code class="docutils literal"><span class="pre">MOR01</span></code>
+Deprecate the phrase <em>(non-)modifiable reference</em>.</li>
+<li><code class="docutils literal"><span class="pre">PSS01</span></code>
+Use two spaces after a period.</li>
+</ul>
+</div>
+<div class="section" id="comparison-order">
+<h3><code class="docutils literal"><span class="pre">comparison-order</span></code><a class="headerlink" href="#comparison-order" title="Permalink to this headline">¶</a></h3>
+<p>Comparisons whose operand order should be reversed.</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">CO01</span></code>
+Non-modifiable operand should be on the left.</li>
+<li><code class="docutils literal"><span class="pre">CO02</span></code>
+Constant-expression operand should be on the left.</li>
+</ul>
+</div>
+<div class="section" id="component-header">
+<h3><code class="docutils literal"><span class="pre">component-header</span></code><a class="headerlink" href="#component-header" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">TR09</span></code>
+Component implementation file does not include its header file ahead of
+other includes or declarations.</li>
+</ul>
+</div>
+<div class="section" id="component-prefix">
+<h3><code class="docutils literal"><span class="pre">component-prefix</span></code><a class="headerlink" href="#component-prefix" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">CP01</span></code>
+Globally visible name is not prefixed by component name.</li>
+</ul>
+<p>Will not warn about packages included in parameter <code class="docutils literal"><span class="pre">global_packages</span></code>
+(default <code class="docutils literal"><span class="pre">bslmf</span> <span class="pre">bslstl</span></code>).</p>
+</div>
+<div class="section" id="constant-return">
+<h3><code class="docutils literal"><span class="pre">constant-return</span></code><a class="headerlink" href="#constant-return" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">CR01</span></code>
+Single statement function returns a constant value.</li>
+</ul>
+</div>
+<div class="section" id="contiguous-switch">
+<h3><code class="docutils literal"><span class="pre">contiguous-switch</span></code><a class="headerlink" href="#contiguous-switch" title="Permalink to this headline">¶</a></h3>
+<p>Switch statements in <code class="docutils literal"><span class="pre">main</span></code> with case labels that do not match
+BDE-standard test-driver order (0 with no <code class="docutils literal"><span class="pre">break;</span></code> then contiguous values
+in descending order each with a <code class="docutils literal"><span class="pre">break;</span></code>, then <code class="docutils literal"><span class="pre">default</span></code>).</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">ES01</span></code>
+Empty <code class="docutils literal"><span class="pre">switch</span></code> statement.</li>
+<li><code class="docutils literal"><span class="pre">SD01</span></code>
+The first case is <code class="docutils literal"><span class="pre">default</span></code>.</li>
+<li><code class="docutils literal"><span class="pre">SZ01</span></code>
+The first case is not <code class="docutils literal"><span class="pre">0</span></code>.</li>
+<li><code class="docutils literal"><span class="pre">MD01</span></code>
+The <code class="docutils literal"><span class="pre">default</span></code> case is not last.</li>
+<li><code class="docutils literal"><span class="pre">LO01</span></code>
+Case labels are out of order.</li>
+<li><code class="docutils literal"><span class="pre">ED01</span></code>
+No <code class="docutils literal"><span class="pre">default</span></code> case at end of <code class="docutils literal"><span class="pre">switch</span></code>.</li>
+<li><code class="docutils literal"><span class="pre">CS01</span></code>
+Test case code is not inside braces.</li>
+<li><code class="docutils literal"><span class="pre">CS02</span></code>
+Test case code is not inside single set of braces.</li>
+<li><code class="docutils literal"><span class="pre">MB01</span></code>
+Missing <code class="docutils literal"><span class="pre">break</span></code> before <code class="docutils literal"><span class="pre">case</span></code>.</li>
+<li><code class="docutils literal"><span class="pre">ZF02</span></code>
+<code class="docutils literal"><span class="pre">case</span> <span class="pre">0</span></code> does not just fall through to next case.</li>
+<li><code class="docutils literal"><span class="pre">SM01</span></code>
+Missing cases in switch.</li>
+</ul>
+</div>
+<div class="section" id="cpp-in-extern-c">
+<h3><code class="docutils literal"><span class="pre">cpp-in-extern-c</span></code><a class="headerlink" href="#cpp-in-extern-c" title="Permalink to this headline">¶</a></h3>
+<p>Header files with C++ constructs included within <code class="docutils literal"><span class="pre">extern</span> <span class="pre">&quot;C&quot;</span></code> contexts.</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">PC01</span></code>
+C++ header included within C linkage specification.</li>
+</ul>
+</div>
+<div class="section" id="deprecated">
+<h3><code class="docutils literal"><span class="pre">deprecated</span></code><a class="headerlink" href="#deprecated" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">DP01</span></code>
+Call to deprecated function.</li>
+</ul>
+</div>
+<div class="section" id="diagnostic-filter">
+<h3><code class="docutils literal"><span class="pre">diagnostic-filter</span></code><a class="headerlink" href="#diagnostic-filter" title="Permalink to this headline">¶</a></h3>
+<p>Not a check.</p>
+</div>
+<div class="section" id="do-not-use-endl">
+<h3><code class="docutils literal"><span class="pre">do-not-use-endl</span></code><a class="headerlink" href="#do-not-use-endl" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">NE01</span></code>
+Prefer using <code class="docutils literal"><span class="pre">'\\n'</span></code> over <code class="docutils literal"><span class="pre">endl</span></code>.</li>
+</ul>
+</div>
+<div class="section" id="dump-ast">
+<h3><code class="docutils literal"><span class="pre">dump-ast</span></code><a class="headerlink" href="#dump-ast" title="Permalink to this headline">¶</a></h3>
+<p>Not a check.</p>
+</div>
+<div class="section" id="entity-restrictions">
+<h3><code class="docutils literal"><span class="pre">entity-restrictions</span></code><a class="headerlink" href="#entity-restrictions" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">TR17</span></code>
+Items declared in global scope.</li>
+</ul>
+</div>
+<div class="section" id="enum-value">
+<h3><code class="docutils literal"><span class="pre">enum-value</span></code><a class="headerlink" href="#enum-value" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">EV01</span></code>
+Component enumeration tag is <code class="docutils literal"><span class="pre">Value</span></code>.</li>
+</ul>
+</div>
+<div class="section" id="external-guards">
+<h3><code class="docutils literal"><span class="pre">external-guards</span></code><a class="headerlink" href="#external-guards" title="Permalink to this headline">¶</a></h3>
+<p>Incorrect or missing use of external header guards.</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">SEG01</span></code>
+Include guard without include file.</li>
+<li><code class="docutils literal"><span class="pre">SEG02</span></code>
+Include guard does not match include file.</li>
+<li><code class="docutils literal"><span class="pre">SEG03</span></code>
+File included in header without include guard test.</li>
+<li><code class="docutils literal"><span class="pre">SEG04</span></code>
+File included in header with include guard test.</li>
+</ul>
+</div>
+<div class="section" id="files">
+<h3><code class="docutils literal"><span class="pre">files</span></code><a class="headerlink" href="#files" title="Permalink to this headline">¶</a></h3>
+<p>Missing or inaccessible component header file or test driver.</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">FI01</span></code>
+Component header file is missing.</li>
+<li><code class="docutils literal"><span class="pre">FI02</span></code>
+Component test driver file is missing.</li>
+</ul>
+</div>
+<div class="section" id="free-functions-depend">
+<h3><code class="docutils literal"><span class="pre">free-functions-depend</span></code><a class="headerlink" href="#free-functions-depend" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">AQS01</span></code>
+Free function parameter must depend on a local definition.</li>
+</ul>
+</div>
+<div class="section" id="friends-in-headers">
+<h3><code class="docutils literal"><span class="pre">friends-in-headers</span></code><a class="headerlink" href="#friends-in-headers" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">AQP01</span></code>
+Friends must be declared in the same header.</li>
+</ul>
+</div>
+<div class="section" id="function-contract">
+<h3><code class="docutils literal"><span class="pre">function-contract</span></code><a class="headerlink" href="#function-contract" title="Permalink to this headline">¶</a></h3>
+<p>Incorrect or missing function contracts.</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">FD01</span></code>
+Missing contract.</li>
+<li><code class="docutils literal"><span class="pre">FD02</span></code>
+Contract indented incorrectly.</li>
+<li><code class="docutils literal"><span class="pre">FD03</span></code>
+Parameter is not documented.</li>
+<li><code class="docutils literal"><span class="pre">FD04</span></code>
+Parameter name is not single-quoted.</li>
+<li><code class="docutils literal"><span class="pre">FD05</span></code>
+Parameters with default values are not called out with
+<em>optionally specify</em>.</li>
+<li><code class="docutils literal"><span class="pre">FD06</span></code>
+Parameters are not called out with <em>specified</em>.</li>
+<li><code class="docutils literal"><span class="pre">FD07</span></code>
+Parameter called out with <em>specified</em> more than once.</li>
+</ul>
+</div>
+<div class="section" id="global-data">
+<h3><code class="docutils literal"><span class="pre">global-data</span></code><a class="headerlink" href="#global-data" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">AQb01</span></code>
+Data variable with global visibilty.</li>
+</ul>
+</div>
+<div class="section" id="global-function-only-in-source">
+<h3><code class="docutils literal"><span class="pre">global-function-only-in-source</span></code><a class="headerlink" href="#global-function-only-in-source" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">TR10</span></code>
+Globally visible function not declared in header.</li>
+</ul>
+</div>
+<div class="section" id="global-type-only-in-source">
+<h3><code class="docutils literal"><span class="pre">global-type-only-in-source</span></code><a class="headerlink" href="#global-type-only-in-source" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">TR10</span></code>
+Globally visible type not declared in header.</li>
+<li><code class="docutils literal"><span class="pre">TR11</span></code>
+Globally visible type should be defined in header.</li>
+</ul>
+</div>
+<div class="section" id="groupname">
+<h3><code class="docutils literal"><span class="pre">groupname</span></code><a class="headerlink" href="#groupname" title="Permalink to this headline">¶</a></h3>
+<p>Component is not properly named or located.</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">GN01</span></code>
+Component does not have a distinguishable correctly formed package group
+name.</li>
+<li><code class="docutils literal"><span class="pre">GN02</span></code>
+Component is not located within its correct package group directory.</li>
+</ul>
+</div>
+<div class="section" id="hash-pointer">
+<h3><code class="docutils literal"><span class="pre">hash-pointer</span></code><a class="headerlink" href="#hash-pointer" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">HC01</span></code>
+Warn that use of <code class="docutils literal"><span class="pre">std::hash&lt;TYPE*&gt;()(ptr)</span></code> uses only the value and not
+the contents of <em>ptr</em>.</li>
+</ul>
+</div>
+<div class="section" id="headline">
+<h3><code class="docutils literal"><span class="pre">headline</span></code><a class="headerlink" href="#headline" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">HL01</span></code>
+The headline of the file is incorrect.</li>
+</ul>
+</div>
+<div class="section" id="implicit-ctor">
+<h3><code class="docutils literal"><span class="pre">implicit-ctor</span></code><a class="headerlink" href="#implicit-ctor" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">IC01</span></code>
+Non-<code class="docutils literal"><span class="pre">explicit</span></code> constructor which may be invoked implicitly and
+not marked with <code class="docutils literal"><span class="pre">//</span> <span class="pre">IMPLICIT</span></code></li>
+</ul>
+</div>
+<div class="section" id="in-enterprise-namespace">
+<h3><code class="docutils literal"><span class="pre">in-enterprise-namespace</span></code><a class="headerlink" href="#in-enterprise-namespace" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">AQQ01</span></code>
+Declaration not in enterprise namespace.</li>
+</ul>
+</div>
+<div class="section" id="include-guard">
+<h3><code class="docutils literal"><span class="pre">include-guard</span></code><a class="headerlink" href="#include-guard" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">TR14</span></code>
+Header file does not set up or use its include guard macro properly.</li>
+</ul>
+</div>
+<div class="section" id="include-in-extern-c">
+<h3><code class="docutils literal"><span class="pre">include-in-extern-c</span></code><a class="headerlink" href="#include-in-extern-c" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">IEC01</span></code>
+Header file included within C linkage specification.</li>
+</ul>
+</div>
+<div class="section" id="include-order">
+<h3><code class="docutils literal"><span class="pre">include-order</span></code><a class="headerlink" href="#include-order" title="Permalink to this headline">¶</a></h3>
+<p>Header files are not included in BDE-standard order.</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">SHO01</span></code>
+Headers out of order.</li>
+<li><code class="docutils literal"><span class="pre">SHO02</span></code>
+Header comes too late in order.</li>
+<li><code class="docutils literal"><span class="pre">SHO03</span></code>
+Component does not include its header.</li>
+<li><code class="docutils literal"><span class="pre">SHO04</span></code>
+Component does not include its header first.</li>
+<li><code class="docutils literal"><span class="pre">SHO06</span></code>
+<code class="docutils literal"><span class="pre">_...__ident.h</span></code> file not included.</li>
+<li><code class="docutils literal"><span class="pre">SHO07</span></code>
+<code class="docutils literal"><span class="pre">_..._scm_version.h</span></code> file not included.</li>
+<li><code class="docutils literal"><span class="pre">SHO08</span></code>
+Header and source use <code class="docutils literal"><span class="pre">bdes_ident.h</span></code> inconsistently.</li>
+<li><code class="docutils literal"><span class="pre">SHO09</span></code>
+<code class="docutils literal"><span class="pre">bsls</span></code> components should not include <code class="docutils literal"><span class="pre">_...__ident.h</span></code>.</li>
+</ul>
+</div>
+<div class="section" id="indentation">
+<h3><code class="docutils literal"><span class="pre">indentation</span></code><a class="headerlink" href="#indentation" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">IND01</span></code>
+Line is (possibly) mis-indented.</li>
+<li><code class="docutils literal"><span class="pre">IND02</span></code>
+Function parameters should be all or each on one line.</li>
+<li><code class="docutils literal"><span class="pre">IND03</span></code>
+Function parameters on multiple lines should align vertically.</li>
+<li><code class="docutils literal"><span class="pre">IND04</span></code>
+Declarators on multiple lines should align vertically.</li>
+<li><code class="docutils literal"><span class="pre">IND05</span></code>
+Template parameters should be all or each on one line.</li>
+<li><code class="docutils literal"><span class="pre">IND06</span></code>
+Template parameters on multiple lines should align vertically.</li>
+</ul>
+<p>Indentation checking is currently disabled in the default configuration file
+until more experience is gained, to avoid cascades of warnings.</p>
+<p>Code between <code class="docutils literal"><span class="pre">//..</span></code> display elements is not checked.</p>
+</div>
+<div class="section" id="leaking-macro">
+<h3><code class="docutils literal"><span class="pre">leaking-macro</span></code><a class="headerlink" href="#leaking-macro" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">SLM01</span></code>
+Component header file macro neither an include guard nor prefixed by
+component name.</li>
+</ul>
+</div>
+<div class="section" id="local-friendship-only">
+<h3><code class="docutils literal"><span class="pre">local-friendship-only</span></code><a class="headerlink" href="#local-friendship-only" title="Permalink to this headline">¶</a></h3>
+<p>Long-distance friendship.</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">TR19</span></code>
+Friendship granted outside of component.</li>
+</ul>
+</div>
+<div class="section" id="long-inline">
+<h3><code class="docutils literal"><span class="pre">long-inline</span></code><a class="headerlink" href="#long-inline" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">LI01</span></code>
+Inline function is longer than configuration file parameter
+<code class="docutils literal"><span class="pre">max_inline_lines</span></code> (default 10).</li>
+</ul>
+</div>
+<div class="section" id="longlines">
+<h3><code class="docutils literal"><span class="pre">longlines</span></code><a class="headerlink" href="#longlines" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">LL01</span></code>
+Line exceeds 79 characters.</li>
+</ul>
+</div>
+<div class="section" id="member-definition-in-class-definition">
+<h3><code class="docutils literal"><span class="pre">member-definition-in-class-definition</span></code><a class="headerlink" href="#member-definition-in-class-definition" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">CD01</span></code>
+Method defined directly in class definition.</li>
+</ul>
+</div>
+<div class="section" id="member-names">
+<h3><code class="docutils literal"><span class="pre">member-names</span></code><a class="headerlink" href="#member-names" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">MN01</span></code>
+Class data members must be private.</li>
+<li><code class="docutils literal"><span class="pre">MN02</span></code>
+Non-static class data member names must start with <code class="docutils literal"><span class="pre">d_</span></code>.</li>
+<li><code class="docutils literal"><span class="pre">MN03</span></code>
+Static class data member names must start with <code class="docutils literal"><span class="pre">s_</span></code>.</li>
+<li><code class="docutils literal"><span class="pre">MN04</span></code>
+Pointer class data member names must end in <code class="docutils literal"><span class="pre">_p</span></code>.</li>
+<li><code class="docutils literal"><span class="pre">MN05</span></code>
+Only pointer class data member names should end in <code class="docutils literal"><span class="pre">_p</span></code>.</li>
+</ul>
+</div>
+<div class="section" id="mid-return">
+<h3><code class="docutils literal"><span class="pre">mid-return</span></code><a class="headerlink" href="#mid-return" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">MR01</span></code>
+Non-final <code class="docutils literal"><span class="pre">return</span></code> statement not tagged with <code class="docutils literal"><span class="pre">//</span> <span class="pre">RETURN</span></code>.</li>
+<li><code class="docutils literal"><span class="pre">MR02</span></code>
+<code class="docutils literal"><span class="pre">//</span> <span class="pre">RETURN</span></code> tag does not end in column 79.</li>
+</ul>
+</div>
+<div class="section" id="namespace-tags">
+<h3><code class="docutils literal"><span class="pre">namespace-tags</span></code><a class="headerlink" href="#namespace-tags" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">NT01</span></code>
+Multi-line namespace blocks must end with
+<code class="docutils literal"><span class="pre">//</span> <span class="pre">close</span> <span class="pre">[</span> <span class="pre">enterprise</span> <span class="pre">|</span> <span class="pre">package</span> <span class="pre">|</span> <span class="pre">unnamed</span> <span class="pre">|</span> <span class="pre">description</span> <span class="pre">]</span> <span class="pre">namespace</span></code>.</li>
+</ul>
+</div>
+<div class="section" id="nested-declarations">
+<h3><code class="docutils literal"><span class="pre">nested-declarations</span></code><a class="headerlink" href="#nested-declarations" title="Permalink to this headline">¶</a></h3>
+<ul>
+<li><p class="first"><code class="docutils literal"><span class="pre">TR04</span></code>
+Declarations not properly nested in package namespace.</p>
+<p>Will not warn about main files unless parameter <code class="docutils literal"><span class="pre">main_namespace_check</span></code>
+is <code class="docutils literal"><span class="pre">on</span></code> (default <code class="docutils literal"><span class="pre">off</span></code>).</p>
+<p>Will not warn about packages included in parameter <code class="docutils literal"><span class="pre">global_packages</span></code>
+(default <code class="docutils literal"><span class="pre">bslmf</span> <span class="pre">bslstl</span></code>).</p>
+</li>
+</ul>
+</div>
+<div class="section" id="nonascii">
+<h3><code class="docutils literal"><span class="pre">nonascii</span></code><a class="headerlink" href="#nonascii" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">NA01</span></code>
+Source code contains bytes with value greater than 127.</li>
+</ul>
+</div>
+<div class="section" id="operator-void-star">
+<h3><code class="docutils literal"><span class="pre">operator-void-star</span></code><a class="headerlink" href="#operator-void-star" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">CB01</span></code>
+Class contains conversion operator to <code class="docutils literal"><span class="pre">void</span> <span class="pre">*</span></code> or <code class="docutils literal"><span class="pre">bool</span></code>.</li>
+</ul>
+</div>
+<div class="section" id="packagename">
+<h3><code class="docutils literal"><span class="pre">packagename</span></code><a class="headerlink" href="#packagename" title="Permalink to this headline">¶</a></h3>
+<p>Component package name or location does not follow BDE convention.</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">PN01</span></code>
+Only one underscore in standalone component file name.</li>
+<li><code class="docutils literal"><span class="pre">PN02</span></code>
+Component part of filename should be prefixed by package name.</li>
+<li><code class="docutils literal"><span class="pre">PN03</span></code>
+Package part of name should be group name followed by 1-4 characters.</li>
+<li><code class="docutils literal"><span class="pre">PN04</span></code>
+Package and group names must be lower-case and not start with a digit.</li>
+<li><code class="docutils literal"><span class="pre">PN05</span></code>
+Component is not located within its correct package directory.</li>
+</ul>
+</div>
+<div class="section" id="ref-to-movableref">
+<h3><code class="docutils literal"><span class="pre">ref-to-movableref</span></code><a class="headerlink" href="#ref-to-movableref" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">MRR01</span></code>
+MovableRef should be passed by value, not reference.</li>
+</ul>
+</div>
+<div class="section" id="refactor">
+<h3><code class="docutils literal"><span class="pre">refactor</span></code><a class="headerlink" href="#refactor" title="Permalink to this headline">¶</a></h3>
+<p>Uses the rewriting facility to change included files and use of names.
+Specification is done via the parameter <code class="docutils literal"><span class="pre">refactor</span></code> in the configuration
+file.  Use the <code class="docutils literal"><span class="pre">-rewrite</span></code> option to generate the rewritten file.</p>
+<p>To replace an included file, specify <code class="docutils literal"><span class="pre">file(old[,new]*)</span></code>; the include of
+the old header file will be removed and replaced by the new ones, if any. If
+the old header was surrounded by redundant include guards, the replacements
+will be as well.  E.g., <code class="docutils literal"><span class="pre">append</span> <span class="pre">refactor</span> <span class="pre">file(bdet_date.h,bdlt_date.h)</span></code>.</p>
+<p>To replace a name, specify <code class="docutils literal"><span class="pre">name(old,new)</span></code>; the old name should be fully
+elaborated with namespaces and classes, except for the enterprise namespace
+(<code class="docutils literal"><span class="pre">BloombergLP</span></code>).  Appearances of the old name, elaborated or not, will be
+replaced by the specified new value.  E.g.,
+<code class="docutils literal"><span class="pre">append</span> <span class="pre">refactor</span> <span class="pre">name(bdetu_DayOfWeek::Day::BDET_WEDNESDAY,e_WEDNESDAY)</span></code>.
+Macro names may also be replaced this way; just specify the old and the new.</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">RX01</span></code>
+Errors in the refactor specification (not in the examined files).</li>
+<li><code class="docutils literal"><span class="pre">RF01</span></code>
+Replacing included files.</li>
+<li><code class="docutils literal"><span class="pre">RC01</span></code>
+Replacing a name.</li>
+<li><code class="docutils literal"><span class="pre">RD01</span></code>
+Replacing forward class declaration.</li>
+</ul>
+</div>
+<div class="section" id="refactor-config">
+<h3><code class="docutils literal"><span class="pre">refactor-config</span></code><a class="headerlink" href="#refactor-config" title="Permalink to this headline">¶</a></h3>
+<p>Given pairs of old/new header files, generate a configuration file for the
+<code class="docutils literal"><span class="pre">refactor</span></code> check from corresponding pairs of names appending to the file
+specified by the configuration file parameter <code class="docutils literal"><span class="pre">refactorfile</span></code> (or the
+default, &#8220;refactor.cfg&#8221; if left unspecified).</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">DD01</span></code>
+Eligible name for refactoring.</li>
+</ul>
+</div>
+<div class="section" id="runtime-initialization">
+<h3><code class="docutils literal"><span class="pre">runtime-initialization</span></code><a class="headerlink" href="#runtime-initialization" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">AQa01</span></code>
+Global variable with runtime initialization.</li>
+</ul>
+</div>
+<div class="section" id="short-compare">
+<h3><code class="docutils literal"><span class="pre">short-compare</span></code><a class="headerlink" href="#short-compare" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">US01</span></code>
+Comparison between signed and unsigned short may cause unexpected
+behavior.  Signed and unsigned shorts in expressions are both promoted
+to integer, with sign-extension for signed short and zero-extension
+for unsigned short.  Thus a signed short and an unsigned short with the
+same bit values and the high bit set will convert to different integer
+values.</li>
+</ul>
+</div>
+<div class="section" id="spell-check">
+<h3><code class="docutils literal"><span class="pre">spell-check</span></code><a class="headerlink" href="#spell-check" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">SP01</span></code>
+Misspelled word in comment.</li>
+<li><code class="docutils literal"><span class="pre">SP02</span></code>
+Cannot start spell checker.  (Not an error in the examined file.)</li>
+<li><code class="docutils literal"><span class="pre">SP03</span></code>
+Misspelled word in parameter name.</li>
+</ul>
+<p>Spell-checking is disabled by default in the config file
+(<code class="docutils literal"><span class="pre">check</span> <span class="pre">spell-check</span> <span class="pre">off</span></code>) to avoid noise.</p>
+<p>Words in configuration parameter <code class="docutils literal"><span class="pre">dictionary</span></code> (default too numerous to
+mention - see config file) are assumed correct.</p>
+<p>Words that appear at least as many times as non-zero configuration
+parameter <code class="docutils literal"><span class="pre">spelled_ok_count</span></code> (default 3) are assumed correct.</p>
+<p>The spell checker is the library version of <a class="reference external" href="http://aspell.net">GNU Aspell</a>.</p>
+</div>
+<div class="section" id="strict-alias">
+<h3><code class="docutils literal"><span class="pre">strict-alias</span></code><a class="headerlink" href="#strict-alias" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">AL01</span></code>
+Possible strict-aliasing violation.</li>
+</ul>
+</div>
+<div class="section" id="string-add">
+<h3><code class="docutils literal"><span class="pre">string-add</span></code><a class="headerlink" href="#string-add" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">SA01</span></code>
+Addition of integer and string literal.</li>
+</ul>
+</div>
+<div class="section" id="swap-a-b">
+<h3><code class="docutils literal"><span class="pre">swap-a-b</span></code><a class="headerlink" href="#swap-a-b" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">SWAB01</span></code>
+Parameters of free <em>swap</em> function are not named <em>a</em> and <em>b</em>.</li>
+</ul>
+</div>
+<div class="section" id="swap-using">
+<h3><code class="docutils literal"><span class="pre">swap-using</span></code><a class="headerlink" href="#swap-using" title="Permalink to this headline">¶</a></h3>
+<p>Directly invoking <code class="docutils literal"><span class="pre">std::swap</span></code> or <code class="docutils literal"><span class="pre">bsl::swap</span></code> can prevent argument-
+dependent lookup from finding overloads.</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">SU01</span></code>
+Prefer <code class="docutils literal"><span class="pre">using</span> <span class="pre">std::swap;</span> <span class="pre">swap(...);'</span></code> over <code class="docutils literal"><span class="pre">std::swap(...);</span></code>.</li>
+</ul>
+</div>
+<div class="section" id="template-typename">
+<h3><code class="docutils literal"><span class="pre">template-typename</span></code><a class="headerlink" href="#template-typename" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">TY01</span></code>
+Use of <code class="docutils literal"><span class="pre">typename</span></code> instead of <code class="docutils literal"><span class="pre">class</span></code> in <code class="docutils literal"><span class="pre">template</span></code> header.</li>
+<li><code class="docutils literal"><span class="pre">TY02</span></code>
+Use of single-letter template parameter names.</li>
+<li><code class="docutils literal"><span class="pre">TY03</span></code>
+Use of non <code class="docutils literal"><span class="pre">ALL_CAPS</span></code> template parameter names.</li>
+</ul>
+</div>
+<div class="section" id="test-driver">
+<h3><code class="docutils literal"><span class="pre">test-driver</span></code><a class="headerlink" href="#test-driver" title="Permalink to this headline">¶</a></h3>
+<p>Checks for test drivers.</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">TP02</span></code>
+TEST PLAN section is missing <code class="docutils literal"><span class="pre">//-...-</span></code> separator line.</li>
+<li><code class="docutils literal"><span class="pre">TP03</span></code>
+TEST PLAN item is missing a test number.</li>
+<li><code class="docutils literal"><span class="pre">TP04</span></code>
+TEST PLAN item test number is zero.</li>
+<li><code class="docutils literal"><span class="pre">TP05</span></code>
+Test case without comment.</li>
+<li><code class="docutils literal"><span class="pre">TP06</span></code>
+Test case does not list item from TEST PLAN.</li>
+<li><code class="docutils literal"><span class="pre">TP07</span></code>
+TEST PLAN item is empty.</li>
+<li><code class="docutils literal"><span class="pre">TP08</span></code>
+Item is mentioned in test case comment but that number is not in TEST PLAN
+item.</li>
+<li><code class="docutils literal"><span class="pre">TP09</span></code>
+Item is mentioned in test case comment but not in TEST PLAN.</li>
+<li><code class="docutils literal"><span class="pre">TP10</span></code>
+Test driver <code class="docutils literal"><span class="pre">case</span> <span class="pre">0:</span></code> has a test comment.</li>
+<li><code class="docutils literal"><span class="pre">TP11</span></code>
+Test driver has no <code class="docutils literal"><span class="pre">switch</span></code> statement in <code class="docutils literal"><span class="pre">main()</span></code>.</li>
+<li><code class="docutils literal"><span class="pre">TP12</span></code>
+Test case comment has no <code class="docutils literal"><span class="pre">//</span> <span class="pre">Testing:</span></code> line.</li>
+<li><code class="docutils literal"><span class="pre">TP13</span></code>
+TEST PLAN has no items.</li>
+<li><code class="docutils literal"><span class="pre">TP14</span></code>
+Test driver has no TEST PLAN.</li>
+<li><code class="docutils literal"><span class="pre">TP15</span></code>
+<code class="docutils literal"><span class="pre">//</span> <span class="pre">Testing:</span></code> line in test comment is recognizable but not exactly
+correct.</li>
+<li><code class="docutils literal"><span class="pre">TP16</span></code>
+Extra characters in TEST PLAN items before <code class="docutils literal"><span class="pre">[</span> <span class="pre">]</span></code>.</li>
+<li><code class="docutils literal"><span class="pre">TP17</span></code>
+Test case does not start with <code class="docutils literal"><span class="pre">if</span> <span class="pre">(verbose)</span></code> print banner...</li>
+<li><code class="docutils literal"><span class="pre">TP18</span></code>
+Test case printed banner is formatted incorrectly.</li>
+<li><code class="docutils literal"><span class="pre">TP19</span></code>
+Test driver has various missing or malformed boilerplate sections.</li>
+<li><code class="docutils literal"><span class="pre">TP20</span></code>
+Within loop in test case, action under <code class="docutils literal"><span class="pre">if</span> <span class="pre">(verbose)</span></code> rather than a
+very verbose flag.</li>
+<li><code class="docutils literal"><span class="pre">TP21</span></code>
+Within loop in test case, no action under a (very) verbose flag.</li>
+<li><code class="docutils literal"><span class="pre">TP22</span></code>
+Test case title does not match printed banner.</li>
+<li><code class="docutils literal"><span class="pre">TP23</span></code>
+<code class="docutils literal"><span class="pre">main()</span></code> should end with <code class="docutils literal"><span class="pre">return</span> <span class="pre">testStatus;</span></code>.</li>
+<li><code class="docutils literal"><span class="pre">TP24</span></code>
+<code class="docutils literal"><span class="pre">default</span></code> case should set <code class="docutils literal"><span class="pre">testStatus</span> <span class="pre">=</span> <span class="pre">-1;</span></code>.</li>
+<li><code class="docutils literal"><span class="pre">TP25</span></code>
+Cannot find definition of class mentioned in <code class="docutils literal"><span class="pre">//&#64;CLASSES:</span></code>.</li>
+<li><code class="docutils literal"><span class="pre">TP26</span></code>
+Test plan does not cover all public functions of a class mentioned in
+<code class="docutils literal"><span class="pre">//&#64;CLASSES:</span></code>.</li>
+<li><code class="docutils literal"><span class="pre">TP27</span></code>
+Public function of a class in <code class="docutils literal"><span class="pre">//&#64;CLASSES:</span></code> is not called from the test
+driver.</li>
+<li><code class="docutils literal"><span class="pre">TP28</span></code>
+Test case has mis-formatted <code class="docutils literal"><span class="pre">//</span> <span class="pre">Concerns:</span></code> line.</li>
+<li><code class="docutils literal"><span class="pre">TP29</span></code>
+Test case has improperly numbered concern.</li>
+<li><code class="docutils literal"><span class="pre">TP30</span></code>
+Test case is missing <code class="docutils literal"><span class="pre">Concerns:</span></code> section.</li>
+<li><code class="docutils literal"><span class="pre">TP31</span></code>
+Test case has mis-formatted <code class="docutils literal"><span class="pre">//</span> <span class="pre">Plan:</span></code> line.</li>
+<li><code class="docutils literal"><span class="pre">TP32</span></code>
+Test case has improperly numbered plan.</li>
+<li><code class="docutils literal"><span class="pre">TP33</span></code>
+Test case is missing <code class="docutils literal"><span class="pre">Plan:</span></code> section.</li>
+</ul>
+</div>
+<div class="section" id="that-which">
+<h3><code class="docutils literal"><span class="pre">that-which</span></code><a class="headerlink" href="#that-which" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">TW01</span></code>
+Prefer <code class="docutils literal"><span class="pre">that</span></code> to <code class="docutils literal"><span class="pre">which</span></code>.</li>
+<li><code class="docutils literal"><span class="pre">TW02</span></code>
+Possibly incorrect comma before <code class="docutils literal"><span class="pre">that</span></code>.</li>
+</ul>
+</div>
+<div class="section" id="throw-non-std-exception">
+<h3><code class="docutils literal"><span class="pre">throw-non-std-exception</span></code><a class="headerlink" href="#throw-non-std-exception" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">FE01</span></code>
+Throwing exception not derived from <code class="docutils literal"><span class="pre">std::exception</span></code>.</li>
+</ul>
+</div>
+<div class="section" id="transitive-includes">
+<h3><code class="docutils literal"><span class="pre">transitive-includes</span></code><a class="headerlink" href="#transitive-includes" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">AQK01</span></code>
+Header included transitively should be included directly.</li>
+<li><code class="docutils literal"><span class="pre">AQK02</span></code>
+<code class="docutils literal"><span class="pre">&lt;bsls_buildtarget.h&gt;</span></code> needed for <code class="docutils literal"><span class="pre">BDE_BUILD_TARGET_...</span></code> macros.</li>
+</ul>
+</div>
+<div class="section" id="unnamed-temporary">
+<h3><code class="docutils literal"><span class="pre">unnamed-temporary</span></code><a class="headerlink" href="#unnamed-temporary" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">UT01</span></code>
+Unnamed object will be immediately destroyed.</li>
+</ul>
+<p>The canonical example of this error is <code class="docutils literal"><span class="pre">mutex</span> <span class="pre">m;</span> <span class="pre">mutex_guard(&amp;m);</span></code>.</p>
+</div>
+<div class="section" id="upper-case-names">
+<h3><code class="docutils literal"><span class="pre">upper-case-names</span></code><a class="headerlink" href="#upper-case-names" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">UC01</span></code>
+Names of variables and types should not be all upper-case.</li>
+</ul>
+</div>
+<div class="section" id="using-declaration-in-header">
+<h3><code class="docutils literal"><span class="pre">using-declaration-in-header</span></code><a class="headerlink" href="#using-declaration-in-header" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">TR16</span></code>
+Header file contains <code class="docutils literal"><span class="pre">using</span></code> declaration.</li>
+<li><code class="docutils literal"><span class="pre">AQJ01</span></code>
+Using declaration precedes header inclusion.</li>
+</ul>
+<p>Will not warn about packages included in parameter <code class="docutils literal"><span class="pre">global_packages</span></code>
+(default <code class="docutils literal"><span class="pre">bslmf</span> <span class="pre">bslstl</span></code>).</p>
+</div>
+<div class="section" id="using-directive-in-header">
+<h3><code class="docutils literal"><span class="pre">using-directive-in-header</span></code><a class="headerlink" href="#using-directive-in-header" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">TR16</span></code>
+Header file contains <code class="docutils literal"><span class="pre">using</span></code> directive.</li>
+<li><code class="docutils literal"><span class="pre">AQJ02</span></code>
+Using directive precedes header inclusion.</li>
+</ul>
+<p>Will not warn about packages included in parameter <code class="docutils literal"><span class="pre">global_packages</span></code>
+(default <code class="docutils literal"><span class="pre">bslmf</span> <span class="pre">bslstl</span></code>).</p>
+</div>
+<div class="section" id="verify-same-argument-names">
+<h3><code class="docutils literal"><span class="pre">verify-same-argument-names</span></code><a class="headerlink" href="#verify-same-argument-names" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">AN01</span></code>
+Function declaration and definition use different parameter names.</li>
+</ul>
+</div>
+<div class="section" id="whitespace">
+<h3><code class="docutils literal"><span class="pre">whitespace</span></code><a class="headerlink" href="#whitespace" title="Permalink to this headline">¶</a></h3>
+<p>Whitespace problems.</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">TAB01</span></code>
+File contains tab characters.</li>
+<li><code class="docutils literal"><span class="pre">ESP01</span></code>
+File contains spaces at end of lines.</li>
+</ul>
+</div>
+</div>
+<div class="section" id="building-bv">
+<h2>Building <code class="docutils literal"><span class="pre">bde_verify</span></code><a class="headerlink" href="#building-bv" title="Permalink to this headline">¶</a></h2>
+<p>See the README file at the top level of the source tree.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="#">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#"><code class="docutils literal"><span class="pre">BDE_VERIFY</span></code></a><ul>
+<li><a class="reference internal" href="#name">Name</a></li>
+<li><a class="reference internal" href="#synopsis">Synopsis</a></li>
+<li><a class="reference internal" href="#description">Description</a></li>
+<li><a class="reference internal" href="#options">Options</a></li>
+<li><a class="reference internal" href="#git-diff-output-restriction">Git-Diff Output Restriction</a></li>
+<li><a class="reference internal" href="#configuration">Configuration</a></li>
+<li><a class="reference internal" href="#local-suppressions">Local Suppressions</a></li>
+<li><a class="reference internal" href="#exit-status">Exit Status</a></li>
+<li><a class="reference internal" href="#checks">Checks</a><ul>
+<li><a class="reference internal" href="#allocator-forward"><code class="docutils literal"><span class="pre">allocator-forward</span></code></a></li>
+<li><a class="reference internal" href="#allocator-new"><code class="docutils literal"><span class="pre">allocator-new</span></code></a></li>
+<li><a class="reference internal" href="#alphabetical-functions"><code class="docutils literal"><span class="pre">alphabetical-functions</span></code></a></li>
+<li><a class="reference internal" href="#anon-namespace"><code class="docutils literal"><span class="pre">anon-namespace</span></code></a></li>
+<li><a class="reference internal" href="#array-argument"><code class="docutils literal"><span class="pre">array-argument</span></code></a></li>
+<li><a class="reference internal" href="#array-initialization"><code class="docutils literal"><span class="pre">array-initialization</span></code></a></li>
+<li><a class="reference internal" href="#assert-assign"><code class="docutils literal"><span class="pre">assert-assign</span></code></a></li>
+<li><a class="reference internal" href="#banner"><code class="docutils literal"><span class="pre">banner</span></code></a></li>
+<li><a class="reference internal" href="#base"><code class="docutils literal"><span class="pre">base</span></code></a></li>
+<li><a class="reference internal" href="#boolcomparison"><code class="docutils literal"><span class="pre">boolcomparison</span></code></a></li>
+<li><a class="reference internal" href="#bsl-overrides-std"><code class="docutils literal"><span class="pre">bsl-overrides-std</span></code></a></li>
+<li><a class="reference internal" href="#bsl-std-string"><code class="docutils literal"><span class="pre">bsl-std-string</span></code></a></li>
+<li><a class="reference internal" href="#c-cast"><code class="docutils literal"><span class="pre">c-cast</span></code></a></li>
+<li><a class="reference internal" href="#char-classification-range"><code class="docutils literal"><span class="pre">char-classification-range</span></code></a></li>
+<li><a class="reference internal" href="#char-vs-string"><code class="docutils literal"><span class="pre">char-vs-string</span></code></a></li>
+<li><a class="reference internal" href="#class-sections"><code class="docutils literal"><span class="pre">class-sections</span></code></a></li>
+<li><a class="reference internal" href="#comments"><code class="docutils literal"><span class="pre">comments</span></code></a></li>
+<li><a class="reference internal" href="#comparison-order"><code class="docutils literal"><span class="pre">comparison-order</span></code></a></li>
+<li><a class="reference internal" href="#component-header"><code class="docutils literal"><span class="pre">component-header</span></code></a></li>
+<li><a class="reference internal" href="#component-prefix"><code class="docutils literal"><span class="pre">component-prefix</span></code></a></li>
+<li><a class="reference internal" href="#constant-return"><code class="docutils literal"><span class="pre">constant-return</span></code></a></li>
+<li><a class="reference internal" href="#contiguous-switch"><code class="docutils literal"><span class="pre">contiguous-switch</span></code></a></li>
+<li><a class="reference internal" href="#cpp-in-extern-c"><code class="docutils literal"><span class="pre">cpp-in-extern-c</span></code></a></li>
+<li><a class="reference internal" href="#deprecated"><code class="docutils literal"><span class="pre">deprecated</span></code></a></li>
+<li><a class="reference internal" href="#diagnostic-filter"><code class="docutils literal"><span class="pre">diagnostic-filter</span></code></a></li>
+<li><a class="reference internal" href="#do-not-use-endl"><code class="docutils literal"><span class="pre">do-not-use-endl</span></code></a></li>
+<li><a class="reference internal" href="#dump-ast"><code class="docutils literal"><span class="pre">dump-ast</span></code></a></li>
+<li><a class="reference internal" href="#entity-restrictions"><code class="docutils literal"><span class="pre">entity-restrictions</span></code></a></li>
+<li><a class="reference internal" href="#enum-value"><code class="docutils literal"><span class="pre">enum-value</span></code></a></li>
+<li><a class="reference internal" href="#external-guards"><code class="docutils literal"><span class="pre">external-guards</span></code></a></li>
+<li><a class="reference internal" href="#files"><code class="docutils literal"><span class="pre">files</span></code></a></li>
+<li><a class="reference internal" href="#free-functions-depend"><code class="docutils literal"><span class="pre">free-functions-depend</span></code></a></li>
+<li><a class="reference internal" href="#friends-in-headers"><code class="docutils literal"><span class="pre">friends-in-headers</span></code></a></li>
+<li><a class="reference internal" href="#function-contract"><code class="docutils literal"><span class="pre">function-contract</span></code></a></li>
+<li><a class="reference internal" href="#global-data"><code class="docutils literal"><span class="pre">global-data</span></code></a></li>
+<li><a class="reference internal" href="#global-function-only-in-source"><code class="docutils literal"><span class="pre">global-function-only-in-source</span></code></a></li>
+<li><a class="reference internal" href="#global-type-only-in-source"><code class="docutils literal"><span class="pre">global-type-only-in-source</span></code></a></li>
+<li><a class="reference internal" href="#groupname"><code class="docutils literal"><span class="pre">groupname</span></code></a></li>
+<li><a class="reference internal" href="#hash-pointer"><code class="docutils literal"><span class="pre">hash-pointer</span></code></a></li>
+<li><a class="reference internal" href="#headline"><code class="docutils literal"><span class="pre">headline</span></code></a></li>
+<li><a class="reference internal" href="#implicit-ctor"><code class="docutils literal"><span class="pre">implicit-ctor</span></code></a></li>
+<li><a class="reference internal" href="#in-enterprise-namespace"><code class="docutils literal"><span class="pre">in-enterprise-namespace</span></code></a></li>
+<li><a class="reference internal" href="#include-guard"><code class="docutils literal"><span class="pre">include-guard</span></code></a></li>
+<li><a class="reference internal" href="#include-in-extern-c"><code class="docutils literal"><span class="pre">include-in-extern-c</span></code></a></li>
+<li><a class="reference internal" href="#include-order"><code class="docutils literal"><span class="pre">include-order</span></code></a></li>
+<li><a class="reference internal" href="#indentation"><code class="docutils literal"><span class="pre">indentation</span></code></a></li>
+<li><a class="reference internal" href="#leaking-macro"><code class="docutils literal"><span class="pre">leaking-macro</span></code></a></li>
+<li><a class="reference internal" href="#local-friendship-only"><code class="docutils literal"><span class="pre">local-friendship-only</span></code></a></li>
+<li><a class="reference internal" href="#long-inline"><code class="docutils literal"><span class="pre">long-inline</span></code></a></li>
+<li><a class="reference internal" href="#longlines"><code class="docutils literal"><span class="pre">longlines</span></code></a></li>
+<li><a class="reference internal" href="#member-definition-in-class-definition"><code class="docutils literal"><span class="pre">member-definition-in-class-definition</span></code></a></li>
+<li><a class="reference internal" href="#member-names"><code class="docutils literal"><span class="pre">member-names</span></code></a></li>
+<li><a class="reference internal" href="#mid-return"><code class="docutils literal"><span class="pre">mid-return</span></code></a></li>
+<li><a class="reference internal" href="#namespace-tags"><code class="docutils literal"><span class="pre">namespace-tags</span></code></a></li>
+<li><a class="reference internal" href="#nested-declarations"><code class="docutils literal"><span class="pre">nested-declarations</span></code></a></li>
+<li><a class="reference internal" href="#nonascii"><code class="docutils literal"><span class="pre">nonascii</span></code></a></li>
+<li><a class="reference internal" href="#operator-void-star"><code class="docutils literal"><span class="pre">operator-void-star</span></code></a></li>
+<li><a class="reference internal" href="#packagename"><code class="docutils literal"><span class="pre">packagename</span></code></a></li>
+<li><a class="reference internal" href="#ref-to-movableref"><code class="docutils literal"><span class="pre">ref-to-movableref</span></code></a></li>
+<li><a class="reference internal" href="#refactor"><code class="docutils literal"><span class="pre">refactor</span></code></a></li>
+<li><a class="reference internal" href="#refactor-config"><code class="docutils literal"><span class="pre">refactor-config</span></code></a></li>
+<li><a class="reference internal" href="#runtime-initialization"><code class="docutils literal"><span class="pre">runtime-initialization</span></code></a></li>
+<li><a class="reference internal" href="#short-compare"><code class="docutils literal"><span class="pre">short-compare</span></code></a></li>
+<li><a class="reference internal" href="#spell-check"><code class="docutils literal"><span class="pre">spell-check</span></code></a></li>
+<li><a class="reference internal" href="#strict-alias"><code class="docutils literal"><span class="pre">strict-alias</span></code></a></li>
+<li><a class="reference internal" href="#string-add"><code class="docutils literal"><span class="pre">string-add</span></code></a></li>
+<li><a class="reference internal" href="#swap-a-b"><code class="docutils literal"><span class="pre">swap-a-b</span></code></a></li>
+<li><a class="reference internal" href="#swap-using"><code class="docutils literal"><span class="pre">swap-using</span></code></a></li>
+<li><a class="reference internal" href="#template-typename"><code class="docutils literal"><span class="pre">template-typename</span></code></a></li>
+<li><a class="reference internal" href="#test-driver"><code class="docutils literal"><span class="pre">test-driver</span></code></a></li>
+<li><a class="reference internal" href="#that-which"><code class="docutils literal"><span class="pre">that-which</span></code></a></li>
+<li><a class="reference internal" href="#throw-non-std-exception"><code class="docutils literal"><span class="pre">throw-non-std-exception</span></code></a></li>
+<li><a class="reference internal" href="#transitive-includes"><code class="docutils literal"><span class="pre">transitive-includes</span></code></a></li>
+<li><a class="reference internal" href="#unnamed-temporary"><code class="docutils literal"><span class="pre">unnamed-temporary</span></code></a></li>
+<li><a class="reference internal" href="#upper-case-names"><code class="docutils literal"><span class="pre">upper-case-names</span></code></a></li>
+<li><a class="reference internal" href="#using-declaration-in-header"><code class="docutils literal"><span class="pre">using-declaration-in-header</span></code></a></li>
+<li><a class="reference internal" href="#using-directive-in-header"><code class="docutils literal"><span class="pre">using-directive-in-header</span></code></a></li>
+<li><a class="reference internal" href="#verify-same-argument-names"><code class="docutils literal"><span class="pre">verify-same-argument-names</span></code></a></li>
+<li><a class="reference internal" href="#whitespace"><code class="docutils literal"><span class="pre">whitespace</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#building-bv">Building <code class="docutils literal"><span class="pre">bde_verify</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/index.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="nav-item nav-item-0"><a href="#">bde_verify 1.2.19 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, Hyman Rosen.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>
