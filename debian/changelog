@@ -1,3 +1,14 @@
+bde-verify (1.2.20) unstable; urgency=low
+
+  * fed6925 Bump version
+  * 8169c8d Merge branch 'gcc-toolchain_drqs-115927546' into debian
+  * 5bc4835 Generate gh-pages
+  * e263df2 Generate gh-pages
+  * 55e660c Generate gh-pages
+  * 64dba03 More of trying to find a good gcc toolchain to pass
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Tue, 7 Aug 2018 18:14:47 -0400
+
 bde-verify (1.2.19) unstable; urgency=low
 
   * 3dab7db use bbgithub
