@@ -41,7 +41,8 @@ namespace
 
 static void check(Analyser& analyser, CXXConstructorDecl const* decl)
 {
-    if (decl->isConvertingConstructor(false)
+    if (analyser.is_component(decl)
+        && decl->isConvertingConstructor(false)
         && !decl->isCopyOrMoveConstructor()
         && decl->isFirstDecl()
         && !llvm::dyn_cast<ClassTemplateSpecializationDecl>(decl->getParent())
