@@ -64,19 +64,18 @@ namespace
             suppressions const& attachment(
                 analyser_->attachment<suppressions>());
             for (Decl const* decl : attachment.reports_) {
-                typedef std::set<Location>::const_iterator const_iterator;
-                SourceLocation end(decl->getLocStart());
-                Location loc(analyser_->get_location(end));
-                const_iterator it(attachment.entries_.lower_bound(loc));
+                Location declB(analyser_->get_location(decl->getLocStart()));
+                Location declE(analyser_->get_location(decl->getLocEnd()));
+                auto it(attachment.entries_.lower_bound(declB));
                 Decl const* next(decl->getNextDeclInContext());
 
                 if (it == attachment.entries_.end() ||
                     (next &&
                      analyser_->get_location(next->getLocStart()) < *it &&
-                     loc < analyser_->get_location(next->getLocation())) ||
-                    it->file() != loc.file() ||
-                    (it->line() != loc.line() &&
-                     it->line() != loc.line() + 1) ||
+                     declB < analyser_->get_location(next->getLocation())) ||
+                    it->file() != declB.file() ||
+                    it->line() < declB.line() ||
+                    it->line() > declE.line() + 1 ||
                     it->column() != 69) {
                     analyser_->report(decl, check_name, "IEC01",
                             "Constructor suitable for implicit conversions")
