@@ -288,6 +288,13 @@ struct report : Report<data>
     void match_nested_allocator_trait(const BoundNodes& nodes);
         // Callback for classes with nested allocator traits.
 
+    void match_force_implicit(const BoundNodes& nodes);
+        // Callback for classes in 'allocator_transform' config.
+
+    void force_implicit_definitions(const CXXRecordDecl *record);
+        // Force the instantiation of the various implicit members of the
+        // specified 'record' that the compiler is lazily trying to put off.
+
     void match_class_using_allocator(const BoundNodes& nodes);
         // Callback for classes having constructors with allocator parameters.
 
@@ -340,6 +347,9 @@ struct report : Report<data>
 
     bool has_public_copy_constructor(const CXXRecordDecl *decl);
         // Whether the class has a publicly accessible copy constructor.
+
+    bool should_transform(const CXXRecordDecl *record);
+        // Whether the class name is in the 'allocator_transform' config.
 
     void match_allocator_method(const BoundNodes& nodes);
         // Callback for allocator method declaration.
@@ -668,23 +678,17 @@ static internal::DynTypedMatcher class_using_allocator_matcher()
     )).bind("r")));
 }
 
-void report::match_class_using_allocator(const BoundNodes& nodes)
+void report::force_implicit_definitions(const CXXRecordDecl *record)
 {
-    auto r = const_cast<CXXRecordDecl *>(nodes.getNodeAs<CXXRecordDecl>("r"));
+    auto r = const_cast<CXXRecordDecl *>(record);
     if (r->isDependentContext()) {
         // ???
         // This is a template.  If it doesn't have user-declared copy, move, or
-        // defualt constructors, we can't force clang to make them for us.  We
-        // need to do something else here.
+        // defualt constructors, we can't force clang to make them for us.
+        // Just punt.
+        return;
     }
-    else {
-        a.sema().ForceDeclarationOfImplicitMembers(r);
-    }
-    QualType type = r->getTypeForDecl()->getCanonicalTypeInternal();
-    auto &t = d.type_takes_allocator_[type.getTypePtr()];
-    t = AllocatorLocation(t | (nodes.getNodeAs<Decl>("second") ? a_Second :
-                               nodes.getNodeAs<Decl>("last")   ? a_Last   :
-                                                                 a_None));
+    a.sema().ForceDeclarationOfImplicitMembers(r);
     for (auto c : r->ctors()) {
         if (c->isDefaulted() &&
             !c->isDeleted() &&
@@ -704,6 +708,17 @@ void report::match_class_using_allocator(const BoundNodes& nodes)
             }
         }
     }
+}
+
+void report::match_class_using_allocator(const BoundNodes& nodes)
+{
+    auto r = nodes.getNodeAs<CXXRecordDecl>("r");
+    force_implicit_definitions(r);
+    QualType type = r->getTypeForDecl()->getCanonicalTypeInternal();
+    auto &t = d.type_takes_allocator_[type.getTypePtr()];
+    t = AllocatorLocation(t | (nodes.getNodeAs<Decl>("second") ? a_Second :
+                               nodes.getNodeAs<Decl>("last")   ? a_Last   :
+                                                                 a_None));
 }
 
 static internal::DynTypedMatcher allocator_trait_matcher(int value)
@@ -967,9 +982,25 @@ void report::match_allocator_member(const BoundNodes& nodes)
         nodes.getNodeAs<FieldDecl>("p");
 }
 
+static internal::DynTypedMatcher force_implicit_matcher()
+{
+    return decl(forEachDescendant(cxxRecordDecl(anything()).bind("r")));
+}
+
+void report::match_force_implicit(const BoundNodes& nodes)
+{
+    const auto *r = nodes.getNodeAs<CXXRecordDecl>("r");
+    if (should_transform(r)) {
+        force_implicit_definitions(r);
+    }
+}
+
 void report::operator()()
 {
     MatchFinder mf;
+
+    OnMatch<report, &report::match_force_implicit> m14(this);
+    mf.addDynamicMatcher(force_implicit_matcher(), &m14);
 
     OnMatch<report, &report::match_nested_allocator_trait> m2(this);
     mf.addDynamicMatcher(nested_allocator_trait_matcher(), &m2);
@@ -1071,12 +1102,30 @@ bool report::has_public_copy_constructor(const CXXRecordDecl *decl)
     return false;
 }
 
+bool report::should_transform(const CXXRecordDecl *record)
+{
+    if (a.is_component(record)) {
+        llvm::StringRef to_transform =
+            a.config()->value("allocator_transform", record->getLocation());
+        llvm::StringRef name = record->getNameAsString();
+        for (size_t colons = 0;; colons += 2) {
+            if (contains_word(to_transform, name.drop_front(colons))) {
+                return true;                                          // RETURN
+            }
+            if ((colons = name.find("::", colons)) == name.npos) {
+                break;
+            }
+        }
+    }
+    return false;
+}
+
 void report::check_not_forwarded(data::Ctors::const_iterator begin,
                                  data::Ctors::const_iterator end)
 {
-    std::set<std::pair<bool, const CXXRecordDecl *> > records;
-    std::set<Range>                                   processed;
-    std::set<const CXXRecordDecl *>                   added_d_allocator;
+    std::set<std::pair<bool, const CXXRecordDecl *>> records;
+    std::set<std::pair<std::string, Range>>          processed;
+    std::set<const CXXRecordDecl *>                  added_d_allocator;
 
     for (auto itr = begin; itr != end; ++itr) {
         const CXXConstructorDecl *decl = *itr;
@@ -1085,21 +1134,7 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
         }
         const CXXRecordDecl *record = decl->getParent()->getCanonicalDecl();
 
-        llvm::StringRef to_transform =
-            a.config()->value("allocator_transform", record->getLocation());
-        llvm::StringRef name = record->getNameAsString();
-        bool do_transform = false;
-        for (size_t colons = 0; ; colons += 2) {
-            do_transform =
-                contains_word(to_transform, name.drop_front(colons));
-            if (do_transform) {
-                break;
-            }
-            colons = name.find("::", colons);
-            if (colons == name.npos) {
-                break;
-            }
-        }
+        bool do_transform = should_transform(record);
 
         AllocatorLocation uses_allocator = takes_allocator(
             record->getTypeForDecl()->getCanonicalTypeInternal());
@@ -1310,9 +1345,10 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
                                decl->isMoveConstructor()    ? "move "    :
                                                               "";
 
-            if (!found &&
-                !processed.count(Range(m, decl->getSourceRange()))) {
-                processed.insert(Range(m, decl->getSourceRange()));
+            auto key = std::make_pair(std::string(type),
+                                      Range(m, decl->getSourceRange()));
+            if (!found && !processed.count(key)) {
+                processed.insert(key);
                 if (decl->isUserProvided()) {
                     a.report(decl, check_name, "AC01",
                              "Class %0 " + type +
@@ -1342,6 +1378,7 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
                             record,
                             def,
                             added_d_allocator.count(record),
+                            !decl->isUserProvided() ||
                             !decl->isDefaultConstructor());
                     }
                 }
@@ -1440,6 +1477,11 @@ bool report::write_allocator_trait(const CXXRecordDecl *record, bool bslma)
 
     include(record->getLocation(), "bslmf_nestedtraitdeclaration.h");
 
+    llvm::StringRef blp = "BloombergLP::";
+    if (llvm::StringRef(record->getQualifiedNameAsString()).startswith(blp)) {
+        blp = "";
+    }
+
     llvm::StringRef header =
         bslma ? "bslma_usesbslmaallocator.h" : "bslmf_usesallocatorargt.h";
     llvm::StringRef trait =
@@ -1457,7 +1499,8 @@ bool report::write_allocator_trait(const CXXRecordDecl *record, bool bslma)
        << "  public:"                                         << "\n" << spaces
        << "    // TRAITS"                                     << "\n" << spaces
        << "    BSLMF_NESTED_TRAIT_DECLARATION("
-       <<          record->getName() << ", " << trait << ");" << "\n" << spaces
+       <<          record->getName() << ", " << blp << trait << ");"
+                                                              << "\n" << spaces
        ;
 
     a.report(ins_loc, check_name, "AT02",
@@ -1492,10 +1535,16 @@ bool report::write_allocator_method_definition(const CXXRecordDecl    *record,
     llvm::StringRef spaces =
         a.get_source_line(ins_loc).take_until([](char c) { return c != ' '; });
 
+    llvm::StringRef blp = "BloombergLP::";
+    if (llvm::StringRef(record->getQualifiedNameAsString()).startswith(blp)) {
+        blp = "";
+    }
+
     ot << "\n"                                                << "\n" << spaces
        << "  public:"                                         << "\n" << spaces
        << "    // PUBLIC ACCESSORS"                           << "\n" << spaces
-       << "    bslma::Allocator *allocator() const {"         << "\n" << spaces
+       << "    " << blp << "bslma::Allocator *allocator() const {"
+                                                              << "\n" << spaces
        << "        return "
        ;
     if (base) {
@@ -1545,10 +1594,15 @@ bool report::write_d_allocator_p_declaration(const CXXRecordDecl *record)
     llvm::StringRef spaces =
         a.get_source_line(ins_loc).take_until([](char c) { return c != ' '; });
 
+    llvm::StringRef blp = "BloombergLP::";
+    if (llvm::StringRef(record->getQualifiedNameAsString()).startswith(blp)) {
+        blp = "";
+    }
+
     ot << "\n"                                                << "\n" << spaces
        << "  private:"                                        << "\n" << spaces
        << "    // PRIVATE DATA"                               << "\n" << spaces
-       << "    bslma::Allocator *d_allocator_p;"              << "\n" << spaces
+       << "    " << blp << "bslma::Allocator *d_allocator_p;" << "\n" << spaces
        ;
 
     a.report(ins_loc, check_name, "AP02",
@@ -1584,6 +1638,11 @@ bool report::write_ctor_with_allocator_definition(
     SourceLocation  ins_loc;
     int             end_spaces;
     llvm::StringRef indent;
+
+    llvm::StringRef blp = "BloombergLP::";
+    if (llvm::StringRef(record->getQualifiedNameAsString()).startswith(blp)) {
+        blp = "";
+    }
 
     if (up) {
         ins_loc    = decl->getLocStart();
@@ -1644,7 +1703,7 @@ bool report::write_ctor_with_allocator_definition(
     else {
         return false;
     }
-    ot << "bslma::Allocator *basicAllocator";
+    ot << blp << "bslma::Allocator *basicAllocator";
     if (default_allocator) {
         ot << " = 0";
     }
@@ -1757,6 +1816,11 @@ bool report::write_ctor_with_allocator_declaration(
     if (a.config()->suppressed(up ? "AC01" : "AC02", record->getLocation()))
         return false;
 
+    llvm::StringRef blp = "BloombergLP::";
+    if (llvm::StringRef(record->getQualifiedNameAsString()).startswith(blp)) {
+        blp = "";
+    }
+
     std::string s;
     llvm::raw_string_ostream ot(s);
 
@@ -1783,7 +1847,8 @@ bool report::write_ctor_with_allocator_declaration(
     }
     if (decl->getNumParams() == 0) {
         ot << "    explicit " << record->getName()
-           << "(bslma::Allocator *basicAllocator);"           << "\n" << spaces
+           << "(" << blp << "bslma::Allocator *basicAllocator);"
+                                                              << "\n" << spaces
            ;
     }
     else if (up) {
@@ -1791,7 +1856,7 @@ bool report::write_ctor_with_allocator_declaration(
            << a.get_source(SourceRange(
                   decl->parameters().front()->getSourceRange().getBegin(),
                   decl->parameters().back()->getSourceRange().getEnd()))
-           << ", bslma::Allocator *basicAllocator";
+           << ", " << blp << "bslma::Allocator *basicAllocator";
         if (decl->isDefaultConstructor()) {
             ot << " = 0";
         }
@@ -1801,13 +1866,15 @@ bool report::write_ctor_with_allocator_declaration(
     else if (decl->isCopyConstructor()) {
         ot << "    " << record->getName()
            << "(const " << record->getName() << "& original, "
-           << "bslma::Allocator *basicAllocator = 0);"        << "\n" << spaces
+           << "" << blp << "bslma::Allocator *basicAllocator = 0);"
+                                                              << "\n" << spaces
            ;
     }
     else if (decl->isMoveConstructor()) {
         ot << "    " << record->getName()
            << "(" << record->getName() << "&& original, "
-           << "bslma::Allocator *basicAllocator = 0);"        << "\n" << spaces
+           << "" << blp << "bslma::Allocator *basicAllocator = 0);"
+                                                              << "\n" << spaces
            ;
     }
     else {
