@@ -1787,7 +1787,7 @@ bool report::write_ctor_with_allocator_definition(
     ot << indent
        << (up && decl->doesThisDeclarationHaveABody()
                ? a.get_source(decl->getBody()->getSourceRange())
-               : "{ }")                                       << "\n" << spaces
+               : "{ }") << "\n"                               << "\n" << spaces
        ;
 
     a.report(ins_loc, check_name, up ? "AC01" : "AC02",
