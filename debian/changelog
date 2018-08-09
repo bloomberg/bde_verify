@@ -1,3 +1,14 @@
+bde-verify (1.2.21) unstable; urgency=low
+
+  * 273c8aa Version increase
+  * 127c8d4 Don't force creation of members that might violate privacy.
+  * bf557b2 Add extra blank line after ctor definition.
+  * d6c66d8 Refinements on allocator transformation
+  * 4067526 Only report on component.
+  * a2b9ed2 Widen search area for // IMPLICIT.
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Thu, 9 Aug 2018 16:46:52 -0400
+
 bde-verify (1.2.20) unstable; urgency=low
 
   * fed6925 Bump version
