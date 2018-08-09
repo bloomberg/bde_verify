@@ -713,7 +713,10 @@ void report::force_implicit_definitions(const CXXRecordDecl *record)
 void report::match_class_using_allocator(const BoundNodes& nodes)
 {
     auto r = nodes.getNodeAs<CXXRecordDecl>("r");
-    force_implicit_definitions(r);
+    if (!r->isDependentContext()) {
+        a.sema().ForceDeclarationOfImplicitMembers(
+            const_cast<CXXRecordDecl *>(r));
+    }
     QualType type = r->getTypeForDecl()->getCanonicalTypeInternal();
     auto &t = d.type_takes_allocator_[type.getTypePtr()];
     t = AllocatorLocation(t | (nodes.getNodeAs<Decl>("second") ? a_Second :
