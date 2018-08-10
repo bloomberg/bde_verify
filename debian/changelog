@@ -1,3 +1,9 @@
+bde-verify (1.2.22) unstable; urgency=low
+
+  * 3883848 Keep better track of where version number goes.
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Fri, 10 Aug 2018 11:16:46 -0400
+
 bde-verify (1.2.21) unstable; urgency=low
 
   * 273c8aa Version increase
