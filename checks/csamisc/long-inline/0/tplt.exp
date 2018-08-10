@@ -1,7 +1,0 @@
-tplt.cpp:10:23: warning: LI01: Inline function is more than 10 lines long
-void Templated<Type>::longFunction()
-                      ^~~~~~~~~~~~
-tplt.cpp:27:6: warning: LI01: Inline function is more than 10 lines long
-void longFunction(Type)
-     ^~~~~~~~~~~~
-2 warnings generated.

@@ -1,4 +1,0 @@
-h.cpp:8:8: warning: AL01: Class 'X' needs allocator() method
-struct X {
-       ^
-1 warning generated.
