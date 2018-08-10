@@ -41,6 +41,8 @@ else ifeq ($(SYSTEM),SunOS)
     CXXFLAGS   += -DBYTE_ORDER=BIG_ENDIAN
 endif
 
+CXXFLAGS   += -DBDE_VERIFY_VERSION='"1.2.22"'
+
 OBJ        := $(SYSTEM)-$(notdir $(CXX))
 
 VERBOSE ?= @

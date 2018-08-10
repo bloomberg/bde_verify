@@ -1,0 +1,7 @@
+The following files need to be updated when the version number is changed.
+(Note that debian/changelog is updated auroumatically by dpkg-debchange.)
+
+debian/changelog
+CMakeLists.txt
+doc/conf.py
+groups/csa/csabase/Makefile

@@ -192,7 +192,7 @@ int csabase::run(int argc_, const char **argv_)
 
     if (ForVersion) {
         StringRef Name = ExFile.drop_back(ExFile.endswith("_bin") ? 4 : 0);
-        *ForVersion << Name << " version 1.2.19 based on\n";
+        *ForVersion << Name << " version " BDE_VERIFY_VERSION " based on\n";
     }
 
     IntrusiveRefCntPtr<DiagnosticOptions> DiagOpts = new DiagnosticOptions;
