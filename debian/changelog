@@ -1,8 +1,11 @@
 bde-verify (1.2.23) unstable; urgency=low
 
+  * d958449 Fix version numbers
+  * 1fb1af7 Bump version
+  * c5907f4 Changelog for version 1.2.23
   * af5e3b4 Don't find empty class names in "allocator-transform"
 
- -- Hyman Rosen <hrosen4@bloomberg.net>  Mon, 13 Aug 2018 11:09:25 -0400
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Mon, 13 Aug 2018 11:13:32 -0400
 
 bde-verify (1.2.22) unstable; urgency=low
 
