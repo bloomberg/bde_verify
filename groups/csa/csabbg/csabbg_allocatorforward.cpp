@@ -1111,12 +1111,14 @@ bool report::should_transform(const CXXRecordDecl *record)
         llvm::StringRef to_transform =
             a.config()->value("allocator_transform", record->getLocation());
         llvm::StringRef name = record->getNameAsString();
-        for (size_t colons = 0;; colons += 2) {
-            if (contains_word(to_transform, name.drop_front(colons))) {
-                return true;                                          // RETURN
-            }
-            if ((colons = name.find("::", colons)) == name.npos) {
-                break;
+        if (name.size()) {
+            for (size_t colons = 0;; colons += 2) {
+                if (contains_word(to_transform, name.drop_front(colons))) {
+                    return true;                                      // RETURN
+                }
+                if ((colons = name.find("::", colons)) == name.npos) {
+                    break;
+                }
             }
         }
     }
