@@ -615,7 +615,11 @@ void report::match_nested_allocator_trait(const BoundNodes& nodes)
     }
     else if (type.find("BloombergLP::bslmf::NestedTraitDeclaration<") == 0 &&
              (type.find(", bslma::UsesBslmaAllocator") != type.npos ||
-              type.find(", bslmf::UsesAllocatorArgT") != type.npos)) {
+              type.find(", bslmf::UsesAllocatorArgT") != type.npos ||
+              type.find(", BloombergLP::bslma::UsesBslmaAllocator") !=
+                  type.npos ||
+              type.find(", BloombergLP::bslmf::UsesAllocatorArgT") !=
+                  type.npos)) {
         auto ts = qt->getAs<TemplateSpecializationType>();
         if (ts && ts->getNumArgs() == 3) {
             const TemplateArgument& ta = ts->getArg(2);
@@ -642,17 +646,35 @@ void report::match_nested_allocator_trait(const BoundNodes& nodes)
         if (type.find(", bslma::UsesBslmaAllocator, true>") != type.npos ||
             type.find(", bslma::UsesBslmaAllocator>") != type.npos ||
             type.find(", bslmf::UsesAllocatorArgT, true>") != type.npos ||
-            type.find(", bslmf::UsesAllocatorArgT>") != type.npos) {
+            type.find(", bslmf::UsesAllocatorArgT>") != type.npos ||
+            type.find(", BloombergLP::bslma::UsesBslmaAllocator, true>") !=
+                type.npos ||
+            type.find(", BloombergLP::bslma::UsesBslmaAllocator>") !=
+                type.npos ||
+            type.find(", BloombergLP::bslmf::UsesAllocatorArgT, true>") !=
+                type.npos ||
+            type.find(", BloombergLP::bslmf::UsesAllocatorArgT>") !=
+                type.npos) {
             d.decls_with_true_allocator_trait_.insert(nd);
         }
         else if (type.find(", bslma::UsesBslmaAllocator, false>") !=
                      type.npos ||
                  type.find(", bslmf::UsesAllocatorArgT, false>") !=
+                     type.npos ||
+                 type.find(
+                     ", BloombergLP::bslma::UsesBslmaAllocator, false>") !=
+                     type.npos ||
+                 type.find(
+                     ", BloombergLP::bslmf::UsesAllocatorArgT, false>") !=
                      type.npos) {
             d.decls_with_false_allocator_trait_.insert(nd);
         }
         else if (type.find(", bslma::UsesBslmaAllocator,") != type.npos ||
-                 type.find(", bslmf::UsesAllocatorArgT,") != type.npos) {
+                 type.find(", bslmf::UsesAllocatorArgT,") != type.npos ||
+                 type.find(", BloombergLP::bslma::UsesBslmaAllocator,") !=
+                     type.npos ||
+                 type.find(", BloombergLP::bslmf::UsesAllocatorArgT,") !=
+                     type.npos) {
             d.decls_with_dependent_allocator_trait_.insert(nd);
         }
     }
@@ -1111,12 +1133,14 @@ bool report::should_transform(const CXXRecordDecl *record)
         llvm::StringRef to_transform =
             a.config()->value("allocator_transform", record->getLocation());
         llvm::StringRef name = record->getNameAsString();
-        for (size_t colons = 0;; colons += 2) {
-            if (contains_word(to_transform, name.drop_front(colons))) {
-                return true;                                          // RETURN
-            }
-            if ((colons = name.find("::", colons)) == name.npos) {
-                break;
+        if (name.size()) {
+            for (size_t colons = 0;; colons += 2) {
+                if (contains_word(to_transform, name.drop_front(colons))) {
+                    return true;                                      // RETURN
+                }
+                if ((colons = name.find("::", colons)) == name.npos) {
+                    break;
+                }
             }
         }
     }

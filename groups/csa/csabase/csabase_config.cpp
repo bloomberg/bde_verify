@@ -633,6 +633,25 @@ std::vector<std::string> csabase::Config::brace_expand(const std::string &s)
     return expand(s, p);
 }
 
+void csabase::Config::set_reexports(const std::string &including_file,
+                                    const std::string& exported_file)
+{
+    if (d_reexported_includes[including_file].insert(exported_file).second) {
+        for (auto &a : d_reexported_includes) {
+            if (a.second.count(including_file)) {
+                set_reexports(a.first, exported_file);
+            }
+        }
+    }
+}
+
+bool csabase::Config::reexports(const std::string& included_file,
+                                const std::string& needed_file) const
+{
+    auto i = d_reexported_includes.find(included_file);
+    return i != d_reexported_includes.end() && i->second.count(needed_file);
+}
+
 // ----------------------------------------------------------------------------
 // Copyright (C) 2014 Bloomberg Finance L.P.
 //

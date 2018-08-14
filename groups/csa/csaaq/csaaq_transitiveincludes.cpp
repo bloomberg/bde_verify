@@ -1077,6 +1077,10 @@ void report::require_file(std::string     name,
         if (files_match(llvm::sys::path::filename(s), name)) {
             return;
         }
+        if (a.config()->reexports(
+                FileName(llvm::sys::path::filename(s)).name(), name)) {
+            return;
+        }
     }
 
     if (!d.d_once[fid].count(name) /*||
