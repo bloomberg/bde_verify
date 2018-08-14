@@ -1,3 +1,10 @@
+bde-verify (1.2.24) unstable; urgency=low
+
+  * c8f0a39 Bump versuion, document re-export pragma
+  * eac7653 Add support for a re-export pragma
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Tue, 14 Aug 2018 18:19:02 -0400
+
 bde-verify (1.2.23) unstable; urgency=low
 
   * d958449 Fix version numbers
