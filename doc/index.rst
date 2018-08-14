@@ -198,6 +198,12 @@ in the configuration.
 | ``//`` |BV| ``pragma:``      |                                              |
 | ``prepend parameter value``  |                                              |
 +------------------------------+----------------------------------------------+
+| ``#pragma`` |bv|             | For purposes of transitive inclusion         |
+| ``re-export <file>``         | detection, indicate that inclusion of the    |
++------------------------------+ containing file satisfies the need to        |
+| ``//`` |BV| ``pragma:``      | include *file*.                              |
+| ``re-export <file>``         |                                              |
++------------------------------+----------------------------------------------+
 
 Exit Status
 -----------

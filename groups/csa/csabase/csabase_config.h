@@ -96,7 +96,17 @@ public:
         // bde_comp_foo.h     bde_comp_foo.cpp     bde_comp_foo.t.cpp
         // bde_comp_fooutil.h bde_comp_fooutil.cpp bde_comp_fooutil.t.cpp
 
-private:
+    void set_reexports(const std::string& including_file,
+                       const std::string& exported_file);
+        // Record that the specified 'including_file' reexports the specified
+        // 'exported_file' for purposes of transitive inclusion.
+
+    bool reexports(const std::string& included_file,
+                   const std::string& needed_file) const;
+        // Report whether an include of the specified 'included_file' satisfies
+        // a need for the inclusion of the specified 'needed_file'.
+
+  private:
     std::string                                     d_toplevel_namespace;
     std::set<std::string>                           d_loadpath;
     std::map<std::string, Status>                   d_checks;
@@ -104,6 +114,7 @@ private:
     std::map<std::string, std::string>              d_values;
     std::set<std::pair<std::string, std::string>>   d_suppressions;
     std::vector<std::string>                        d_load_dirs;
+    std::map<std::string, std::set<std::string>>    d_reexported_includes;
 
     struct BVData
     {
