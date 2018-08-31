@@ -412,9 +412,9 @@ csabase::Analyser::report(SourceLocation where,
     if (!config()->suppressed(tag, where)) {
         if (DiagnosticIDs::Warning == level) {
             const std::string &fs = config()->value("failstatus", where);
-            if (csabase::contains_word(fs, "*") ||
-                csabase::contains_word(fs, check) ||
-                csabase::contains_word(fs, tag)) {
+            if (csabase::contains_word(fs, "*") != fs.npos ||
+                csabase::contains_word(fs, check) != fs.npos ||
+                csabase::contains_word(fs, tag) != fs.npos) {
                 level = DiagnosticIDs::Error;
             }
         }

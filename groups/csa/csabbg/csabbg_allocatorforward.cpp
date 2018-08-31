@@ -57,12 +57,15 @@ static std::string const check_name("allocator-forward");
 
 namespace {
 
-llvm::StringRef prune(llvm::StringRef name, llvm::StringRef kill) {
-    if (name.startswith(kill)) {
-        auto killed = name.drop_front(kill.size());
-        auto rest = killed.ltrim();
-        if (killed != rest) {
-            name = rest;
+std::string prune(std::string name, std::string kill) {
+    size_t pos;
+    while ((pos = contains_word(name, kill)) != name.npos) {
+        name.erase(pos, kill.length());
+        while (name[pos] == ' ') {
+            name.erase(pos, 1);
+        }
+        while (pos > 0 && name[pos - 1] == ' ') {
+            name.erase(--pos, 1);
         }
     }
     return name;
@@ -626,7 +629,7 @@ void report::match_nested_allocator_trait(const BoundNodes& nodes)
     QualType qt = *nodes.getNodeAs<QualType>("type");
     std::string type = qt.getAsString();
 
-    if (!contains_word(type, decl->getNameAsString())) {
+    if (contains_word(type, decl->getNameAsString()) == StringRef::npos) {
         a.report(nodes.getNodeAs<CXXMethodDecl>("trait"),
                          check_name, "BT01",
                          "Trait declaration does not mention its class '%0'")
@@ -1038,13 +1041,17 @@ void report::match_ctor_decl(const BoundNodes& nodes)
 
 static internal::DynTypedMatcher allocator_method_matcher()
 {
-    return decl(forEachDescendant(
-        cxxRecordDecl(has(cxxMethodDecl(hasName("allocator"),
-                                        isConst(),
-                                        isPublic(),
-                                        parameterCountIs(0),
-                                        returns(pointerType(isAllocator())))
-                              .bind("a")))
+    return decl(forEachDescendant(cxxRecordDecl(
+        isSameOrDerivedFrom(
+            cxxRecordDecl(has(
+                cxxMethodDecl(isConst(),
+                              isPublic(),
+                              parameterCountIs(0),
+                              anyOf(allOf(hasName("allocator"),
+                                          returns(pointerType(isAllocator()))),
+                                    allOf(hasName("get_allocator"),
+                                          returns(isAllocator()))))
+                    .bind("a")))))
             .bind("r")));
 }
 
@@ -1198,7 +1205,8 @@ bool report::should_transform(const CXXRecordDecl *record)
         llvm::StringRef name = record->getNameAsString();
         if (name.size()) {
             for (size_t colons = 0;; colons += 2) {
-                if (contains_word(to_transform, name.drop_front(colons))) {
+                if (contains_word(to_transform, name.drop_front(colons)) !=
+                    to_transform.npos) {
                     return true;                                      // RETURN
                 }
                 if ((colons = name.find("::", colons)) == name.npos) {
@@ -1329,7 +1337,11 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
                     const CXXBaseSpecifier *base_with_allocator = 0;
                     for (const auto& base : record->bases()) {
                         if (takes_allocator(
-                                base.getType()->getCanonicalTypeInternal())) {
+                                base.getType()->getCanonicalTypeInternal()) &&
+                            d.allocator_methods_.count(
+                                base.getType()
+                                    ->getAsCXXRecordDecl()
+                                    ->getCanonicalDecl())) {
                             base_with_allocator = &base;
                             break;
                         }
@@ -1338,7 +1350,11 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
                     for (const auto *field : record->fields()) {
                         if (takes_allocator(
                                 field->getType()
-                                    ->getCanonicalTypeInternal())) {
+                                    ->getCanonicalTypeInternal()) &&
+                            d.allocator_methods_.count(
+                                field->getType()
+                                    ->getAsCXXRecordDecl()
+                                    ->getCanonicalDecl())) {
                             field_with_allocator = field;
                             break;
                         }
@@ -1716,16 +1732,28 @@ bool report::write_allocator_method_definition(const CXXRecordDecl    *record,
        << "    return "
        ;
     if (base) {
-        auto name = a.get_source(base->getSourceRange()).trim();
+        auto f =
+            d.allocator_methods_
+                [base->getType()->getAsCXXRecordDecl()->getCanonicalDecl()];
+        std::string name = a.get_source(base->getSourceRange()).trim().str();
         name = prune(name, "virtual");
         name = prune(name, "public");
         name = prune(name, "private");
         name = prune(name, "protected");
-        name = prune(name, "virtual");
-        ot << name << "::allocator()";
+        name = prune(name, "class");
+        name = prune(name, "struct");
+        name = prune(name, "union");
+        ot << name << "::"
+           << (f->getName() == "allocator" ? "allocator()"
+                                           : "get_allocator().mechanism()");
     }
     else if (field) {
-        ot << field->getName() << ".allocator()";
+        auto f =
+            d.allocator_methods_
+                [field->getType()->getAsCXXRecordDecl()->getCanonicalDecl()];
+        ot << field->getName() << "."
+           << (f->getName() == "allocator" ? "allocator()"
+                                           : "get_allocator().mechanism()");
     }
     else {
         ot << "d_allocator_p";

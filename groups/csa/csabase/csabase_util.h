@@ -41,10 +41,11 @@ bool areConsecutive(clang::SourceManager& manager,
 std::string to_lower(llvm::StringRef s);
     // Return a copy of the specified 's' with all letters in lower case.
 
-bool contains_word(llvm::StringRef have, const llvm::StringRef want);
-    // Return true iff the specified string 'have' contains the specified
-    // string 'want' as a word, that is, neither preceeded nor followed by
-    // an underscore or alphanumeric character.
+size_t contains_word(llvm::StringRef have, const llvm::StringRef want);
+    // Return the first position where the specified string 'have' contains the
+    // specified string 'want' as a word, that is, neither preceeded nor
+    // followed by an underscore or alphanumeric character, or 'npos'
+    // otherwise.
 
 bool are_numeric_cognates(llvm::StringRef a, llvm::StringRef b);
     // Return true iff the specified 'a' and 'b' have the same value when
