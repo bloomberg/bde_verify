@@ -10,6 +10,7 @@ class bde_verify::csabbg::allocatorforward_alloc_used
 csabbg_allocatorforward.t.cpp:15:19: warning: AT02: Class 'test' uses allocators but does not have an allocator trait
             class test:
                   ^
+csabbg_allocatorforward.t.cpp:15:19: warning: AP02: Class 'test' needs d_allocator_p member
 csabbg_allocatorforward.t.cpp:15:19: warning: AL01: Class 'test' needs allocator() method
 csabbg_allocatorforward.t.cpp:15:19: warning: AC02: Class 'test' implicit copy constructor is not allocator-aware
 csabbg_allocatorforward.t.cpp:45:5: warning: MA01: Allocator not passed to base class bde_verify::csabbg::allocatorforward_alloc_used
@@ -27,6 +28,7 @@ csabbg_allocatorforward.t.cpp:70:5: warning: MA02: Allocator not passed to membe
 csabbg_allocatorforward.t.cpp:85:20: warning: AT02: Class 'tbase' uses allocators but does not have an allocator trait
             struct tbase
                    ^
+csabbg_allocatorforward.t.cpp:85:20: warning: AP02: Class 'tbase' needs d_allocator_p member
 csabbg_allocatorforward.t.cpp:85:20: warning: AL01: Class 'tbase' needs allocator() method
 csabbg_allocatorforward.t.cpp:88:62: warning: MA02: Allocator not passed to member used0_
                 explicit tbase(BloombergLP::bslma::Allocator*);
@@ -54,6 +56,7 @@ csabbg_allocatorforward.t.cpp:136:53: warning: MA02: Allocator not passed to mem
 csabbg_allocatorforward.t.cpp:134:20: warning: AT02: Class 'C' uses allocators but does not have an allocator trait
             struct C {
                    ^
+csabbg_allocatorforward.t.cpp:134:20: warning: AP02: Class 'C' needs d_allocator_p member
 csabbg_allocatorforward.t.cpp:134:20: warning: AL01: Class 'C' needs allocator() method
 csabbg_allocatorforward.t.cpp:134:20: warning: AC02: Class 'C' implicit copy constructor is not allocator-aware
 csabbg_allocatorforward.t.cpp:148:16: warning: AT02: Class 'not_alloc' uses allocators but does not have an allocator trait
@@ -65,9 +68,10 @@ csabbg_allocatorforward.t.cpp:148:16: warning: AC02: Class 'not_alloc' implicit 
 csabbg_allocatorforward.t.cpp:154:15: warning: MA02: Allocator not passed to member member
             : member(na) { }
               ^~~~~~~~~~
-csabbg_allocatorforward.t.cpp:151:16: warning: AL01: Class 'object' needs allocator() method
+csabbg_allocatorforward.t.cpp:151:16: warning: AP02: Class 'object' needs d_allocator_p member
         struct object {
                ^
+csabbg_allocatorforward.t.cpp:151:16: warning: AL01: Class 'object' needs allocator() method
 csabbg_allocatorforward.t.cpp:151:16: warning: AC02: Class 'object' implicit copy constructor is not allocator-aware
 csabbg_allocatorforward.t.cpp:201:8: warning: AP02: Class 'alloc_a' needs d_allocator_p member
 struct alloc_a {
@@ -155,4 +159,4 @@ bde_verify::csabbg::alloc_a c[2];
 csabbg_allocatorforward.t.cpp:316:29: warning: GA01: Variable with global storage must be initialized with non-default allocator
 bde_verify::csabbg::alloc_a d[2][2];
                             ^
-76 warnings generated.
+80 warnings generated.

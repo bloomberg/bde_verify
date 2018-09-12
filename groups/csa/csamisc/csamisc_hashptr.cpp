@@ -60,10 +60,10 @@ internal::DynTypedMatcher hash_char_ptr_matcher()
 {
     return decl(forEachDescendant(
         callExpr(
-            callee(functionDecl(
+            callee(cxxMethodDecl(
                 hasName("operator()"),
                 parameterCountIs(1),
-                hasParent(recordDecl(hasName("std::hash"))),
+                ofClass(hasName("std::hash")),
                 hasParameter(
                     0, hasType(pointerType(unless(anyOf(
                            pointee(asString("void")),

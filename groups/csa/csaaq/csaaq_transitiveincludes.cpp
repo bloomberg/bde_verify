@@ -1170,16 +1170,26 @@ std::string report::name_for(const NamedDecl *decl)
     pp.Indentation = 4;
     pp.SuppressSpecifiers = false;
     pp.SuppressTagKeyword = false;
-    pp.IncludeTagDefinition = true;
+    pp.IncludeTagDefinition = false;
     pp.SuppressScope = false;
     pp.SuppressUnwrittenScope = false;
-    pp.SuppressInitializers = false;
+    pp.SuppressInitializers = true;
     pp.ConstantArraySizeAsWritten = true;
     pp.AnonymousTagLocations = true;
+    pp.SuppressStrongLifetime = true;
+    pp.SuppressLifetimeQualifiers = true;
+    pp.SuppressTemplateArgsInCXXConstructors = false;
     pp.Bool = true;
+    pp.Restrict = true;
+    pp.Alignof = true;
+    pp.UnderscoreAlignof = false;
+    pp.UseVoidForZeroParams = false;
     pp.TerseOutput = false;
     pp.PolishForDeclaration = true;
+    pp.Half = true;
+    pp.MSWChar = false;
     pp.IncludeNewlines = false;
+    pp.MSVCFormatting = false;
     decl->getNameForDiagnostic(s, pp, true);
     return s.str();
 }

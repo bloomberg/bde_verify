@@ -1051,15 +1051,15 @@ static internal::DynTypedMatcher allocator_method_matcher()
                                           returns(pointerType(isAllocator()))),
                                     allOf(hasName("get_allocator"),
                                           returns(isAllocator()))))
-                    .bind("a")))))
+                    .bind("m")))))
             .bind("r")));
 }
 
 void report::match_allocator_method(const BoundNodes& nodes)
 {
-    const auto *r = nodes.getNodeAs<CXXRecordDecl>("r");
-    const auto *a = nodes.getNodeAs<CXXMethodDecl>("a");
-    d.allocator_methods_[r] = a;
+    const CXXRecordDecl *r = nodes.getNodeAs<CXXRecordDecl>("r");
+    const CXXMethodDecl *m = nodes.getNodeAs<CXXMethodDecl>("m");
+    d.allocator_methods_[r] = m;
 }
 
 static internal::DynTypedMatcher allocator_member_matcher()
@@ -1279,8 +1279,9 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
             const CXXRecordDecl *tr = ts->getSpecializedTemplate()
                                           ->getTemplatedDecl()
                                           ->getCanonicalDecl();
-            if (uses_allocator) {
+            if (uses_allocator && tr->hasDefinition()) {
                 record = tr;
+                rp.second = record;
             }
             if (d.decls_with_true_allocator_trait_.count(tr)) {
                 has_true_alloc_trait = true;
