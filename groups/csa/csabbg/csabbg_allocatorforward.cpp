@@ -1174,6 +1174,13 @@ void report::check_globals_use_allocator(data::Globals::const_iterator begin,
                 }
             }
             if (bad) {
+                auto record = expr->getType()->getAsCXXRecordDecl();
+                if (record && d.decls_with_false_allocator_trait_.count(
+                                  record->getCanonicalDecl())) {
+                    bad = false;
+                }
+            }
+            if (bad) {
                 a.report(decl, check_name, "GA01",
                          "Variable with global storage must be "
                          "initialized with non-default allocator");
