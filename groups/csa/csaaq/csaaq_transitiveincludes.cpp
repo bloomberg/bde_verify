@@ -466,6 +466,18 @@ bool reexports(llvm::StringRef outer, llvm::StringRef inner)
         return true;
     }
 
+    if ((outer == "bsl_map.h" ||
+         outer == "bsl_set.h") &&
+        inner == "bslstl_treeiterator.h") {
+        return true;
+    }
+
+    if ((outer == "bsl_unordered_map.h" ||
+         outer == "bsl_unordered_set.h") &&
+        inner == "bslstl_hashtableiterator.h") {
+        return true;
+    }
+
     if (reexporting_files().count(outer)) {
         return true;
     }
@@ -742,6 +754,14 @@ std::string report::file_for_location(SourceLocation sl, SourceLocation in)
                     just_found = true;
                     top = p.first;
                 }
+                else {
+                    for (auto &s : d.d_includes[in_id]) {
+                        if (reexports(s, f)) {
+                            result = s;
+                            goto done;
+                        }
+                    }
+                }
             } else {
                 if (reexports(f, t) ||
                     (just_found && a.is_component(ff.name()))) {
@@ -752,6 +772,7 @@ std::string report::file_for_location(SourceLocation sl, SourceLocation in)
         }
     }
 
+  done:
     if (!a.is_component(result)) {
         if (is_mapped(result)) {
             result = get_mapped(result);
