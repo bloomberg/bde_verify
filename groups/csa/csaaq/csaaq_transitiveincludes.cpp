@@ -756,7 +756,9 @@ std::string report::file_for_location(SourceLocation sl, SourceLocation in)
                 }
                 else {
                     for (auto &s : d.d_includes[in_id]) {
-                        if (reexports(s, f)) {
+                        FileName fs(s);
+                        FileName ff(f);
+                        if (fs.name() != ff.name() && reexports(s, f)) {
                             result = s;
                             goto done;
                         }

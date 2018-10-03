@@ -489,12 +489,38 @@ bool report::WalkUpFromCallExpr(CallExpr *call)
     if (n > 0 &&
         !call->getLocStart().isMacroID() &&
         !llvm::dyn_cast<CXXOperatorCallExpr>(call)) {
-        Location c(m, call->getLocStart());
-        Location l(m, call->getArg(0)->getSourceRange().getBegin());
-        if (l) {
-            size_t level = c.line() == l.line() ? l.column() - c.column() : 4;
-            add_indent(l.location(), level);
-            add_indent(call->getRParenLoc(), -level);
+        Location l(m, call->getLocStart());
+        Location r(m, call->getRParenLoc());
+        Location a1(m, call->getArg(0)->getLocStart());
+        Location an(m, call->getArg(n - 1)->getLocStart());
+        int offset, exact_offset;
+        bool dotdot;
+        get_indent(l, offset, exact_offset, dotdot);
+        if (l.line() == a1.line()) {
+            size_t level = a1.column() - offset - 1;
+            add_indent(a1.location(), level);
+            add_indent(r.location(), -level);
+        } else {
+            size_t length = 0;
+            for (size_t i = 0; i < n; ++i) {
+                size_t line_length =
+                    llvm::StringRef(
+                        a.get_source_line(call->getArg(i)->getLocStart()))
+                        .trim()
+                        .size();
+                if (length < line_length) {
+                    length = line_length;
+                }
+            }
+            if (length + exact_offset + 4 > 79) {
+                indent in(std::max(79 - int(length) - exact_offset, 0));
+                in.d_right_justified = true;
+                add_indent(a1.location(), in);
+                add_indent(r.location(), -in.d_offset);
+            } else {
+                add_indent(a1.location(), 4);
+                add_indent(r.location(), -4);
+            }
         }
     }
     return Base::WalkUpFromCallExpr(call);
