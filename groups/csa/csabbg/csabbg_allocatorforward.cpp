@@ -411,6 +411,19 @@ struct report : Report<data>
         // forwards to the first of the specified non-null 'base' or 'field' if
         // one exists, and to an assumed 'd_allocator_p' member otherwise.
 
+    bool write_in_class_allocator_method_definition(
+                                                const CXXRecordDecl    *record,
+                                                AllocatorLocation       kind,
+                                                const CXXBaseSpecifier *base,
+                                                const FieldDecl        *field);
+        // Write out an allocator method definition for the specified 'record'
+        // inside the class definition, basing its return type on whether the
+        // specified 'kind' refers to a 'bslma::Allocator *' or a
+        // 'bsl::allocator_arg'.  Return true if the definition was written,
+        // and false if it was not.  The method forwards to the first of the
+        // specified non-null 'base' or 'field' if one exists, and to an
+        // assumed 'd_allocator_p' member otherwise.
+
     bool write_assignment_declaration(const CXXRecordDecl *record);
         // Write out an assignment operator declaration for the specified
         // 'record'.  Return true if the declaration was written, and false if
@@ -422,6 +435,11 @@ struct report : Report<data>
         // Write out an assignment operator definition for the specified
         // 'record'.  Return true if the definition was written, and false if
         // it was note
+
+    bool write_in_class_assignment_definition(const CXXRecordDecl *record);
+        // Write out an assignment operator definition for the specified
+        // 'record' inside the class definition.  Return true if the definition
+        // was written, and false if it was note
 
     bool write_d_allocator_p_declaration(const CXXRecordDecl *record);
         // Write out the declaration for a private 'd_allocator_p' pointer
@@ -1248,6 +1266,9 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
             continue;
         }
         const CXXRecordDecl *record = decl->getParent()->getCanonicalDecl();
+        if (record->getTemplateInstantiationPattern()) {
+            continue;
+        }
 
         const FieldDecl *array_member = 0;
         bool do_transform = should_transform(record);
@@ -1400,8 +1421,10 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
                             if (write_d_allocator_p_declaration(record)) {
                                 added_d_allocator.insert(record);
                                 if (!record->hasUserDeclaredCopyAssignment()) {
-                                    write_assignment_declaration(record);
-                                    write_assignment_definition(record);
+                                    //write_assignment_declaration(record);
+                                    //write_assignment_definition(record);
+                                    write_in_class_assignment_definition(
+                                                                       record);
                                 }
                             }
                         }
@@ -1412,12 +1435,17 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
                                  "Class %0 needs allocator() method")
                             << record;
                         if (do_transform) {
-                            write_allocator_method_declaration(
-                                                         record,
-                                                         uses_allocator,
-                                                         base_with_allocator,
-                                                         field_with_allocator);
-                            write_allocator_method_definition(
+                            //write_allocator_method_declaration(
+                            //                           record,
+                            //                           uses_allocator,
+                            //                           base_with_allocator,
+                            //                           field_with_allocator);
+                            //write_allocator_method_definition(
+                            //                           record,
+                            //                           uses_allocator,
+                            //                           base_with_allocator,
+                            //                           field_with_allocator);
+                            write_in_class_allocator_method_definition(
                                                          record,
                                                          uses_allocator,
                                                          base_with_allocator,
@@ -1527,7 +1555,7 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
                             def,
                             added_d_allocator.count(record),
                             !decl->isUserProvided() ||
-                            !decl->isDefaultConstructor());
+                            decl->isDefaultConstructor());
                     }
                 }
             }
@@ -1779,6 +1807,84 @@ bool report::write_allocator_method_definition(const CXXRecordDecl    *record,
     return true;
 }
 
+bool report::write_in_class_allocator_method_definition(
+                                                const CXXRecordDecl    *record,
+                                                AllocatorLocation       kind,
+                                                const CXXBaseSpecifier *base,
+                                                const FieldDecl        *field)
+{
+    if (!a.is_component(record) || !record->hasDefinition())
+        return false;
+
+    if (!(kind & a_Last))
+        return false;  // TBD: deal with get_allocator();
+
+    record = record->getDefinition();
+
+    if (a.config()->suppressed("AL01", record->getLocation()))
+        return false;
+
+    std::string s;
+    llvm::raw_string_ostream ot(s);
+
+    SourceLocation ins_loc = record->getBraceRange().getEnd();
+    llvm::StringRef range = a.get_source(record->getBraceRange());
+    int end_spaces = range.size() - range.drop_back(1).rtrim().size() - 1;
+    llvm::StringRef spaces =
+        a.get_source_line(ins_loc).take_until([](char c) { return c != ' '; });
+
+    llvm::StringRef blp = "BloombergLP::";
+    if (llvm::StringRef(record->getQualifiedNameAsString()).startswith(blp)) {
+        blp = "";
+    }
+
+    ot << "\n"                                                << "\n" << spaces
+       << "  public:"                                         << "\n" << spaces
+       << "    // PUBLIC ACCESSORS"                           << "\n" << spaces
+       << "    " << blp << "bslma::Allocator *allocator() const {"
+                                                              << "\n" << spaces
+       << "        return "
+       ;
+    if (base) {
+        auto f =
+            d.allocator_methods_
+                [base->getType()->getAsCXXRecordDecl()->getCanonicalDecl()];
+        std::string name = a.get_source(base->getSourceRange()).trim().str();
+        name = prune(name, "virtual");
+        name = prune(name, "public");
+        name = prune(name, "private");
+        name = prune(name, "protected");
+        name = prune(name, "class");
+        name = prune(name, "struct");
+        name = prune(name, "union");
+        ot << name << "::"
+           << (f->getName() == "allocator" ? "allocator()"
+                                           : "get_allocator().mechanism()");
+    }
+    else if (field) {
+        auto f =
+            d.allocator_methods_
+                [field->getType()->getAsCXXRecordDecl()->getCanonicalDecl()];
+        ot << field->getName() << "."
+           << (f->getName() == "allocator" ? "allocator()"
+                                           : "get_allocator().mechanism()");
+    }
+    else {
+        ot << "d_allocator_p";
+    }
+    ot << ";"                                                 << "\n" << spaces
+       << "    }"                                             << "\n" << spaces
+       ;
+
+    a.report(ins_loc, check_name, "AL01",
+             "In-class allocator method definition for class %0%1",
+             false, DiagnosticIDs::Note)
+        << record->getName()
+        << ot.str();
+    a.ReplaceText(ins_loc.getLocWithOffset(-end_spaces), end_spaces, ot.str());
+    return true;
+}
+
 bool report::write_d_allocator_p_declaration(const CXXRecordDecl *record)
 {
     if (!a.is_component(record) || !record->hasDefinition())
@@ -1806,7 +1912,8 @@ bool report::write_d_allocator_p_declaration(const CXXRecordDecl *record)
     ot << "\n"                                                << "\n" << spaces
        << "  private:"                                        << "\n" << spaces
        << "    // PRIVATE DATA"                               << "\n" << spaces
-       << "    " << blp << "bslma::Allocator *d_allocator_p;" << "\n" << spaces
+       << "    " << blp << "bslma::Allocator *d_allocator_p = 0;"
+                                                              << "\n" << spaces
        ;
 
     a.report(ins_loc, check_name, "AP02",
@@ -1848,8 +1955,12 @@ bool report::write_ctor_with_allocator_definition(
         blp = "";
     }
 
+    const FunctionTemplateDecl *ft =
+        decl->getNumTemplateParameterLists() ? 0 :
+        decl->getDescribedFunctionTemplate();
+
     if (up) {
-        ins_loc    = decl->getLocStart();
+        ins_loc    = ft ? ft->getLocStart() : decl->getLocStart();
         end_spaces = 0;
     }
     else {
@@ -1871,10 +1982,10 @@ bool report::write_ctor_with_allocator_definition(
            ;
     }
 
-    if (const auto *ft = decl->getDescribedFunctionTemplate()) {
+    if (ft) {
         ot << indent << a.get_source(SourceRange(
-                  ft->getSourceRange().getBegin(),
-                  decl->getSourceRange().getBegin().getLocWithOffset(-1)))
+                  ft->getLocStart(),
+                  decl->getLocStart().getLocWithOffset(-1))).rtrim()
                                                               << "\n" << spaces
            ;
     }
@@ -2044,8 +2155,8 @@ bool report::write_ctor_with_allocator_declaration(
     if (const auto *ft = decl->getDescribedFunctionTemplate()) {
         ot << "    "
            << a.get_source(SourceRange(
-                  ft->getSourceRange().getBegin(),
-                  decl->getSourceRange().getBegin().getLocWithOffset(-1)))
+                  ft->getLocStart(),
+                  decl->getLocStart().getLocWithOffset(-1))).rtrim()
                                                               << "\n" << spaces
            ;
     }
@@ -2176,6 +2287,60 @@ bool report::write_assignment_definition(const CXXRecordDecl *record)
              false, DiagnosticIDs::Note)
         << ot.str();
     a.ReplaceText(ins_loc.getLocWithOffset(1), 0, ot.str());
+    return true;
+}
+
+bool report::write_in_class_assignment_definition(const CXXRecordDecl *record)
+{
+    if (!a.is_component(record) || !record->hasDefinition())
+        return false;
+
+    record = record->getDefinition();
+
+    std::string s;
+    llvm::raw_string_ostream ot(s);
+
+    SourceLocation ins_loc = record->getBraceRange().getEnd();
+    llvm::StringRef range = a.get_source(record->getBraceRange());
+    int end_spaces = range.size() - range.drop_back(1).rtrim().size() - 1;
+    llvm::StringRef spaces =
+        a.get_source_line(ins_loc).take_until([](char c) { return c != ' '; });
+
+    ot << "\n"                                                << "\n" << spaces
+       << "  public:"                                         << "\n" << spaces
+       << "    // PUBLIC MANIPULATORS"                        << "\n" << spaces
+       << "    " << record->getName() << "& operator=(" << "const "
+                 << record->getName() << "& original) {"      << "\n" << spaces
+       ;
+    for (const auto& base : record->bases()) {
+        llvm::StringRef bn = base.getType()->getAsCXXRecordDecl()->getName();
+        ot << "        static_cast<" << bn << "&>(*this) = original;"
+                                                              << "\n" << spaces
+        ;
+    }
+    for (const auto *field : record->fields()) {
+        if (field->getType()->isArrayType()) {
+            a.report(record, check_name, "AH01",
+                     "Assignment for %0 not generated due to array member %1",
+                     false, DiagnosticIDs::Note)
+                << record
+                << field;
+            return false;
+        }
+        llvm::StringRef fn = field->getName();
+        ot << "        this->" << fn << " = " << "original." << fn << ";"
+                                                              << "\n" << spaces
+        ;
+    }
+    ot << "        return *this;"                             << "\n" << spaces
+       << "    }"                                             << "\n" << spaces
+       ;
+
+    a.report(ins_loc, check_name, "AH01",
+             "In-class definition for assignment operator%0",
+             false, DiagnosticIDs::Note)
+        << ot.str();
+    a.ReplaceText(ins_loc.getLocWithOffset(-end_spaces), end_spaces, ot.str());
     return true;
 }
 
