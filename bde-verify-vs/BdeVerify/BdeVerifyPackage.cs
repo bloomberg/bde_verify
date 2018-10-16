@@ -169,7 +169,7 @@ namespace BloombergLP.BdeVerify {
         [Category("BDE Verify")]
         [DisplayName("C++ Standard conformance")]
         [Description("Conformance to particular version of C++ Standard.")]
-        public CppStandardVersion StandardVersion() { get { return cppstd; } set { cppstd = value; } }
+        public CppStandardVersion StandardVersion { get { return cppstd; } set { cppstd = value; } }
 
         private bool verbose = false;
         [Category("BDE Verify")]
