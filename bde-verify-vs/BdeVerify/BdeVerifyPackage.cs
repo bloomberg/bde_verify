@@ -331,7 +331,7 @@ namespace BloombergLP.BdeVerify {
                 si.Arguments += " -ferror-limit=0";
                 si.Arguments += " -fms-compatibility";
                 si.Arguments += " -fms-extensions";
-                si.Arguments += StandardVersion.Option();
+                si.Arguments += options.StandardVersion.Option();
                 si.Arguments += " -xc++";
                 var paths = new HashSet<string>();
                 paths.Add("");
