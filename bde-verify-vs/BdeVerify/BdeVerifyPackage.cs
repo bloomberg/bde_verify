@@ -117,17 +117,17 @@ namespace BloombergLP.BdeVerify {
         {
             switch (version)
             {
-                case CppStandardVersion.cpp98: return "-std=c++98";
-                case CppStandardVersion.gnu98: return "-std=gnu++98";
-                case CppStandardVersion.cpp11: return "-std=c++11";
-                case CppStandardVersion.gnu11: return "-std=gnu++11";
-                case CppStandardVersion.cpp14: return "-std=c++14";
-                case CppStandardVersion.gnu14: return "-std=gnu++14";
-                case CppStandardVersion.cpp17: return "-std=c++17";
-                case CppStandardVersion.gnu17: return "-std=gnu++17";
-                case CppStandardVersion.cpp2a: return "-std=c++2a";
-                case CppStandardVersion.gnu2a: return "-std=gnu++2a";
-                default:                       return "-std=gnu++2a";
+                case CppStandardVersion.cpp98: return " -std=c++98";
+                case CppStandardVersion.gnu98: return " -std=gnu++98";
+                case CppStandardVersion.cpp11: return " -std=c++11";
+                case CppStandardVersion.gnu11: return " -std=gnu++11";
+                case CppStandardVersion.cpp14: return " -std=c++14";
+                case CppStandardVersion.gnu14: return " -std=gnu++14";
+                case CppStandardVersion.cpp17: return " -std=c++17";
+                case CppStandardVersion.gnu17: return " -std=gnu++17";
+                case CppStandardVersion.cpp2a: return " -std=c++2a";
+                case CppStandardVersion.gnu2a: return " -std=gnu++2a";
+                default:                       return " -std=gnu++2a";
             }
         }
     }
