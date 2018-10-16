@@ -1538,6 +1538,8 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
                         << decl;
                 }
                 auto def = decl;
+                bool default_allocator =
+                    !decl->isUserProvided() || decl->isDefaultConstructor();
                 if (!decl->isThisDeclarationADefinition()) {
                     if (do_transform) {
                         write_ctor_with_allocator_declaration(record, decl);
@@ -1546,6 +1548,7 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
                     if (decl->isDefined()) {
                         def = llvm::dyn_cast<CXXConstructorDecl>(
                             decl->getDefinition());
+                        default_allocator = false;
                     }
                 }
                 if (def) {
@@ -1554,8 +1557,7 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
                             record,
                             def,
                             added_d_allocator.count(record),
-                            !decl->isUserProvided() ||
-                            decl->isDefaultConstructor());
+                            default_allocator);
                     }
                 }
             }
