@@ -165,7 +165,7 @@ namespace BloombergLP.BdeVerify {
         [Description("Files in the compilation unit for which diagnostics should be emitted.")]
         public DiagnoseWhat Diagnose { get { return diagnose; } set { diagnose = value; } }
 
-        private CppStandardVersion cppstd = CppStandardVersion.gnu20;
+        private CppStandardVersion cppstd = CppStandardVersion.gnu2a;
         [Category("BDE Verify")]
         [DisplayName("C++ Standard conformance")]
         [Description("Conformance to particular version of C++ Standard.")]
