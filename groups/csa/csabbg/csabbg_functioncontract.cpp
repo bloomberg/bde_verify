@@ -227,7 +227,7 @@ Word::Word()
 
 bool correctly_spelled(llvm::StringRef word)
 {
-    return false;
+    return true;
 }
 
 #else
