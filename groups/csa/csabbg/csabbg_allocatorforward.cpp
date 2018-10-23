@@ -1237,7 +1237,7 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
                     }
                 }
 
-                if (uses_allocator) {
+                if (uses_allocator && record->hasDefinition()) {
                     const CXXBaseSpecifier *base_with_allocator = 0;
                     for (const auto& base : record->bases()) {
                         if (takes_allocator(
