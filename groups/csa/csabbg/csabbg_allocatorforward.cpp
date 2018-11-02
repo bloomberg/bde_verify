@@ -1103,7 +1103,7 @@ static internal::DynTypedMatcher force_implicit_matcher()
 void report::match_force_implicit(const BoundNodes& nodes)
 {
     const auto *r = nodes.getNodeAs<CXXRecordDecl>("r");
-    if (should_transform(r) /*&& !has_array_member(r)*/) {
+    if (should_transform(r)) {
         force_implicit_definitions(r);
     }
 }
