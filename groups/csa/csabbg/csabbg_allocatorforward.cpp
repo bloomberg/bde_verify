@@ -1266,9 +1266,6 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
             continue;
         }
         const CXXRecordDecl *record = decl->getParent()->getCanonicalDecl();
-        if (record->getTemplateInstantiationPattern()) {
-            continue;
-        }
 
         const FieldDecl *array_member = 0;
         bool do_transform = should_transform(record);

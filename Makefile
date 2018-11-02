@@ -213,6 +213,7 @@ LIBS     =    -l$(LCB)                                                        \
               -lclangStaticAnalyzerCheckers                                   \
               -lclangStaticAnalyzerCore                                       \
               -lclangAnalysis                                                 \
+              -lclangTooling                                                  \
               -lclangToolingCore                                              \
               -lclangASTMatchers                                              \
               -lclangRewrite                                                  \

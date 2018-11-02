@@ -105,7 +105,8 @@ struct data
     typedef std::multimap<unsigned, indent> IndentMap;  // offset -> indent
     std::map<std::string, IndentMap> d_indent;
 
-    typedef std::map<size_t, bool> DoneMap;  // line -> d_done
+    typedef std::map<size_t, std::pair<bool, int> > DoneMap;
+                                                        // line -> (done, diff)
     std::map<std::string, DoneMap> d_done;
 
     std::map<std::string, bool> d_in_dotdot;
@@ -158,6 +159,7 @@ struct report : public RecursiveASTVisitor<report>, public Report<data>
     bool VisitDeclStmt(DeclStmt *ds);
     bool VisitFieldDecl(FieldDecl *fd);
     bool VisitVarDecl(VarDecl *vd);
+    bool VisitIfStmt(IfStmt *is);
 
     bool WalkUpFromDoStmt(DoStmt *stmt);
     bool WalkUpFromForStmt(ForStmt *stmt);
@@ -204,6 +206,17 @@ bool report::VisitStmt(Stmt *stmt)
         Location l(m, stmt->getLocStart());
         if (l) {
             d.d_to_process[l] = llvm::dyn_cast<Expr>(stmt) != 0;
+        }
+    }
+    return true;
+}
+
+bool report::VisitIfStmt(IfStmt *stmt)
+{
+    if (a.is_component(stmt)) {
+        Location l(m, stmt->getElseLoc());
+        if (l) {
+            d.d_to_process[l] = false;
         }
     }
     return true;
@@ -727,9 +740,12 @@ void report::get_indent(Location l, int& offset, int& exact, bool& dotdot)
 int report::process(Location l, bool greater, int lastdiff)
 {
     int diff = 0;
-    bool& done = d.d_done[l.file()][l.line()];
-    if (!done) {
-        done = true;
+    auto& done = d.d_done[l.file()][l.line()];
+    if (done.first) {
+        diff = done.second;
+    }
+    else {
+        done.first = true;
         int offset;
         int exact_offset;
         bool dotdot;
@@ -739,14 +755,13 @@ int report::process(Location l, bool greater, int lastdiff)
             line.substr(0, l.column() - 1).find_first_not_of(' ') ==
                 line.npos &&
             (!greater || line.size() < exact_offset + line.ltrim().size())) {
-            std::string expect =
-                std::string(std::max(0,
-                                     std::min(79 - int(line.trim().size()),
-                                              exact_offset)),
-                            ' ') +
-                line.trim().str();
+            int long_offset =
+                std::min(79 - int(line.trim().size()), exact_offset);
+            std::string expect = std::string(std::max(0, exact_offset), ' ') +
+                                 line.trim().str();
             diff = expect.size() - line.size();
-            if (line != expect && diff != lastdiff) {
+            if (line != expect && diff != lastdiff &&
+                long_offset == exact_offset) {
                 a.report(l.location(), check_name, "IND01",
                          "Possibly mis-indented line");
                 a.report(l.location(), check_name, "IND01",
@@ -755,6 +770,7 @@ int report::process(Location l, bool greater, int lastdiff)
                     << expect;
             }
         }
+        done.second = diff;
     }
     return diff;
 }
