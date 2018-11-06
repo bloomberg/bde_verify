@@ -1,5 +1,5 @@
 The following files need to be updated when the version number is changed.
-(Note that debian/changelog is updated auroumatically by dpkg-debchange.)
+(Note that debian/changelog is updated automatically by dpkg-debchange.)
 
 debian/changelog
 CMakeLists.txt

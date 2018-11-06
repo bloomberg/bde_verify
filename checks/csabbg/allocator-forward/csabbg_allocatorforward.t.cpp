@@ -314,6 +314,7 @@ bde_verify::csabbg::alloc_a a{};
 bde_verify::csabbg::alloc_a b{0};
 bde_verify::csabbg::alloc_a c[2];
 bde_verify::csabbg::alloc_a d[2][2];
+bde_verify::csabbg::alloc_f f{};
 
 BloombergLP::bslma::TestAllocator ta;
 

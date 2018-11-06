@@ -1,8 +1,6 @@
 h.cpp:8:8: warning: AT02: Class 'X' uses allocators but does not have an allocator trait
 struct X {
        ^
-h.cpp:8:8: warning: AP02: Class 'X' needs d_allocator_p member
-h.cpp:8:8: warning: AL01: Class 'X' needs allocator() method
 h.cpp:8:8: warning: AC02: Class 'X' implicit copy constructor is not allocator-aware
 h.cpp:11:8: warning: AT02: Class 'Y' uses allocators but does not have an allocator trait
 struct Y : X {
@@ -13,9 +11,6 @@ h.cpp:12:23: warning: AP01: Class 'Y' has unnecessary d_allocator_p
 h.cpp:11:12: note: AP01: Use allocator of base class 'X'
 struct Y : X {
            ^
-h.cpp:11:8: warning: AL01: Class 'Y' needs allocator() method
-struct Y : X {
-       ^
 h.cpp:14:5: warning: AC01: Class 'Y' constructor has no allocator-aware version
     Y(int);
     ^
@@ -52,10 +47,4 @@ h.cpp:25:5: warning: AC01: Class 'W' constructor has no allocator-aware version
 h.cpp:22:8: warning: AC02: Class 'W' implicit copy constructor is not allocator-aware
 struct W {
        ^
-h.cpp:36:8: warning: AL01: Class 'B' needs allocator() method
-struct B : A {
-       ^
-h.cpp:50:8: warning: AL01: Class 'D' needs allocator() method
-struct D : private A {
-       ^
-22 warnings generated.
+17 warnings generated.

@@ -1,15 +1,11 @@
-h.cpp:8:8: warning: AT02: Class 'BaseWithAllocator' uses allocators but does not have an allocator trait
+h.cpp:7:8: warning: AT02: Class 'BaseWithAllocator' uses allocators but does not have an allocator trait
 struct BaseWithAllocator {
        ^
-h.cpp:8:8: warning: AP02: Class 'BaseWithAllocator' needs d_allocator_p member
-h.cpp:8:8: warning: AL01: Class 'BaseWithAllocator' needs allocator() method
-h.cpp:8:8: warning: AC02: Class 'BaseWithAllocator' implicit copy constructor is not allocator-aware
-h.cpp:13:8: warning: AT02: Class 'FieldWithAllocator' uses allocators but does not have an allocator trait
+h.cpp:7:8: warning: AC02: Class 'BaseWithAllocator' implicit copy constructor is not allocator-aware
+h.cpp:12:8: warning: AT02: Class 'FieldWithAllocator' uses allocators but does not have an allocator trait
 struct FieldWithAllocator {
        ^
-h.cpp:13:8: warning: AP02: Class 'FieldWithAllocator' needs d_allocator_p member
-h.cpp:13:8: warning: AL01: Class 'FieldWithAllocator' needs allocator() method
-h.cpp:13:8: warning: AC02: Class 'FieldWithAllocator' implicit copy constructor is not allocator-aware
+h.cpp:12:8: warning: AC02: Class 'FieldWithAllocator' implicit copy constructor is not allocator-aware
 h.cpp:16:8: warning: AT02: Class 'C1' uses allocators but does not have an allocator trait
 struct C1 : BaseWithoutAllocator, BaseWithAllocator<1>, BaseWithAllocator<2> {
        ^
@@ -19,10 +15,9 @@ h.cpp:17:23: warning: AP01: Class 'C1' has unnecessary d_allocator_p
 h.cpp:16:35: note: AP01: Use allocator of base class 'BaseWithAllocator<1>'
 struct C1 : BaseWithoutAllocator, BaseWithAllocator<1>, BaseWithAllocator<2> {
                                   ^
-h.cpp:16:8: warning: AL01: Class 'C1' needs allocator() method
+h.cpp:16:8: warning: AC02: Class 'C1' implicit copy constructor is not allocator-aware
 struct C1 : BaseWithoutAllocator, BaseWithAllocator<1>, BaseWithAllocator<2> {
        ^
-h.cpp:16:8: warning: AC02: Class 'C1' implicit copy constructor is not allocator-aware
 h.cpp:20:8: warning: AT02: Class 'C2' uses allocators but does not have an allocator trait
 struct C2 {
        ^
@@ -45,8 +40,7 @@ h.cpp:31:28: warning: AP01: Class 'C3' has unnecessary d_allocator_p
 h.cpp:27:35: note: AP01: Use allocator of base class 'BaseWithAllocator<1>'
 struct C3 : BaseWithoutAllocator, BaseWithAllocator<1>, BaseWithAllocator<2> {
                                   ^
-h.cpp:27:8: warning: AL01: Class 'C3' needs allocator() method
+h.cpp:27:8: warning: AC02: Class 'C3' implicit copy constructor is not allocator-aware
 struct C3 : BaseWithoutAllocator, BaseWithAllocator<1>, BaseWithAllocator<2> {
        ^
-h.cpp:27:8: warning: AC02: Class 'C3' implicit copy constructor is not allocator-aware
-20 warnings generated.
+14 warnings generated.

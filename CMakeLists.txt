@@ -4,7 +4,7 @@ project(bde_verify)
 
 set(BDE_VERIFY_VERSION_MAJOR "1")
 set(BDE_VERIFY_VERSION_MINOR "2")
-set(BDE_VERIFY_VERSION_PATCH "24")
+set(BDE_VERIFY_VERSION_PATCH "25")
 set(BDE_VERIFY_VERSION "${BDE_VERIFY_VERSION_MAJOR}.${BDE_VERIFY_VERSION_MINOR}.${BDE_VERIFY_VERSION_PATCH}")
 
 add_subdirectory(bde-verify-vs)
@@ -146,6 +146,8 @@ add_library(csabase
 )
 
 target_compile_features(csabase PUBLIC cxx_auto_type)
+target_compile_definitions(csabase PRIVATE
+                           BDE_VERIFY_VERSION="${BDE_VERIFY_VERSION}")
 
 if(MSVC)
     set(RC ${CMAKE_CURRENT_SOURCE_DIR}/bde-verify-vs/bde_verify_bin.rc)

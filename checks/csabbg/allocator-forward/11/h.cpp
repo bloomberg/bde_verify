@@ -6,7 +6,7 @@ namespace bslma { class Allocator; }
 }
 using namespace BloombergLP;
 struct X {
-    X(bslma::Allocator *);
+    X(bslma::Allocator *); bslma::Allocator *allocator() const;
 };
 struct Y : X {
     bslma::Allocator *d_allocator_p;

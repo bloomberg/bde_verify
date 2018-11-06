@@ -75,14 +75,14 @@ Word::Word()
 void Word::set(llvm::StringRef s, size_t position)
 {
     static std::unordered_set<llvm::StringRef> prepositions{
-        "about",   "above",      "across",  "after",   "against", "among",
-        "around",  "at",         "before",  "behind",  "below",   "beneath",
-        "beside",  "besides",    "between", "beyond",  "by",      "during",
-        "for",     "from",       "in",      "inside",  "into",    "near",
-        "of",      "on",         "out",     "outside", "over",    "since",
-        "through", "throughout", "till",    "to",      "toward",  "unclear",
-        "under",   "until",      "up",      "upon",    "with",    "within",
-        "without",
+        "about",   "above",  "across",  "after",   "against",    "among",
+        "and",     "around", "at",      "before",  "behind",     "below",
+        "beneath", "beside", "besides", "between", "beyond",     "but",
+        "by",      "during", "for",     "from",    "in",         "inside",
+        "into",    "near",   "of",      "on",      "or",         "out",
+        "outside", "over",   "since",   "through", "throughout", "till",
+        "to",      "toward", "unclear", "under",   "until",      "up",
+        "upon",    "with",   "within",  "without",
     };
 
     word             = s;
