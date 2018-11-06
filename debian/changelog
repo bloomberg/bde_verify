@@ -1,3 +1,29 @@
+bde-verify (1.2.25) unstable; urgency=low
+
+  * a917184 Version to 1.2.25
+  * 5c8b14f Remove a bit of commented-out code
+  * bb8b731 Fix some indentation and allocator check things.
+  * ef9149c Merge commit 'd2ad05619' into work
+  * d2ad056 Add test for assertion
+  * 8b592a7 Fix assert in csabbg_allocatorforward
+  * 6b15c6d In the absence of spell check, all words are spelled correctly.
+  * 8e3c6e9 Fix std options
+  * c81e0dc Thinko.
+  * 205f299 Typo
+  * c3a8dcf Typo
+  * ba1a1b9 Include standard version option, fix getting include path
+  * 0bbd388 Default allocator (work in progress)
+  * ec6f5dc Some allocatorization improvements after working with bhlt code.
+  * 36d423f Fixes for transitive include and function call indentation
+  * 314144f Transitive include improvements
+  * c6140fa Fix transitive iostream and static non-allocator.
+  * 5d07585 Warning changes for allocatorization
+  * 7e8c921 Fix allocator method generation.
+  * 9661001 Generate assignment along with d_allocator_p; allocator def after function
+  * 3d12e52 Merge pull request #27 from hrosen4/debian
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Tue, 6 Nov 2018 14:29:59 -0500
+
 bde-verify (1.2.24) unstable; urgency=low
 
   * c8f0a39 Bump versuion, document re-export pragma
