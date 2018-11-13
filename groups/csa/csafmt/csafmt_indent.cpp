@@ -499,6 +499,10 @@ bool report::WalkUpFromAccessSpecDecl(AccessSpecDecl *as)
 bool report::WalkUpFromCallExpr(CallExpr *call)
 {
     unsigned n = call->getNumArgs();
+    while (n > 0 &&
+           llvm::dyn_cast<CXXDefaultArgExpr>(call->getArg(n - 1))) {
+        --n;
+    }
     if (n > 0 &&
         !call->getLocStart().isMacroID() &&
         !llvm::dyn_cast<CXXOperatorCallExpr>(call)) {
