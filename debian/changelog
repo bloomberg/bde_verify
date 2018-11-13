@@ -1,3 +1,10 @@
+bde-verify (1.2.26) unstable; urgency=low
+
+  * 3e22b3c Bump version
+  * 8b89bee Fix call expression indentation when default args
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Mon, 12 Nov 2018 19:21:39 -0500
+
 bde-verify (1.2.25) unstable; urgency=low
 
   * a917184 Version to 1.2.25
