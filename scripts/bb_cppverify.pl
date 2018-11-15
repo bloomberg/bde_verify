@@ -65,6 +65,7 @@ my $ovr = -1;
 my $m32;
 my $m64;
 my $diff = "";
+my $comp_db_dir = "";
 
 my $command = join " \\\n ", $0, map { join '" "', split(/ /, $_, -1) } @ARGV;
 
@@ -85,6 +86,7 @@ usage: $0 [options] [additional compiler options] file.cpp ...
     --[no]definc             [$definc]
     --[no]defdef             [$defdef]
     --[no]ovr                # whether to define BSL_OVERRIDES_STD
+    --p=directory            [$comp_db_dir] # compilation database directory
     --rewrite-dir=dir
     --rewrite-file=file
     --diagnose={main,component,nogen,all}
@@ -129,6 +131,7 @@ GetOptions(
     "W=s"                          => \@wflags,
     "f=s"                          => \@lflags,
     "std=s"                        => \$std,
+    "p=s"                          => \$comp_db_dir,
     "toplevel"                     => sub { $diagnose = "main" },
     "diagnose=s"                   => sub {
         my %opts = ("main" => 1, "component" => 1, "nogen" => 1, "all" => 1);
@@ -141,7 +144,7 @@ GetOptions(
     "m64"                          => \$m64,
     "pipe|pthread|MMD|g|c|S"       => \$dummy,
     "O|MF|o|march|mtune=s"         => \@dummy,
-) and !$help and ($#ARGV >= 0 or $version) or usage();
+) and !$help and ($#ARGV >= 0 or $version or $comp_db_dir) or usage();
 
 sub xclang(@) { return map { ( "-Xclang", $_ ) } @_; }
 sub plugin(@) { return xclang( "-plugin-arg-bde_verify", @_ ); }
@@ -214,6 +217,7 @@ my @pass;
 push(@pass, "-m32") if $m32;
 push(@pass, "-m64") if $m64;
 push(@pass, "--version") if $version;
+push(@pass, "--p=${comp_db_dir}") if -d "${comp_db_dir}";
 
 # Try to find include paths if INCLUDE is not specified.
 my $inc = $ENV{INCLUDE};
@@ -304,6 +308,7 @@ my @command = (
     @incs,
     @lflags,
     @wflags,
+    "--",
     @ARGV,
 );
 
