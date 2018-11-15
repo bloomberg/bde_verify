@@ -295,6 +295,7 @@ my @command = (
     "-msoft-float",
     "-fsyntax-only",
     "-xc++",
+    @pass,
     @std,
     @debug,
     @config,
