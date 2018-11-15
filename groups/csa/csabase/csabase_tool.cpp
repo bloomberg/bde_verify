@@ -134,7 +134,21 @@ static int ExecuteCC1Tool(ArrayRef<const char *> argv, StringRef Tool)
 
 int csabase::run(int argc_, const char **argv_)
 {
-    std::vector<const char *> args(argv_, argv_ + argc_);
+    sys::PrintStackTraceOnErrorSignal(argv_[0], true);
+    PrettyStackTraceProgram X(argc_, argv_);
+
+    if (sys::Process::FixupStandardFileDescriptors())
+        return 1;
+
+    SmallVector<const char *, 2560> argv;
+    SpecificBumpPtrAllocator<char> ArgAllocator;
+    std::error_code                EC = sys::Process::GetArgumentVector(
+        argv, makeArrayRef(argv_, argc_), ArgAllocator);
+    if (EC) {
+        errs() << "error: couldn't get arguments: " << EC.message() << '\n';
+        return 1;
+    }
+
     std::vector<std::string> scratch;
     std::unique_ptr<CompilationDatabase> Compilations;
     std::string ErrorMessage;
@@ -143,7 +157,7 @@ int csabase::run(int argc_, const char **argv_)
 
     auto ins = [&](StringRef s, size_t i) {
         scratch.emplace_back(s);
-        args.insert(args.begin() + i, scratch.back().data());
+        argv.insert(argv.begin() + i, scratch.back().data());
         return i + 1;
     };
 
@@ -165,8 +179,8 @@ int csabase::run(int argc_, const char **argv_)
     // include paths are only inserted once (even if macro definitions change)
     // and they're cumulative.
 
-    for (size_t i = 0; i < args.size(); ++i) {
-        StringRef arg(args[i]);
+    for (size_t i = 0; i < argv.size(); ++i) {
+        StringRef arg(argv[i]);
         if (arg == "-cc1") {
             break;
         }
@@ -174,14 +188,14 @@ int csabase::run(int argc_, const char **argv_)
             arg = arg.drop_front(4);
             Compilations = CompilationDatabase::autoDetectFromDirectory(
                 arg, ErrorMessage);
-            args.erase(args.begin() + i--);
+            argv.erase(argv.begin() + i--);
             if (!Compilations) {
                 // Allow opt out of compilation database, e.g., by '--p=-'.
                 break;
             }
         }
         else if (arg == "-D") {
-            StringRef def = args[i + 1];
+            StringRef def = argv[i + 1];
             defined.insert(def.split('=').first);
             ++i;
         }
@@ -189,7 +203,7 @@ int csabase::run(int argc_, const char **argv_)
             defined.insert(arg.drop_front(2).split('=').first);
         }
         else if (arg == "-U") {
-            StringRef def = args[i + 1];
+            StringRef def = argv[i + 1];
             defined.insert(def);
             ++i;
         }
@@ -197,7 +211,7 @@ int csabase::run(int argc_, const char **argv_)
             defined.insert(arg.drop_front(2));
         }
         else if (arg == "-I") {
-            StringRef dir = args[i + 1];
+            StringRef dir = argv[i + 1];
             included.insert(dir);
             ++i;
         }
@@ -271,28 +285,13 @@ int csabase::run(int argc_, const char **argv_)
         }
         else if (arg == "--") {
             after_dashes = true;
-            args.erase(args.begin() + i--);
-            if (Compilations && i == args.size() - 1) {
+            argv.erase(argv.begin() + i--);
+            if (Compilations && i == argv.size() - 1) {
                 for (const auto &s : Compilations->getAllFiles()) {
                     ins(s, i);
                 }
             }
         }
-    }
-
-    sys::PrintStackTraceOnErrorSignal(args[0], true);
-    PrettyStackTraceProgram X(args.size(), args.data());
-
-    if (sys::Process::FixupStandardFileDescriptors())
-        return 1;
-
-    SmallVector<const char *, 256> argv;
-    SpecificBumpPtrAllocator<char> ArgAllocator;
-    std::error_code                EC = sys::Process::GetArgumentVector(
-        argv, makeArrayRef(args.data(), args.size()), ArgAllocator);
-    if (EC) {
-        errs() << "error: couldn't get arguments: " << EC.message() << '\n';
-        return 1;
     }
 
     InitializeNativeTarget();
