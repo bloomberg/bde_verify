@@ -123,16 +123,17 @@ public:
 
     utils::event<decltype(&Base::FileNotFound)> onPPFileNotFound;
 
-    void InclusionDirective(clang::SourceLocation   HashLoc,
-                            const clang::Token&     IncludeTok,
-                            llvm::StringRef         FileName,
-                            bool                    IsAngled,
-                            clang::CharSourceRange  FilenameRange,
-                            const clang::FileEntry *File,
-                            llvm::StringRef         SearchPath,
-                            llvm::StringRef         RelativePath,
-                            const clang::Module    *Imported)
-    override;
+    void InclusionDirective(
+                         clang::SourceLocation              HashLoc,
+                         const clang::Token&                IncludeTok,
+                         llvm::StringRef                    FileName,
+                         bool                               IsAngled,
+                         clang::CharSourceRange             FilenameRange,
+                         const clang::FileEntry            *File,
+                         llvm::StringRef                    SearchPath,
+                         llvm::StringRef                    RelativePath,
+                         const clang::Module               *Imported,
+                         clang::SrcMgr::CharacteristicKind  FileType) override;
 
     utils::event<decltype(&Base::InclusionDirective)> onPPInclusionDirective;
 
@@ -264,8 +265,8 @@ public:
 
     utils::event<decltype(&Base::Defined)> onPPDefined;
 
-    void SourceRangeSkipped(clang::SourceRange Range)
-    override;
+    void SourceRangeSkipped(clang::SourceRange    Range,
+                            clang::SourceLocation EndifLoc) override;
 
     utils::event<decltype(&Base::SourceRangeSkipped)> onPPSourceRangeSkipped;
 

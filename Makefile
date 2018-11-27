@@ -220,8 +220,11 @@ LIBS     =    -l$(LCB)                                                        \
               -lclangAST                                                      \
               -lclangLex                                                      \
               -lclangBasic                                                    \
+              -lclangCrossTU                                                  \
+              -lclangIndex                                                    \
               -lLLVMLTO                                                       \
               -lLLVMPasses                                                    \
+              -lLLVMAggressiveInstCombine                                     \
               -lLLVMObjCARCOpts                                               \
               -lLLVMDebugInfoPDB                                              \
               -lLLVMCoverage                                                  \

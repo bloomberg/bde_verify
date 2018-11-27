@@ -24,6 +24,7 @@
 #include <clang/Frontend/TextDiagnosticBuffer.h>
 #include <clang/Frontend/TextDiagnosticPrinter.h>
 #include <clang/FrontendTool/Utils.h>
+#include <clang/Tooling/CompilationDatabase.h>
 #include <clang/Tooling/Tooling.h>
 #include <memory>
 #include <set>
@@ -140,14 +141,7 @@ int csabase::run(int argc_, const char **argv_)
     if (sys::Process::FixupStandardFileDescriptors())
         return 1;
 
-    SmallVector<const char *, 2560> argv;
-    SpecificBumpPtrAllocator<char> ArgAllocator;
-    std::error_code                EC = sys::Process::GetArgumentVector(
-        argv, makeArrayRef(argv_, argc_), ArgAllocator);
-    if (EC) {
-        errs() << "error: couldn't get arguments: " << EC.message() << '\n';
-        return 1;
-    }
+    SmallVector<const char *, 2560> argv(argv_, argv_ + argc_);
 
     std::vector<std::string> scratch;
     std::unique_ptr<CompilationDatabase> Compilations;

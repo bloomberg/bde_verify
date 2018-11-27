@@ -8,28 +8,14 @@
 #include <csabase_report.h>
 #include <csabase_util.h>
 #include <cctype>
+#include <set>
 #include <string>
-#include <unordered_set>
 #include <vector>
 
 using namespace clang;
 using namespace csabase;
 
 static std::string const check_name("that-which");
-
-namespace std
-{
-
-template <>
-struct hash<llvm::StringRef>
-{
-    size_t operator()(llvm::StringRef s) const
-    {
-        return llvm::HashString(s);
-    }
-};
-
-}
 
 namespace
 {
@@ -74,7 +60,7 @@ Word::Word()
 
 void Word::set(llvm::StringRef s, size_t position)
 {
-    static std::unordered_set<llvm::StringRef> prepositions{
+    static std::set<llvm::StringRef> prepositions{
         "about",   "above",  "across",  "after",   "against",    "among",
         "and",     "around", "at",      "before",  "behind",     "below",
         "beneath", "beside", "besides", "between", "beyond",     "but",

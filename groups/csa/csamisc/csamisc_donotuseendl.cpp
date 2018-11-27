@@ -9,8 +9,8 @@
 #include <csabase_report.h>
 #include <csabase_util.h>
 #include <csabase_visitor.h>
+#include <set>
 #include <string>
-#include <unordered_set>
 
 using namespace clang;
 using namespace clang::ast_matchers;
@@ -23,6 +23,8 @@ namespace
 
 struct data
 {
+    typedef std::set<Location> Endls;
+    Endls d_endls;
 };
 
 struct report : Report<data>
@@ -41,8 +43,7 @@ void report::operator()()
     MatchFinder mf;
     OnMatch<> m1([&](const BoundNodes &nodes) {
         const auto *c = nodes.getNodeAs<CXXOperatorCallExpr>("c");
-        a.report(c->getOperatorLoc(), check_name, "NE01",
-                 "Prefer ... << '\\n', and ... << flush if needed");
+        d.d_endls.emplace(Location(m, c->getOperatorLoc()));
     });
     mf.addDynamicMatcher(
         decl(forEachDescendant(cxxOperatorCallExpr(
@@ -52,6 +53,11 @@ void report::operator()()
             )))
         ).bind("c"))), &m1);
     mf.match(*a.context()->getTranslationUnitDecl(), *a.context());
+
+    for (const auto &loc : d.d_endls) {
+        a.report(loc.location(), check_name, "NE01",
+                 "Prefer ... << '\\n', and ... << flush if needed");
+    }
 }
 
 void subscribe(Analyser& analyser, Visitor& visitor, PPObserver& observer)

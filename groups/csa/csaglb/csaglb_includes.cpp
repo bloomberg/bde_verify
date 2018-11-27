@@ -51,15 +51,16 @@ struct report : Report<IncludesData>
                     SourceLocation                  );
 
     // InclusionDirective
-    void operator()(SourceLocation       ,
-                    const Token&         ,
-                    StringRef            ,
-                    bool                 ,
-                    CharSourceRange      ,
-                    const FileEntry     *,
-                    StringRef            ,
-                    StringRef            ,
-                    const clang::Module *);
+    void operator()(SourceLocation              ,
+                    const Token&                ,
+                    StringRef                   ,
+                    bool                        ,
+                    CharSourceRange             ,
+                    const FileEntry            *,
+                    StringRef                   ,
+                    StringRef                   ,
+                    const clang::Module        *,
+                    SrcMgr::CharacteristicKind);
 };
 
 // If
@@ -158,15 +159,16 @@ void report::operator()(SourceLocation Loc, SourceLocation IfLoc)
 }
 
 // InclusionDirective
-void report::operator()(SourceLocation       HashLoc,
-                        const Token&         IncludeTok,
-                        StringRef            FileName,
-                        bool                 IsAngled,
-                        CharSourceRange      FilenameRange,
-                        const FileEntry     *File,
-                        StringRef            SearchPath,
-                        StringRef            RelativePath,
-                        const clang::Module *Imported)
+void report::operator()(SourceLocation              HashLoc,
+                        const Token&                IncludeTok,
+                        StringRef                   FileName,
+                        bool                        IsAngled,
+                        CharSourceRange             FilenameRange,
+                        const FileEntry            *File,
+                        StringRef                   SearchPath,
+                        StringRef                   RelativePath,
+                        const clang::Module        *Imported,
+                        SrcMgr::CharacteristicKind  FileType)
 {
     SourceRange key(FilenameRange.getBegin().getLocWithOffset(1),
                     FilenameRange.getEnd().getLocWithOffset(-2));

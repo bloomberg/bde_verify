@@ -553,15 +553,16 @@ struct report : public RecursiveASTVisitor<report>, Report<data>
         // in the specified 'fid', and in files which include it if not
         // dependent on BSL_OVERRIDES_STD.
 
-    void operator()(SourceLocation   where,
-                    const Token&     inc,
-                    llvm::StringRef  name,
-                    bool             angled,
-                    CharSourceRange  namerange,
-                    const FileEntry *entry,
-                    llvm::StringRef  path,
-                    llvm::StringRef  relpath,
-                    const Module    *imported);
+    void operator()(SourceLocation              where,
+                    const Token&                inc,
+                    llvm::StringRef             name,
+                    bool                        angled,
+                    CharSourceRange             namerange,
+                    const FileEntry            *entry,
+                    llvm::StringRef             path,
+                    llvm::StringRef             relpath,
+                    const Module               *imported,
+                    SrcMgr::CharacteristicKind  fileType);
         // Preprocessor callback for included file.
 
     void map_file(std::string name);
@@ -601,7 +602,8 @@ struct report : public RecursiveASTVisitor<report>, Report<data>
                     SourceRange            range);
         // Preprocessor callback for 'defined(.)'.
 
-    void operator()(SourceRange range);
+    void operator()(SourceRange    range,
+                    SourceLocation endifLoc);
         // Preprocessor callback for skipped ranges.
 
     void operator()(SourceLocation where,
@@ -842,15 +844,16 @@ void report::push_include(FileID fid, llvm::StringRef name, SourceLocation sl)
 }
 
 // InclusionDirective
-void report::operator()(SourceLocation   where,
-                        const Token&     inc,
-                        llvm::StringRef  name,
-                        bool             angled,
-                        CharSourceRange  namerange,
-                        const FileEntry *entry,
-                        llvm::StringRef  path,
-                        llvm::StringRef  relpath,
-                        const Module    *imported)
+void report::operator()(SourceLocation              where,
+                        const Token&                inc,
+                        llvm::StringRef             name,
+                        bool                        angled,
+                        CharSourceRange             namerange,
+                        const FileEntry            *entry,
+                        llvm::StringRef             path,
+                        llvm::StringRef             relpath,
+                        const Module               *imported,
+                        SrcMgr::CharacteristicKind  fileType)
 {
     FileID fid = m.getFileID(where);
     if (d.d_guard_pos.isValid() &&
@@ -1010,7 +1013,7 @@ void report::operator()(const Token&          token,
 }
 
 // SourceRangeSkipped
-void report::operator()(SourceRange range)
+void report::operator()(SourceRange range, SourceLocation endifLoc)
 {
     Location loc(m, range.getBegin());
     if (d.d_guard.size() > 0) {

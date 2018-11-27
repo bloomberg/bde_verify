@@ -567,7 +567,7 @@ namespace
                                    colons == name.npos
                                    ? Sema::LookupUsingDeclName
                                    : Sema::LookupNestedNameSpecifierName,
-                                   Sema::ForRedeclaration);
+                                   Sema::ForExternalRedeclaration);
         result.suppressDiagnostics();
 
         if (sema.LookupQualifiedName(result, context) &&

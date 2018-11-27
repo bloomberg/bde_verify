@@ -489,9 +489,10 @@ void csabase::PPObserver::Defined(const Token& token,
     onPPDefined(token, macro, range);
 }
 
-void csabase::PPObserver::SourceRangeSkipped(SourceRange range)
+void csabase::PPObserver::SourceRangeSkipped(SourceRange    range,
+                                             SourceLocation endifLoc)
 {
-    onPPSourceRangeSkipped(range);
+    onPPSourceRangeSkipped(range, endifLoc);
 }
 
 // ----------------------------------------------------------------------------
@@ -559,19 +560,21 @@ void csabase::PPObserver::Context()
     do_context();
 }
 
-void csabase::PPObserver::InclusionDirective(SourceLocation HashLoc,
-                                             const Token& IncludeTok,
-                                             llvm::StringRef FileName,
-                                             bool IsAngled,
-                                             CharSourceRange FilenameRange,
-                                             const FileEntry* File,
-                                             llvm::StringRef SearchPath,
-                                             llvm::StringRef RelativePath,
-                                             const Module* Imported)
+void csabase::PPObserver::InclusionDirective(
+                                     SourceLocation              HashLoc,
+                                     const Token&                IncludeTok,
+                                     llvm::StringRef             FileName,
+                                     bool                        IsAngled,
+                                     CharSourceRange             FilenameRange,
+                                     const FileEntry            *File,
+                                     llvm::StringRef             SearchPath,
+                                     llvm::StringRef             RelativePath,
+                                     const Module               *Imported,
+                                     SrcMgr::CharacteristicKind  FileType)
 {
     onPPInclusionDirective(HashLoc, IncludeTok, FileName, IsAngled,
                            FilenameRange, File, SearchPath, RelativePath,
-                           Imported);
+                           Imported, FileType);
 
     do_include_file(HashLoc, IsAngled, FileName);
     //-dk:TODO make constructive use of this...

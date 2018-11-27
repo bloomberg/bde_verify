@@ -8,8 +8,11 @@
 #include <csabase_config.h>
 #include <csabase_diagnostic_builder.h>
 #include <csabase_registercheck.h>
+#include <csabase_report.h>
 #include <csabase_util.h>
+#include <csabase_visitor.h>
 #include <llvm/Support/Casting.h>
+#include <set>
 #include <string>
 
 using namespace csabase;
@@ -21,23 +24,47 @@ static std::string const check_name("component-prefix");
 
 // ----------------------------------------------------------------------------
 
-static bool wrong_prefix(Analyser& analyser, const NamedDecl* named)
+namespace {
+
+struct data
 {
-    std::string package_prefix = analyser.package() + "_";
+    typedef std::set<std::pair<Location, std::string>> BadGlobals;
+    BadGlobals d_badglobals;
+};
+
+struct report : Report<data>
+{
+    INHERIT_REPORT_CTOR(report, Report, data);
+
+    bool wrong_prefix(const NamedDecl* named);
+
+    void operator()();
+    void operator()(const Decl *decl);
+};
+
+bool report::wrong_prefix(const NamedDecl *named)
+{
+    std::string package_prefix = a.package() + "_";
     std::string name = named->getNameAsString();
     if (name.find(package_prefix) != 0) {
         name = package_prefix + name;
     }
-    return 0 != to_lower(name).find(analyser.component()) &&
+    return 0 != to_lower(name).find(a.component()) &&
            0 != to_lower(named->getQualifiedNameAsString())
-                    .find(to_lower(
-                         analyser.config()->toplevel_namespace() + "::" +
-                         analyser.component() + "::"));
+                    .find(to_lower(a.config()->toplevel_namespace() +
+                                   "::" + a.component() + "::"));
 }
 
-// ----------------------------------------------------------------------------
+void report::operator()()
+{
+    for (const auto &bg : d.d_badglobals) {
+        a.report(bg.first.location(), check_name, "CP01",
+                 "Globally visible identifier '%0' without component prefix")
+            << bg.second;
+    }
+}
 
-static void component_prefix(Analyser& analyser, Decl const *decl)
+void report::operator()(const Decl *decl)
 {
     const DeclContext *dc = decl->getDeclContext();
     if (dc->isClosure() || dc->isFunctionOrMethod() || dc->isRecord()) {
@@ -69,42 +96,46 @@ static void component_prefix(Analyser& analyser, Decl const *decl)
     if (member_check->isCXXClassMember()) {
         return;
     }
-    if (   !analyser.is_global_package()
-        && !analyser.is_global_name(named)
+    auto rd = llvm::dyn_cast<CXXRecordDecl>(decl);
+    if (   !a.is_global_package()
+        && !a.is_global_name(named)
         && (   named->hasLinkage()
             || (   llvm::dyn_cast<TypedefDecl>(named)
-                && name.find(analyser.package() + "_") != 0
+                && name.find(a.package() + "_") != 0
                ))
         && !llvm::dyn_cast<NamespaceDecl>(named)
         && !llvm::dyn_cast<UsingDirectiveDecl>(named)
         && !llvm::dyn_cast<UsingDecl>(named)
-        && analyser.is_component_header(decl)
-        && wrong_prefix(analyser, named)
-        && (!llvm::dyn_cast<RecordDecl>(named)
-            || llvm::dyn_cast<RecordDecl>(named)->isCompleteDefinition()
-            )
+        && a.is_component_header(decl)
+        && wrong_prefix(named)
+        && !(rd && !rd->isCompleteDefinition())
+        && !(rd && rd->getTemplateInstantiationPattern())
         && (   !fd
             || (!fd->isOverloadedOperator()
                  && name != "swap"
                  && name != "debugprint"
-                 && !analyser.is_ADL_candidate(fd))
+                 && !a.is_ADL_candidate(fd))
             )
         && !llvm::dyn_cast<ClassTemplateSpecializationDecl>(decl)
         && !llvm::dyn_cast<ClassTemplatePartialSpecializationDecl>(decl)
-        && !(   llvm::dyn_cast<CXXRecordDecl>(decl)
-             && llvm::dyn_cast<CXXRecordDecl>(decl)->
-                                                   getDescribedClassTemplate())
         ) {
-        analyser.report(decl, check_name, "CP01",
-                        "Globally visible identifier '%0' "
-                        "without component prefix")
-            << named->getQualifiedNameAsString();
+            d.d_badglobals.emplace(Location(m, decl->getLocation()),
+                                   named->getQualifiedNameAsString());
     }
 }
 
+void subscribe(Analyser& analyser, Visitor& visitor, PPObserver& observer)
+    // Hook up the callback functions.
+{
+    visitor.onDecl += report(analyser);
+    analyser.onTranslationUnitDone += report(analyser);
+}
+
+}  // close anonymous namespace
+
 // ----------------------------------------------------------------------------
 
-static RegisterCheck check(check_name, &component_prefix);
+static RegisterCheck check(check_name, &subscribe);
 
 // ----------------------------------------------------------------------------
 // Copyright (C) 2014 Bloomberg Finance L.P.
