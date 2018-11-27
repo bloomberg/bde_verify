@@ -4,8 +4,8 @@ include $(DISTRIBUTION_REFROOT)/opt/bb/share/gcc-build-base/gcc-build-base.mk
 
 PREFIX  ?= /opt/bb
 TMPDIR  ?= /tmp
-LLVMDIR ?= $(DISTRIBUTION_REFROOT)$(LIBDIR_32BIT)/llvm-5.0
-CLANG   ?= $(DISTRIBUTION_REFROOT)$(LIBDIR_32BIT)/llvm-5.0/bin/clang++
+LLVMDIR ?= $(DISTRIBUTION_REFROOT)$(LIBDIR_32BIT)/llvm-7.0
+CLANG   ?= $(DISTRIBUTION_REFROOT)$(LIBDIR_32BIT)/llvm-7.0/bin/clang++
 
 build: build-arch
 
