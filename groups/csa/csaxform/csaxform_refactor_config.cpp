@@ -15,9 +15,10 @@
 #include <clang/ASTMatchers/ASTMatchers.h>
 #include <clang/Lex/Preprocessor.h>
 
-#include <string>
+#include <fstream>
 #include <map>
 #include <set>
+#include <string>
 
 using namespace clang;
 using namespace clang::ast_matchers;
@@ -153,8 +154,66 @@ llvm::StringRef report::prefer_e(llvm::StringRef s, const t_ss& sequence)
     return s;
 }
 
+std::fstream &read_string(std::fstream &f, std::string &s)
+{
+    size_t length;
+    if (f >> length) {
+        s.resize(length);
+        f.ignore(1).read(&s[0], length).ignore(1);
+    }
+    return f;
+}
+
+std::fstream &read_string_set(std::fstream &f, std::set<std::string> &ss)
+{
+    size_t length;
+    if (f >> length) {
+        while (length-- > 0) {
+            std::string s;
+            read_string(f, s);
+            ss.insert(s);
+        }
+    }
+    return f;
+}
+
+std::fstream& write_string(std::fstream&      f,
+                           const std::string& s,
+                           char               c = '\n')
+{
+    f << s.length() << ' ' << s << c;
+    return f;
+}
+
+std::fstream& write_string_set(std::fstream&                f,
+                               const std::set<std::string>& ss)
+{
+    f << ss.size() << "\n";
+    for (auto &s : ss) {
+        write_string(f, s);
+    }
+    return f;
+}
+
 void report::operator()()
 {
+    std::string inter = a.config()->value("refactorintermediatefile");
+    if (inter == "" || inter == "-") {
+        inter = "refactorintermediatefile.cfg";
+    }
+    std::fstream interf(inter, std::ios_base::in | std::ios_base::binary);
+    if (interf) {
+        read_string(interf, s_files[0]);
+        read_string(interf, s_upper_prefix[0]);
+        std::string n1, n2;
+        while (read_string(interf, n1)) {
+            read_string_set(interf, s_names[0][n1]);
+        }
+        interf.close();
+        remove(inter.c_str());
+        s_index = 1;
+    }
+
     auto tu = a.context()->getTranslationUnitDecl();
 
     s_files[s_index] = llvm::sys::path::filename(
@@ -350,6 +409,16 @@ void report::operator()()
             }
         }
         f << "\n";
+    }
+    else {
+        interf.open(inter, std::ios_base::out | std::ios_base::binary);
+        write_string(interf, s_files[0]);
+        write_string(interf, s_upper_prefix[0]);
+        for (auto &p : s_names[0]) {
+            write_string(interf, p.first);
+            write_string_set(interf, p.second);
+        }
+        interf.close();
     }
 }
 
