@@ -398,7 +398,7 @@ void report::operator()()
                 if (bm.size() == 0) {
                     if (t == Typedef) {
                         // Likely an existing forward declaration.
-                        continue;
+                        // continue;
                     }
                     bm = "@@@/* Need replacement for " + i.str() + " */";
                 }
