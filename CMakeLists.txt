@@ -175,6 +175,7 @@ add_executable(bde_verify_bin
     ${G}/csabbg/csabbg_functioncontract.cpp
     ${G}/csabbg/csabbg_membernames.cpp
     ${G}/csabbg/csabbg_midreturn.cpp
+    ${G}/csabbg/csabbg_movecontract.cpp
     ${G}/csabbg/csabbg_testdriver.cpp
     ${G}/csabde/csabde_tool.cpp
     ${G}/csafmt/csafmt_banner.cpp
