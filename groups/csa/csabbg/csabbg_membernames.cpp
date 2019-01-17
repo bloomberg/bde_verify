@@ -59,7 +59,7 @@ static void field_name(Analyser& a, FieldDecl const *decl)
     }
     if (decl->isCXXClassMember()) {
         check_private(a, decl);
-        if (!decl->getName().startswith("d_")) {
+        if (decl->getName().size() && !decl->getName().startswith("d_")) {
             a.report(decl, check_name, "MN02",
                      "Non-static data member names must begin with 'd_'");
         }
