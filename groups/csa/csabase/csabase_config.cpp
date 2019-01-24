@@ -247,6 +247,20 @@ csabase::Config::process(std::string const& line)
                 << line << "'\n";
         }
     }
+    else if ("re-exports" == command ||
+             "re-export" == command ||
+             "reexports" == command ||
+             "reexport" == command) {
+        std::string including, exported;
+        if (args >> including >> exported) {
+            set_reexports(including, exported);
+        }
+        else {
+            errs() << "WARNING: " << command
+                   << " needs including and exported files on line '"
+                   << line << "'\n";
+        }
+    }
     else if (command.empty() || command[0] != '#') {
         std::cout << "unknown configuration command='" << command
                   << "' arguments='" << line << "'\n";
