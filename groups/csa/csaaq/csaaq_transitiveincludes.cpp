@@ -984,6 +984,7 @@ void report::operator()(SourceLocation        where,
     }
 
     if (tn.startswith("BDE_BUILD_TARGET_") &&
+        !a.is_component_header(std::string("bsls_buildtarget.h")) &&
         !d.d_all_includes.count("bsls_buildtarget.h")) {
         a.report(token.getLocation(), check_name, "AQK02",
                  "Use of %0 macro requires inclusion of <bsls_buildtarget.h>")
@@ -1005,6 +1006,7 @@ void report::operator()(const Token&          token,
     }
 
     if (tn.startswith("BDE_BUILD_TARGET_") &&
+        !a.is_component_header(std::string("bsls_buildtarget.h")) &&
         !d.d_all_includes.count("bsls_buildtarget.h")) {
         a.report(token.getLocation(), check_name, "AQK02",
                  "Use of %0 macro requires inclusion of <bsls_buildtarget.h>")
