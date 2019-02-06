@@ -106,6 +106,10 @@ public:
         // Report whether an include of the specified 'included_file' satisfies
         // a need for the inclusion of the specified 'needed_file'.
 
+    void appendGoodWords(std::vector<std::string>& words) const;
+        // Append the list of words from the default ditionary and the
+        // configured 'dictionary' variable to the specified 'words'.
+
   private:
     std::string                                     d_toplevel_namespace;
     std::set<std::string>                           d_loadpath;

@@ -207,7 +207,8 @@ struct Word
              size_t position,
              bool single_quoted,
              const std::vector<llvm::StringRef>& parms,
-             const std::vector<llvm::StringRef>& noise);
+             const std::vector<llvm::StringRef>& noise,
+             Analyser& a);
 };
 
 Word::Word()
@@ -225,7 +226,7 @@ Word::Word()
 
 #if !SPELL_CHECK
 
-bool correctly_spelled(llvm::StringRef word)
+bool correctly_spelled(llvm::StringRef word, Analyser& a)
 {
     return true;
 }
@@ -234,7 +235,7 @@ bool correctly_spelled(llvm::StringRef word)
 
 #include <aspell.h>
 
-bool correctly_spelled(llvm::StringRef word)
+bool correctly_spelled(llvm::StringRef word, Analyser& a)
 {
     static AspellSpeller *spell_checker = 0;
     if (!spell_checker) {
@@ -249,6 +250,14 @@ bool correctly_spelled(llvm::StringRef word)
         if (aspell_error_number(possible_err) == 0) {
             spell_checker = to_aspell_speller(possible_err);
         }
+        if (spell_checker) {
+            std::vector<std::string> good_words;
+            a.config()->appendGoodWords(good_words);
+            for (const auto& s : good_words) {
+                aspell_speller_add_to_session(
+                    spell_checker, s.data(), s.size());
+            }
+        }
     }
     return spell_checker &&
            aspell_speller_check(spell_checker, word.data(), word.size());
@@ -261,7 +270,8 @@ void Word::set(std::vector<ParmInfo>* parm_info,
                size_t position,
                bool single_quoted,
                const std::vector<llvm::StringRef>& parms,
-               const std::vector<llvm::StringRef>& noise)
+               const std::vector<llvm::StringRef>& noise,
+               Analyser& a)
 {
     word = s;
     offset = position;
@@ -287,7 +297,7 @@ void Word::set(std::vector<ParmInfo>* parm_info,
                 parm = i;
             }
 
-            is_spelled_ok = correctly_spelled(p);
+            is_spelled_ok = correctly_spelled(p, a);
             break;
         }
     }
@@ -313,7 +323,8 @@ void break_into_words(std::vector<Word>* words,
                       std::vector<ParmInfo>* parm_info,
                       llvm::StringRef comment,
                       const std::vector<llvm::StringRef>& parms,
-                      const std::vector<llvm::StringRef>& noise)
+                      const std::vector<llvm::StringRef>& noise,
+                      Analyser& a)
 {
     words->clear();
     parm_info->clear();
@@ -358,7 +369,8 @@ void break_into_words(std::vector<Word>* words,
                                   start_of_last_word,
                                   in_single_quotes,
                                   parms,
-                                  noise);
+                                  noise,
+                                  a);
             }
         } else if (is_id) {
             start_of_last_word = i;
@@ -368,7 +380,8 @@ void break_into_words(std::vector<Word>* words,
                               start_of_last_word,
                               in_single_quotes,
                               parms,
-                              noise);
+                              noise,
+                              a);
         }
         if (!is_id) {
             last_char_was_backslash = c == '\\' && !last_char_was_backslash;
@@ -712,7 +725,7 @@ void report::critiqueContract(const FunctionDecl* func, SourceRange comment)
 
     std::vector<Word> words;
     std::vector<ParmInfo> parm_info(num_parms);
-    break_into_words(&words, &parm_info, contract, parms, noise);
+    break_into_words(&words, &parm_info, contract, parms, noise, d_analyser);
     SourceLocation dt;
     size_t dtpos = contract.find("''");
     if (dtpos != contract.npos) {
