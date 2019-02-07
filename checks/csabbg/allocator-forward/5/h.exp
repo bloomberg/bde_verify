@@ -1,5 +1,5 @@
 h.cpp:8:8: warning: AP02: Class 'X' needs d_allocator_p member
 struct X {
        ^
-h.cpp:8:8: warning: AL01: Class 'X' needs allocator() method
+h.cpp:8:8: warning: ALM01: Class 'X' needs allocator() method
 2 warnings generated.

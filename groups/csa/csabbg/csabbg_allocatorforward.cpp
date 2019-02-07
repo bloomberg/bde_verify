@@ -1077,7 +1077,7 @@ void report::match_allocator_method(const BoundNodes& nodes)
 {
     const CXXRecordDecl *r = nodes.getNodeAs<CXXRecordDecl>("r");
     const CXXMethodDecl *m = nodes.getNodeAs<CXXMethodDecl>("m");
-    d.allocator_methods_[r] = m;
+    d.allocator_methods_[r->getCanonicalDecl()] = m;
 }
 
 static internal::DynTypedMatcher allocator_member_matcher()
@@ -1428,7 +1428,7 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
                     }
 
                     if (!d.allocator_methods_.count(record)) {
-                        a.report(record, check_name, "AL01",
+                        a.report(record, check_name, "ALM01",
                                  "Class %0 needs allocator() method")
                             << record;
                         if (do_transform) {
@@ -1479,21 +1479,18 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
                             ->getTemplatedDecl()
                             ->getCanonicalDecl();
                 }
-                AllocatorLocation aloc = takes_allocator(ctor);
                 if (ctor == ctor->getCanonicalDecl() &&
                     ctor != decl &&
                     r == record) {
+                    AllocatorLocation aloc = takes_allocator(ctor);
                     if (aloc == a_Last &&
                         ctor->getNumParams() == num_parms + 1) {
                         found = true;
                         for (unsigned pi = 0; found && pi < num_parms; ++pi) {
                             auto d = decl->getParamDecl(pi)->getOriginalType();
                             auto c = ctor->getParamDecl(pi)->getOriginalType();
-                            if (!(d->isTemplateTypeParmType() &&
-                                  c->isTemplateTypeParmType()) &&
-                                d != c) {
-                                found = false;
-                            }
+                            found = d->getCanonicalTypeUnqualified() ==
+                                    c->getCanonicalTypeUnqualified();
                         }
                     }
                     if (aloc == a_Second &&
@@ -1503,11 +1500,8 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
                             auto d = decl->getParamDecl(pi)->getOriginalType();
                             auto c =
                                 ctor->getParamDecl(pi + 2)->getOriginalType();
-                            if (!(d->isTemplateTypeParmType() &&
-                                  c->isTemplateTypeParmType()) &&
-                                d != c) {
-                                found = false;
-                            }
+                            found = d->getCanonicalTypeUnqualified() ==
+                                    c->getCanonicalTypeUnqualified();
                         }
                     }
                 }
@@ -1698,7 +1692,7 @@ bool report::write_allocator_method_declaration(const CXXRecordDecl    *record,
 
     record = record->getDefinition();
 
-    if (a.config()->suppressed("AL01", record->getLocation()))
+    if (a.config()->suppressed("ALM01", record->getLocation()))
         return false;
 
     std::string s;
@@ -1722,7 +1716,7 @@ bool report::write_allocator_method_declaration(const CXXRecordDecl    *record,
                                                               << "\n" << spaces
        ;
 
-    a.report(ins_loc, check_name, "AL01",
+    a.report(ins_loc, check_name, "ALM01",
              "Allocator method declaration for class %0%1",
              false, DiagnosticIDs::Note)
         << record->getName()
@@ -1744,7 +1738,7 @@ bool report::write_allocator_method_definition(const CXXRecordDecl    *record,
 
     record = record->getDefinition();
 
-    if (a.config()->suppressed("AL01", record->getLocation()))
+    if (a.config()->suppressed("ALM01", record->getLocation()))
         return false;
 
     std::string s;
@@ -1797,7 +1791,7 @@ bool report::write_allocator_method_definition(const CXXRecordDecl    *record,
        << "}"                                                 << "\n" << spaces
        ;
 
-    a.report(ins_loc, check_name, "AL01",
+    a.report(ins_loc, check_name, "ALM01",
              "Allocator method definition for class %0%1",
              false, DiagnosticIDs::Note)
         << record->getName()
@@ -1820,7 +1814,7 @@ bool report::write_in_class_allocator_method_definition(
 
     record = record->getDefinition();
 
-    if (a.config()->suppressed("AL01", record->getLocation()))
+    if (a.config()->suppressed("ALM01", record->getLocation()))
         return false;
 
     std::string s;
@@ -1875,7 +1869,7 @@ bool report::write_in_class_allocator_method_definition(
        << "    }"                                             << "\n" << spaces
        ;
 
-    a.report(ins_loc, check_name, "AL01",
+    a.report(ins_loc, check_name, "ALM01",
              "In-class allocator method definition for class %0%1",
              false, DiagnosticIDs::Note)
         << record->getName()

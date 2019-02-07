@@ -7,7 +7,7 @@ namespace BloombergLP { namespace bslma { class Allocator { }; } }
 
 using namespace BloombergLP::bslma;
 using namespace bsl;
-// BDE_VERIFY pragma: -AL01
+// BDE_VERIFY pragma: -ALM01
 // BDE_VERIFY pragma: -AT02
 // BDE_VERIFY pragma: -AP02
 struct Last {
