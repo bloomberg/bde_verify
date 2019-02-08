@@ -155,7 +155,7 @@ static void check(Analyser& analyser, ExplicitCastExpr const *expr)
     }
 
     if (bad) {
-        analyser.report(expr, check_name, "AL01",
+        analyser.report(expr, check_name, "SAL01",
                         "Possible strict-aliasing violation")
             << expr->getSourceRange();
     }

@@ -5,6 +5,7 @@
 #include <clang/Basic/SourceManager.h>
 #include <clang/Lex/Preprocessor.h>
 #include <csabase_debug.h>
+#include <csabase_filenames.h>
 #include <llvm/ADT/SmallVector.h>
 #include <llvm/Support/Regex.h>
 #include <csabase_config.h>
@@ -288,25 +289,29 @@ csabase::PPObserver::Ident(SourceLocation location, llvm::StringRef ident)
 // -----------------------------------------------------------------------------
 
 static llvm::Regex pragma_bdeverify(
-    "^ *# *pragma +b[bd]e?_?verify +"         "("  // 1
-        "(" "push"                           ")|"  // 2
-        "(" "pop"                            ")|"  // 3
-        "(" "[-] *([[:alnum:]]+|[*])"        ")|"  // 4 5
-        "(" "[+] *([[:alnum:]]+|[*])"        ")|"  // 6 7
-        "(" "set *([_[:alnum:]]+) *(.*[^ ])" ")|"  // 8 9 10
+    "^ *# *pragma +b[bd]e?_?verify +"         "("              // 1
+        "(" "push"                           ")|"              // 2
+        "(" "pop"                            ")|"              // 3
+        "(" "[-] *([[:alnum:]]+|[*])"        ")|"              // 4 5
+        "(" "[+] *([[:alnum:]]+|[*])"        ")|"              // 6 7
+        "(" "set +([_[:alnum:]]+) *(.*[^ ])" ")|"              // 8 9 10
+        "(" "append +([_[:alnum:]]+) *(.*[^ ])" ")|"           // 11 12 13
+        "(" "prepend +([_[:alnum:]]+) *(.*[^ ])" ")|"          // 14 15 16
+        "(" "re-exports? +[<\"]?([_./[:alnum:]]+)[\">]?" ")|"  // 17 18
         "\r*$"
     ")",
     llvm::Regex::NoFlags);
 
 static llvm::Regex comment_bdeverify(
-    "^ *// *B[BD]E?_?VERIFY +pragma *: *"     "("      // 1
-        "(" "push"                           ")|"      // 2
-        "(" "pop"                            ")|"      // 3
-        "(" "[-] *([[:alnum:]]+|[*])" ")|"             // 4 5
-        "(" "[+] *([[:alnum:]]+|[*])" ")|"             // 6 7
-        "(" "set *([_[:alnum:]]+) *(.*[^ ])" ")|"      // 8 9 10
-        "(" "append *([_[:alnum:]]+) *(.*[^ ])" ")|"   // 11 12 13
-        "(" "prepend *([_[:alnum:]]+) *(.*[^ ])" ")|"  // 14 15 16
+    "^ *// *B[BD]E?_?VERIFY +pragma *: *"     "("              // 1
+        "(" "push"                           ")|"              // 2
+        "(" "pop"                            ")|"              // 3
+        "(" "[-] *([[:alnum:]]+|[*])" ")|"                     // 4 5
+        "(" "[+] *([[:alnum:]]+|[*])" ")|"                     // 6 7
+        "(" "set +([_[:alnum:]]+) *(.*[^ ])" ")|"              // 8 9 10
+        "(" "append +([_[:alnum:]]+) *(.*[^ ])" ")|"           // 11 12 13
+        "(" "prepend +([_[:alnum:]]+) *(.*[^ ])" ")|"          // 14 15 16
+        "(" "re-exports? +[<\"]?([_./[:alnum:]]+)[\">]?" ")|"  // 17 18
         "\r*$"
     ")",
     llvm::Regex::NoFlags);
@@ -318,7 +323,7 @@ static bool handle_bv_pragma(const SourceManager&  m,
 {
     FileID fid = m.getFileID(l);
     unsigned line = m.getPresumedLineNumber(l);
-    llvm::StringRef directive = 
+    llvm::StringRef directive =
         m.getBufferData(fid).slice(
             m.getFileOffset(m.translateLineCol(fid, line, 1u)),
             m.getFileOffset(m.translateLineCol(fid, line, ~0u)));
@@ -339,9 +344,13 @@ static bool handle_bv_pragma(const SourceManager&  m,
             std::string sp = old.size() > 0 ? " " : "";
             c->set_bv_value(l, matches[12], old + sp + matches[13].str());
         } else if (!matches[14].empty()) {                // prepend
-            std::string old = c->value(matches[12], l);
+            std::string old = c->value(matches[15], l);
             std::string sp = old.size() > 0 ? " " : "";
             c->set_bv_value(l, matches[15], matches[16].str() + old + sp);
+        } else if (!matches[17].empty()) {
+            FileName including_file(m.getFilename(l));
+            FileName reexported_file(matches[18]);
+            c->set_reexports(including_file.name(), reexported_file.name());
         }
         return true;                                                  // RETURN
     }
@@ -480,9 +489,10 @@ void csabase::PPObserver::Defined(const Token& token,
     onPPDefined(token, macro, range);
 }
 
-void csabase::PPObserver::SourceRangeSkipped(SourceRange range)
+void csabase::PPObserver::SourceRangeSkipped(SourceRange    range,
+                                             SourceLocation endifLoc)
 {
-    onPPSourceRangeSkipped(range);
+    onPPSourceRangeSkipped(range, endifLoc);
 }
 
 // ----------------------------------------------------------------------------
@@ -550,19 +560,21 @@ void csabase::PPObserver::Context()
     do_context();
 }
 
-void csabase::PPObserver::InclusionDirective(SourceLocation HashLoc,
-                                             const Token& IncludeTok,
-                                             llvm::StringRef FileName,
-                                             bool IsAngled,
-                                             CharSourceRange FilenameRange,
-                                             const FileEntry* File,
-                                             llvm::StringRef SearchPath,
-                                             llvm::StringRef RelativePath,
-                                             const Module* Imported)
+void csabase::PPObserver::InclusionDirective(
+                                     SourceLocation              HashLoc,
+                                     const Token&                IncludeTok,
+                                     llvm::StringRef             FileName,
+                                     bool                        IsAngled,
+                                     CharSourceRange             FilenameRange,
+                                     const FileEntry            *File,
+                                     llvm::StringRef             SearchPath,
+                                     llvm::StringRef             RelativePath,
+                                     const Module               *Imported,
+                                     SrcMgr::CharacteristicKind  FileType)
 {
     onPPInclusionDirective(HashLoc, IncludeTok, FileName, IsAngled,
                            FilenameRange, File, SearchPath, RelativePath,
-                           Imported);
+                           Imported, FileType);
 
     do_include_file(HashLoc, IsAngled, FileName);
     //-dk:TODO make constructive use of this...

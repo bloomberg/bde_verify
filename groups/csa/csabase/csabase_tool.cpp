@@ -24,6 +24,7 @@
 #include <clang/Frontend/TextDiagnosticBuffer.h>
 #include <clang/Frontend/TextDiagnosticPrinter.h>
 #include <clang/FrontendTool/Utils.h>
+#include <clang/Tooling/CompilationDatabase.h>
 #include <clang/Tooling/Tooling.h>
 #include <memory>
 #include <set>
@@ -140,13 +141,151 @@ int csabase::run(int argc_, const char **argv_)
     if (sys::Process::FixupStandardFileDescriptors())
         return 1;
 
-    SmallVector<const char *, 256> argv;
-    SpecificBumpPtrAllocator<char> ArgAllocator;
-    std::error_code                EC = sys::Process::GetArgumentVector(
-                               argv, makeArrayRef(argv_, argc_), ArgAllocator);
-    if (EC) {
-        errs() << "error: couldn't get arguments: " << EC.message() << '\n';
-        return 1;
+    SmallVector<const char *, 2560> argv(argv_, argv_ + argc_);
+
+    std::vector<std::string> scratch;
+    std::unique_ptr<CompilationDatabase> Compilations;
+    std::string ErrorMessage;
+    bool after_dashes = false;
+    std::set<std::string> defined, included;
+
+    auto ins = [&](StringRef s, size_t i) {
+        scratch.emplace_back(s);
+        argv.insert(argv.begin() + i, scratch.back().data());
+        return i + 1;
+    };
+
+    // Compilation Database Handling
+    //
+    // If there is a '--p=directory' option specified, look for a compilation
+    // database in that directory.  If there isn't one, assume that this is a
+    // deliberate choice and do not attempt to look for one elsewhere.
+    //
+    // If there is no such option, look for a compilation database with respect
+    // to each source file until one is found, and use that one (even if other
+    // compilation databases would be found with respect to further sources).
+    //
+    // For each source file to be processed, look it up in the compilation
+    // database and use the first entry (if found).  Entries past the first are
+    // ignored.  From that entry, insert all '-D' and '-I' options ahead of the
+    // source file in the command line, taking include path options relative to
+    // the directory specified in the compilation database command.  Macros and
+    // include paths are only inserted once (even if macro definitions change)
+    // and they're cumulative.
+
+    for (size_t i = 0; i < argv.size(); ++i) {
+        StringRef arg(argv[i]);
+        if (arg == "-cc1") {
+            break;
+        }
+        else if (arg.startswith("--p=")) {
+            arg = arg.drop_front(4);
+            Compilations = CompilationDatabase::autoDetectFromDirectory(
+                arg, ErrorMessage);
+            argv.erase(argv.begin() + i--);
+            if (!Compilations) {
+                // Allow opt out of compilation database, e.g., by '--p=-'.
+                break;
+            }
+        }
+        else if (arg == "-D") {
+            StringRef def = argv[i + 1];
+            defined.insert(def.split('=').first);
+            ++i;
+        }
+        else if (arg.startswith("-D")) {
+            defined.insert(arg.drop_front(2).split('=').first);
+        }
+        else if (arg == "-U") {
+            StringRef def = argv[i + 1];
+            defined.insert(def);
+            ++i;
+        }
+        else if (arg.startswith("-U")) {
+            defined.insert(arg.drop_front(2));
+        }
+        else if (arg == "-I") {
+            StringRef dir = argv[i + 1];
+            included.insert(dir);
+            ++i;
+        }
+        else if (arg.startswith("-I")) {
+            included.insert(arg.drop_front(2));
+        }
+        else if (after_dashes) {
+            if (!Compilations) {
+                Compilations = CompilationDatabase::autoDetectFromSource(
+                    arg, ErrorMessage);
+            }
+            if (Compilations) {
+                auto ccs = Compilations->getCompileCommands(arg);
+                if (ccs.size()) {
+                    auto cc = ccs[0];
+                    for (size_t j = 0; j < cc.CommandLine.size(); ++j) {
+                        StringRef ca = cc.CommandLine[j];
+                        if (ca == "-D") {
+                            StringRef def = cc.CommandLine[j + 1];
+                            if (defined.insert(def).second) {
+                                i = ins(ca, i);
+                                i = ins(def, i);
+                            }
+                            ++j;
+                        }
+                        else if (ca.startswith("-D")) {
+                            if (defined.insert(ca.drop_front(2)).second) {
+                                i = ins(ca, i);
+                            }
+                        }
+                        else if (ca == "-I") {
+                            StringRef dir = cc.CommandLine[j + 1];
+                            if (included.insert(dir).second) {
+                                i = ins(ca, i);
+                                if (sys::path::is_absolute(dir)) {
+                                    i = ins(dir, i);
+                                }
+                                else {
+                                    SmallVector<char, 1024> path(
+                                        cc.Directory.begin(),
+                                        cc.Directory.end());
+                                    sys::path::append(path, dir);
+                                    i = ins(
+                                        StringRef(path.begin(), path.size()),
+                                        i);
+                                }
+                            }
+                            ++j;
+                        }
+                        else if (ca.startswith("-I")) {
+                            StringRef dir = ca.drop_front(2);
+                            if (included.insert(dir).second) {
+                                if (sys::path::is_absolute(dir)) {
+                                    i = ins(ca, i);
+                                }
+                                else {
+                                    i = ins("-I", i);
+                                    SmallVector<char, 1024> path(
+                                        cc.Directory.begin(),
+                                        cc.Directory.end());
+                                    sys::path::append(path, dir);
+                                    i = ins(
+                                        StringRef(path.begin(), path.size()),
+                                        i);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        else if (arg == "--") {
+            after_dashes = true;
+            argv.erase(argv.begin() + i--);
+            if (Compilations && i == argv.size() - 1) {
+                for (const auto &s : Compilations->getAllFiles()) {
+                    ins(s, i);
+                }
+            }
+        }
     }
 
     InitializeNativeTarget();
@@ -196,7 +335,7 @@ int csabase::run(int argc_, const char **argv_)
     }
 
     IntrusiveRefCntPtr<DiagnosticOptions> DiagOpts = new DiagnosticOptions;
-    std::unique_ptr<OptTable>  Opts(createDriverOptTable());
+    std::unique_ptr<OptTable> Opts(createDriverOptTable());
     unsigned MissingIndex, MissingCount;
     InputArgList Args = Opts->ParseArgs(argv, MissingIndex, MissingCount);
     (void)ParseDiagnosticArgs(*DiagOpts, Args);

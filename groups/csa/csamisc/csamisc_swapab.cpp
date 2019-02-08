@@ -50,7 +50,7 @@ void allFunDecls(Analyser& analyser, const FunctionDecl* func)
         }
     }
 }
- 
+
 void allTpltFunDecls(Analyser& analyser, const FunctionTemplateDecl* func)
     // Callback function for inspecting function template declarations.
 {

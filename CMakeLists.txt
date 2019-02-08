@@ -3,8 +3,8 @@ cmake_minimum_required(VERSION 3.1)
 project(bde_verify)
 
 set(BDE_VERIFY_VERSION_MAJOR "1")
-set(BDE_VERIFY_VERSION_MINOR "2")
-set(BDE_VERIFY_VERSION_PATCH "23")
+set(BDE_VERIFY_VERSION_MINOR "3")
+set(BDE_VERIFY_VERSION_PATCH "1")
 set(BDE_VERIFY_VERSION "${BDE_VERIFY_VERSION_MAJOR}.${BDE_VERIFY_VERSION_MINOR}.${BDE_VERIFY_VERSION_PATCH}")
 
 add_subdirectory(bde-verify-vs)
@@ -146,6 +146,8 @@ add_library(csabase
 )
 
 target_compile_features(csabase PUBLIC cxx_auto_type)
+target_compile_definitions(csabase PRIVATE
+                           BDE_VERIFY_VERSION="${BDE_VERIFY_VERSION}")
 
 if(MSVC)
     set(RC ${CMAKE_CURRENT_SOURCE_DIR}/bde-verify-vs/bde_verify_bin.rc)
@@ -173,6 +175,7 @@ add_executable(bde_verify_bin
     ${G}/csabbg/csabbg_functioncontract.cpp
     ${G}/csabbg/csabbg_membernames.cpp
     ${G}/csabbg/csabbg_midreturn.cpp
+    ${G}/csabbg/csabbg_movecontract.cpp
     ${G}/csabbg/csabbg_testdriver.cpp
     ${G}/csabde/csabde_tool.cpp
     ${G}/csafmt/csafmt_banner.cpp
@@ -278,14 +281,18 @@ llvmlib(clangEdit)
 llvmlib(clangStaticAnalyzerCheckers)
 llvmlib(clangStaticAnalyzerCore)
 llvmlib(clangAnalysis)
+llvmlib(clangTooling)
 llvmlib(clangToolingCore)
 llvmlib(clangASTMatchers)
 llvmlib(clangRewrite)
 llvmlib(clangAST)
 llvmlib(clangLex)
 llvmlib(clangBasic)
+llvmlib(clangCrossTU)
+llvmlib(clangIndex)
 llvmlib(LLVMLTO)
 llvmlib(LLVMPasses)
+llvmlib(LLVMAggressiveInstCombine)
 llvmlib(LLVMObjCARCOpts)
 llvmlib(LLVMDebugInfoPDB)
 llvmlib(LLVMCoverage)

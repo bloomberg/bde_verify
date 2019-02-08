@@ -65,7 +65,7 @@ std::string csabase::to_lower(llvm::StringRef s)
     return s.lower();
 }
 
-bool csabase::contains_word(llvm::StringRef have, llvm::StringRef want)
+size_t csabase::contains_word(llvm::StringRef have, llvm::StringRef want)
 {
     size_t i = 0;
     size_t match;
@@ -84,11 +84,11 @@ bool csabase::contains_word(llvm::StringRef have, llvm::StringRef want)
             }
         }
         if (found) {
-            return true;
+            return match;
         }
         i = match + want.size() + 1;
     }
-    return false;
+    return want.npos;
 }
 
 bool csabase::are_numeric_cognates(llvm::StringRef a, llvm::StringRef b)
@@ -107,7 +107,7 @@ bool csabase::are_numeric_cognates(llvm::StringRef a, llvm::StringRef b)
         bi = b.find_first_not_of(digits, bdi);
     }
     return ai == a.npos && bi == b.npos;
-} 
+}
 
 std::string csabase::on_one_line(llvm::StringRef s, bool explicitNL)
 {

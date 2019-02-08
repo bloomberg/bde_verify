@@ -273,6 +273,7 @@ llvm::Regex tested_method(
     "(" "operator" " *" "(" "[(] *[)]"
                         "|" "[^([:alnum:]_[:space:]]+"
                         "|" "[][)([:alnum:]_[:space:]*&]+"
+                        "|" "[^(]+"
                         ")"
     "|" "~?[[:alnum:]_]+"
     ")" "[[:space:]]*[(]",
@@ -392,8 +393,9 @@ void report::match_set_status(const BoundNodes& nodes)
 void report::note_function(std::string f)
 {
     size_t lt = f.find('<');
-    if (lt != f.npos) {
-        f = f.substr(0, lt);
+    size_t rt = f.rfind('>');
+    if (lt != f.npos && rt != f.npos) {
+        f = f.substr(0, lt) + f.substr(rt + 1);
     }
     ++d.d_names_to_test[f];
 }

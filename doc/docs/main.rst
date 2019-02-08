@@ -1,12 +1,3 @@
-.. bde-verify documentation master file, created by
-   sphinx-quickstart on Wed Apr  8 17:21:22 2015.
-
-|BV|
-====
-
-.. toctree::
-   :maxdepth: 2
-
 Name
 ----
 |bv| - static C++-compiler-based checking tool
@@ -39,8 +30,8 @@ changes by itself and place the modified files in the specified directory with
 yet; we plan to increase this over time.)
 
 |Bv| is supported on SunOS, Linux, and Windows. In the BloombergLP development
-environment, running ``/opt/bb/bin/``\ |bv| will launch the appropriate
-version.
+environment, running ``/opt/bb/bin/`` |bv| will launch the appropriate
+version. 
 
 |bv| now contains the experimental feature of automatically rewriting a class
 to be allocator-aware.  To use it, enable the ``allocator-forward`` check, set
@@ -51,6 +42,10 @@ will complain!)
 
 Options
 -------
+
+===================== ==========================================================
+Parameter             Description
+===================== ==========================================================
 --config file         configuration file
 --cl line             additional configuration lines
 --bb dir              base directory for |BDE| header includes
@@ -84,6 +79,7 @@ Options
 -W warning            enable warning
 -f flag               specify compiler flag
 -w                    disable normal compiler warnings
+===================== ==========================================================
 
 Git-Diff Output Restriction
 ---------------------------
@@ -123,10 +119,10 @@ Config Entry                    Description
 ``check`` *name* ``off``        Turn specific check or group off.
 ``load`` *file*                 Read and process configuration lines from the
                                 *file*.
-``set`` *parameter* *value*     Set a parameter used by a check.
-``append`` *parameter* *value*  Append to a parameter used by a check.
-``prepend`` *parameter* *value* Prepend to a parameter used by a check.
-``suppress`` *tag* *files*...   Messages with the specified *tag* are
+``set`` *parameter value*       Set a parameter used by a check.
+``append`` *parameter value*    Append to a parameter used by a check.
+``prepend`` *parameter value*   Prepend to a parameter used by a check.
+``suppress`` *tag files*...     Messages with the specified *tag* are
                                 suppressed for the specified *files*. Either
                                 *tag* or *files* (but not both) may be ``*``.
                                 The *tag* may be a group *name*, suppressing
@@ -140,25 +136,25 @@ Config Entry                    Description
                                 be unsuppressed.
 =============================== ===============================================
 
-If the configuration file attempts to name a non-existent check, the tool will 
-report a list of all known checks and then exit. Do this deliberately to 
-obtain an accurate list of checks if you suspect this documentation is out of 
-date.
+If the configuration file attempts to name a non-existent check, the tool will
+report a list of all known checks and then exit. Do this deliberately to obtain
+an accurate list of checks if you suspect this documentation is out of date.
 
 Local Suppressions
 ------------------
-The |bv| command can locally suppress or enable individual message tags within 
-a source file region, using ``#pragma`` |bv| constructs or ``//`` |BV| 
+
+The |bv| command can locally suppress or enable individual message tags within
+a source file region, using ``#pragma`` |bv| constructs or ``//`` |BV|
 ``pragma:`` structured comments.
 
-Note that programs are often compiled with options that generate warnings for 
-unknown pragmas; |bv| defines the macro |BV| to enable enclosing these pragmas 
+Note that programs are often compiled with options that generate warnings for
+unknown pragmas; |bv| defines the macro |BV| to enable enclosing these pragmas
 within ``#ifdef`` |BV| blocks.
 
-Local suppressions operate within a single file, and will not have any effect 
+Local suppressions operate within a single file, and will not have any effect
 on warnings in files that this file includes or in files that include this one.
 
-Note that this cannot enable a check which was disabled by ``check name off`` 
+Note that this cannot enable a check which was disabled by ``check name off``
 in the configuration.
 
 +------------------------------+----------------------------------------------+
@@ -198,9 +194,16 @@ in the configuration.
 | ``//`` |BV| ``pragma:``      |                                              |
 | ``prepend parameter value``  |                                              |
 +------------------------------+----------------------------------------------+
+| ``#pragma`` |bv|             | For purposes of transitive inclusion         |
+| ``re-export <file>``         | detection, indicate that inclusion of the    |
++------------------------------+ containing file satisfies the need to        |
+| ``//`` |BV| ``pragma:``      | include *file*.                              |
+| ``re-export <file>``         |                                              |
++------------------------------+----------------------------------------------+
 
 Exit Status
 -----------
+
 Normally, the exit status of a |bv| run is 0 (success) unless the code has
 actual errors.  If a particular check or tag is produced and that check or tag
 is set in the *failstatus* configuration parameter, the exit status will be 1
@@ -209,6 +212,7 @@ indicates that some condition fails to hold.
 
 Checks
 ------
+
 These are the checks supported by the tool. A few are of dubious value and may
 be removed in the future. The tag prefixes (especially the ``TR``\ *nn* ones)
 are subject to change as tests are refined or updated. We welcome suggestions
@@ -216,9 +220,16 @@ for additional checks.
 
 .. only:: bde_verify or bb_cppverify
 
-   ``allocator-forward``
-   +++++++++++++++++++++
+   allocator-forward
+   +++++++++++++++++
+
    Checks dealing with allocator forwarding and traits.
+
+   An experimental and preliminary feature has been added to this check to
+   enable automatic allocatorization of classes via the rewriting facility.
+   Name the classes to be transformed in the configuration file parameter
+   ``allocator_transform``.  Use the ``-rewrite`` option to generate the
+   rewritten file.
 
    * ``AT01``
      Class does not use allocators but has an affirmative allocator trait.
@@ -262,18 +273,29 @@ for additional checks.
    * ``AP02``
      A class is lacking a necessary ``d_allocator_p`` pointer.  (The class
      uses allocators and has no allocator-aware subobjects.)
+   * ``AL01``
+     A class is lacking a necessary ``allocator()`` method.  (The class uses
+     allocators and should offer a method to retrieve the one used.)
+   * ``AH01``
+     Messages relating to the generation of assignment operators as part of
+     automatic allocatorization.
+   * ``WT01``
+     Automatic allocatorization cannot be performed for classes with array
+     members.
 
 .. only:: bde_verify or bb_cppverify
 
-   ``allocator-new``
-   +++++++++++++++++
+   allocator-new
+   +++++++++++++
+
    * ``ANP01``
      Calls to placement new with an argument that is a pointer to an allocator.
 
 .. only:: bde_verify
 
-   ``alphabetical-functions``
-   ++++++++++++++++++++++++++
+   alphabetical-functions
+   ++++++++++++++++++++++
+
    * ``FABC01``
      Functions in a component section that are not in alphanumeric order.
 
@@ -285,37 +307,41 @@ for additional checks.
 
 .. only:: bde_verify or bb_cppverify
 
-   ``anon-namespace``
-   ++++++++++++++++++
+   anon-namespace
+   ++++++++++++++
    * ``ANS01``
      Anonymous namespace in header.
 
 .. only:: bde_verify or bb_cppverify
 
-   ``array-argument``
-   ++++++++++++++++++
+   array-argument
+   ++++++++++++++
+
    * ``AA01``
      Sized array parameter is really a pointer.
 
 .. only:: bde_verify
 
-   ``array-initialization``
-   ++++++++++++++++++++++++
+   array-initialization
+   ++++++++++++++++++++
+
    * ``II01``
      Incomplete array initialization in which the last value is not the default
      member value.
 
 .. only:: bde_verify or bb_cppverify
 
-   ``assert-assign``
-   ++++++++++++++++++++++++
+   assert-assign
+   +++++++++++++
+
    * ``AE01``
      Top-level macro condition is an assignment.
 
 .. only:: bde_verify
 
-   ``banner``
-   ++++++++++
+   banner
+   ++++++
+
    Malformed banners.
 
    * ``BAN02``
@@ -330,8 +356,9 @@ for additional checks.
 
 .. only:: bde_verify
 
-   ``base``
-   ++++++++
+   base
+   ++++
+
    * ``PR01``
      ``#pragma`` |bv| ``pop`` when stack is empty.
    * ``PR02``
@@ -339,15 +366,16 @@ for additional checks.
 
 .. only:: bde_verify
 
-   ``boolcomparison``
-   ++++++++++++++++++
+   boolcomparison
+   ++++++++++++++
    * ``BC01``
      Comparison of a Boolean expression with literal ``true`` or ``false``.
 
 .. only:: bde_verify
 
-   ``bsl-overrides-std``
-   +++++++++++++++++++++
+   bsl-overrides-std
+   +++++++++++++++++
+
    Rewrite code which compiles with ``BSL_OVERRIDES_STD`` defined to not
    require that.
    Use the ``-rewrite`` option to generate the rewritten file.
@@ -369,8 +397,9 @@ for additional checks.
 
 .. only:: bde_verify or bb_cppverify
 
-   ``bsl-std-string``
-   ++++++++++++++++++
+   bsl-std-string
+   ++++++++++++++
+
    This check warns that conversions between bsl::string and std::string
    are occurring (in case they are inadvertant).
 
@@ -381,15 +410,17 @@ for additional checks.
 
 .. only:: bde_verify or bb_cppverify
 
-   ``c-cast``
-   ++++++++++
+   c-cast
+   ++++++
+
    * ``CC01``
      C-style cast expression. (Dispensation is granted to ``(void)expr``.)
 
 .. only:: bde_verify or bb_cppverify
 
-   ``char-classification-range``
-   +++++++++++++++++++++++++++++
+   char-classification-range
+   +++++++++++++++++++++++++
+
    * ``ISC01``
      ``char`` variable passed to ``is...`` function may sign-extend, causing
      undefined behavior.
@@ -402,16 +433,18 @@ for additional checks.
 
 .. only:: bde_verify or bb_cppverify
 
-   ``char-vs-string``
-   ++++++++++++++++++
+   char-vs-string
+   ++++++++++++++
+
    * ``ADC01``
      Passing the address of a single character as an argument to a
      ``const char *`` parameter.
 
 .. only:: bde_verify
 
-   ``class-sections``
-   ++++++++++++++++++
+   class-sections
+   ++++++++++++++
+
    BDE coding standards require that class member declarations appear in tagged
    sections (e.g., ``// MANIPULATORS``, ``// CREATORS``, et al.)
 
@@ -454,8 +487,9 @@ for additional checks.
 
 .. only:: bde_verify
 
-   ``comments``
-   ++++++++++++
+   comments
+   ++++++++
+
    Comments containing erroneous or deprecated text.
 
    * ``FVS01``
@@ -486,8 +520,9 @@ for additional checks.
 
 .. only:: bde_verify
 
-   ``comparison-order``
-   ++++++++++++++++++++
+   comparison-order
+   ++++++++++++++++
+
    Comparisons whose operand order should be reversed.
 
    * ``CO01``
@@ -497,16 +532,18 @@ for additional checks.
 
 .. only:: bde_verify or bb_cppverify
 
-   ``component-header``
-   ++++++++++++++++++++
+   component-header
+   ++++++++++++++++
+
    * ``TR09``
      Component implementation file does not include its header file ahead of
      other includes or declarations.
 
 .. only:: bde_verify or bb_cppverify
 
-   ``component-prefix``
-   ++++++++++++++++++++
+   component-prefix
+   ++++++++++++++++
+
    * ``CP01``
      Globally visible name is not prefixed by component name.
 
@@ -515,15 +552,17 @@ for additional checks.
 
 .. only:: bde_verify
 
-   ``constant-return``
-   +++++++++++++++++++
+   constant-return
+   +++++++++++++++
+
    * ``CR01``
      Single statement function returns a constant value.
 
 .. only:: bde_verify
 
-   ``contiguous-switch``
-   +++++++++++++++++++++
+   contiguous-switch
+   +++++++++++++++++
+
    Switch statements in ``main`` with case labels that do not match
    BDE-standard test-driver order (0 with no ``break;`` then contiguous values
    in descending order each with a ``break;``, then ``default``).
@@ -553,8 +592,9 @@ for additional checks.
 
 .. only:: bde_verify or bb_cppverify
 
-   ``cpp-in-extern-c``
-   +++++++++++++++++++
+   cpp-in-extern-c
+   +++++++++++++++
+
    Header files with C++ constructs included within ``extern "C"`` contexts.
 
    * ``PC01``
@@ -562,48 +602,54 @@ for additional checks.
 
 .. only:: bde_verify or bb_cppverify
 
-   ``deprecated``
-   ++++++++++++++
+   deprecated
+   ++++++++++
+
    * ``DP01``
      Call to deprecated function.
 
 .. only:: bde_verify
 
-   ``diagnostic-filter``
-   +++++++++++++++++++++
+   diagnostic-filter
+   +++++++++++++++++
+
    Not a check.
 
 .. only:: bde_verify or bb_cppverify
 
-   ``do-not-use-endl``
-   +++++++++++++++++++++++
+   do-not-use-endl
+   +++++++++++++++
+
    * ``NE01``
      Prefer using ``'\\n'`` over ``endl``.
 
 .. only:: bde_verify
 
-   ``dump-ast``
-   +++++++++++++++++++++++
+   dump-ast
+   ++++++++
    Not a check.
 
 .. only:: bde_verify or bb_cppverify
 
-   ``entity-restrictions``
-   +++++++++++++++++++++++
+   entity-restrictions
+   +++++++++++++++++++
+
    * ``TR17``
      Items declared in global scope.
 
 .. only:: bde_verify
 
-   ``enum-value``
-   ++++++++++++++
+   enum-value
+   ++++++++++
+
    * ``EV01``
      Component enumeration tag is ``Value``.
 
 .. only:: bde_verify or bb_cppverify
 
-   ``external-guards``
-   +++++++++++++++++++
+   external-guards
+   +++++++++++++++
+
    Incorrect or missing use of external header guards.
 
    * ``SEG01``
@@ -617,8 +663,9 @@ for additional checks.
 
 .. only:: bde_verify
 
-   ``files``
-   +++++++++
+   files
+   +++++
+
    Missing or inaccessible component header file or test driver.
 
    * ``FI01``
@@ -628,24 +675,25 @@ for additional checks.
 
 .. only:: bde_verify or bb_cppverify
 
-   ``free-functions-depend``
-   +++++++++++++++++++++++++
+   free-functions-depend
+   +++++++++++++++++++++
 
    * ``AQS01``
      Free function parameter must depend on a local definition.
 
 .. only:: bde_verify or bb_cppverify
 
-   ``friends-in-headers``
-   ++++++++++++++++++++++
+   friends-in-headers
+   ++++++++++++++++++
 
    * ``AQP01``
      Friends must be declared in the same header.
 
 .. only:: bde_verify
 
-   ``function-contract``
-   +++++++++++++++++++++
+   function-contract
+   +++++++++++++++++
+   
    Incorrect or missing function contracts.
 
    * ``FD01``
@@ -657,8 +705,8 @@ for additional checks.
    * ``FD04``
      Parameter name is not single-quoted.
    * ``FD05``
-     Parameters with default values are not called out with
-     *optionally specify*.
+     Parameters with default values are not called out with *optionally
+     specify*.
    * ``FD06``
      Parameters are not called out with *specified*.
    * ``FD07``
@@ -666,22 +714,25 @@ for additional checks.
 
 .. only:: bde_verify or bb_cppverify
 
-   ``global-data``
-   +++++++++++++++
+   global-data
+   +++++++++++
+
    * ``AQb01``
      Data variable with global visibilty.
 
 .. only:: bde_verify or bb_cppverify
 
-   ``global-function-only-in-source``
-   ++++++++++++++++++++++++++++++++++
+   global-function-only-in-source
+   ++++++++++++++++++++++++++++++
+
    * ``TR10``
      Globally visible function not declared in header.
 
 .. only:: bde_verify or bb_cppverify
 
-   ``global-type-only-in-source``
-   ++++++++++++++++++++++++++++++
+   global-type-only-in-source
+   ++++++++++++++++++++++++++
+
    * ``TR10``
      Globally visible type not declared in header.
    * ``TR11``
@@ -689,8 +740,9 @@ for additional checks.
 
 .. only:: bde_verify
 
-   ``groupname``
-   +++++++++++++
+   groupname
+   +++++++++
+
    Component is not properly named or located.
 
    * ``GN01``
@@ -701,52 +753,59 @@ for additional checks.
 
 .. only:: bde_verify or bb_cppverify
 
-   ``hash-pointer``
-   ++++++++++++++++
+   hash-pointer
+   ++++++++++++
+
    * ``HC01``
      Warn that use of ``std::hash<TYPE*>()(ptr)`` uses only the value and not
      the contents of *ptr*.
 
 .. only:: bde_verify
 
-   ``headline``
-   ++++++++++++
+   headline
+   ++++++++
+
    * ``HL01``
      The headline of the file is incorrect.
 
 .. only:: bde_verify
 
-   ``implicit-ctor``
-   +++++++++++++++++
+   implicit-ctor
+   +++++++++++++
+
    * ``IC01``
      Non-``explicit`` constructor which may be invoked implicitly and
      not marked with ``// IMPLICIT``
 
 .. only:: bde_verify or bb_cppverify
 
-   ``in-enterprise-namespace``
-   +++++++++++++++++++++++++++
+   in-enterprise-namespace
+   +++++++++++++++++++++++
+
    * ``AQQ01``
      Declaration not in enterprise namespace.
 
 .. only:: bde_verify or bb_cppverify
 
-   ``include-guard``
-   +++++++++++++++++
+   include-guard
+   +++++++++++++
+
    * ``TR14``
      Header file does not set up or use its include guard macro properly.
 
 .. only:: bde_verify
 
-   ``include-in-extern-c``
-   +++++++++++++++++++++++
+   include-in-extern-c
+   +++++++++++++++++++
+
    * ``IEC01``
      Header file included within C linkage specification.
 
 .. only:: bde_verify
 
-   ``include-order``
-   +++++++++++++++++
+   include-order
+   +++++++++++++
+
    Header files are not included in BDE-standard order.
 
    * ``SHO01``
@@ -768,8 +827,9 @@ for additional checks.
 
 .. only:: bde_verify
 
-   ``indentation``
-   +++++++++++++++
+   indentation
+   +++++++++++
+
    * ``IND01``
      Line is (possibly) mis-indented.
    * ``IND02``
@@ -790,16 +850,18 @@ for additional checks.
 
 .. only:: bde_verify
 
-   ``leaking-macro``
-   +++++++++++++++++
+   leaking-macro
+   +++++++++++++
+
    * ``SLM01``
      Component header file macro neither an include guard nor prefixed by
      component name.
 
 .. only:: bde_verify or bb_cppverify
 
-   ``local-friendship-only``
-   +++++++++++++++++++++++++
+   local-friendship-only
+   +++++++++++++++++++++
+
    Long-distance friendship.
 
    * ``TR19``
@@ -807,30 +869,34 @@ for additional checks.
 
 .. only:: bde_verify
 
-   ``long-inline``
-   +++++++++++++++
+   long-inline
+   +++++++++++
+
    * ``LI01``
      Inline function is longer than configuration file parameter
      ``max_inline_lines`` (default 10).
 
 .. only:: bde_verify
 
-   ``longlines``
-   +++++++++++++
+   longlines
+   +++++++++
+
    * ``LL01``
      Line exceeds 79 characters.
 
 .. only:: bde_verify
 
-   ``member-definition-in-class-definition``
-   +++++++++++++++++++++++++++++++++++++++++
+   member-definition-in-class-definition
+   +++++++++++++++++++++++++++++++++++++
+
    * ``CD01``
      Method defined directly in class definition.
 
 .. only:: bde_verify or bb_cppverify
 
-   ``member-names``
-   ++++++++++++++++
+   member-names
+   ++++++++++++
+
    * ``MN01``
      Class data members must be private.
    * ``MN02``
@@ -844,8 +910,22 @@ for additional checks.
 
 .. only:: bde_verify
 
-   ``mid-return``
-   ++++++++++++++
+   move-contract
+   +++++++++++++
+
+   Uses the rewriting facility to move function contracts above functions (and
+   shift them four spaces left).  Note that this feature is preliminary, and
+   other checks that require contracts do not look for them in this position.
+   Use the ``-rewrite`` option to generate the rewritten file.
+
+   * ``CM01``
+     Contract being moved above function.
+
+.. only:: bde_verify
+
+   mid-return
+   ++++++++++
+
    * ``MR01``
      Non-final ``return`` statement not tagged with ``// RETURN``.
    * ``MR02``
@@ -853,16 +933,18 @@ for additional checks.
 
 .. only:: bde_verify
 
-   ``namespace-tags``
-   ++++++++++++++++++
+   namespace-tags
+   ++++++++++++++
+
    * ``NT01``
      Multi-line namespace blocks must end with
      ``// close [ enterprise | package | unnamed | description ] namespace``.
 
 .. only:: bde_verify
 
-   ``nested-declarations``
-   +++++++++++++++++++++++
+   nested-declarations
+   +++++++++++++++++++
+
    * ``TR04``
      Declarations not properly nested in package namespace.
 
@@ -874,22 +956,25 @@ for additional checks.
 
 .. only:: bde_verify or bb_cppverify
 
-   ``nonascii``
-   ++++++++++++
+   nonascii
+   ++++++++
+
    * ``NA01``
      Source code contains bytes with value greater than 127.
 
 .. only:: bde_verify
 
-   ``operator-void-star``
-   ++++++++++++++++++++++
+   operator-void-star
+   ++++++++++++++++++
+
    * ``CB01``
      Class contains conversion operator to ``void *`` or ``bool``.
 
 .. only:: bde_verify
 
-   ``packagename``
-   +++++++++++++++
+   packagename
+   +++++++++++
+
    Component package name or location does not follow BDE convention.
 
    * ``PN01``
@@ -905,15 +990,17 @@ for additional checks.
 
 .. only:: bde_verify or bb_cppverify
 
-   ``ref-to-movableref``
-   +++++++++++++++++++++
+   ref-to-movableref
+   +++++++++++++++++
+
    * ``MRR01``
      MovableRef should be passed by value, not reference.
 
 .. only:: bde_verify
 
-   ``refactor``
-   ++++++++++++
+   refactor
+   ++++++++
+
    Uses the rewriting facility to change included files and use of names.
    Specification is done via the parameter ``refactor`` in the configuration
    file.  Use the ``-rewrite`` option to generate the rewritten file.
@@ -941,8 +1028,9 @@ for additional checks.
 
 .. only:: bde_verify
 
-   ``refactor-config``
-   +++++++++++++++++++
+   refactor-config
+   +++++++++++++++
+
    Given pairs of old/new header files, generate a configuration file for the
    ``refactor`` check from corresponding pairs of names appending to the file
    specified by the configuration file parameter ``refactorfile`` (or the
@@ -953,15 +1041,17 @@ for additional checks.
 
 .. only:: bde_verify or bb_cppverify
 
-   ``runtime-initialization``
-   ++++++++++++++++++++++++++
+   runtime-initialization
+   ++++++++++++++++++++++
+
    * ``AQa01``
      Global variable with runtime initialization.
 
 .. only:: bde_verify or bb_cppverify
 
-   ``short-compare``
-   ++++++++++++++++++++++++++
+   short-compare
+   +++++++++++++
+
    * ``US01``
      Comparison between signed and unsigned short may cause unexpected
      behavior.  Signed and unsigned shorts in expressions are both promoted
@@ -972,8 +1062,9 @@ for additional checks.
 
 .. only:: bde_verify
 
-   ``spell-check``
-   +++++++++++++++
+   spell-check
+   +++++++++++
+
    * ``SP01``
      Misspelled word in comment.
    * ``SP02``
@@ -996,29 +1087,33 @@ for additional checks.
 
 .. only:: bde_verify or bb_cppverify
 
-   ``strict-alias``
-   ++++++++++++++++
-   * ``AL01``
+   strict-alias
+   ++++++++++++
+
+   * ``SAL01``
      Possible strict-aliasing violation.
 
 .. only:: bde_verify or bb_cppverify
 
-   ``string-add``
-   ++++++++++++++
+   string-add
+   ++++++++++
+
    * ``SA01``
      Addition of integer and string literal.
 
 .. only:: bde_verify
 
-   ``swap-a-b``
-   ++++++++++++
+   swap-a-b
+   ++++++++
+
    * ``SWAB01``
      Parameters of free *swap* function are not named *a* and *b*.
 
 .. only:: bde_verify or bb_cppverify
 
-   ``swap-using``
-   ++++++++++++++
+   swap-using
+   ++++++++++
+
    Directly invoking ``std::swap`` or ``bsl::swap`` can prevent argument-
    dependent lookup from finding overloads.
 
@@ -1027,8 +1122,9 @@ for additional checks.
 
 .. only:: bde_verify
 
-   ``template-typename``
-   +++++++++++++++++++++
+   template-typename
+   +++++++++++++++++
+
    * ``TY01``
      Use of ``typename`` instead of ``class`` in ``template`` header.
    * ``TY02``
@@ -1038,8 +1134,9 @@ for additional checks.
 
 .. only:: bde_verify
 
-   ``test-driver``
-   +++++++++++++++
+   test-driver
+   +++++++++++
+
    Checks for test drivers.
 
    * ``TP02``
@@ -1114,8 +1211,9 @@ for additional checks.
 
 .. only:: bde_verify
 
-   ``that-which``
-   +++++++++++++++++++++++++++
+   that-which
+   ++++++++++
+
    * ``TW01``
      Prefer ``that`` to ``which``.
    * ``TW02``
@@ -1123,15 +1221,17 @@ for additional checks.
 
 .. only:: bde_verify or bb_cppverify
 
-   ``throw-non-std-exception``
-   +++++++++++++++++++++++++++
+   throw-non-std-exception
+   +++++++++++++++++++++++
+
    * ``FE01``
      Throwing exception not derived from ``std::exception``.
 
 .. only:: bde_verify or bb_cppverify
 
-   ``transitive-includes``
-   +++++++++++++++++++++++++++
+   transitive-includes
+   +++++++++++++++++++
+
    * ``AQK01``
      Header included transitively should be included directly.
    * ``AQK02``
@@ -1139,8 +1239,9 @@ for additional checks.
 
 .. only:: bde_verify or bb_cppverify
 
-   ``unnamed-temporary``
-   +++++++++++++++++++++
+   unnamed-temporary
+   +++++++++++++++++
+
    * ``UT01``
      Unnamed object will be immediately destroyed.
 
@@ -1148,15 +1249,17 @@ for additional checks.
 
 .. only:: bde_verify
 
-   ``upper-case-names``
-   ++++++++++++++++++++
+   upper-case-names
+   ++++++++++++++++
+
    * ``UC01``
      Names of variables and types should not be all upper-case.
 
 .. only:: bde_verify or bb_cppverify
 
-   ``using-declaration-in-header``
-   +++++++++++++++++++++++++++++++
+   using-declaration-in-header
+   +++++++++++++++++++++++++++
+
    * ``TR16``
      Header file contains ``using`` declaration.
    * ``AQJ01``
@@ -1167,8 +1270,9 @@ for additional checks.
 
 .. only:: bde_verify or bb_cppverify
 
-   ``using-directive-in-header``
-   +++++++++++++++++++++++++++++
+   using-directive-in-header
+   +++++++++++++++++++++++++
+
    * ``TR16``
      Header file contains ``using`` directive.
    * ``AQJ02``
@@ -1179,15 +1283,17 @@ for additional checks.
 
 .. only:: bde_verify or bb_cppverify
 
-   ``verify-same-argument-names``
-   ++++++++++++++++++++++++++++++
+   verify-same-argument-names
+   ++++++++++++++++++++++++++
+
    * ``AN01``
      Function declaration and definition use different parameter names.
 
 .. only:: bde_verify or bb_cppverify
 
-   ``whitespace``
-   ++++++++++++++
+   whitespace
+   ++++++++++
+
    Whitespace problems.
 
    * ``TAB01``

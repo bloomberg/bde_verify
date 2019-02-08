@@ -1,0 +1,4 @@
+stream.cpp:7:22: warning: AQK01: Need #include <bsl_ostream.h> for 'operator<<'
+    stream << string << "\n";
+                     ^
+1 warning generated.

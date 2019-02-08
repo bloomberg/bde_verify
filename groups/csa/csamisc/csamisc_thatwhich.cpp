@@ -8,28 +8,14 @@
 #include <csabase_report.h>
 #include <csabase_util.h>
 #include <cctype>
+#include <set>
 #include <string>
-#include <unordered_set>
 #include <vector>
 
 using namespace clang;
 using namespace csabase;
 
 static std::string const check_name("that-which");
-
-namespace std
-{
-
-template <>
-struct hash<llvm::StringRef>
-{
-    size_t operator()(llvm::StringRef s) const
-    {
-        return llvm::HashString(s);
-    }
-};
-
-}
 
 namespace
 {
@@ -74,15 +60,15 @@ Word::Word()
 
 void Word::set(llvm::StringRef s, size_t position)
 {
-    static std::unordered_set<llvm::StringRef> prepositions{
-        "about",   "above",      "across",  "after",   "against", "among",
-        "around",  "at",         "before",  "behind",  "below",   "beneath",
-        "beside",  "besides",    "between", "beyond",  "by",      "during",
-        "for",     "from",       "in",      "inside",  "into",    "near",
-        "of",      "on",         "out",     "outside", "over",    "since",
-        "through", "throughout", "till",    "to",      "toward",  "unclear",
-        "under",   "until",      "up",      "upon",    "with",    "within",
-        "without",
+    static std::set<llvm::StringRef> prepositions{
+        "about",   "above",  "across",  "after",   "against",    "among",
+        "and",     "around", "at",      "before",  "behind",     "below",
+        "beneath", "beside", "besides", "between", "beyond",     "but",
+        "by",      "during", "for",     "from",    "in",         "inside",
+        "into",    "near",   "of",      "on",      "or",         "out",
+        "outside", "over",   "since",   "through", "throughout", "till",
+        "to",      "toward", "unclear", "under",   "until",      "up",
+        "upon",    "with",   "within",  "without",
     };
 
     word             = s;

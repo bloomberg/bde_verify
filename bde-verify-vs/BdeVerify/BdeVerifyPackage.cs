@@ -57,6 +57,81 @@ namespace BloombergLP.BdeVerify {
         all,
     };
 
+    /// <summary>
+    /// An enumeration specifying the C++ version compatibility.
+    /// </summary>
+    public enum CppStandardVersion {
+        /// <summary>
+        /// C++ 1998 / 2003.
+        /// </summary>
+        cpp98,
+
+        /// <summary>
+        /// C++ 1998 / 2003 with GNU extensions.
+        /// </summary>
+        gnu98,
+
+        /// <summary>
+        /// C++ 2011 (aka c++0x).
+        /// </summary>
+        cpp11,
+
+        /// <summary>
+        /// C++ 2011 (aka c++0x) with GNU extensions.
+        /// </summary>
+        gnu11,
+
+        /// <summary>
+        /// C++ 2014.
+        /// </summary>
+        cpp14,
+
+        /// <summary>
+        /// C++ 2014 with GNU extensions.
+        /// </summary>
+        gnu14,
+
+        /// <summary>
+        /// C++ 2017.
+        /// </summary>
+        cpp17,
+
+        /// <summary>
+        /// C++ 2017 with GNU extensions.
+        /// </summary>
+        gnu17,
+
+        /// <summary>
+        /// C++ future version (aka c++2a).
+        /// </summary>
+        cpp2a,
+
+        /// <summary>
+        /// C++ future version (aka c++2a) with GNU extensions.
+        /// </summary>
+        gnu2a,
+    };
+
+    public static class CppStandardVersionExtension {
+        public static string Option(this CppStandardVersion version)
+        {
+            switch (version)
+            {
+                case CppStandardVersion.cpp98: return " -std=c++98";
+                case CppStandardVersion.gnu98: return " -std=gnu++98";
+                case CppStandardVersion.cpp11: return " -std=c++11";
+                case CppStandardVersion.gnu11: return " -std=gnu++11";
+                case CppStandardVersion.cpp14: return " -std=c++14";
+                case CppStandardVersion.gnu14: return " -std=gnu++14";
+                case CppStandardVersion.cpp17: return " -std=c++17";
+                case CppStandardVersion.gnu17: return " -std=gnu++17";
+                case CppStandardVersion.cpp2a: return " -std=c++2a";
+                case CppStandardVersion.gnu2a: return " -std=gnu++2a";
+                default:                       return " -std=gnu++2a";
+            }
+        }
+    }
+
     [ClassInterface(ClassInterfaceType.AutoDual)]
     [CLSCompliant(false), ComVisible(true)]
     public class OptionPageGrid : DialogPage {
@@ -89,6 +164,12 @@ namespace BloombergLP.BdeVerify {
         [DisplayName("Diagnose")]
         [Description("Files in the compilation unit for which diagnostics should be emitted.")]
         public DiagnoseWhat Diagnose { get { return diagnose; } set { diagnose = value; } }
+
+        private CppStandardVersion cppstd = CppStandardVersion.gnu2a;
+        [Category("BDE Verify")]
+        [DisplayName("C++ Standard conformance")]
+        [Description("Conformance to particular version of C++ Standard.")]
+        public CppStandardVersion StandardVersion { get { return cppstd; } set { cppstd = value; } }
 
         private bool verbose = false;
         [Category("BDE Verify")]
@@ -212,7 +293,7 @@ namespace BloombergLP.BdeVerify {
                 var document = (host as IWpfTextViewHost).TextView.TextBuffer.Properties.GetProperty(typeof(ITextDocument)) as ITextDocument;
                 var project = dte.Solution.FindProjectItem(document.FilePath).ContainingProject;
                 dynamic vcproject = project.Object;
-                var configuration = vcproject.Configurations.Item(dte.Solution.SolutionBuild.ActiveConfiguration.Name);
+                var configuration = vcproject.ActiveConfiguration;
                 message = null;
                 dynamic vctool = configuration.Tools.Item("VCCLCompilerTool");
                 var process = new System.Diagnostics.Process();
@@ -250,7 +331,7 @@ namespace BloombergLP.BdeVerify {
                 si.Arguments += " -ferror-limit=0";
                 si.Arguments += " -fms-compatibility";
                 si.Arguments += " -fms-extensions";
-                si.Arguments += " -std=c++11";
+                si.Arguments += options.StandardVersion.Option();
                 si.Arguments += " -xc++";
                 var paths = new HashSet<string>();
                 paths.Add("");

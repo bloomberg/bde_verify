@@ -1,25 +1,25 @@
-csamisc_donotuseendl.cpp:7:28: warning: NE01: Prefer ... << '\n', and ... << flush if needed
-    bsl::cout << bsl::endl << bsl::endl;
-                           ^
 csamisc_donotuseendl.cpp:7:15: warning: NE01: Prefer ... << '\n', and ... << flush if needed
     bsl::cout << bsl::endl << bsl::endl;
               ^
-csamisc_donotuseendl.cpp:9:18: warning: NE01: Prefer ... << '\n', and ... << flush if needed
-    cout << endl << endl;
-                 ^
+csamisc_donotuseendl.cpp:7:28: warning: NE01: Prefer ... << '\n', and ... << flush if needed
+    bsl::cout << bsl::endl << bsl::endl;
+                           ^
 csamisc_donotuseendl.cpp:9:10: warning: NE01: Prefer ... << '\n', and ... << flush if needed
     cout << endl << endl;
          ^
-csamisc_donotuseendl.cpp:14:28: warning: NE01: Prefer ... << '\n', and ... << flush if needed
-    std::cout << std::endl << std::endl;
-                           ^
+csamisc_donotuseendl.cpp:9:18: warning: NE01: Prefer ... << '\n', and ... << flush if needed
+    cout << endl << endl;
+                 ^
 csamisc_donotuseendl.cpp:14:15: warning: NE01: Prefer ... << '\n', and ... << flush if needed
     std::cout << std::endl << std::endl;
               ^
-csamisc_donotuseendl.cpp:16:18: warning: NE01: Prefer ... << '\n', and ... << flush if needed
-    cout << endl << endl;
-                 ^
+csamisc_donotuseendl.cpp:14:28: warning: NE01: Prefer ... << '\n', and ... << flush if needed
+    std::cout << std::endl << std::endl;
+                           ^
 csamisc_donotuseendl.cpp:16:10: warning: NE01: Prefer ... << '\n', and ... << flush if needed
     cout << endl << endl;
          ^
+csamisc_donotuseendl.cpp:16:18: warning: NE01: Prefer ... << '\n', and ... << flush if needed
+    cout << endl << endl;
+                 ^
 8 warnings generated.

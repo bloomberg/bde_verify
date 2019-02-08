@@ -133,7 +133,7 @@ AnalyseConsumer::HandleTranslationUnit(ASTContext&)
     if (!rf.empty()) {
         int fd;
         std::error_code file_error = llvm::sys::fs::openFileForWrite(
-            rf, fd, llvm::sys::fs::F_Append);
+            rf, fd, llvm::sys::fs::CD_OpenAlways, llvm::sys::fs::OF_Append);
         if (file_error) {
             llvm::errs() << analyser_.toplevel()
                          << ":1:1: error: " << file_error.message()

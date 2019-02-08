@@ -115,7 +115,8 @@ struct report : public RecursiveASTVisitor<report>, Report<data>
                     const FileEntry *,
                     StringRef,
                     StringRef,
-                    const Module *);
+                    const Module *,
+                    SrcMgr::CharacteristicKind);
         // Callback for inclusion directive.
 
     void operator()(Token const &,
@@ -123,7 +124,7 @@ struct report : public RecursiveASTVisitor<report>, Report<data>
                     SourceRange,
                     MacroArgs const *);
         // Callback for macro expansion
-    
+
     void operator()(SourceLocation, SourceLocation);
         // Callback for endif.
 
@@ -309,7 +310,8 @@ void report::operator()(SourceLocation loc,
                         const FileEntry *,
                         StringRef,
                         StringRef,
-                        const Module *)
+                        const Module *,
+                        SrcMgr::CharacteristicKind)
 {
     if (d.d_most_recent_guard != guard_for_file(file)) {
         d.d_includes[file].emplace_back(SourceRange(loc, loc));

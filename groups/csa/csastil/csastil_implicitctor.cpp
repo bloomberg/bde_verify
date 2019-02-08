@@ -52,7 +52,7 @@ static void check(Analyser& analyser, CXXConstructorDecl const* decl)
 }
 
 // -----------------------------------------------------------------------------
-        
+
 namespace
 {
     struct report

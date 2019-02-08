@@ -69,7 +69,7 @@ void report::operator()()
     mf.addDynamicMatcher(
         decl(forEachDescendant(
             cxxMemberCallExpr(
-                on(hasType(recordDecl(matchesName("::bsl::basic_string")))),
+                on(hasType(typedefDecl(matchesName("::bsl::string")))),
                 callee(cxxMethodDecl(matchesName("operator basic_string"))))
                 .bind("e"))),
         &m2);

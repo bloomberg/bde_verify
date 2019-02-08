@@ -141,8 +141,8 @@ void report::operator()(const LinkageSpecDecl *decl)
 {
     if (decl->hasBraces()) {
         SourceRange r = decl->getSourceRange();
-        r = SourceRange(m.getExpansionRange(r.getBegin()).first,
-                        m.getExpansionRange(r.getEnd()).second);
+        r = SourceRange(m.getExpansionRange(r.getBegin()).getBegin(),
+                        m.getExpansionRange(r.getEnd()).getEnd());
         d.d_linkages[r] = decl;
     }
 }

@@ -247,6 +247,20 @@ csabase::Config::process(std::string const& line)
                 << line << "'\n";
         }
     }
+    else if ("re-exports" == command ||
+             "re-export" == command ||
+             "reexports" == command ||
+             "reexport" == command) {
+        std::string including, exported;
+        if (args >> including >> exported) {
+            set_reexports(including, exported);
+        }
+        else {
+            errs() << "WARNING: " << command
+                   << " needs including and exported files on line '"
+                   << line << "'\n";
+        }
+    }
     else if (command.empty() || command[0] != '#') {
         std::cout << "unknown configuration command='" << command
                   << "' arguments='" << line << "'\n";
@@ -631,6 +645,145 @@ std::vector<std::string> csabase::Config::brace_expand(const std::string &s)
 {
     size_t p = 0;
     return expand(s, p);
+}
+
+void csabase::Config::set_reexports(const std::string &including_file,
+                                    const std::string& exported_file)
+{
+    if (d_reexported_includes[including_file].insert(exported_file).second) {
+        for (auto &a : d_reexported_includes) {
+            if (a.second.count(including_file)) {
+                set_reexports(a.first, exported_file);
+            }
+        }
+    }
+}
+
+bool csabase::Config::reexports(const std::string& included_file,
+                                const std::string& needed_file) const
+{
+    auto i = d_reexported_includes.find(included_file);
+    return i != d_reexported_includes.end() && i->second.count(needed_file);
+}
+
+void csabase::Config::appendGoodWords(std::vector<std::string>& words) const
+{
+    static const char default_dictionary[] =
+        // Words considered bad by the spell checker but we like.
+        " accessor{,s}"
+        " adl"
+        " aix"
+        " align{as,of}"
+        " allocator{,s}"
+        " asm"
+        " atomic{ity,s}"
+        " automata"
+        " bde{,wrap,x}"
+        " bit{and,or,wise}"
+        " bloomberg"
+        " BLP"
+        " bool"
+        " bsl{,m{a,f}}"
+        " comparator{,s}"
+        " compl"
+        " const{,ness}"
+        " constructible"
+        " cryptographic{,ally}"
+        " deallocate{,d,s}"
+        " decltype"
+        " decrement{,ed,s}"
+        " deleter"
+        " deque{,s,ue{,d,s}}"
+        " dereferenc{e{,d,s},ing}"
+        " destructor{,s}"
+        " dinkumware"
+        " disambiguat{es,ed,ing}"
+        " emplac{e{,s,d},ing}"
+        " encodings"
+        " endian{,{,n}ess}"
+        " drqs"
+        " enum"
+        " enqueu{e{,d,s},ing}"
+        " {,un}extern{,alizer}"
+        " filename"
+        " functor{,s}"
+        " gcc"
+        " {g,u}uid{,s}"
+        " goto"
+        " increment{,ed,s}"
+        " indices"
+        " initiali{s,z}er{,s}"
+        " inlin{e{,d,s},ing}"
+        " instantia{ble,tion{,s}}"
+        " int"
+        " intrinsics"
+        " invariants"
+        " {i,io,o}stream{,s}"
+        " iterable"
+        " iteratively"
+        " leveli{s,z}{ation,e{,d}}"
+        " {l,r}hs"
+        " llvm"
+        " lookup"
+        " {l,{,p}r}value{,s}"
+        " merchantability"
+        " metafunction{,s}"
+        " modularity"
+        " msvc"
+        " multi"
+        " mutex"
+        " namespace{,s}"
+        " natively"
+        " noexcept"
+        " noninfringement"
+        " nullptr"
+        " onwards"
+        " paralleli{s,z}{e{,d,s},ing}"
+        " parameteri{s,z}{e{,d,s},ing}"
+        " portably"
+        " pragma{,s}"
+        " proleptic"
+        " preprocess{,ed,es,ing,or}"
+        " prox{ied,ying}"
+        " resiz{e{,d,s},ing}"
+        " rethrew"
+        " rethrow{,ing,s}"
+        " runtime{,s}"
+        " sfinae"
+        " sizeof"
+        " solaris"
+        " stateful"
+        " stl"
+        " struct"
+        " sublicense"
+        " subrange{,s}"
+        " subsequence{,s}"
+        " templati{s,z}ed"
+        " tokeni{s,z}{e{,d,s},ing}"
+        " type{de,o}f{,s}"
+        " unary"
+        " unbuffered"
+        " undefine"
+        " unevaluated"
+        " unformatted"
+        " unlink{,ed,ing,s}"
+        " unmodifiable"
+        " unordered"
+        " unticked"
+        " utc"
+        " variadic"
+        " vtable{,s}"
+        " wchar"
+        " xlc"
+        " xor";
+
+    llvm::SmallVector<llvm::StringRef, 1000> raw_good_words;
+    llvm::StringRef(default_dictionary).split(raw_good_words, " ", -1, false);
+    llvm::StringRef(value("dictionary")).split(raw_good_words, " ", -1, false);
+    for (const auto &s : raw_good_words) {
+        std::vector<std::string> e = brace_expand(s);
+        words.insert(words.end(), e.begin(), e.end());
+    }
 }
 
 // ----------------------------------------------------------------------------

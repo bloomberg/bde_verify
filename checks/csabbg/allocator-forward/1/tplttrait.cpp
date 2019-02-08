@@ -6,7 +6,8 @@ using namespace BloombergLP;
 template <class T> struct B {             B(bslma::Allocator* alloc = 0) { } };
                    struct C {             C(bslma::Allocator* alloc = 0) { } };
 template <class T> struct D {             D(bslma::Allocator* alloc = 0) { } };
-                   struct E {             E(bslma::Allocator* alloc = 0) { } };
+                   struct E {             E(bslma::Allocator* alloc = 0) { }
+                             bslma::Allocator* allocator() const;            };
 struct A { E e; D<int> d; C c; B<int> b;  A(bslma::Allocator* alloc = 0) { } };
 namespace BloombergLP { namespace bslma {
 template <>        struct UsesBslmaAllocator<E>    : bsl::true_type { };

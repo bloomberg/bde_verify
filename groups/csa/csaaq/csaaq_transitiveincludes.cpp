@@ -8,6 +8,7 @@
 #include <csabase_analyser.h>
 #include <csabase_debug.h>
 #include <csabase_filenames.h>
+#include <csabase_location.h>
 #include <csabase_ppobserver.h>
 #include <csabase_registercheck.h>
 #include <csabase_report.h>
@@ -125,14 +126,10 @@ std::set<llvm::StringRef> &good_transitives(llvm::StringRef file)
         X("bsl_deque.h",             "bsl_iterator.h")
         X("bsl_list.h",              "bsl_iterator.h")
         X("bsl_map.h",               "bsl_iterator.h")
-        X("bsl_multimap.h",          "bsl_iterator.h")
-        X("bsl_multiset.h",          "bsl_iterator.h")
         X("bsl_set.h",               "bsl_iterator.h")
         X("bsl_string.h",            "bsl_iterator.h")
-        X("bsl_unorderedmap.h",      "bsl_iterator.h")
-        X("bsl_unorderedmultimap.h", "bsl_iterator.h")
-        X("bsl_unorderedmultiset.h", "bsl_iterator.h")
-        X("bsl_unorderedset.h",      "bsl_iterator.h")
+        X("bsl_unordered_map.h",     "bsl_iterator.h")
+        X("bsl_unordered_set.h",     "bsl_iterator.h")
         X("bsl_vector.h",            "bsl_iterator.h")
     }
     return s[file];
@@ -408,17 +405,17 @@ std::map<llvm::StringRef, std::set<llvm::StringRef>> &if_included_map()
         s["bsl_ios.h"].insert("bsl_streambuf.h");
         s["bsl_ios.h"].insert("bsl_strstream.h");
         s["bsl_iosfwd.h"].insert("bsl_ios.h");
-        s["bsl_istream.h"].insert("bsl_iostream.h");
-        s["bsl_ostream.h"].insert("bsl_iostream.h");
-        s["bsl_streambuf.h"].insert("bsl_iostream.h");
+        //s["bsl_istream.h"].insert("bsl_iostream.h");
+        //s["bsl_ostream.h"].insert("bsl_iostream.h");
+        //s["bsl_streambuf.h"].insert("bsl_iostream.h");
         s["ios.h"].insert("bsl_iostream.h");
         s["ios.h"].insert("bsl_streambuf.h");
         s["ios.h"].insert("bsl_strstream.h");
         s["iosfwd"].insert("bsl_ios.h");
-        s["istream"].insert("bsl_iostream.h");
+        //s["istream"].insert("bsl_iostream.h");
         s["math.h"].insert("bsl_cmath.h");
-        s["ostream"].insert("bsl_iostream.h");
-        s["streambuf"].insert("bsl_iostream.h");
+        //s["ostream"].insert("bsl_iostream.h");
+        //s["streambuf"].insert("bsl_iostream.h");
     }
 
     return s;
@@ -466,6 +463,18 @@ bool reexports(llvm::StringRef outer, llvm::StringRef inner)
     if (outer == "bsl_strstream.h" &&
         (inner == "bsl_ios.h" ||
          inner == "ios")) {
+        return true;
+    }
+
+    if ((outer == "bsl_map.h" ||
+         outer == "bsl_set.h") &&
+        inner == "bslstl_treeiterator.h") {
+        return true;
+    }
+
+    if ((outer == "bsl_unordered_map.h" ||
+         outer == "bsl_unordered_set.h") &&
+        inner == "bslstl_hashtableiterator.h") {
         return true;
     }
 
@@ -544,15 +553,16 @@ struct report : public RecursiveASTVisitor<report>, Report<data>
         // in the specified 'fid', and in files which include it if not
         // dependent on BSL_OVERRIDES_STD.
 
-    void operator()(SourceLocation   where,
-                    const Token&     inc,
-                    llvm::StringRef  name,
-                    bool             angled,
-                    CharSourceRange  namerange,
-                    const FileEntry *entry,
-                    llvm::StringRef  path,
-                    llvm::StringRef  relpath,
-                    const Module    *imported);
+    void operator()(SourceLocation              where,
+                    const Token&                inc,
+                    llvm::StringRef             name,
+                    bool                        angled,
+                    CharSourceRange             namerange,
+                    const FileEntry            *entry,
+                    llvm::StringRef             path,
+                    llvm::StringRef             relpath,
+                    const Module               *imported,
+                    SrcMgr::CharacteristicKind  fileType);
         // Preprocessor callback for included file.
 
     void map_file(std::string name);
@@ -592,7 +602,8 @@ struct report : public RecursiveASTVisitor<report>, Report<data>
                     SourceRange            range);
         // Preprocessor callback for 'defined(.)'.
 
-    void operator()(SourceRange range);
+    void operator()(SourceRange    range,
+                    SourceLocation endifLoc);
         // Preprocessor callback for skipped ranges.
 
     void operator()(SourceLocation where,
@@ -745,6 +756,16 @@ std::string report::file_for_location(SourceLocation sl, SourceLocation in)
                     just_found = true;
                     top = p.first;
                 }
+                else {
+                    for (auto &s : d.d_includes[in_id]) {
+                        FileName fs(s);
+                        FileName ff(f);
+                        if (fs.name() != ff.name() && reexports(s, f)) {
+                            result = s;
+                            goto done;
+                        }
+                    }
+                }
             } else {
                 if (reexports(f, t) ||
                     (just_found && a.is_component(ff.name()))) {
@@ -755,6 +776,7 @@ std::string report::file_for_location(SourceLocation sl, SourceLocation in)
         }
     }
 
+  done:
     if (!a.is_component(result)) {
         if (is_mapped(result)) {
             result = get_mapped(result);
@@ -822,15 +844,16 @@ void report::push_include(FileID fid, llvm::StringRef name, SourceLocation sl)
 }
 
 // InclusionDirective
-void report::operator()(SourceLocation   where,
-                        const Token&     inc,
-                        llvm::StringRef  name,
-                        bool             angled,
-                        CharSourceRange  namerange,
-                        const FileEntry *entry,
-                        llvm::StringRef  path,
-                        llvm::StringRef  relpath,
-                        const Module    *imported)
+void report::operator()(SourceLocation              where,
+                        const Token&                inc,
+                        llvm::StringRef             name,
+                        bool                        angled,
+                        CharSourceRange             namerange,
+                        const FileEntry            *entry,
+                        llvm::StringRef             path,
+                        llvm::StringRef             relpath,
+                        const Module               *imported,
+                        SrcMgr::CharacteristicKind  fileType)
 {
     FileID fid = m.getFileID(where);
     if (d.d_guard_pos.isValid() &&
@@ -961,6 +984,7 @@ void report::operator()(SourceLocation        where,
     }
 
     if (tn.startswith("BDE_BUILD_TARGET_") &&
+        !a.is_component_header(std::string("bsls_buildtarget.h")) &&
         !d.d_all_includes.count("bsls_buildtarget.h")) {
         a.report(token.getLocation(), check_name, "AQK02",
                  "Use of %0 macro requires inclusion of <bsls_buildtarget.h>")
@@ -982,6 +1006,7 @@ void report::operator()(const Token&          token,
     }
 
     if (tn.startswith("BDE_BUILD_TARGET_") &&
+        !a.is_component_header(std::string("bsls_buildtarget.h")) &&
         !d.d_all_includes.count("bsls_buildtarget.h")) {
         a.report(token.getLocation(), check_name, "AQK02",
                  "Use of %0 macro requires inclusion of <bsls_buildtarget.h>")
@@ -990,7 +1015,7 @@ void report::operator()(const Token&          token,
 }
 
 // SourceRangeSkipped
-void report::operator()(SourceRange range)
+void report::operator()(SourceRange range, SourceLocation endifLoc)
 {
     Location loc(m, range.getBegin());
     if (d.d_guard.size() > 0) {
@@ -1075,6 +1100,10 @@ void report::require_file(std::string     name,
 
     for (const auto& s : d.d_includes[fid]) {
         if (files_match(llvm::sys::path::filename(s), name)) {
+            return;
+        }
+        if (a.config()->reexports(
+                FileName(llvm::sys::path::filename(s)).name(), name)) {
             return;
         }
     }
@@ -1166,16 +1195,26 @@ std::string report::name_for(const NamedDecl *decl)
     pp.Indentation = 4;
     pp.SuppressSpecifiers = false;
     pp.SuppressTagKeyword = false;
-    pp.IncludeTagDefinition = true;
+    pp.IncludeTagDefinition = false;
     pp.SuppressScope = false;
     pp.SuppressUnwrittenScope = false;
-    pp.SuppressInitializers = false;
+    pp.SuppressInitializers = true;
     pp.ConstantArraySizeAsWritten = true;
     pp.AnonymousTagLocations = true;
+    pp.SuppressStrongLifetime = true;
+    pp.SuppressLifetimeQualifiers = true;
+    pp.SuppressTemplateArgsInCXXConstructors = false;
     pp.Bool = true;
+    pp.Restrict = true;
+    pp.Alignof = true;
+    pp.UnderscoreAlignof = false;
+    pp.UseVoidForZeroParams = false;
     pp.TerseOutput = false;
     pp.PolishForDeclaration = true;
+    pp.Half = true;
+    pp.MSWChar = false;
     pp.IncludeNewlines = false;
+    pp.MSVCFormatting = false;
     decl->getNameForDiagnostic(s, pp, true);
     return s.str();
 }

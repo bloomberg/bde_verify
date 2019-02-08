@@ -548,15 +548,16 @@ struct report : public RecursiveASTVisitor<report>
         // specified 'fid', and in files which include it if not dependent on
         // BSL_OVERRIDES_STD, to the specified 'name'.
 
-    void operator()(SourceLocation   where,
-                    const Token&     inc,
-                    llvm::StringRef  name,
-                    bool             angled,
-                    CharSourceRange  namerange,
-                    const FileEntry *entry,
-                    llvm::StringRef  path,
-                    llvm::StringRef  relpath,
-                    const Module    *imported);
+    void operator()(SourceLocation              where,
+                    const Token&                inc,
+                    llvm::StringRef             name,
+                    bool                        angled,
+                    CharSourceRange             namerange,
+                    const FileEntry            *entry,
+                    llvm::StringRef             path,
+                    llvm::StringRef             relpath,
+                    const Module               *imported,
+                    SrcMgr::CharacteristicKind  fileType);
         // Preprocessor callback for included file.
 
     void map_file(std::string name);
@@ -597,7 +598,8 @@ struct report : public RecursiveASTVisitor<report>
                     SourceRange            range);
         // Preprocessor callback for 'defined(.)'.
 
-    void operator()(SourceRange range);
+    void operator()(SourceRange    range,
+                    SourceLocation endifLoc);
         // Preprocessor callback for skipped ranges.
 
     void operator()(SourceLocation where,
@@ -818,15 +820,16 @@ void report::change_include(FileID fid, llvm::StringRef name)
 }
 
 // InclusionDirective
-void report::operator()(SourceLocation   where,
-                        const Token&     inc,
-                        llvm::StringRef  name,
-                        bool             angled,
-                        CharSourceRange  namerange,
-                        const FileEntry *entry,
-                        llvm::StringRef  path,
-                        llvm::StringRef  relpath,
-                        const Module    *imported)
+void report::operator()(SourceLocation              where,
+                        const Token&                inc,
+                        llvm::StringRef             name,
+                        bool                        angled,
+                        CharSourceRange             namerange,
+                        const FileEntry            *entry,
+                        llvm::StringRef             path,
+                        llvm::StringRef             relpath,
+                        const Module               *imported,
+                        SrcMgr::CharacteristicKind  fileType)
 {
     SourceManager& m = d_analyser.manager();
     Location loc(m, where);
@@ -1168,7 +1171,7 @@ void report::operator()(const Token&          token,
 }
 
 // SourceRangeSkipped
-void report::operator()(SourceRange range)
+void report::operator()(SourceRange range, SourceLocation endifLoc)
 {
     SourceManager& m = d_analyser.manager();
     Location loc(m, range.getBegin());

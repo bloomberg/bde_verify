@@ -5,8 +5,8 @@ Maintainer: Hyman Rosen <hrosen4@bloomberg.net>
 Build-Depends: gcc-build-base,
                binutils,
                coreutils,
-               clang-5.0,
-               llvm-5.0,
+               clang-7.0,
+               llvm-7.0,
                aspell,
                libncurses5-dev,
                libtinfo5,
@@ -20,6 +20,6 @@ Depends: ${libgcc-Depends}, ${libstdcpp-Depends},
          coreutils, perl, aspell, aspell-en
 
 Package: libbde-verify-dev
-Depends: llvm-5.0
+Depends: llvm-7.0
 Architecture: amd64 solaris10-sparc
 Description: bde_verify base library and headers

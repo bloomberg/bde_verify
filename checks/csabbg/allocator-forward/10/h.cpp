@@ -2,16 +2,16 @@ namespace BloombergLP {
 namespace bslma { class Allocator; }
 }
 using namespace BloombergLP;
-struct BaseWithoutAllocator {
-};
+struct BaseWithoutAllocator { };
 template <int N>
 struct BaseWithAllocator {
     BaseWithAllocator(bslma::Allocator *);
+    bslma::Allocator *allocator() const;
 };
-struct FieldWithoutAllocator {
-};
+struct FieldWithoutAllocator { };
 struct FieldWithAllocator {
     FieldWithAllocator(bslma::Allocator *);
+    bslma::Allocator *allocator() const;
 };
 struct C1 : BaseWithoutAllocator, BaseWithAllocator<1>, BaseWithAllocator<2> {
     bslma::Allocator *d_allocator_p;

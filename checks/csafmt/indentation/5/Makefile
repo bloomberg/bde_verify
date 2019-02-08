@@ -1,19 +1,12 @@
-<!DOCTYPE html>
-<html>
-<head><title>Static Checkers for C++ Code</title></head>
-<body>
-<p><a href="bde_verify_build/html/index.html">bde_verify</a>
-facilitates compliance with BDE Coding Standards.
-<p><a href="bb_cppverify_build/html/index.html">bb_cppverify</a>
-facilitates compliance with BloombergLP Coding Standards.
-<p><a>check_bos</a>
-is a wrapper for bde_verify, checking if code is indifferent to whether or not
-NSL_OVERRIDES_STD is defined.
-</body>
-</html>
-<!--
+# Makefile                                                       -*-makefile-*-
+FILES := $(wildcard *.cpp)
+CHECKNAME := indentation
+
+BDE_VERIFY_DIR ?= ../../../..
+include $(BDE_VERIFY_DIR)/checks/Makefile.inc
+
 ## ----------------------------------------------------------------------------
-## Copyright (C) 2015 Bloomberg Finance L.P.
+## Copyright (C) 2018 Bloomberg Finance L.P.
 ##
 ## Licensed under the Apache License, Version 2.0 (the "License");
 ## you may not use this file except in compliance with the License.
@@ -27,4 +20,3 @@ NSL_OVERRIDES_STD is defined.
 ## See the License for the specific language governing permissions and
 ## limitations under the License.
 ## ----------------------------- END-OF-FILE ----------------------------------
--->

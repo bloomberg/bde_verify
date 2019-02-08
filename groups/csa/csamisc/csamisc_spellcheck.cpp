@@ -114,81 +114,6 @@ void report::operator()(SourceRange range)
 
 void report::operator()()
 {
-    static const char default_dictionary[] =
-        // Words considered bad by the spell checker but we like.
-        " accessor{,s}"
-        " adl"
-        " align{as,of}"
-        " allocator{,s}"
-        " asm"
-        " bde"
-        " bdewrap"
-        " bit{and,or,wise}"
-        " bloomberg"
-        " BLP"
-        " bool"
-        " bsl{,m{a,f}}"
-        " compl"
-        " const{,ness}"
-        " deallocate{,d,s}"
-        " decltype"
-        " decrement{,ed,s}"
-        " dereferenc{e{,d,s},ing}"
-        " destructor{,s}"
-        " drqs"
-        " enum"
-        " enqueu{e{,d},ing}"
-        " extern"
-        " filename"
-        " functor{,s}"
-        " gcc"
-        " {g,u}uid{,s}"
-        " goto"
-        " increment{,ed,s}"
-        " indices"
-        " initiali{s,z}er{,s}"
-        " inlin{e,ing}"
-        " instantia{ble,tion{,s}}"
-        " int"
-        " {i,io,o}stream{,s}"
-        " leveli{s,z}{ation,e{,d}}"
-        " {l,r}hs"
-        " lookup"
-        " {l,{,p}r}value{,s}"
-        " merchantability"
-        " metafunction{,s}"
-        " multi"
-        " namespace{,s}"
-        " noexcept"
-        " noninfringement"
-        " nullptr"
-        " parameteri{s,z}ed"
-        " portably"
-        " pragma"
-        " proleptic"
-        " resiz{e{,d,s},ing}"
-        " runtime{,s}"
-        " sfinae"
-        " sizeof"
-        " stateful"
-        " stl"
-        " struct"
-        " sublicense"
-        " subrange{,s}"
-        " subsequence{,s}"
-        " templati{s,z}ed"
-        " type{de,o}f{,s}"
-        " unary"
-        " unbuffered"
-        " unticked"
-        " utc"
-        " variadic"
-        " vtable{,s}"
-        " wchar"
-        " xlc"
-        " xor"
-    ;
-
     AspellConfig *spell_config = new_aspell_config();
     aspell_config_replace(spell_config, "lang", "en_US");
     aspell_config_replace(spell_config, "size", "90");
@@ -205,18 +130,10 @@ void report::operator()()
             return;                                                   // RETURN
     }
     spell_checker = to_aspell_speller(possible_err);
-    llvm::SmallVector<llvm::StringRef, 1000> raw_good_words;
     std::vector<std::string> good_words;
-    llvm::StringRef(default_dictionary).split(raw_good_words, " ", -1, false);
-    llvm::StringRef(a.config()->value("dictionary"))
-        .split(raw_good_words, " ", -1, false);
-    for (size_t i = 0; i < raw_good_words.size(); ++i) {
-        std::vector<std::string> e = Config::brace_expand(raw_good_words[i]);
-        good_words.insert(good_words.end(), e.begin(), e.end());
-    }
-    for (size_t i = 0; i < good_words.size(); ++i) {
-        aspell_speller_add_to_session(
-            spell_checker, good_words[i].data(), good_words[i].size());
+    a.config()->appendGoodWords(good_words);
+    for (const auto& s : good_words) {
+        aspell_speller_add_to_session(spell_checker, s.data(), s.size());
     }
 
     for (const auto& file_comment : d.d_comments) {
