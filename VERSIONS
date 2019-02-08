@@ -3,5 +3,5 @@ The following files need to be updated when the version number is changed.
 
 debian/changelog
 CMakeLists.txt
-doc/conf.py
+doc/docs/conf.py
 groups/csa/csabase/Makefile
