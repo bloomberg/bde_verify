@@ -1,3 +1,33 @@
+bde-verify (1.3.1) unstable; urgency=low
+
+  * 2fb5599 Update version to 1.3.1
+  * 5bf3483 Fix docs, AL01 for allocator check, add spellings, trailing spaces
+  * c208ba9 AL01->ALM01 for allocator; some other allocator check fixes
+  * 215b399 Use custom dictionary for spell-checking parameter names in contracts.
+  * a9af939 Fix test plan check do deal with funky UnspecifiedBool operators.
+  * 005b587 Don't complain that bsls_buildtarget.h needs to include itself.
+  * 1db27cb Allow re-export specification in configuration file
+  * 13de181 Don't complain about prefixes of unnamed fields.
+  * 1800291 Add disabled by default function contract up-mover.
+  * 2edc1d6 Spit out typedefs for refactor-config
+  * 8821dbb Merge remote-tracking branch 'upstream/master' into bde-verify-70
+  * dae84ec Merge pull request #33 from osubbotin/review/update-docs
+  * de3b5dc Added RTD theme and documentation generation.
+  * f12e6f9 Fix refactor-config for process-per-file operation.
+  * 9586bf8 Update debian files for clang 7
+  * 65feb73 Changes to build with clang 7.
+  * 17e53ed Forget to pass some arguments in Windows scripts.
+  * e6fc405 Modify Windowes scripts for compilation database.
+  * 24df40d Move argument processing around.
+  * 8f8f2b5 Add libTooling to CMakeLists
+  * d490e03 Use compilation database
+  * d2d2162 Merge pull request #32 from hrosen4/debian
+  * caa31eb Merge pull request #30 from hrosen4/debian
+  * 9bafe1d Merge pull request #29 from hrosen4/debian
+  * d5f6982 Merge pull request #28 from dbeer/feature/csabbg_assert
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Fri, 8 Feb 2019 13:35:42 -0500
+
 bde-verify (1.2.26) unstable; urgency=low
 
   * 3e22b3c Bump version
