@@ -27,7 +27,7 @@ h.cpp:24:28: warning: AP01: Class 'C2' has unnecessary d_allocator_p
 h.cpp:22:28: note: AP01: Use allocator of field 'd_f2'
     FieldWithAllocator     d_f2;
                            ^
-h.cpp:20:8: warning: ALM01: Class 'C2' needs allocator() method
+h.cpp:20:8: warning: AL01: Class 'C2' needs allocator() method
 struct C2 {
        ^
 h.cpp:20:8: warning: AC02: Class 'C2' implicit copy constructor is not allocator-aware

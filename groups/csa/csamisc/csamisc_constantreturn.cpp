@@ -49,7 +49,7 @@ static void check(Analyser& analyser, FunctionDecl const* decl)
             {
                 analyser.report(expr, check_name, "CR01",
                                 "Function '%0' has only one statement which "
-                                "returns the constant '%1'") 
+                                "returns the constant '%1'")
                     << decl->getNameAsString()
                     << result.toString(10)
                     << decl->getNameInfo().getSourceRange();

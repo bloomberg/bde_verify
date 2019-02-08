@@ -124,7 +124,7 @@ struct report : public RecursiveASTVisitor<report>, Report<data>
                     SourceRange,
                     MacroArgs const *);
         // Callback for macro expansion
-    
+
     void operator()(SourceLocation, SourceLocation);
         // Callback for endif.
 

@@ -1,7 +1,7 @@
 h.cpp:16:15: warning: MA02: Allocator not passed to member d_fields
             : d_fields(fields) {  // <--- allocator not forwarded
               ^~~~~~~~~~~~~~~~
-h.cpp:9:11: warning: ALM01: Class 'Functor' needs allocator() method
+h.cpp:9:11: warning: AL01: Class 'Functor' needs allocator() method
     class Functor {
           ^
 h.cpp:19:15: warning: MA02: Allocator not passed to member d_fields

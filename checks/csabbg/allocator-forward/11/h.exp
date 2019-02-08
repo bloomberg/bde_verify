@@ -29,7 +29,7 @@ h.cpp:19:23: warning: AP01: Class 'Z' has unnecessary d_allocator_p
 h.cpp:18:23: note: AP01: Use allocator of field 'x'
     X                 x;
                       ^
-h.cpp:17:8: warning: ALM01: Class 'Z' needs allocator() method
+h.cpp:17:8: warning: AL01: Class 'Z' needs allocator() method
 struct Z {
        ^
 h.cpp:17:8: warning: AC02: Class 'Z' implicit copy constructor is not allocator-aware
@@ -37,7 +37,7 @@ h.cpp:22:8: warning: AT02: Class 'W' uses allocators but does not have an alloca
 struct W {
        ^
 h.cpp:22:8: warning: AP02: Class 'W' needs d_allocator_p member
-h.cpp:22:8: warning: ALM01: Class 'W' needs allocator() method
+h.cpp:22:8: warning: AL01: Class 'W' needs allocator() method
 h.cpp:24:5: warning: AC01: Class 'W' default constructor has no allocator-aware version
     W();
     ^

@@ -1,6 +1,6 @@
 namespace BloombergLP { namespace bslma { class Allocator { }; } }
 // BDE-VERIFY pragma: -AT02
-// BDE_VERIFY pragma: -ALM01
+// BDE_VERIFY pragma: -AL01
 // BDE_VERIFY pragma: -AP02
 class V;
 template <class> class U;

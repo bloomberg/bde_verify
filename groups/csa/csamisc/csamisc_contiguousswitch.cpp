@@ -167,7 +167,7 @@ void report::check_switch(SwitchStmt const* stmt)
                  "Switch doesn't end with `default:` label");
     } else if (!llvm::dyn_cast<DefaultStmt>(cases.back())) {
         if (llvm::dyn_cast<DefaultStmt>(cases.front())) {
-            a.report(ds, check_name, "SD01", 
+            a.report(ds, check_name, "SD01",
                      "Switch starts with `default:` label");
             ++b;
         } else {
@@ -177,7 +177,7 @@ void report::check_switch(SwitchStmt const* stmt)
     } else {
         --e;
     }
-    
+
     long previous_label = 0;
     long min_label = 0;
     const CaseStmt *min_case = 0;

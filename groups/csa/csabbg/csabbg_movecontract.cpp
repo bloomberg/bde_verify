@@ -199,7 +199,7 @@ void report::operator()(const FunctionTemplateDecl* func)
 {
     (*this)(func->getTemplatedDecl());
 }
- 
+
 const NamedDecl *report::moveBefore(const FunctionDecl *func)
 {
     const DeclContext *parent = func->getLookupParent();
@@ -297,7 +297,7 @@ SourceRange report::getContract(const FunctionDecl     *func,
 
     if (with_body && !contract.isValid()) {
         // Function with body - look for a comment that starts no earlier than
-        // the function declarator and has only whitespace between itself and 
+        // the function declarator and has only whitespace between itself and
         // the open brace of the function.
         SourceLocation bodyloc = func->getBody()->getLocStart();
         data::Ranges::iterator it;

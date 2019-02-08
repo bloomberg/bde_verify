@@ -159,7 +159,7 @@ void report::check_comment(SourceRange comment_range)
 
     offset = 0;
     dnum = 0;
-    for (llvm::StringRef suffix = comment; 
+    for (llvm::StringRef suffix = comment;
          generic_banner.match(suffix, &matches);
          suffix = comment.drop_front(offset)) {
         llvm::StringRef banner = matches[0];

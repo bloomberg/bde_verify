@@ -48,7 +48,7 @@ namespace
             if (pos != header.npos) {
                 header = header.substr(0u, pos);
             }
-            
+
             headers_t& headers(in_header? d_header: d_source);
             if (headers.empty() || headers.back().first != header) {
                 headers.push_back(std::make_pair(header, where));
@@ -341,7 +341,7 @@ namespace
                         std::string const& name)
         {
             if (d_analyser->is_component(where)) {
-                include_order& data(d_analyser->attachment<include_order>()); 
+                include_order& data(d_analyser->attachment<include_order>());
                 bool in_header(d_analyser->is_component_header(where));
                 data.add_include(in_header, name, where);
             }

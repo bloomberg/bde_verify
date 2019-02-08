@@ -14,6 +14,6 @@ rv.cpp:3:8: warning: AT02: Class 'A' uses allocators but does not have an alloca
 struct A { explicit A(BloombergLP::bslma::Allocator * = 0); };
        ^
 rv.cpp:3:8: warning: AP02: Class 'A' needs d_allocator_p member
-rv.cpp:3:8: warning: ALM01: Class 'A' needs allocator() method
+rv.cpp:3:8: warning: AL01: Class 'A' needs allocator() method
 rv.cpp:3:8: warning: AC02: Class 'A' implicit copy constructor is not allocator-aware
 6 warnings generated.

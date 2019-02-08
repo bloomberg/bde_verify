@@ -107,7 +107,7 @@ bool csabase::are_numeric_cognates(llvm::StringRef a, llvm::StringRef b)
         bi = b.find_first_not_of(digits, bdi);
     }
     return ai == a.npos && bi == b.npos;
-} 
+}
 
 std::string csabase::on_one_line(llvm::StringRef s, bool explicitNL)
 {

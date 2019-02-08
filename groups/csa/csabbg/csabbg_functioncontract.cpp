@@ -417,7 +417,7 @@ void allFunDecls(Analyser& analyser, const FunctionDecl* func)
             std::make_pair(func, SourceRange()));
     }
 }
- 
+
 void allTpltFunDecls(Analyser& analyser, const FunctionTemplateDecl* func)
     // Callback function for inspecting function template declarations.
 {
@@ -621,7 +621,7 @@ SourceRange report::getContract(const FunctionDecl     *func,
 
     if (with_body && !contract.isValid()) {
         // Function with body - look for a comment that starts no earlier than
-        // the function declarator and has only whitespace between itself and 
+        // the function declarator and has only whitespace between itself and
         // the open brace of the function.
         SourceLocation bodyloc = func->getBody()->getLocStart();
         data::Ranges::iterator it;

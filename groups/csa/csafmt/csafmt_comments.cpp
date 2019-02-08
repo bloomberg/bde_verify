@@ -181,7 +181,7 @@ llvm::Regex bad_bubble(
                              "[)])" ".*\n"
         "//" "([[:blank:]]+)" "[|]" "[[:blank:]]*.*\n"          // 3
     "(" "//" "\\3"            "[|]" "[[:blank:]]*.*\n" ")*"     // 4
-        "//" "\\3"            "[V]" "[[:blank:]]*.*\n"     
+        "//" "\\3"            "[V]" "[[:blank:]]*.*\n"
         "//" "[[:blank:]]*"  "([(]" "[[:blank:]]*"              // 5
                                     "([[:alnum:]_:]+)"          // 6
                                     "[[:blank:]]*"
@@ -396,7 +396,7 @@ void report::check_wrapped(SourceRange range, llvm::StringRef comment)
         size_t sp = 0;
         while (sentence_end.match(text.drop_front(sp), &periods)) {
             sp += text.drop_front(sp).find(periods[0]) + periods[0].size();
-            if (sp < text.size() && 
+            if (sp < text.size() &&
                 !std::isspace(text[sp] & 0xFF) &&
                 !std::islower(text[sp] & 0xFF) &&
                 !(text.slice(0, sp).count('\'') & 1)) {

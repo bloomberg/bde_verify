@@ -36,7 +36,7 @@ static bool isDefaultConstructor(Analyser& analyser, Expr const* init)
 static bool
 isDefaultValue(Analyser& analyser, InitListExpr const* expr, Expr const* init)
 {
-    Expr const* orig(init); 
+    Expr const* orig(init);
     do
     {
         orig = init;

@@ -526,7 +526,7 @@ struct report : Report<data>
         // '[ begin .. end )' do not return items that take allocators.
 
     void check_alloc_return(const ReturnStmt* stmt);
-        // Check that the specified return 'stmt' does not return an item that 
+        // Check that the specified return 'stmt' does not return an item that
         // takes allocators.
 };
 
@@ -1428,7 +1428,7 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
                     }
 
                     if (!d.allocator_methods_.count(record)) {
-                        a.report(record, check_name, "ALM01",
+                        a.report(record, check_name, "AL01",
                                  "Class %0 needs allocator() method")
                             << record;
                         if (do_transform) {
@@ -1692,7 +1692,7 @@ bool report::write_allocator_method_declaration(const CXXRecordDecl    *record,
 
     record = record->getDefinition();
 
-    if (a.config()->suppressed("ALM01", record->getLocation()))
+    if (a.config()->suppressed("AL01", record->getLocation()))
         return false;
 
     std::string s;
@@ -1716,7 +1716,7 @@ bool report::write_allocator_method_declaration(const CXXRecordDecl    *record,
                                                               << "\n" << spaces
        ;
 
-    a.report(ins_loc, check_name, "ALM01",
+    a.report(ins_loc, check_name, "AL01",
              "Allocator method declaration for class %0%1",
              false, DiagnosticIDs::Note)
         << record->getName()
@@ -1738,7 +1738,7 @@ bool report::write_allocator_method_definition(const CXXRecordDecl    *record,
 
     record = record->getDefinition();
 
-    if (a.config()->suppressed("ALM01", record->getLocation()))
+    if (a.config()->suppressed("AL01", record->getLocation()))
         return false;
 
     std::string s;
@@ -1791,7 +1791,7 @@ bool report::write_allocator_method_definition(const CXXRecordDecl    *record,
        << "}"                                                 << "\n" << spaces
        ;
 
-    a.report(ins_loc, check_name, "ALM01",
+    a.report(ins_loc, check_name, "AL01",
              "Allocator method definition for class %0%1",
              false, DiagnosticIDs::Note)
         << record->getName()
@@ -1814,7 +1814,7 @@ bool report::write_in_class_allocator_method_definition(
 
     record = record->getDefinition();
 
-    if (a.config()->suppressed("ALM01", record->getLocation()))
+    if (a.config()->suppressed("AL01", record->getLocation()))
         return false;
 
     std::string s;
@@ -1869,7 +1869,7 @@ bool report::write_in_class_allocator_method_definition(
        << "    }"                                             << "\n" << spaces
        ;
 
-    a.report(ins_loc, check_name, "ALM01",
+    a.report(ins_loc, check_name, "AL01",
              "In-class allocator method definition for class %0%1",
              false, DiagnosticIDs::Note)
         << record->getName()

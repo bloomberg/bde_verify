@@ -225,6 +225,12 @@ for additional checks.
 
    Checks dealing with allocator forwarding and traits.
 
+   An experimental and preliminary feature has been added to this check to
+   enable automatic allocatorization of classes via the rewriting facility.
+   Name the classes to be transformed in the configuration file parameter
+   ``allocator_transform``.  Use the ``-rewrite`` option to generate the
+   rewritten file.
+
    * ``AT01``
      Class does not use allocators but has an affirmative allocator trait.
    * ``AT02``
@@ -267,6 +273,15 @@ for additional checks.
    * ``AP02``
      A class is lacking a necessary ``d_allocator_p`` pointer.  (The class
      uses allocators and has no allocator-aware subobjects.)
+   * ``AL01``
+     A class is lacking a necessary ``allocator()`` method.  (The class uses
+     allocators and should offer a method to retrieve the one used.)
+   * ``AH01``
+     Messages relating to the generation of assignment operators as part of
+     automatic allocatorization.
+   * ``WT01``
+     Automatic allocatorization cannot be performed for classes with array
+     members.
 
 .. only:: bde_verify or bb_cppverify
 
@@ -895,6 +910,19 @@ for additional checks.
 
 .. only:: bde_verify
 
+   move-contract
+   +++++++++++++
+
+   Uses the rewriting facility to move function contracts above functions (and
+   shift them four spaces left).  Note that this feature is preliminary, and
+   other checks that require contracts do not look for them in this position.
+   Use the ``-rewrite`` option to generate the rewritten file.
+
+   * ``CM01``
+     Contract being moved above function.
+
+.. only:: bde_verify
+
    mid-return
    ++++++++++
 
@@ -1062,7 +1090,7 @@ for additional checks.
    strict-alias
    ++++++++++++
 
-   * ``AL01``
+   * ``SAL01``
      Possible strict-aliasing violation.
 
 .. only:: bde_verify or bb_cppverify

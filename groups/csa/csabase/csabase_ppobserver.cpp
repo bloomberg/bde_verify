@@ -323,7 +323,7 @@ static bool handle_bv_pragma(const SourceManager&  m,
 {
     FileID fid = m.getFileID(l);
     unsigned line = m.getPresumedLineNumber(l);
-    llvm::StringRef directive = 
+    llvm::StringRef directive =
         m.getBufferData(fid).slice(
             m.getFileOffset(m.translateLineCol(fid, line, 1u)),
             m.getFileOffset(m.translateLineCol(fid, line, ~0u)));
