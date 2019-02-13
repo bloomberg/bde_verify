@@ -167,7 +167,7 @@ std::fstream &read_string(std::fstream &f, std::string &s)
     return f;
 }
 
-std::fstream &read_string_set(std::fstream &f, std::set<std::string> &ss)
+std::fstream &read_string_set(std::fstream &f, t_ss &ss)
 {
     size_t length;
     if (f >> length) {
@@ -175,6 +175,20 @@ std::fstream &read_string_set(std::fstream &f, std::set<std::string> &ss)
             std::string s;
             read_string(f, s);
             ss.insert(s);
+        }
+    }
+    return f;
+}
+
+std::fstream &read_strings_map(std::fstream &f, t_matches &ss)
+{
+    size_t length;
+    if (f >> length) {
+        while (length-- > 0) {
+            std::string s1, s2;
+            read_string(f, s1);
+            read_string(f, s2);
+            ss[s1] = s2;
         }
     }
     return f;
@@ -188,12 +202,21 @@ std::fstream& write_string(std::fstream&      f,
     return f;
 }
 
-std::fstream& write_string_set(std::fstream&                f,
-                               const std::set<std::string>& ss)
+std::fstream& write_string_set(std::fstream& f, const t_ss& ss)
 {
     f << ss.size() << "\n";
     for (auto &s : ss) {
         write_string(f, s);
+    }
+    return f;
+}
+
+std::fstream& write_strings_map(std::fstream& f, const t_matches& ss)
+{
+    f << ss.size() << "\n";
+    for (auto &s : ss) {
+        write_string(f, s.first);
+        write_string(f, s.second);
     }
     return f;
 }
@@ -211,18 +234,10 @@ void report::operator()()
         std::string n1, n2;
         while (read_string(interf, n1)) {
             read_string_set(interf, s_names[0][n1]);
-            size_t length;
-            if (interf >> length) {
-                while (length-- > 0) {
-                    std::string s1, s2;
-                    read_string(interf, s1);
-                    read_string(interf, s2);
-                    s_matched[n1][s1] = s2;
-                }
-            }
+            read_strings_map(interf, s_matched[n1]);
         }
         interf.close();
-        //remove(inter.c_str());
+        remove(inter.c_str());
         s_index = 1;
     }
 
@@ -443,11 +458,7 @@ void report::operator()()
         for (auto &p : s_names[0]) {
             write_string(interf, p.first);
             write_string_set(interf, p.second);
-            interf << s_matched[p.first].size() << "\n";
-            for (auto& q : s_matched[p.first]) {
-                write_string(interf, q.first);
-                write_string(interf, q.second);
-            }
+            write_strings_map(interf, s_matched[p.first]);
         }
         interf.close();
     }
