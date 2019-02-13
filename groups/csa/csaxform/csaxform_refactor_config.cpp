@@ -19,6 +19,7 @@
 #include <map>
 #include <set>
 #include <string>
+#include <vector>
 
 using namespace clang;
 using namespace clang::ast_matchers;
@@ -34,9 +35,11 @@ namespace
 {
 
 typedef std::set<std::string> t_ss;
+typedef std::map<std::string, std::string> t_matches;
 
 int s_index = 0;
 std::map<std::string, t_ss> s_names[2];
+std::map<std::string, t_matches> s_matched;
 std::string s_files[2];
 std::string s_upper_prefix[2];
 
@@ -208,9 +211,18 @@ void report::operator()()
         std::string n1, n2;
         while (read_string(interf, n1)) {
             read_string_set(interf, s_names[0][n1]);
+            size_t length;
+            if (interf >> length) {
+                while (length-- > 0) {
+                    std::string s1, s2;
+                    read_string(interf, s1);
+                    read_string(interf, s2);
+                    s_matched[n1][s1] = s2;
+                }
+            }
         }
         interf.close();
-        remove(inter.c_str());
+        //remove(inter.c_str());
         s_index = 1;
     }
 
@@ -238,8 +250,16 @@ void report::operator()()
         if (auto md = p.getMacroDefinition(ii).getLocalDirective()) {
             if (m.isWrittenInMainFile(md->getLocation())) {
                 std::string s = ii->getName().str();
-                if (!llvm::StringRef(s).startswith("INCLUDE") &&
+                auto mi = md->getInfo();
+                if (mi->isObjectLike() &&
+                    mi->getNumTokens() &&
+                    !llvm::StringRef(s).startswith("INCLUDE") &&
                     macros.emplace(s).second) {
+                    std::string r = a.get_source(SourceRange(
+                        mi->getReplacementToken(0).getLocation(),
+                        mi->getReplacementToken(mi->getNumTokens() - 1)
+                            .getEndLoc()));
+                    s_matched[Tags[Macro]][s] = r;
                     a.report(md->getLocation(), check_name, "DD01",
                              "Found " + Tags[Macro] + " " + s);
                 }
@@ -360,6 +380,9 @@ void report::operator()()
                 std::string s = t->getQualifiedNameAsString();
                 s = clean_name(s, s);
                 if (d.d_ns[Tags[Typedef]].emplace(s).second) {
+                    std::string y = t->getUnderlyingType().getAsString();
+                    y = clean_name(y, y);
+                    s_matched[Tags[Typedef]][s] = y;
                     a.report(t, check_name, "DD01",
                              "Found " + Tags[Typedef] + " " + s);
                 }
@@ -394,7 +417,10 @@ void report::operator()()
         f << "append refactor file(" << s_files[0] << "," << s_files[1] << ")";
         for (int t = 0; t < NTags; ++t) {
             for (llvm::StringRef i : s_names[0][Tags[t]]) {
-                std::string bm = best_match(i, s_names[1][Tags[t]]);
+                std::string bm =
+                    s_matched[Tags[t]].count(i)
+                        ? s_matched[Tags[t]][i]
+                        : best_match(i, s_names[1][Tags[t]]).str();
                 if (bm.size() == 0) {
                     if (t == Typedef) {
                         // Likely an existing forward declaration.
@@ -417,6 +443,11 @@ void report::operator()()
         for (auto &p : s_names[0]) {
             write_string(interf, p.first);
             write_string_set(interf, p.second);
+            interf << s_matched[p.first].size() << "\n";
+            for (auto& q : s_matched[p.first]) {
+                write_string(interf, q.first);
+                write_string(interf, q.second);
+            }
         }
         interf.close();
     }
