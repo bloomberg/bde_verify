@@ -2,11 +2,15 @@
 
 #include "csabase_analyser.h"
 #include "csabase_debug.h"
+#include "csabase_filenames.h"
+#include "csabase_location.h"
 #include "csabase_ppobserver.h"
 #include "csabase_registercheck.h"
 #include "csabase_report.h"
 #include "csabase_util.h"
 #include "csabase_visitor.h"
+
+#include "csaglb_includes.h"
 
 #include <llvm/ADT/Hashing.h>
 #include <llvm/ADT/StringExtras.h>
@@ -59,20 +63,12 @@ struct data
         // found to be included, it is removed and replaced by all of the files
         // in the value vector (which may be empty).
 
-    std::unordered_map<SourceLocation /* location */,
-                       std::string    /* guard    */,
-                       hash           /* hash     */> d_ifs;
-        // Guarded region beginnings.
-
     std::unordered_map<std::string              /* file      */,
                        std::vector<SourceRange> /* locations */> d_includes;
         // Locations where file is included, including those elided by external
         // include guards.  If a file is included within a guarded region, the
         // range starts on the '#ifndef' line and ends on the '#endif' line.
         // Otherwise the range starts and ends on the '#include' line.
-
-    std::string d_most_recent_guard;
-        // The most recently seen guard in an '#ifndef' condition.
 
     std::unordered_map<llvm::StringRef /* old  */,
                        llvm::StringRef /* new  */,
@@ -87,49 +83,14 @@ struct report : public RecursiveASTVisitor<report>, Report<data>
 
     typedef RecursiveASTVisitor<report> base;
 
-    const std::string guard_for_file(llvm::StringRef file);
-        // Return an include guard derived from the specified 'file' name,
-        // formulated as "INCLUDED_{STEM}" where "STEM" is the capitalized part
-        // of 'file' after path and extension components are removed.
-
-    const std::string file_for_guard(llvm::StringRef guard);
-        // return a file name derived from the specified 'guard'.  It consists
-        // of a lower-case version of 'guard' with its "INCLUDE[D]_" prefix
-        // removed and ".h" appended.
-
-    bool is_guard(llvm::StringRef macro);
-        // Return whether the specified 'macro' looks like an include guard
-        // (starts with "INCLUDE_" or "INCLUDED_").
-
     void operator()();
         // Callback for end of compilation unit.
-
-    void operator()(SourceLocation, const Token &, const MacroDefinition&);
-        // Callback for ifndef.
-
-    void operator()(SourceLocation,
-                    const Token &,
-                    StringRef,
-                    bool,
-                    CharSourceRange,
-                    const FileEntry *,
-                    StringRef,
-                    StringRef,
-                    const Module *,
-                    SrcMgr::CharacteristicKind);
-        // Callback for inclusion directive.
 
     void operator()(Token const &,
                     const MacroDefinition&,
                     SourceRange,
                     MacroArgs const *);
         // Callback for macro expansion
-
-    void operator()(SourceLocation, SourceLocation);
-        // Callback for endif.
-
-    void operator()(SourceRange);
-        // Callback for skipped region.
 
     void operator()(SourceLocation,
                     PPCallbacks::FileChangeReason,
@@ -161,34 +122,14 @@ struct report : public RecursiveASTVisitor<report>, Report<data>
         // substitution is made.
 };
 
-const std::string report::guard_for_file(llvm::StringRef file)
-{
-    return "INCLUDED_" + llvm::sys::path::stem(file).upper();
-}
-
-const std::string report::file_for_guard(llvm::StringRef guard)
-{
-    if (guard.startswith("INCLUDED_")) {
-        guard = guard.drop_front(9);
-    }
-    else if (guard.startswith("INCLUDE_")) {
-        guard = guard.drop_front(8);
-    }
-    if (guard.endswith("_H")) {
-        guard = guard.drop_back(2);
-    }
-    return guard.lower() + ".h";
-}
-
-bool report::is_guard(llvm::StringRef macro)
-{
-    return macro.startswith("INCLUDED_") ||
-           macro.startswith("INCLUDE_");
-}
-
 void report::operator()()
 {
     auto tu = a.context()->getTranslationUnitDecl();
+
+    for (auto &id : a.attachment<IncludesData>().d_inclusions) {
+        d.d_includes[a.get_source(id.second.d_file)].emplace_back(
+            id.second.d_fullRange);
+    }
 
     std::unordered_map<FileID,
                        std::unordered_set<llvm::StringRef, data::hash>,
@@ -208,16 +149,7 @@ void report::operator()()
                 for (const auto& replacement : replace_iter->second) {
                     bool already_included = by_id[ifid].count(replacement);
                     if (!already_included) {
-                        if (replace_range.getBegin() ==
-                            replace_range.getEnd()) {
-                            rep_text += sep + "#include <" + replacement + ">";
-                        }
-                        else {
-                            rep_text += sep + "#ifndef " +
-                                        guard_for_file(replacement) + "\n" +
-                                        "#include <" + replacement + ">\n" +
-                                        "#endif";
-                        }
+                        rep_text += sep + "#include <" + replacement + ">";
                         sep = "\n";
                         by_id[ifid].insert(replacement);
                     }
@@ -291,67 +223,23 @@ void report::operator()(SourceLocation loc,
     }
 }
 
-void report::operator()(SourceLocation        loc,
-                        const Token&          token,
-                        const MacroDefinition&)
-{
-    std::string may_be_guard = p.getSpelling(token);
-    if (is_guard(may_be_guard)) {
-        d.d_ifs.emplace(loc, may_be_guard);
-        d.d_most_recent_guard = may_be_guard;
-    }
-}
-
-void report::operator()(SourceLocation loc,
-                        const Token &token,
-                        StringRef file,
-                        bool,
-                        CharSourceRange,
-                        const FileEntry *,
-                        StringRef,
-                        StringRef,
-                        const Module *,
-                        SrcMgr::CharacteristicKind)
-{
-    if (d.d_most_recent_guard != guard_for_file(file)) {
-        d.d_includes[file].emplace_back(SourceRange(loc, loc));
-    }
-
-}
-
-void report::operator()(SourceLocation loc, SourceLocation ifloc)
-{
-    d.d_most_recent_guard = std::string();
-
-    if (d.d_ifs.count(ifloc)) {
-        llvm::StringRef src = a.get_source(SourceRange(ifloc, loc));
-        std::string guard = d.d_ifs[ifloc];
-        std::string file = file_for_guard(guard);
-        std::string match = "^ifndef *" + guard + ".*$\r*\n"
-                            "^ *# *include *[<\"]" + file + "[\">].*$\r*\n"
-                            "(^ *# *define *" + guard + ".*$\r*\n)?"
-                            "^ *#endif";
-        llvm::Regex re(match, llvm::Regex::Newline);
-        if (re.match(src)) {
-            d.d_includes[file].emplace_back(SourceRange(ifloc, loc));
-        }
-    }
-}
-
 void report::operator()(Token const& token,
                         const MacroDefinition&,
                         SourceRange,
                         MacroArgs const *)
 {
-    std::string name = p.getSpelling(token);
-    replace(SourceRange(token.getLocation(), token.getLastLoc()), name);
+    if (a.is_component(token.getLocation())) {
+        std::string name = p.getSpelling(token);
+        replace(SourceRange(token.getLocation(), token.getLastLoc()), name);
+    }
 }
 
 bool report::TraverseDeclRefExpr(DeclRefExpr *arg)
 {
     Guard guard(this, __FUNCTION__, arg);
 
-    if (replace(arg->getSourceRange(),
+    if (a.is_component(arg->getLocation()) &&
+        replace(arg->getSourceRange(),
                 arg->getDecl()->getQualifiedNameAsString())) {
         // Skip calling TraverseNestedNameSpecifierLoc(arg->getQualifierLoc());
         // Skip calling TraverseDeclarationNameInfo(arg->getNameInfo());
@@ -371,7 +259,8 @@ bool report::TraverseDeclRefExpr(DeclRefExpr *arg)
 bool report::TraverseElaboratedTypeLoc(ElaboratedTypeLoc arg)
 {
     Guard guard(this, __FUNCTION__, arg);
-    if (replace_class(arg.getSourceRange(), arg.getInnerType())) {
+    if (a.is_component(arg.getBeginLoc()) &&
+        replace_class(arg.getSourceRange(), arg.getInnerType())) {
         return true;                                                  // RETURN
     }
     return base::TraverseElaboratedTypeLoc(arg);
@@ -387,13 +276,16 @@ bool report::TraverseQualifiedTypeLoc(QualifiedTypeLoc arg)
 bool report::TraverseTemplateSpecializationTypeLoc(
                                              TemplateSpecializationTypeLoc arg)
 {
-    TemplateName tn = arg.getTypePtr()->getTemplateName();
-    std::string s;
-    llvm::raw_string_ostream o(s);
-    PrintingPolicy pp(a.context()->getLangOpts());
-    tn.print(o, pp);
-    replace(SourceRange(arg.getTemplateNameLoc(), arg.getTemplateNameLoc()),
+    if (a.is_component(arg.getBeginLoc())) {
+        TemplateName tn = arg.getTypePtr()->getTemplateName();
+        std::string s;
+        llvm::raw_string_ostream o(s);
+        PrintingPolicy pp(a.context()->getLangOpts());
+        tn.print(o, pp);
+        replace(
+            SourceRange(arg.getTemplateNameLoc(), arg.getTemplateNameLoc()),
             o.str());
+    }
 
     return base::TraverseTemplateSpecializationTypeLoc(arg);
 }
@@ -401,7 +293,8 @@ bool report::TraverseTemplateSpecializationTypeLoc(
 bool report::TraverseTypeLoc(TypeLoc arg)
 {
     Guard guard(this, __FUNCTION__, arg);
-    if (replace_class(arg.getSourceRange(), arg.getType())) {
+    if (a.is_component(arg.getBeginLoc()) &&
+        replace_class(arg.getSourceRange(), arg.getType())) {
         return true;                                                  // RETURN
     }
     return base::TraverseTypeLoc(arg);
@@ -409,7 +302,7 @@ bool report::TraverseTypeLoc(TypeLoc arg)
 
 bool report::TraverseNestedNameSpecifierLoc(NestedNameSpecifierLoc arg)
 {
-    if (arg) {
+    if (arg && a.is_component(arg.getBeginLoc())) {
         Guard guard(this, __FUNCTION__, arg);
         auto k = arg.getNestedNameSpecifier()->getKind();
         if (k == NestedNameSpecifier::TypeSpec ||
@@ -517,9 +410,6 @@ bool report::replace(SourceRange sr, llvm::StringRef e)
 void subscribe(Analyser& analyser, Visitor&, PPObserver& observer)
 {
     analyser.onTranslationUnitDone += report(analyser);
-    observer.onPPIfndef += report(analyser);
-    observer.onPPInclusionDirective += report(analyser);
-    observer.onPPEndif += report(analyser);
     observer.onPPMacroExpands += report(analyser);
     observer.onPPFileChanged += report(analyser);
 }

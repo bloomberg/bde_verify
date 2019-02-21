@@ -19,6 +19,7 @@
 #include <map>
 #include <set>
 #include <string>
+#include <vector>
 
 using namespace clang;
 using namespace clang::ast_matchers;
@@ -34,9 +35,11 @@ namespace
 {
 
 typedef std::set<std::string> t_ss;
+typedef std::map<std::string, std::string> t_matches;
 
 int s_index = 0;
 std::map<std::string, t_ss> s_names[2];
+std::map<std::string, t_matches> s_matched;
 std::string s_files[2];
 std::string s_upper_prefix[2];
 
@@ -164,7 +167,7 @@ std::fstream &read_string(std::fstream &f, std::string &s)
     return f;
 }
 
-std::fstream &read_string_set(std::fstream &f, std::set<std::string> &ss)
+std::fstream &read_string_set(std::fstream &f, t_ss &ss)
 {
     size_t length;
     if (f >> length) {
@@ -172,6 +175,20 @@ std::fstream &read_string_set(std::fstream &f, std::set<std::string> &ss)
             std::string s;
             read_string(f, s);
             ss.insert(s);
+        }
+    }
+    return f;
+}
+
+std::fstream &read_strings_map(std::fstream &f, t_matches &ss)
+{
+    size_t length;
+    if (f >> length) {
+        while (length-- > 0) {
+            std::string s1, s2;
+            read_string(f, s1);
+            read_string(f, s2);
+            ss[s1] = s2;
         }
     }
     return f;
@@ -185,12 +202,21 @@ std::fstream& write_string(std::fstream&      f,
     return f;
 }
 
-std::fstream& write_string_set(std::fstream&                f,
-                               const std::set<std::string>& ss)
+std::fstream& write_string_set(std::fstream& f, const t_ss& ss)
 {
     f << ss.size() << "\n";
     for (auto &s : ss) {
         write_string(f, s);
+    }
+    return f;
+}
+
+std::fstream& write_strings_map(std::fstream& f, const t_matches& ss)
+{
+    f << ss.size() << "\n";
+    for (auto &s : ss) {
+        write_string(f, s.first);
+        write_string(f, s.second);
     }
     return f;
 }
@@ -208,6 +234,7 @@ void report::operator()()
         std::string n1, n2;
         while (read_string(interf, n1)) {
             read_string_set(interf, s_names[0][n1]);
+            read_strings_map(interf, s_matched[n1]);
         }
         interf.close();
         remove(inter.c_str());
@@ -238,8 +265,16 @@ void report::operator()()
         if (auto md = p.getMacroDefinition(ii).getLocalDirective()) {
             if (m.isWrittenInMainFile(md->getLocation())) {
                 std::string s = ii->getName().str();
-                if (!llvm::StringRef(s).startswith("INCLUDE") &&
+                auto mi = md->getInfo();
+                if (mi->isObjectLike() &&
+                    mi->getNumTokens() &&
+                    !llvm::StringRef(s).startswith("INCLUDE") &&
                     macros.emplace(s).second) {
+                    std::string r = a.get_source(SourceRange(
+                        mi->getReplacementToken(0).getLocation(),
+                        mi->getReplacementToken(mi->getNumTokens() - 1)
+                            .getEndLoc()));
+                    s_matched[Tags[Macro]][s] = r;
                     a.report(md->getLocation(), check_name, "DD01",
                              "Found " + Tags[Macro] + " " + s);
                 }
@@ -360,6 +395,9 @@ void report::operator()()
                 std::string s = t->getQualifiedNameAsString();
                 s = clean_name(s, s);
                 if (d.d_ns[Tags[Typedef]].emplace(s).second) {
+                    std::string y = t->getUnderlyingType().getAsString();
+                    y = clean_name(y, y);
+                    s_matched[Tags[Typedef]][s] = y;
                     a.report(t, check_name, "DD01",
                              "Found " + Tags[Typedef] + " " + s);
                 }
@@ -394,7 +432,10 @@ void report::operator()()
         f << "append refactor file(" << s_files[0] << "," << s_files[1] << ")";
         for (int t = 0; t < NTags; ++t) {
             for (llvm::StringRef i : s_names[0][Tags[t]]) {
-                std::string bm = best_match(i, s_names[1][Tags[t]]);
+                std::string bm =
+                    s_matched[Tags[t]].count(i)
+                        ? s_matched[Tags[t]][i]
+                        : best_match(i, s_names[1][Tags[t]]).str();
                 if (bm.size() == 0) {
                     if (t == Typedef) {
                         // Likely an existing forward declaration.
@@ -417,6 +458,7 @@ void report::operator()()
         for (auto &p : s_names[0]) {
             write_string(interf, p.first);
             write_string_set(interf, p.second);
+            write_strings_map(interf, s_matched[p.first]);
         }
         interf.close();
     }

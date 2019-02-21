@@ -32,9 +32,9 @@ struct report : Report<IncludesData>
     INHERIT_REPORT_CTOR(report, Report, IncludesData);
 
     // If
-    void operator()(SourceLocation                  ,
-                    SourceRange                     ,
-                    PPCallbacks::ConditionValueKind );
+    void operator()(SourceLocation,
+                    SourceRange,
+                    PPCallbacks::ConditionValueKind);
 
     // Ifdef
     // Ifndef
@@ -45,28 +45,28 @@ struct report : Report<IncludesData>
     void operator()(SourceLocation, SourceLocation);
 
     // Elif
-    void operator()(SourceLocation                  ,
-                    SourceRange                     ,
-                    PPCallbacks::ConditionValueKind ,
-                    SourceLocation                  );
+    void operator()(SourceLocation,
+                    SourceRange,
+                    PPCallbacks::ConditionValueKind,
+                    SourceLocation);
 
     // InclusionDirective
-    void operator()(SourceLocation              ,
-                    const Token&                ,
-                    StringRef                   ,
-                    bool                        ,
-                    CharSourceRange             ,
+    void operator()(SourceLocation,
+                    const Token&,
+                    StringRef,
+                    bool,
+                    CharSourceRange,
                     const FileEntry            *,
-                    StringRef                   ,
-                    StringRef                   ,
+                    StringRef,
+                    StringRef,
                     const clang::Module        *,
                     SrcMgr::CharacteristicKind);
 };
 
 // If
 void report::operator()(SourceLocation                  Loc,
-                        SourceRange                     ,
-                        PPCallbacks::ConditionValueKind )
+                        SourceRange,
+                        PPCallbacks::ConditionValueKind)
 {
     d.d_guardStack.push_back(0);
 }
@@ -75,7 +75,7 @@ void report::operator()(SourceLocation                  Loc,
 // Ifndef
 void report::operator()(SourceLocation         Loc,
                         const Token&           Name,
-                        const MacroDefinition& )
+                        const MacroDefinition&)
 {
     static Regex guard("INCLUDED?_[_[:alnum:]]+");
     if (t == PPObserver::e_Ifndef &&
@@ -90,9 +90,9 @@ void report::operator()(SourceLocation         Loc,
 
 // Elif
 void report::operator()(SourceLocation                  Loc,
-                        SourceRange                     ,
-                        PPCallbacks::ConditionValueKind ,
-                        SourceLocation                  )
+                        SourceRange,
+                        PPCallbacks::ConditionValueKind,
+                        SourceLocation)
 {
     d.d_guardStack.back() = 0;
 }
@@ -122,7 +122,9 @@ void report::operator()(SourceLocation Loc, SourceLocation IfLoc)
         if (d.d_guardStack.back()) {
             StringRef gi = a.get_source(SourceRange(IfLoc, Loc));
             SmallVector<StringRef, 16> matches;
-            if (guarded_include.match(gi, &matches)) {
+            gi.split(matches, '\n', 4, false);
+            if (matches.back().rtrim().endswith("endif") &&
+                guarded_include.match(gi, &matches)) {
                 auto OffRange = [&](int i) {
                     SourceLocation sl = IfLoc.getLocWithOffset(
                         matches[i].data() - matches[0].data());
