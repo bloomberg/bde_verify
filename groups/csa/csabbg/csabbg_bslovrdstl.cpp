@@ -1001,8 +1001,8 @@ void report::operator()(Token const& token, MacroDirective const *md)
                 for (int i = 0; i < nt; ++i) {
                     const Token &token = mi->getReplacementToken(i);
                     if (is_named(token, "std")) {
-                        if (!d_analyser.ReplaceText(
-                                 token.getLocation(), 3, "bsl")) {
+                        if (d_analyser.ReplaceText(
+                                token.getLocation(), 3, "bsl")) {
                             d_analyser.report(token.getLocation(),
                                               check_name, "SB07",
                                               "Replacing 'std' with 'bsl' in "

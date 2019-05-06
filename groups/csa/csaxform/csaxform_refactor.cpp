@@ -143,6 +143,9 @@ void report::operator()()
         auto replace_iter = d.d_files.find(include_locations.first);
         if (replace_iter != d.d_files.end()) {
             for (auto &replace_range : include_locations.second) {
+                if (!a.is_component(replace_range.getBegin())) {
+                    continue;
+                }
                 FileID ifid = m.getFileID(replace_range.getBegin());
                 std::string rep_text = "";
                 std::string sep = "";
@@ -157,12 +160,12 @@ void report::operator()()
                 SourceRange extended_range(
                     a.get_line_range(replace_range.getBegin()).getBegin(),
                     a.get_line_range(replace_range.getEnd()).getEnd());
-                a.report(extended_range.getBegin(), check_name, "RF01",
-                         "Replacing " +
-                         on_one_line(a.get_source(extended_range), true) +
-                         " with " +
-                         on_one_line(rep_text, true));
-                a.ReplaceText(extended_range, rep_text);
+                if (a.ReplaceText(extended_range, rep_text)) {
+                    a.report(extended_range.getBegin(), check_name, "RF01",
+                             "Replacing " +
+                             on_one_line(a.get_source(extended_range), true) +
+                             " with " + on_one_line(rep_text, true));
+                }
             }
         }
     }
@@ -305,12 +308,30 @@ bool report::TraverseNestedNameSpecifierLoc(NestedNameSpecifierLoc arg)
     if (arg && a.is_component(arg.getBeginLoc())) {
         Guard guard(this, __FUNCTION__, arg);
         auto k = arg.getNestedNameSpecifier()->getKind();
-        if (k == NestedNameSpecifier::TypeSpec ||
-            k == NestedNameSpecifier::TypeSpecWithTemplate) {
+        switch (k) {
+          case NestedNameSpecifier::TypeSpec:
+          case NestedNameSpecifier::TypeSpecWithTemplate:
             if (replace_class(
                     arg.getSourceRange(), arg.getTypeLoc().getType())) {
                 return true;                                          // RETURN
             }
+            break;
+          case NestedNameSpecifier::Namespace:
+            if (replace(arg.getSourceRange(),
+                        arg.getNestedNameSpecifier()
+                            ->getAsNamespace()
+                            ->getName())) {
+                return true;                                          // RETURN
+            }
+            break;
+          case NestedNameSpecifier::NamespaceAlias:
+            if (replace(arg.getSourceRange(),
+                        arg.getNestedNameSpecifier()
+                            ->getAsNamespaceAlias()
+                            ->getName())) {
+                return true;                                          // RETURN
+            }
+            break;
         }
     }
     return base::TraverseNestedNameSpecifierLoc(arg);
@@ -340,11 +361,12 @@ bool report::VisitCXXRecordDecl(CXXRecordDecl *arg)
             SourceRange sr = a.get_full_range(
                 SourceRange(m.getSpellingLoc(arg->getLocStart()),
                             m.getSpellingLoc(arg->getLocEnd())));
-            a.report(sr.getBegin(), check_name, "RD01",
-                     "Replacing forward declaration " + e.str() +
-                     " with " + rep)
-                << sr;
-            a.ReplaceText(sr, rep);
+            if (a.ReplaceText(sr, rep)) {
+                a.report(sr.getBegin(), check_name, "RD01",
+                         "Replacing forward declaration " + e.str() +
+                         " with " + rep)
+                    << sr;
+            }
         }
     }
 
@@ -398,10 +420,11 @@ bool report::replace(SourceRange sr, llvm::StringRef e)
         if (src.endswith("::")) {
             rep += "::";
         }
-        a.report(sr.getBegin(), check_name, "RC01",
-                 "Replacing " + src.str() + " with " + rep)
-            << sr;
-        a.ReplaceText(sr, rep);
+        if (a.ReplaceText(sr, rep)) {
+            a.report(sr.getBegin(), check_name, "RC01",
+                     "Replacing " + src.str() + " with " + rep)
+                << sr;
+        }
         return true;
     }
     return false;

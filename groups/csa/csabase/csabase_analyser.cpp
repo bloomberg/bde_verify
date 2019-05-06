@@ -439,6 +439,9 @@ SourceRange csabase::Analyser::get_full_range(SourceRange range)
     SourceManager& sm(manager());
     SourceLocation b = sm.getFileLoc(range.getBegin());
     SourceLocation e = sm.getFileLoc(range.getEnd());
+    if (!sm.isWrittenInSameFile(b, e)) {
+        e = b;
+    }
     SourceLocation t = sm.getFileLoc(
         Lexer::getLocForEndOfToken(e, 0, sm, context()->getLangOpts()));
     if (!t.isValid()) {
@@ -753,8 +756,7 @@ int csabase::Analyser::ReplaceText(
           llvm::StringRef file, unsigned offset, unsigned n, llvm::StringRef s)
 {
     clang::tooling::Replacement r(FileName(file).full(), offset, n, s);
-    replacements_.insert(r);
-    return 0;
+    return replacements_.insert(r).second;
 }
 
 // ----------------------------------------------------------------------------
