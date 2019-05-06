@@ -265,16 +265,20 @@ void report::operator()()
         if (auto md = p.getMacroDefinition(ii).getLocalDirective()) {
             if (m.isWrittenInMainFile(md->getLocation())) {
                 std::string s = ii->getName().str();
-                auto mi = md->getInfo();
-                if (mi->isObjectLike() &&
-                    mi->getNumTokens() &&
+                // auto mi = md->getInfo();
+                if (// mi->isObjectLike() &&
+                    // mi->getNumTokens() &&
                     !llvm::StringRef(s).startswith("INCLUDE") &&
                     macros.emplace(s).second) {
+                    // Macros should have corresponding macros.
+                    // Don't replace them with their replacement text.
+#if 0
                     std::string r = a.get_source(SourceRange(
                         mi->getReplacementToken(0).getLocation(),
                         mi->getReplacementToken(mi->getNumTokens() - 1)
                             .getEndLoc()));
                     s_matched[Tags[Macro]][s] = r;
+#endif
                     a.report(md->getLocation(), check_name, "DD01",
                              "Found " + Tags[Macro] + " " + s);
                 }
@@ -286,6 +290,8 @@ void report::operator()()
         if (!nodes.getNodeAs<NamespaceDecl>("n")->isAnonymousNamespace()) {
             auto r = nodes.getNodeAs<CXXRecordDecl>(Tags[Class]);
             if (m.isWrittenInMainFile(r->getLocation()) &&
+                clang::AS_private != r->getAccess() &&
+                !r->getTemplateSpecializationKind() &&
                 !r->getTypedefNameForAnonDecl()) {
                 std::string s = r->getQualifiedNameAsString();
                 s = clean_name(s, s);
@@ -299,7 +305,8 @@ void report::operator()()
     mf.addDynamicMatcher(
         decl(forEachDescendant(
             namespaceDecl(
-                forEach(recordDecl(isDefinition()
+                forEach(cxxRecordDecl(isDefinition(),
+                                      unless(isTemplateInstantiation())
                         ).bind(Tags[Class]))
             ).bind("n"))),
         &m1);
@@ -309,7 +316,10 @@ void report::operator()()
             auto r = nodes.getNodeAs<CXXRecordDecl>(Tags[Class]);
             auto e = nodes.getNodeAs<EnumDecl>(Tags[Enum]);
             if (m.isWrittenInMainFile(e->getLocation()) &&
+                !r->getTemplateSpecializationKind() &&
                 !r->getTypedefNameForAnonDecl() &&
+                clang::AS_private != r->getAccess() &&
+                clang::AS_private != e->getAccess() &&
                 e->hasNameForLinkage()) {
                 std::string s = e->getQualifiedNameAsString();
                 s = clean_name(s, s);
@@ -323,11 +333,12 @@ void report::operator()()
     mf.addDynamicMatcher(
         decl(forEachDescendant(
             namespaceDecl(
-                forEach(recordDecl(isDefinition(),
-                    forEach(enumDecl(
-                            ).bind(Tags[Enum]))
+                forEach(cxxRecordDecl(isDefinition(),
+                                      unless(isTemplateInstantiation()),
+                                      forEach(enumDecl(
+                                              ).bind(Tags[Enum]))
                         ).bind(Tags[Class]))
-            ).bind("n"))),
+                ).bind("n"))),
         &m2);
 
     OnMatch<> m3([&](const BoundNodes &nodes) {
@@ -335,6 +346,9 @@ void report::operator()()
             auto r = nodes.getNodeAs<CXXRecordDecl>(Tags[Class]);
             auto l = nodes.getNodeAs<EnumConstantDecl>(Tags[Literal]);
             if (m.isWrittenInMainFile(l->getLocation()) &&
+                clang::AS_private != r->getAccess() &&
+                clang::AS_private != l->getAccess() &&
+                !r->getTemplateSpecializationKind() &&
                 !r->getTypedefNameForAnonDecl()) {
                 std::string s;
                 if (s_index == 0) {
@@ -357,11 +371,12 @@ void report::operator()()
     mf.addDynamicMatcher(
         decl(forEachDescendant(
             namespaceDecl(
-                forEach(recordDecl(isDefinition(),
-                    forEach(enumDecl(
-                        forEach(enumConstantDecl(
-                                ).bind(Tags[Literal]))
-                            ).bind(Tags[Enum]))
+                forEach(cxxRecordDecl(isDefinition(),
+                                      unless(isTemplateInstantiation()),
+                                      forEach(enumDecl(
+                                          forEach(enumConstantDecl(
+                                                  ).bind(Tags[Literal]))
+                                              ).bind(Tags[Enum]))
                         ).bind(Tags[Class]))
             ).bind("n"))),
         &m3);
