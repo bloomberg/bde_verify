@@ -1,3 +1,11 @@
+bde-verify (1.3.6) unstable; urgency=low
+
+  * 751913a Bump version to 1.3.6
+  * 60fe27a Merge branch 'refactor-config-fixes'
+  * 2febb1b Fix an error and avoid some slow regex use.
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Wed, 29 May 2019 16:06:35 -0400
+
 bde-verify (1.3.5) unstable; urgency=low
 
   * c54aef7 To version 1.3.5, and allow VS 2019 for extension.
