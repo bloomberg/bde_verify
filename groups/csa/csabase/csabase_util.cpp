@@ -40,10 +40,6 @@ csabase::mid_match(const std::string &have, const std::string &want)
     return result;
 }
 
-static llvm::Regex between_comments(
-    "^[[:blank:]]*\r*\n?[[:blank:]]*$",
-    llvm::Regex::NoFlags);
-
 bool csabase::areConsecutive(clang::SourceManager &manager,
                              clang::SourceRange first,
                              clang::SourceRange second)
@@ -55,9 +51,13 @@ bool csabase::areConsecutive(clang::SourceManager &manager,
     size_t offf = manager.getFileOffset(first.getEnd());
     size_t offs = manager.getFileOffset(second.getBegin());
 
-    return fidf == fids && colf == cols && offf <= offs &&
-           between_comments.match(
-               manager.getBufferData(fidf).substr(offf, offs - offf));
+    bool ret = fidf == fids && colf == cols && offf <= offs;
+    if (ret) {
+        auto between = manager.getBufferData(fidf).substr(offf, offs - offf);
+        ret = between.npos == between.find_first_not_of(" \t\r\n") &&
+              between.find_first_of('\n') == between.find_last_of('\n');
+    }
+    return ret;
 }
 
 std::string csabase::to_lower(llvm::StringRef s)
