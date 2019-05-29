@@ -10,6 +10,7 @@
 #include <csabase_report.h>
 #include <csabase_util.h>
 
+#include <llvm/Support/Path.h>
 #include <clang/Lex/Preprocessor.h>
 #include <utility>
 
@@ -31,24 +32,8 @@ struct report : Report<IncludesData>
 {
     INHERIT_REPORT_CTOR(report, Report, IncludesData);
 
-    // If
-    void operator()(SourceLocation,
-                    SourceRange,
-                    PPCallbacks::ConditionValueKind);
-
-    // Ifdef
-    // Ifndef
-    void operator()(SourceLocation, const Token&, const MacroDefinition&);
-
-    // Else
     // Endif
     void operator()(SourceLocation, SourceLocation);
-
-    // Elif
-    void operator()(SourceLocation,
-                    SourceRange,
-                    PPCallbacks::ConditionValueKind,
-                    SourceLocation);
 
     // InclusionDirective
     void operator()(SourceLocation,
@@ -63,41 +48,6 @@ struct report : Report<IncludesData>
                     SrcMgr::CharacteristicKind);
 };
 
-// If
-void report::operator()(SourceLocation                  Loc,
-                        SourceRange,
-                        PPCallbacks::ConditionValueKind)
-{
-    d.d_guardStack.push_back(0);
-}
-
-// Ifdef
-// Ifndef
-void report::operator()(SourceLocation         Loc,
-                        const Token&           Name,
-                        const MacroDefinition&)
-{
-    static Regex guard("INCLUDED?_[_[:alnum:]]+");
-    if (t == PPObserver::e_Ifndef &&
-        Name.isAnyIdentifier() &&
-        guard.match(Name.getIdentifierInfo()->getName())) {
-        d.d_guardStack.push_back(&Name);
-    }
-    else {
-        d.d_guardStack.push_back(0);
-    }
-}
-
-// Elif
-void report::operator()(SourceLocation                  Loc,
-                        SourceRange,
-                        PPCallbacks::ConditionValueKind,
-                        SourceLocation)
-{
-    d.d_guardStack.back() = 0;
-}
-
-// Else
 // Endif
 void report::operator()(SourceLocation Loc, SourceLocation IfLoc)
 {
@@ -109,7 +59,7 @@ void report::operator()(SourceLocation Loc, SourceLocation IfLoc)
 #define mG  "INCLUDED_[_[:alnum:]]+"
 #define mF  "[^>\"\r\n]+"
 
-    static Regex guarded_include_initial("^" mBS "ifndef" mBP "INCLUDED_");
+    static Regex guarded_include_initial("^" mH "ifndef" mBP "(" mG ")");
     static Regex guarded_include(
                "^"       mBS
                "ifndef"  mBP "(" mG ")"             mE       // 1 guard
@@ -119,44 +69,39 @@ void report::operator()(SourceLocation Loc, SourceLocation IfLoc)
             mH "endif"   mBS
                "$");
 
-    if (t == PPObserver::e_Endif) {
-        if (d.d_guardStack.back() &&
-            guarded_include_initial.match(a.get_source_line(IfLoc))) {
-            StringRef gi = a.get_source(SourceRange(IfLoc, Loc));
-            SmallVector<StringRef, 16> matches;
-            if (guarded_include.match(gi, &matches)) {
-                auto OffRange = [&](int i) {
-                    SourceLocation sl = IfLoc.getLocWithOffset(
-                        matches[i].data() - matches[0].data());
-                    return SourceRange(
-                        sl, sl.getLocWithOffset(matches[i].size() - 1));
-                };
-                SourceRange key = OffRange(7);
-                FullSourceLoc fsl(key.getBegin(), m);
-                IncludesData::Inclusion& inclusion = d.d_inclusions[fsl];
-                inclusion.d_fullRange = SourceRange(IfLoc, Loc);
-                inclusion.d_guard = OffRange(1);
-                inclusion.d_file = key;
-                inclusion.d_fullFile = OffRange(6);
-                if (matches[3].size()) {
-                    inclusion.d_definedGuard = OffRange(4);
-                }
-                if (matches[9].size()) {
-                    inclusion.d_definedGuard = OffRange(10);
-                }
-                if (!inclusion.d_fe) {
-                    const DirectoryLookup *dl = 0;
-                    inclusion.d_fe = p.LookupFile(fsl,
-                             a.get_source(inclusion.d_file),
-                             a.get_source(inclusion.d_fullFile)[0] == '<',
-                             0, 0, dl, 0, 0, 0, 0);
-                }
+    SmallVector<StringRef, 16> matches;
+    if (guarded_include_initial.match(a.get_source_line(IfLoc), &matches) &&
+        !(matches[1].drop_front(9).equals_lower(
+            sys::path::stem(m.getFilename(Loc))))) {
+        StringRef gi = a.get_source(SourceRange(IfLoc, Loc));
+        if (guarded_include.match(gi, &matches)) {
+            auto OffRange = [&](int i) {
+                SourceLocation sl = IfLoc.getLocWithOffset(
+                    matches[i].data() - matches[0].data());
+                return SourceRange(
+                    sl, sl.getLocWithOffset(matches[i].size() - 1));
+            };
+            SourceRange key = OffRange(7);
+            FullSourceLoc fsl(key.getBegin(), m);
+            IncludesData::Inclusion& inclusion = d.d_inclusions[fsl];
+            inclusion.d_fullRange = SourceRange(IfLoc, Loc);
+            inclusion.d_guard = OffRange(1);
+            inclusion.d_file = key;
+            inclusion.d_fullFile = OffRange(6);
+            if (matches[3].size()) {
+                inclusion.d_definedGuard = OffRange(4);
+            }
+            if (matches[9].size()) {
+                inclusion.d_definedGuard = OffRange(10);
+            }
+            if (!inclusion.d_fe) {
+                const DirectoryLookup *dl = 0;
+                inclusion.d_fe = p.LookupFile(fsl,
+                         a.get_source(inclusion.d_file),
+                         a.get_source(inclusion.d_fullFile)[0] == '<',
+                         0, 0, dl, 0, 0, 0, 0);
             }
         }
-        d.d_guardStack.pop_back();
-    }
-    else {
-        d.d_guardStack.back() = 0;
     }
 }
 
@@ -187,11 +132,6 @@ void report::operator()(SourceLocation              HashLoc,
 void subscribe(Analyser& analyser, Visitor&, PPObserver& observer)
     // Hook up the callback functions.
 {
-    observer.onPPIf     += report(analyser, observer.e_If);
-    observer.onPPIfdef  += report(analyser, observer.e_Ifdef);
-    observer.onPPIfndef += report(analyser, observer.e_Ifndef);
-    observer.onPPElse   += report(analyser, observer.e_Else);
-    observer.onPPElif   += report(analyser, observer.e_Elif);
     observer.onPPEndif  += report(analyser, observer.e_Endif);
 
     observer.onPPInclusionDirective +=
