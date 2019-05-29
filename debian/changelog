@@ -1,3 +1,10 @@
+bde-verify (1.3.5) unstable; urgency=low
+
+  * c54aef7 To version 1.3.5, and allow VS 2019 for extension.
+  * 4f808ec Refactor configuration fixes
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Wed, 29 May 2019 13:41:26 -0400
+
 bde-verify (1.3.4) unstable; urgency=low
 
   * fb502fd Merge pull request #39 from hrosen4/refactor-fixes
