@@ -109,6 +109,7 @@ void report::operator()(SourceLocation Loc, SourceLocation IfLoc)
 #define mG  "INCLUDED_[_[:alnum:]]+"
 #define mF  "[^>\"\r\n]+"
 
+    static Regex guarded_include_initial("^" mBS "ifndef" mBP "INCLUDED_");
     static Regex guarded_include(
                "^"       mBS
                "ifndef"  mBP "(" mG ")"             mE       // 1 guard
@@ -119,12 +120,11 @@ void report::operator()(SourceLocation Loc, SourceLocation IfLoc)
                "$");
 
     if (t == PPObserver::e_Endif) {
-        if (d.d_guardStack.back()) {
+        if (d.d_guardStack.back() &&
+            guarded_include_initial.match(a.get_source_line(IfLoc))) {
             StringRef gi = a.get_source(SourceRange(IfLoc, Loc));
             SmallVector<StringRef, 16> matches;
-            gi.split(matches, '\n', 4, false);
-            if (matches.back().rtrim().endswith("endif") &&
-                guarded_include.match(gi, &matches)) {
+            if (guarded_include.match(gi, &matches)) {
                 auto OffRange = [&](int i) {
                     SourceLocation sl = IfLoc.getLocWithOffset(
                         matches[i].data() - matches[0].data());

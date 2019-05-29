@@ -263,22 +263,21 @@ void report::operator()()
     for (auto i = p.macro_begin(); i != p.macro_end(); ++i) {
         IdentifierInfo *ii = const_cast<IdentifierInfo *>(i->first);
         if (auto md = p.getMacroDefinition(ii).getLocalDirective()) {
-            if (m.isWrittenInMainFile(md->getLocation())) {
+            if (a.is_component(md->getLocation())) {
                 std::string s = ii->getName().str();
-                // auto mi = md->getInfo();
-                if (// mi->isObjectLike() &&
-                    // mi->getNumTokens() &&
-                    !llvm::StringRef(s).startswith("INCLUDE") &&
+                if (!llvm::StringRef(s).startswith("INCLUDE") &&
                     macros.emplace(s).second) {
-                    // Macros should have corresponding macros.
-                    // Don't replace them with their replacement text.
-#if 0
-                    std::string r = a.get_source(SourceRange(
-                        mi->getReplacementToken(0).getLocation(),
-                        mi->getReplacementToken(mi->getNumTokens() - 1)
-                            .getEndLoc()));
-                    s_matched[Tags[Macro]][s] = r;
-#endif
+                    // Replace macros with their replacement text if simple.
+                    auto mi = md->getInfo();
+                    if (mi->isObjectLike() && mi->getNumTokens()) {
+                        std::string r = a.get_source(SourceRange(
+                            mi->getReplacementToken(0).getLocation(),
+                            mi->getReplacementToken(mi->getNumTokens() - 1)
+                                .getEndLoc()));
+                        if (r.npos == r.find('\n')) {
+                            s_matched[Tags[Macro]][s] = r;
+                        }
+                    }
                     a.report(md->getLocation(), check_name, "DD01",
                              "Found " + Tags[Macro] + " " + s);
                 }
@@ -289,7 +288,7 @@ void report::operator()()
     OnMatch<> m1([&](const BoundNodes &nodes) {
         if (!nodes.getNodeAs<NamespaceDecl>("n")->isAnonymousNamespace()) {
             auto r = nodes.getNodeAs<CXXRecordDecl>(Tags[Class]);
-            if (m.isWrittenInMainFile(r->getLocation()) &&
+            if (a.is_component(r->getLocation()) &&
                 clang::AS_private != r->getAccess() &&
                 !r->getTemplateSpecializationKind() &&
                 !r->getTypedefNameForAnonDecl()) {
@@ -315,7 +314,7 @@ void report::operator()()
         if (!nodes.getNodeAs<NamespaceDecl>("n")->isAnonymousNamespace()) {
             auto r = nodes.getNodeAs<CXXRecordDecl>(Tags[Class]);
             auto e = nodes.getNodeAs<EnumDecl>(Tags[Enum]);
-            if (m.isWrittenInMainFile(e->getLocation()) &&
+            if (a.is_component(e->getLocation()) &&
                 !r->getTemplateSpecializationKind() &&
                 !r->getTypedefNameForAnonDecl() &&
                 clang::AS_private != r->getAccess() &&
@@ -345,7 +344,7 @@ void report::operator()()
         if (!nodes.getNodeAs<NamespaceDecl>("n")->isAnonymousNamespace()) {
             auto r = nodes.getNodeAs<CXXRecordDecl>(Tags[Class]);
             auto l = nodes.getNodeAs<EnumConstantDecl>(Tags[Literal]);
-            if (m.isWrittenInMainFile(l->getLocation()) &&
+            if (a.is_component(l->getLocation()) &&
                 clang::AS_private != r->getAccess() &&
                 clang::AS_private != l->getAccess() &&
                 !r->getTemplateSpecializationKind() &&
@@ -384,7 +383,7 @@ void report::operator()()
     OnMatch<> m4([&](const BoundNodes &nodes) {
         if (!nodes.getNodeAs<NamespaceDecl>("n")->isAnonymousNamespace()) {
             auto t = nodes.getNodeAs<ClassTemplateDecl>(Tags[Template]);
-            if (m.isWrittenInMainFile(t->getLocation()) &&
+            if (a.is_component(t->getLocation()) &&
                 t->isThisDeclarationADefinition()) {
                 std::string s = t->getQualifiedNameAsString();
                 s = clean_name(s, s);
@@ -406,7 +405,7 @@ void report::operator()()
     OnMatch<> m5([&](const BoundNodes &nodes) {
         if (!nodes.getNodeAs<NamespaceDecl>("n")->isAnonymousNamespace()) {
             auto t = nodes.getNodeAs<TypedefNameDecl>(Tags[Typedef]);
-            if (m.isWrittenInMainFile(t->getLocation())) {
+            if (a.is_component(t->getLocation())) {
                 std::string s = t->getQualifiedNameAsString();
                 s = clean_name(s, s);
                 if (d.d_ns[Tags[Typedef]].emplace(s).second) {

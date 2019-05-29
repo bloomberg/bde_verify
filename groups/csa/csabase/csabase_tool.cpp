@@ -218,61 +218,45 @@ int csabase::run(int argc_, const char **argv_)
                     arg, ErrorMessage);
             }
             if (Compilations) {
-                auto ccs = Compilations->getCompileCommands(arg);
-                if (ccs.size()) {
-                    auto cc = ccs[0];
-                    for (size_t j = 0; j < cc.CommandLine.size(); ++j) {
-                        StringRef ca = cc.CommandLine[j];
-                        if (ca == "-D") {
-                            StringRef def = cc.CommandLine[j + 1];
-                            if (defined.insert(def).second) {
-                                i = ins(ca, i);
-                                i = ins(def, i);
-                            }
-                            ++j;
-                        }
-                        else if (ca.startswith("-D")) {
-                            if (defined.insert(ca.drop_front(2)).second) {
-                                i = ins(ca, i);
-                            }
-                        }
-                        else if (ca == "-I") {
-                            StringRef dir = cc.CommandLine[j + 1];
-                            if (included.insert(dir).second) {
-                                i = ins(ca, i);
-                                if (sys::path::is_absolute(dir)) {
-                                    i = ins(dir, i);
+                StringRef argstem = sys::path::stem(arg);
+                for (auto cc : Compilations->getAllCompileCommands()) {
+                    if (sys::path::stem(cc.Filename) == argstem) {
+                        for (size_t j = 0; j < cc.CommandLine.size(); ++j) {
+                            StringRef ca = cc.CommandLine[j];
+                            if (ca.startswith("-D")) {
+                                StringRef def = ca.drop_front(2);
+                                if (def.size() == 0) {
+                                    def = cc.CommandLine[j++];
                                 }
-                                else {
-                                    SmallVector<char, 1024> path(
-                                        cc.Directory.begin(),
-                                        cc.Directory.end());
-                                    sys::path::append(path, dir);
-                                    i = ins(
-                                        StringRef(path.begin(), path.size()),
-                                        i);
+                                if (defined.insert(def).second) {
+                                    i = ins("-D", i);
+                                    i = ins(def, i);
                                 }
                             }
-                            ++j;
-                        }
-                        else if (ca.startswith("-I")) {
-                            StringRef dir = ca.drop_front(2);
-                            if (included.insert(dir).second) {
-                                if (sys::path::is_absolute(dir)) {
-                                    i = ins(ca, i);
+                            else if (ca.startswith("-I")) {
+                                StringRef dir = ca.drop_front(2);
+                                if (dir.size() == 0) {
+                                    dir = cc.CommandLine[j++];
                                 }
-                                else {
+                                if (included.insert(dir).second) {
                                     i = ins("-I", i);
-                                    SmallVector<char, 1024> path(
-                                        cc.Directory.begin(),
-                                        cc.Directory.end());
-                                    sys::path::append(path, dir);
-                                    i = ins(
-                                        StringRef(path.begin(), path.size()),
-                                        i);
+                                    if (sys::path::is_absolute(dir)) {
+                                        i = ins(dir, i);
+                                    }
+                                    else {
+                                        SmallVector<char, 1024> path(
+                                            cc.Directory.begin(),
+                                            cc.Directory.end());
+                                        sys::path::append(path, dir);
+                                        sys::path::remove_dots(path, true);
+                                        i = ins(StringRef(path.begin(),
+                                                          path.size()),
+                                                i);
+                                    }
                                 }
                             }
                         }
+                        break;  // Use the first command line found only.
                     }
                 }
             }
