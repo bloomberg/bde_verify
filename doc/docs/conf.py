@@ -41,9 +41,9 @@ author = u'Hyman Rosen'
 copyright = u'2018, Bloomberg LP'
 
 # The short X.Y version
-version = u'1.3.6'
+version = u'1.3.7'
 # The full version, including alpha/beta/rc tags
-release = u'1.3.6'
+release = u'1.3.7'
 
 # -- General configuration ---------------------------------------------------
 
