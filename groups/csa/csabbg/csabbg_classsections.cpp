@@ -273,6 +273,8 @@ void report::operator()(const Decl *decl)
         if (llvm::dyn_cast<AccessSpecDecl>(decl) ||
             llvm::dyn_cast<UsingDecl>(decl) ||
             llvm::dyn_cast<UsingShadowDecl>(decl) ||
+            llvm::dyn_cast<UnresolvedUsingValueDecl>(decl) ||
+            llvm::dyn_cast<UnresolvedUsingTypenameDecl>(decl) ||
             llvm::dyn_cast<IndirectFieldDecl>(decl)) {
             return;                                                   // RETURN
         }
