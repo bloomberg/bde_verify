@@ -10,6 +10,8 @@ class Outer
     };
 
     typedef Inner value_type;
+
+    static_assert(true, "true");
 };
 
 // ----------------------------------------------------------------------------

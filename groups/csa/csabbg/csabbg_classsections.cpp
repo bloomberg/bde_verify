@@ -195,6 +195,9 @@ struct report : public Report<data>
     void tagIsHere(data::Tags::const_iterator i, const char *code);
         // Issue the "Tag is here" note with the specified code for i.
 
+    bool shouldIgnore(const Decl *decl);
+        // Ignore these declarations for tag purposes.
+
     bool requirePublic(const Decl *decl, data::Tags::const_iterator i);
     bool requirePrivate(const Decl *decl, data::Tags::const_iterator i);
     bool requireProtected(const Decl *decl, data::Tags::const_iterator i);
@@ -270,13 +273,8 @@ void report::operator()(const TagDecl *decl)
 void report::operator()(const Decl *decl)
 {
     if (decl == decl->getCanonicalDecl() && getLoc(decl).isValid()) {
-        if (llvm::dyn_cast<AccessSpecDecl>(decl) ||
-            llvm::dyn_cast<UsingDecl>(decl) ||
-            llvm::dyn_cast<UsingShadowDecl>(decl) ||
-            llvm::dyn_cast<UnresolvedUsingValueDecl>(decl) ||
-            llvm::dyn_cast<UnresolvedUsingTypenameDecl>(decl) ||
-            llvm::dyn_cast<IndirectFieldDecl>(decl)) {
-            return;                                                   // RETURN
+        if (shouldIgnore(decl)) {
+            return;
         }
         if (auto rd = llvm::dyn_cast<CXXRecordDecl>(decl)) {
             if (rd->isInjectedClassName() ||
@@ -313,6 +311,23 @@ void report::tagIsHere(data::Tags::const_iterator i, const char *code)
 {
     a.report(i->range.getBegin(), check_name, code,
              "Tag is here", true, DiagnosticIDs::Note);
+}
+
+bool report::shouldIgnore(const Decl *decl)
+{
+    switch (decl->getKind()) {
+      case Decl::AccessSpec:
+      case Decl::Using:
+      case Decl::UsingShadow:
+      case Decl::UnresolvedUsingValue:
+      case Decl::UnresolvedUsingTypename:
+      case Decl::StaticAssert:
+      case Decl::IndirectField:
+        return true;
+
+      default:
+        return false;
+    }
 }
 
 bool report::requirePublic(const Decl *decl, data::Tags::const_iterator i)
@@ -602,6 +617,9 @@ void report::operator()()
     std::vector<const Decl *> decls(d.d_decls.begin(), d.d_decls.end());
     std::sort(decls.begin(), decls.end(), *this);
     for (auto decl : decls) {
+        if (shouldIgnore(decl)) {
+            continue;
+        }
         auto i =
             std::lower_bound(d.d_tags.begin(), d.d_tags.end(), decl, *this);
         auto rd = llvm::dyn_cast<RecordDecl>(decl->getDeclContext());
