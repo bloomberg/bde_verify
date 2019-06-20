@@ -221,24 +221,28 @@ int csabase::run(int argc_, const char **argv_)
                 StringRef argstem = sys::path::stem(arg);
                 for (auto cc : Compilations->getAllCompileCommands()) {
                     if (sys::path::stem(cc.Filename) == argstem) {
-                        for (size_t j = 0; j < cc.CommandLine.size(); ++j) {
+                        size_t n = cc.CommandLine.size();
+                        for (size_t j = 0; j < n; ++j) {
                             StringRef ca = cc.CommandLine[j];
-                            if (ca.startswith("-D")) {
-                                StringRef def = ca.drop_front(2);
-                                if (def.size() == 0) {
-                                    def = cc.CommandLine[j++];
+                            if (ca.consume_front("-D")) {
+                                StringRef def = ca;
+                                if (def.size() == 0 && j + 1 < n) {
+                                    def = cc.CommandLine[++j];
                                 }
-                                if (defined.insert(def).second) {
+                                if (def.size() > 0 &&
+                                    defined.insert(def).second) {
                                     i = ins("-D", i);
                                     i = ins(def, i);
                                 }
                             }
-                            else if (ca.startswith("-I")) {
-                                StringRef dir = ca.drop_front(2);
-                                if (dir.size() == 0) {
-                                    dir = cc.CommandLine[j++];
+                            else if (ca.consume_front("-I") ||
+                                     ca.consume_front("-isystem")) {
+                                StringRef dir = ca;
+                                if (dir.size() == 0 && j + 1 < n) {
+                                    dir = cc.CommandLine[++j];
                                 }
-                                if (included.insert(dir).second) {
+                                if (dir.size() > 0 &&
+                                    included.insert(dir).second) {
                                     i = ins("-I", i);
                                     if (sys::path::is_absolute(dir)) {
                                         i = ins(dir, i);
