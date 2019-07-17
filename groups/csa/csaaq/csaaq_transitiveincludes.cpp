@@ -736,6 +736,10 @@ std::string report::file_for_location(SourceLocation sl, SourceLocation in)
     bool just_found = false;
     std::string result = m.getFilename(sl);
 
+    if (is_mapped(result)) {
+        result = get_mapped(result);
+    }
+
     if (!d.d_includes[in_id].count(FileName(result).name())) {
         for (auto& p : v) {
             SourceLocation  fl = m.getLocForStartOfFile(p.first);
@@ -897,10 +901,11 @@ void report::operator()(Token const&           token,
     llvm::StringRef macro = token.getIdentifierInfo()->getName();
     const MacroInfo *mi = md.getMacroInfo();
     Location loc(m, mi->getDefinitionLoc());
-    if (loc && !range.getBegin().isMacroID() && macro != "std") {
+    SourceLocation in = range.getBegin();
+    if (loc && !in.isMacroID() && macro != "std" && a.is_component(in)) {
         require_file(
-            file_for_location(mi->getDefinitionLoc(), range.getBegin()),
-            range.getBegin(),
+            file_for_location(mi->getDefinitionLoc(), in),
+            in,
             /*std::string("MacroExpands ") +*/ macro.str(),
             mi->getDefinitionLoc());
     }
