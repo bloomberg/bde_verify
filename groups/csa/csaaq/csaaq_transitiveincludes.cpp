@@ -14,6 +14,8 @@
 #include <csabase_report.h>
 #include <csabase_visitor.h>
 
+#include <csaglb_includes.h>
+
 #include <llvm/ADT/Hashing.h>
 #include <llvm/ADT/StringRef.h>
 
@@ -392,6 +394,7 @@ std::set<llvm::StringRef> &reexporting_files()
 
 static auto &s = *new std::set<llvm::StringRef>({
     "bael_log.h",
+    "ball_log.h",
 });
 
     return s;
@@ -419,80 +422,6 @@ std::map<llvm::StringRef, std::set<llvm::StringRef>> &if_included_map()
     }
 
     return s;
-}
-
-bool reexports(llvm::StringRef outer, llvm::StringRef inner)
-{
-    llvm::SmallVector<char, 1000> buf;
-
-    outer = llvm::sys::path::filename(outer);
-    inner = llvm::sys::path::filename(inner);
-
-    if (outer == inner) {
-        return true;
-    }
-
-    if (outer == "bsl_ios.h" &&
-        (inner == "bsl_iosfwd.h" ||
-         inner == "iosfwd")) {
-        return true;
-    }
-
-    if (outer == "bsl_cmath.h" && inner == "math.h") {
-        return true;
-    }
-
-    if (outer == "bsl_iostream.h" &&
-        (inner == "bsl_ios.h" ||
-         inner == "ios" ||
-         inner == "bsl_istream.h" ||
-         inner == "istream" ||
-         inner == "bsl_ostream.h" ||
-         inner == "ostream" ||
-         inner == "streambuf" ||
-         inner == "bsl_streambuf.h")) {
-        return true;
-    }
-
-    if (outer == "bsl_streambuf.h" &&
-        (inner == "bsl_ios.h" ||
-         inner == "ios")) {
-        return true;
-    }
-
-    if (outer == "bsl_strstream.h" &&
-        (inner == "bsl_ios.h" ||
-         inner == "ios")) {
-        return true;
-    }
-
-    if ((outer == "bsl_map.h" ||
-         outer == "bsl_set.h") &&
-        inner == "bslstl_treeiterator.h") {
-        return true;
-    }
-
-    if ((outer == "bsl_unordered_map.h" ||
-         outer == "bsl_unordered_set.h") &&
-        inner == "bslstl_hashtableiterator.h") {
-        return true;
-    }
-
-    if (reexporting_files().count(outer)) {
-        return true;
-    }
-
-    buf.clear();
-    if (outer == ("bsl_" + inner + ".h").toStringRef(buf)) {
-        return true;
-    }
-
-    buf.clear();
-    if (outer == ("bsl_c_" + inner).toStringRef(buf)) {
-        return true;
-    }
-
-    return false;
 }
 
 struct data
@@ -527,6 +456,10 @@ struct report : public RecursiveASTVisitor<report>, Report<data>
     INHERIT_REPORT_CTOR(report, Report, data);
 
     typedef RecursiveASTVisitor<report> base;
+
+    bool reexports(llvm::StringRef outer, llvm::StringRef inner);
+        // Return whether the requirement for the specified 'inner' file is
+        // satisfied by the specified 'outer' file.
 
     std::vector<std::pair<FileID, bool>>& include_stack(SourceLocation sl);
         // Get the include stack for the specified 'sl'.
@@ -684,6 +617,86 @@ struct report : public RecursiveASTVisitor<report>, Report<data>
     bool VisitValueDecl(ValueDecl *decl);
         // Return true after processing the specified 'tl' and 'expr'.
 };
+
+bool report::reexports(llvm::StringRef outer, llvm::StringRef inner)
+{
+    llvm::SmallVector<char, 1000> buf;
+
+    outer = llvm::sys::path::filename(outer);
+    inner = llvm::sys::path::filename(inner);
+
+    if (outer == inner) {
+        return true;
+    }
+
+    if (outer == "bsl_ios.h" &&
+        (inner == "bsl_iosfwd.h" ||
+         inner == "iosfwd")) {
+        return true;
+    }
+
+    if (outer == "bsl_cmath.h" && inner == "math.h") {
+        return true;
+    }
+
+    if (outer == "bsl_iostream.h" &&
+        (inner == "bsl_ios.h" ||
+         inner == "ios" ||
+         inner == "bsl_istream.h" ||
+         inner == "istream" ||
+         inner == "bsl_ostream.h" ||
+         inner == "ostream" ||
+         inner == "streambuf" ||
+         inner == "bsl_streambuf.h")) {
+        return true;
+    }
+
+    if (outer == "bsl_streambuf.h" &&
+        (inner == "bsl_ios.h" ||
+         inner == "ios")) {
+        return true;
+    }
+
+    if (outer == "bsl_strstream.h" &&
+        (inner == "bsl_ios.h" ||
+         inner == "ios")) {
+        return true;
+    }
+
+    if ((outer == "bsl_map.h" ||
+         outer == "bsl_set.h") &&
+        inner == "bslstl_treeiterator.h") {
+        return true;
+    }
+
+    if ((outer == "bsl_unordered_map.h" ||
+         outer == "bsl_unordered_set.h") &&
+        inner == "bslstl_hashtableiterator.h") {
+        return true;
+    }
+
+    buf.clear();
+    if (outer == ("bsl_" + inner + ".h").toStringRef(buf)) {
+        return true;
+    }
+
+    buf.clear();
+    if (outer == ("bsl_c_" + inner).toStringRef(buf)) {
+        return true;
+    }
+
+    if (reexporting_files().count(outer)) {
+        for (auto& f : a.attachment<IncludesData>().d_inclusions) {
+            if (outer == llvm::sys::path::filename(m.getFilename(f.first)) &&
+                inner ==
+                    llvm::sys::path::filename(a.get_source(f.second.d_file))) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
 
 std::vector<std::pair<FileID, bool>>& report::include_stack(SourceLocation sl)
 {
