@@ -657,6 +657,7 @@ void report::add_consecutive(NamedDecl *decl, SourceRange sr)
     if (   !decl
         || !r
         || d.d_consecutive.size() == 0
+        || d.d_consecutive.back().second.to().file() != r.to().file()
         || (d.d_consecutive.back().second.to().line() + 1 != r.from().line() &&
             d.d_consecutive.back().second.to().line()     != r.from().line())
         || diff_func_parms(decl, d.d_consecutive.back().first)) {

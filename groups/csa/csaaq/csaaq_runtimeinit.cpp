@@ -7,8 +7,9 @@
 #include <csabase_debug.h>
 #include <csabase_registercheck.h>
 #include <csabase_report.h>
+#include <csabase_util.h>
 #include <csabase_visitor.h>
-#include <map>
+#include <set>
 
 using namespace csabase;
 using namespace clang;
@@ -48,14 +49,25 @@ BrieflyCPlusPlus11::~BrieflyCPlusPlus11()
 struct data
     // Data attached to analyzer for this check.
 {
+    bool                      d_is_main = false;
+    std::set<const VarDecl *> d_inits;
 };
 
 struct report : Report<data>
 {
     INHERIT_REPORT_CTOR(report, Report, data);
 
+    void operator()(const FunctionDecl *decl);
     void operator()(const VarDecl *decl);
+    void operator()();
 };
+
+void report::operator()(const FunctionDecl *decl)
+{
+    if (decl->isMain()) {
+        d.d_is_main = true;
+    }
+}
 
 void report::operator()(const VarDecl *decl)
 {
@@ -69,15 +81,38 @@ void report::operator()(const VarDecl *decl)
         !decl->getInit()->isValueDependent() &&
         !decl->checkInitIsICE() &&
         !decl->getInit()->EvaluateAsInitializer(v, *a.context(), decl, n)) {
-        a.report(decl, check_name, "AQa01",
-                 "Global variable with runtime initialization");
+        d.d_inits.insert(decl);
+    }
+}
+
+void report::operator()()
+{
+    std::set<const VarDecl *, csabase::SortByLocation> vars(
+        d.d_inits.begin(), d.d_inits.end(), csabase::SortByLocation(m));
+    if (d.d_is_main) {
+        for (auto decl : vars) {
+            a.report(decl, check_name, "AQa02",
+                     "Global variable '%0' of type %1 with runtime "
+                     "initialization in translation unit with main()")
+                << decl->getName() << decl->getType();
+        }
+    }
+    else {
+        for (auto decl : vars) {
+            a.report(decl, check_name, "AQa01",
+                     "Global variable '%0' of type %1 with runtime "
+                     "initialization in translation unit without main()")
+                << decl->getName() << decl->getType();
+        }
     }
 }
 
 void subscribe(Analyser& analyser, Visitor& visitor, PPObserver& observer)
     // Hook up the callback functions.
 {
+    analyser.onTranslationUnitDone += report(analyser);
     visitor.onVarDecl += report(analyser);
+    visitor.onFunctionDecl += report(analyser);
 }
 
 }  // close anonymous namespace
