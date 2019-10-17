@@ -1045,7 +1045,9 @@ for additional checks.
    ++++++++++++++++++++++
 
    * ``AQa01``
-     Global variable with runtime initialization.
+     Global variable with runtime initialization in file without main().
+   * ``AQa02``
+     Global variable with runtime initialization in file with main().
 
 .. only:: bde_verify or bb_cppverify
 
