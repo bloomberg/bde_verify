@@ -117,7 +117,6 @@ CXXFILES =                                                                    \
         groups/csa/csaaq/csaaq_inentns.cpp                                    \
         groups/csa/csaaq/csaaq_runtimeinit.cpp                                \
         groups/csa/csaaq/csaaq_transitiveincludes.cpp                         \
-        groups/csa/csabde/csabde_tool.cpp                                     \
         groups/csa/csabbg/csabbg_allocatorforward.cpp                         \
         groups/csa/csabbg/csabbg_allocatornewwithpointer.cpp                  \
         groups/csa/csabbg/csabbg_assertassign.cpp                             \
@@ -128,10 +127,12 @@ CXXFILES =                                                                    \
         groups/csa/csabbg/csabbg_deprecated.cpp                               \
         groups/csa/csabbg/csabbg_enumvalue.cpp                                \
         groups/csa/csabbg/csabbg_functioncontract.cpp                         \
-        groups/csa/csabbg/csabbg_midreturn.cpp                                \
+        groups/csa/csabbg/csabbg_managedptr.cpp                               \
         groups/csa/csabbg/csabbg_membernames.cpp                              \
+        groups/csa/csabbg/csabbg_midreturn.cpp                                \
         groups/csa/csabbg/csabbg_movecontract.cpp                             \
         groups/csa/csabbg/csabbg_testdriver.cpp                               \
+        groups/csa/csabde/csabde_tool.cpp                                     \
         groups/csa/csafmt/csafmt_banner.cpp                                   \
         groups/csa/csafmt/csafmt_comments.cpp                                 \
         groups/csa/csafmt/csafmt_headline.cpp                                 \
