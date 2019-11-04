@@ -884,6 +884,24 @@ for additional checks.
    * ``LL01``
      Line exceeds 79 characters.
 
+.. only:: bde_verify or bb_cppverify
+
+   managed-pointer
+   +++++++++++++++
+
+   * ``MPOK1``
+     ManagedPtr without deleter using default-assigned allocator variable
+   * ``MPOK2``
+     ManagedPtr without deleter using default-initialized allocator variable
+   * ``MPOK3``
+     ManagedPtr without deleter using default allocator directly
+   * ``MP01``
+     ManagedPtr without deleter will use 'operator delete'
+   * ``MP02``
+     Allocator and deleter differ in MangedPtr construction
+   * ``MP03``
+     Deleter provided for non-placement allocation in MangedPtr construction
+
 .. only:: bde_verify
 
    member-definition-in-class-definition
