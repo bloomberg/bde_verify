@@ -74,9 +74,13 @@ void report::operator()()
                 --cr;
             }
             if (cr - prev > 80) {
-                d_analyser.report(loc.getLocWithOffset(prev + 80), check_name,
-                                  "LL01",
-                                  "Line exceeds 79 characters in length");
+                // Don't warn about comments that are just a long URL.
+                llvm::StringRef l = b.substr(prev + 1, cr - prev - 1);
+                if (!l.startswith("// http") || l.count(' ') > 1) {
+                    d_analyser.report(loc.getLocWithOffset(prev + 80),
+                                      check_name, "LL01",
+                                      "Line exceeds 79 characters in length");
+                }
             }
         } while ((prev = next) < b.size());
     }

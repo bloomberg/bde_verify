@@ -7,6 +7,8 @@
 // csafmt_longlines.t.cpp                                              -*-C++-*-
 // csafmt_longlines.t.cpp                                              -*-C++-*-
 
+// http://blogs.msdn.com/b/vcblog/archive/2014/06/11/c-11-14-feature-tables-for-visual-studio-14-ctp1.aspx
+
 // BDE_VERIFY pragma: -LL01
 // csafmt_longlines.t.cpp                                               -*-C++-*-
 
