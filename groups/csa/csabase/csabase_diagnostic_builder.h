@@ -19,6 +19,7 @@ class diagnostic_builder
     diagnostic_builder& operator<<(long argument);
     template <typename T>
     diagnostic_builder& operator<<(T const& argument);
+    explicit operator bool() const;
 
   private:
     bool empty_;
@@ -60,6 +61,12 @@ diagnostic_builder& diagnostic_builder::operator<<(T const& argument)
         builder_ << argument;
     }
     return *this;
+}
+
+inline
+diagnostic_builder::operator bool() const
+{
+    return !empty_;
 }
 }
 

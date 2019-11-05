@@ -81,12 +81,15 @@ bool comments::isReset(SourceRange range)
     llvm::StringRef comment = d_analyser.get_source(
         SourceRange(d_analyser.get_line_range(range.getBegin())
                         .getBegin()
-                        .getLocWithOffset(-1),
-                    range.getEnd().getLocWithOffset(1)),
+                        .getLocWithOffset(-4),
+                    range.getEnd()),
         true);
-    return comment.startswith("\n") &&
-           ((comment.endswith("\n") && comment.count('\n') == 2) ||
-            (comment.endswith("\r") && comment.count('\n') == 1));
+
+    // A comment with a blank line before it starts a new section.  (A blank
+    // line after doesn't, because that's just a function contract.)
+    return comment.drop_front(2).startswith("\n\n") ||
+           comment.drop_front(2).startswith("\r\r") ||
+           comment.startswith("\r\n\r\n");
 }
 
 void comments::operator()(SourceRange range)

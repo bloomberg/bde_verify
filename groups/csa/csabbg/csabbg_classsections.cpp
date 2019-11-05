@@ -333,8 +333,10 @@ bool report::shouldIgnore(const Decl *decl)
 bool report::requirePublic(const Decl *decl, data::Tags::const_iterator i)
 {
     if (decl->getAccess() == AS_private || decl->getAccess() == AS_protected) {
-        a.report(decl, check_name, "KS01", "Tag requires public declaration");
-        tagIsHere(i, "KS01");
+        if (a.report(decl, check_name, "KS01",
+                     "Tag requires public declaration")) {
+            tagIsHere(i, "KS01");
+        }
         return false;                                                 // RETURN
     }
     return true;
@@ -343,11 +345,12 @@ bool report::requirePublic(const Decl *decl, data::Tags::const_iterator i)
 bool report::requirePrivate(const Decl *decl, data::Tags::const_iterator i)
 {
     if (decl->getAccess() == AS_public && !(i->type & TagInfo::BitPublic)) {
-        a.report(decl, check_name, "KS02",
+        if (a.report(decl, check_name, "KS02",
                  i->type & TagInfo::BitPrivate ?
                      "Tag requires private declaration" :
-                     "Tag implicitly requires private declaration");
-        tagIsHere(i, "KS02");
+                     "Tag implicitly requires private declaration")) {
+            tagIsHere(i, "KS02");
+        }
         return false;                                                 // RETURN
     }
     return true;
@@ -356,9 +359,10 @@ bool report::requirePrivate(const Decl *decl, data::Tags::const_iterator i)
 bool report::requireProtected(const Decl *decl, data::Tags::const_iterator i)
 {
     if (decl->getAccess() != AS_protected) {
-        a.report(decl, check_name, "KS17",
-                 "Tag requires protected declaration");
-        tagIsHere(i, "KS17");
+        if (a.report(decl, check_name, "KS17",
+                     "Tag requires protected declaration")) {
+            tagIsHere(i, "KS17");
+        }
         return false;                                                 // RETURN
     }
     return true;
@@ -371,9 +375,10 @@ bool report::requireFunction(const Decl *decl, data::Tags::const_iterator i)
     }
     auto fd = llvm::dyn_cast<FunctionDecl>(decl);
     if (!fd) {
-        a.report(decl, check_name, "KS03",
-                 "Tag requires function declaration");
-        tagIsHere(i, "KS03");
+        if (a.report(decl, check_name, "KS03",
+                     "Tag requires function declaration")) {
+            tagIsHere(i, "KS03");
+        }
         return false;                                                 // RETURN
     }
     return true;
@@ -382,9 +387,10 @@ bool report::requireFunction(const Decl *decl, data::Tags::const_iterator i)
 bool report::requireField(const Decl *decl, data::Tags::const_iterator i)
 {
     if (!llvm::dyn_cast<FieldDecl>(decl)) {
-        a.report(decl, check_name, "KS04",
-                 "Tag requires instance data field declaration");
-        tagIsHere(i, "KS04");
+        if (a.report(decl, check_name, "KS04",
+                     "Tag requires instance data field declaration")) {
+            tagIsHere(i, "KS04");
+        }
         return false;                                                 // RETURN
     }
     return true;
@@ -393,9 +399,10 @@ bool report::requireField(const Decl *decl, data::Tags::const_iterator i)
 bool report::requireVar(const Decl *decl, data::Tags::const_iterator i)
 {
     if (!llvm::dyn_cast<VarDecl>(decl)) {
-        a.report(decl, check_name, "KS05",
-                 "Tag requires static data field declaration");
-        tagIsHere(i, "KS05");
+        if (a.report(decl, check_name, "KS05",
+                     "Tag requires static data field declaration")) {
+            tagIsHere(i, "KS05");
+        }
         return false;                                                 // RETURN
     }
     return true;
@@ -406,8 +413,10 @@ bool report::requireType(const Decl *decl, data::Tags::const_iterator i)
     if (!llvm::dyn_cast<TypeDecl>(decl) &&
         !llvm::dyn_cast<ClassTemplateDecl>(decl) &&
         !llvm::dyn_cast<TypeAliasTemplateDecl>(decl)) {
-        a.report(decl, check_name, "KS06", "Tag requires type declaration");
-        tagIsHere(i, "KS06");
+        if (a.report(decl, check_name, "KS06",
+                     "Tag requires type declaration")) {
+            tagIsHere(i, "KS06");
+        }
         return false;                                                 // RETURN
     }
     return true;
@@ -420,9 +429,10 @@ bool report::requireConstMethod(const Decl *decl, data::Tags::const_iterator i)
     }
     auto md = llvm::dyn_cast<CXXMethodDecl>(decl);
     if (!md || !md->isConst()) {
-        a.report(decl, check_name, "KS07",
-                 "Tag requires const method declaration");
-        tagIsHere(i, "KS07");
+        if (a.report(decl, check_name, "KS07",
+                     "Tag requires const method declaration")) {
+            tagIsHere(i, "KS07");
+        }
         return false;                                                 // RETURN
     }
     return true;
@@ -436,9 +446,10 @@ bool report::requireNotConstMethod(const Decl                 *decl,
     }
     auto md = llvm::dyn_cast<CXXMethodDecl>(decl);
     if (!md || md->isConst()) {
-        a.report(decl, check_name, "KS08",
-                 "Tag requires non-const method declaration");
-        tagIsHere(i, "KS08");
+        if (a.report(decl, check_name, "KS08",
+                     "Tag requires non-const method declaration")) {
+            tagIsHere(i, "KS08");
+        }
         return false;                                                 // RETURN
     }
     return true;
@@ -451,9 +462,10 @@ bool report::requireCDtor(const Decl *decl, data::Tags::const_iterator i)
     }
     if (!llvm::dyn_cast<CXXConstructorDecl>(decl) &&
         !llvm::dyn_cast<CXXDestructorDecl>(decl)) {
-        a.report(decl, check_name, "KS09",
-                 "Tag requires constructor or destructor declaration");
-        tagIsHere(i, "KS09");
+        if (a.report(decl, check_name, "KS09",
+                     "Tag requires constructor or destructor declaration")) {
+            tagIsHere(i, "KS09");
+        }
         return false;                                                 // RETURN
     }
     return true;
@@ -463,9 +475,10 @@ bool report::requireConstVar(const Decl *decl, data::Tags::const_iterator i)
 {
     auto vd = llvm::dyn_cast<VarDecl>(decl);
     if (!vd || !vd->getType().isConstQualified()) {
-        a.report(decl, check_name, "KS10",
-                 "Tag requires constant data declaration");
-        tagIsHere(i, "KS10");
+        if (a.report(decl, check_name, "KS10",
+                     "Tag requires constant data declaration")) {
+            tagIsHere(i, "KS10");
+        }
         return false;                                                 // RETURN
     }
     return true;
@@ -479,9 +492,10 @@ bool report::requireStaticMethod(const Decl                 *decl,
     }
     auto md = llvm::dyn_cast<CXXMethodDecl>(decl);
     if (!md || !md->isStatic()) {
-        a.report(decl, check_name, "KS11",
-                 "Tag requires static method declaration");
-        tagIsHere(i, "KS11");
+        if (a.report(decl, check_name, "KS11",
+                    "Tag requires static method declaration")) {
+            tagIsHere(i, "KS11");
+        }
         return false;                                                 // RETURN
     }
     return true;
@@ -497,9 +511,10 @@ bool report::requireFreeOperator(const Decl                 *decl,
     if (!fd ||
         llvm::dyn_cast<CXXMethodDecl>(fd) ||
         !fd->isOverloadedOperator()) {
-        a.report(decl, check_name, "KS12",
-                 "Tag requires free operator declaration");
-        tagIsHere(i, "KS12");
+        if (a.report(decl, check_name, "KS12",
+                     "Tag requires free operator declaration")) {
+            tagIsHere(i, "KS12");
+        }
         return false;                                                 // RETURN
     }
     return true;
@@ -515,9 +530,10 @@ bool report::requireFreeFunction(const Decl                 *decl,
     if (!fd ||
         llvm::dyn_cast<CXXMethodDecl>(fd) ||
         fd->isOverloadedOperator()) {
-        a.report(decl, check_name, "KS13",
-                 "Tag requires free function declaration");
-        tagIsHere(i, "KS13");
+        if (a.report(decl, check_name, "KS13",
+                    "Tag requires free function declaration")) {
+            tagIsHere(i, "KS13");
+        }
         return false;                                                 // RETURN
     }
     return true;
@@ -531,9 +547,10 @@ bool report::requireConversionMethod(const Decl                 *decl,
     }
     auto fd = llvm::dyn_cast<CXXConversionDecl>(decl);
     if (!fd) {
-        a.report(decl, check_name, "KS14",
-                 "Tag requires conversion operator declaration");
-        tagIsHere(i, "KS14");
+        if (a.report(decl, check_name, "KS14",
+                    "Tag requires conversion operator declaration")) {
+            tagIsHere(i, "KS14");
+        }
         return false;                                                 // RETURN
     }
     return true;
@@ -644,11 +661,10 @@ void report::operator()()
             TagInfo::TagTypes(i->type & ~TagInfo::AccessBits);
         if (llvm::dyn_cast<FriendDecl>(decl)) {
             if (base_type != TagInfo::Friends) {
-                a.report(decl,
-                         check_name,
-                         "KS15",
-                         "Friend declaration requires FRIENDS tag");
-                tagIsHere(i, "KS15");
+                if (a.report(decl, check_name, "KS15",
+                            "Friend declaration requires FRIENDS tag")) {
+                    tagIsHere(i, "KS15");
+                }
             }
             continue;
         }
@@ -656,11 +672,10 @@ void report::operator()()
             llvm::dyn_cast<CXXDestructorDecl>(decl)) {
             if (base_type != TagInfo::Creators &&
                 base_type != TagInfo::NotImplemented) {
-                a.report(decl,
-                         check_name,
-                         "KS09",
-                         "Constructor or destructor requires CREATORS tag");
-                tagIsHere(i, "KS09");
+                if (a.report(decl, check_name, "KS09",
+                          "Constructor or destructor requires CREATORS tag")) {
+                    tagIsHere(i, "KS09");
+                }
                 continue;
             }
         }
@@ -721,9 +736,10 @@ void report::operator()()
             }
           } break;
           case TagInfo::Friends: {
-            a.report(
-                decl, check_name, "KS16", "Tag requires friend declaration");
-            tagIsHere(i, "KS16");
+            if (a.report(decl, check_name, "KS16",
+                         "Tag requires friend declaration")) {
+                tagIsHere(i, "KS16");
+            }
             continue;
           } break;
           case TagInfo::None: {
