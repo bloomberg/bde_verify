@@ -891,9 +891,7 @@ for additional checks.
 
    * ``MPOK1``
      ManagedPtr without deleter using default-assigned allocator variable
-   * ``MPOK2``
      ManagedPtr without deleter using default-initialized allocator variable
-   * ``MPOK3``
      ManagedPtr without deleter using default allocator directly
    * ``MP01``
      ManagedPtr without deleter will use 'operator delete'
