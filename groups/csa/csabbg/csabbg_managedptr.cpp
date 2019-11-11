@@ -126,7 +126,8 @@ void report::operator()()
     MatchFinder mf;
 
     OnMatch<> m0([&](const BoundNodes& nodes) {
-        auto e   = nodes.getNodeAs<CXXConstructExpr>("e");
+        auto x   = nodes.getNodeAs<CXXConstructExpr>("e");
+        auto c   = nodes.getNodeAs<CXXMemberCallExpr>("c");
         auto p   = nodes.getNodeAs<Expr>("p");
         auto l   = nodes.getNodeAs<Expr>("l");
         auto ok1 = nodes.getNodeAs<CXXNewExpr>("ok1");
@@ -135,31 +136,32 @@ void report::operator()()
         auto n1  = nodes.getNodeAs<CXXNewExpr>("n1");
         auto n2  = nodes.getNodeAs<CXXNewExpr>("n2");
         auto n3  = nodes.getNodeAs<CXXNewExpr>("n3");
+        auto e   = x ? llvm::dyn_cast<Expr>(x) : llvm::dyn_cast<Expr>(c);
 
         if (ok1) {
             auto b = nodes.getNodeAs<BinaryOperator>("b");
-            a.report(e, check_name, "MPOK1",
+            a.report(e, check_name, "MPOK",
                      "ManagedPtr without deleter using default-assigned "
                      "allocator variable")
                 << p->getSourceRange();
-            a.report(b, check_name, "MPOK1",
+            a.report(b, check_name, "MPOK",
                      "Assignment is here",
                      false, DiagnosticIDs::Note);
         }
 
         if (ok2) {
             auto v = nodes.getNodeAs<VarDecl>("v");
-            a.report(e, check_name, "MPOK2",
+            a.report(e, check_name, "MPOK",
                      "ManagedPtr without deleter using default-initialized "
                      "allocator variable")
                 << p->getSourceRange();
-            a.report(v, check_name, "MPOK2",
+            a.report(v, check_name, "MPOK",
                      "Initialization is here",
                      false, DiagnosticIDs::Note);
         }
 
         if (ok3) {
-            a.report(e, check_name, "MPOK3",
+            a.report(e, check_name, "MPOK",
                 "ManagedPtr without deleter using default allocator directly")
                 << p->getSourceRange();
         }
@@ -181,7 +183,7 @@ void report::operator()()
             }
             if (!isSame(p, l)) {
                 a.report(e, check_name, "MP02",
-                    "Allocator and deleter differ in MangedPtr construction")
+                    "Allocator and deleter differ in MangedPtr")
                     << p->getSourceRange()
                     << l->getSourceRange();
             }
@@ -190,7 +192,7 @@ void report::operator()()
         if (n3) {
             a.report(e, check_name, "MP03",
                      "Deleter provided for non-placement allocation in "
-                     "MangedPtr construction")
+                     "MangedPtr")
                 << n3->getSourceRange() << l->getSourceRange();
         }
     });
@@ -220,69 +222,101 @@ void report::operator()()
                           ofClass(hasName("BloombergLP::bslma::Default"))))));
     };
 
-    // Match various styles of 'ManagedPtr' construyction.
+    // Match various styles of 'ManagedPtr' construction or loading.
+    auto mp = [&] {
+        return anyOf(
+            // No deleter, and allocation is through an allocator
+            // pointer that has been assigned the default allocator.
+            // This is likely OK.  Code looks like
+            //    bslma::Allocator *a;
+            //    a = bslma::Default::allocator();
+            //    ManagedPtr<int> mp(new (*a) int);
+            allOf(argumentCountIs(1),
+                  deref_pa(declRefExpr(to(varDecl(anything()).bind("v"))),
+                           "ok1"),
+                  hasAncestor(compoundStmt(hasAnySubstatement(
+                      binaryOperator(
+                          hasOperatorName("="),
+                          hasLHS(declRefExpr(to(equalsBoundNode("v")))),
+                          hasRHS(da()))
+                          .bind("b"))))),
+            // No deleter, and allocation is through an allocator
+            // pointer that has been initialized with the default
+            // allocator.  This is likely OK.  Code looks like
+            //    bslma::Allocator *a = bslma::Default::allocator();
+            //    ManagedPtr<int> mp(new (*a) int);
+            allOf(argumentCountIs(1),
+                  deref_pa(
+                      declRefExpr(to(varDecl(hasInitializer(da())).bind("v"))),
+                      "ok2")),
+            // No deleter, and allocation is through the default
+            // allocator.  This is likely OK.  Code looks like
+            //    ManagedPtr<int>
+            //        mp(new (*bslma::Default::allocator()) int);
+            allOf(argumentCountIs(1), deref_pa(da(), "ok3")),
+            // No deleter, and allocation is through placement new, not
+            // matching the above.  Code looks like
+            //    bslma::TestAllocator ta;
+            //    ManagedPtr<int> mp(new (ta) int);
+            // or
+            //    void foo(bslma::Allocator *pa)
+            //    { ManagedPtr<int> mp(new (*pa) int); }
+            allOf(argumentCountIs(1), pa(anything(), "n1")),
+            // Deleter is present, and allocation is through placement
+            // new.  Handler will check for mismatch.  Code looks like
+            //    bslma::Allocator *a1, *a2;
+            //    ManagedPtr<int> mp(new (*a1) int, a2);
+            allOf(argumentCountIs(2),
+                  pa(anything(), "n2"),
+                  hasArgument(1, expr(anything()).bind("l"))),
+            allOf(argumentCountIs(3),
+                  pa(anything(), "n2"),
+                  hasArgument(2, expr(anything()).bind("l"))),
+            // Deleter is present, and allocation is through
+            // non-placement new.  Code looks like
+            //    bslma::Allocator *a;
+            //    ManagedPtr<int> mp(new int, a);
+            // (3-argument version is for calls to load() with cookie.)
+            allOf(argumentCountIs(2),
+                  hasArgument(
+                      0, cxxNewExpr(placementArgumentCountIs(0)).bind("n3")),
+                  hasArgument(1, expr(anything()).bind("l"))),
+            allOf(argumentCountIs(3),
+                  hasArgument(
+                      0, cxxNewExpr(placementArgumentCountIs(0)).bind("n3")),
+                  hasArgument(2, expr(anything()).bind("l"))));
+    };
+
+#if 0
     mf.addDynamicMatcher(
         decl(forEachDescendant(
-            cxxConstructExpr(
-                hasDeclaration(cxxConstructorDecl(
-                    matchesName("::BloombergLP::bslma::ManagedPtr<"))),
-                anyOf(
-                    // No deleter, and allocation is through an allocator
-                    // pointer that has been assigned the default allocator.
-                    // This is likely OK.  Code looks like
-                    //    bslma::Allocator *a;
-                    //    a = bslma::Default::allocator();
-                    //    ManagedPtr<int> mp(new (*a) int);
-                    allOf(argumentCountIs(1),
-                          deref_pa(
-                              declRefExpr(to(varDecl(anything()).bind("v"))),
-                              "ok1"),
-                          hasAncestor(compoundStmt(hasAnySubstatement(
-                              binaryOperator(hasOperatorName("="),
-                                             hasLHS(declRefExpr(
-                                                 to(equalsBoundNode("v")))),
-                                             hasRHS(da()))
-                                  .bind("b"))))),
-                    // No deleter, and allocation is through an allocator
-                    // pointer that has been initialized with the default
-                    // allocator.  This is likely OK.  Code looks like
-                    //    bslma::Allocator *a = bslma::Default::allocator();
-                    //    ManagedPtr<int> mp(new (*a) int);
-                    allOf(argumentCountIs(1),
-                          deref_pa(declRefExpr(to(varDecl(hasInitializer(da()))
-                                                      .bind("v"))),
-                                   "ok2")),
-                    // No deleter, and allocation is through the default
-                    // allocator.  This is likely OK.  Code looks like
-                    //    ManagedPtr<int>
-                    //        mp(new (*bslma::Default::allocator()) int);
-                    allOf(argumentCountIs(1), deref_pa(da(), "ok3")),
-                    // No deleter, and allocation is through placement new, not
-                    // matching the above.  Code looks like
-                    //    bslma::TestAllocator ta;
-                    //    ManagedPtr<int> mp(new (ta) int);
-                    // or
-                    //    void foo(bslma::Allocator *pa)
-                    //    { ManagedPtr<int> mp(new (*pa) int); }
-                    allOf(argumentCountIs(1), pa(anything(), "n1")),
-                    // Deleter is present, and allocation is through placement
-                    // new.  Handler will check for mismatch.  Code looks like
-                    //    bslma::Allocator *a1, *a2;
-                    //    ManagedPtr<int> mp(new (*a1) int, a2);
-                    allOf(argumentCountIs(2),
-                          pa(anything(), "n2"),
-                          hasArgument(1, expr(anything()).bind("l"))),
-                    // Deleter is present, and allocation is through
-                    // non-placement new.  Code looks like
-                    //    bslma::Allocator *a;
-                    //    ManagedPtr<int> mp(new int, a);
-                    allOf(argumentCountIs(2),
-                          hasArgument(0,
-                                      cxxNewExpr(placementArgumentCountIs(0))
-                                          .bind("n3")),
-                          hasArgument(1, expr(anything()).bind("l")))))
+            cxxConstructExpr(hasDeclaration(cxxConstructorDecl(matchesName(
+                                 "::BloombergLP::bslma::ManagedPtr<"))),
+                             mp())
                 .bind("e"))),
         &m0);
+    mf.addDynamicMatcher(
+        decl(forEachDescendant(
+            cxxMemberCallExpr(thisPointerType(cxxRecordDecl(matchesName(
+                                  "::BloombergLP::bslma::ManagedPtr"))),
+                              callee(cxxMethodDecl(hasName("load"))),
+                              mp())
+                .bind("c"))),
+        &m0);
+#else
+    mf.addDynamicMatcher(
+        decl(forEachDescendant(expr(anyOf(
+            cxxConstructExpr(hasDeclaration(cxxConstructorDecl(matchesName(
+                                 "::BloombergLP::bslma::ManagedPtr<"))),
+                             mp())
+                .bind("e"),
+            cxxMemberCallExpr(thisPointerType(cxxRecordDecl(matchesName(
+                                  "::BloombergLP::bslma::ManagedPtr"))),
+                              callee(cxxMethodDecl(hasName("load"))),
+                              mp())
+                .bind("c"))))),
+        &m0);
+#endif
     mf.match(*tu, *a.context());
 }
 

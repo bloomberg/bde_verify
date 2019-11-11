@@ -117,6 +117,70 @@ struct X {
     }
 };
 
+void g(ManagedPtr<char> &mp, bslma::Allocator *pa)
+{
+    bslma::Allocator     *da = bslma::Default::allocator();
+    bslma::Allocator     *ba = Default::allocator();
+    bslma::Allocator     *aa;
+    bslma::Allocator     *za;
+    bslma::TestAllocator  ta;
+
+    aa = bslma::Default::allocator();
+    za = Default::allocator();
+
+    mp.load(new char);
+    mp.load(new (*pa) char);
+    mp.load(new (*pa) char, pa);
+    mp.load(new (*da) char);
+    mp.load(new (*da) char, da);
+    mp.load(new (*ba) char);
+    mp.load(new (*ba) char, ba);
+    mp.load(new (ta) char);
+    mp.load(new (ta) char, &ta);
+    mp.load(new (*bslma::Default::allocator()) char);
+    mp.load(new (*bslma::Default::allocator()) char,
+                          bslma::Default::allocator());
+    mp.load(new (*Default::allocator()) char);
+    mp.load(new (*Default::allocator()) char,
+                          Default::allocator());
+    mp.load(new (*aa) char);
+    mp.load(new (*aa) char, aa);
+    mp.load(new (*ba) char);
+    mp.load(new (*ba) char, ba);
+    mp.load(new (*za) char);
+    mp.load(new (*za) char, za);
+
+    mp.load(new char);
+    mp.load(new (*pa) char);
+    mp.load(new (*pa) char, pa);
+    mp.load(new (*da) char);
+    mp.load(new (*da) char, da);
+    mp.load(new (*ba) char);
+    mp.load(new (*ba) char, ba);
+    mp.load(new (ta) char);
+    mp.load(new (ta) char, &ta);
+    mp.load(new (*bslma::Default::allocator()) char);
+    mp.load(new (*bslma::Default::allocator()) char,
+                     bslma::Default::allocator());
+    mp.load(new (*Default::allocator()) char);
+    mp.load(new (*Default::allocator()) char, Default::allocator());
+    mp.load(new (*aa) char);
+    mp.load(new (*aa) char, aa);
+    mp.load(new (*ba) char);
+    mp.load(new (*ba) char, ba);
+    mp.load(new (*za) char);
+    mp.load(new (*za) char, za);
+
+    mp.load(new char, da);
+    mp.load(new (*ba) char, da);
+    mp.load(new (ta) char, ba);
+    mp.load(new (*da) char, &ta);
+    mp.load(new (*bslma::Default::allocator()) char, da);
+    mp.load(new (*Default::allocator()) char, da);
+    mp.load(new (*da) char, Default::allocator());
+    mp.load(new (*da) char, bslma::Default::allocator());
+}
+
 // ----------------------------------------------------------------------------
 // Copyright (C) 2019 Bloomberg Finance L.P.
 //
