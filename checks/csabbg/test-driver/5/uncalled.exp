@@ -1,0 +1,4 @@
+uncalled.t.cpp:69:33: warning: TP27: Method not called in test driver
+    template <class T> static E g();
+                                ^
+1 warning generated.
