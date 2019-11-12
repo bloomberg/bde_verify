@@ -936,7 +936,12 @@ void report::operator()(const Expr *expr)
         }
         auto func = callee ? llvm::dyn_cast<FunctionDecl>(callee) : 0;
         if (func) {
-            d.d_calldecls.insert(func->getCanonicalDecl());
+            auto ftd = func->getPrimaryTemplate();
+            if (ftd) {
+                func = ftd->getTemplatedDecl();
+            }
+            func = func->getCanonicalDecl();
+            d.d_calldecls.insert(func);
         }
     }
 }

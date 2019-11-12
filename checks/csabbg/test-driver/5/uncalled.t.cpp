@@ -12,25 +12,8 @@ using namespace bsl;
 //                              --------
 // Nothing.
 //-----------------------------------------------------------------------------
-// [ 1] joe();
-// [ 1] joe(int uncalled);
-// [ 1] void f1();
-// [ 1] void f1(int uncalled);
-// [ 1] void f2();
-// [ 1] void f2(int uncalled);
-// [ 1] void f3();
-// [ 1] void f3(int uncalled);
-// [ 1] static void f4();
-// [ 1] static void f4(int uncalled);
-// [ 1] static void f5();
-// [ 1] static void f5(int uncalled);
-// [ 1] static void f6();
-// [ 1] static void f6(int uncalled);
-// [ 1] static void f7();
-// [ 1] static void f7(int uncalled);
-// [ 1] void f8(int uncalled);
-// [ 1] static void f9(int uncalled);
-// [ 1] template <class T> static void f10();
+// [ 1] template <class T> static void f();
+// [ 1] template <class T> static void g();
 //-----------------------------------------------------------------------------
 
 // ============================================================================
@@ -80,29 +63,18 @@ void aSsErT(bool condition, const char *message, int line)
 //    joe : just a class
 namespace bde_verify
 {
-    struct joe {
-        joe();
-        joe(int uncalled);
-        void f1();
-        void f1(int uncalled);
-        void f2();
-        void f2(int uncalled);
-        void f3();
-        void f3(int uncalled);
-        static void f4();
-        static void f4(int uncalled);
-        static void f5();
-        static void f5(int uncalled);
-        static void f6();
-        static void f6(int uncalled);
-        static void f7();
-        static void f7(int uncalled);
-        void f8(int uncalled);
-        static void f9(int uncalled);
-        template <class T> static void f10();
-    };
-    void f8(int);
-    void f9(int);
+struct joe {
+    enum E { X, Y, Z };
+    template <class T> static E f();
+    template <class T> static E g();
+};
+
+template <> inline joe::E joe::f<char>() { return X; }
+template <> inline joe::E joe::f<int>() { return Y; }
+template <> inline joe::E joe::f<bool>() { return Z; }
+template <> inline joe::E joe::g<char>() { return X; }
+template <> inline joe::E joe::g<int>() { return Y; }
+template <> inline joe::E joe::g<bool>() { return Z; }
 }
 
 //=============================================================================
@@ -128,43 +100,16 @@ int main(int argc, char *argv[])
         //:  3 Profit!
         //
         // Testing:
-        //   joe();
-        //   joe(int uncalled);
-        //   void f1();
-        //   void f1(int uncalled);
-        //   void f2();
-        //   void f2(int uncalled);
-        //   void f3();
-        //   void f3(int uncalled);
-        //   static void f4();
-        //   static void f4(int uncalled);
-        //   static void f5();
-        //   static void f5(int uncalled);
-        //   static void f6();
-        //   static void f6(int uncalled);
-        //   static void f7();
-        //   static void f7(int uncalled);
-        //   void f8(int uncalled);
-        //   static void f9(int uncalled);
-        //   template <class T> static void f10();
+        //   template <class T> static void f();
+        //   template <class T> static void g();
         // --------------------------------------------------------------------
 
         if (verbose) cout << endl
                           << "DETECT UNCALLED METHODS" << endl
                           << "=======================" << endl;
 
-          joe j, &rj = j, *pj = &j;
-
-          j.f1();
-          rj.f2();
-          pj->f3();
-          joe::f4();
-          j.f5();
-          rj.f6();
-          pj->f7();
-          f8(0);
-          f9(0);
-          joe::f10<char>();
+          joe::f<char>();
+          joe::f<bool>();
       } break;
     }
     return testStatus;
