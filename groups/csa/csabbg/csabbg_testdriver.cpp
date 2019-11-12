@@ -480,16 +480,7 @@ void report::get_function_names()
                         continue;
                     }
                     note_function(t->getNameAsString());
-                    bool called = false;
-                    for (auto func : d.d_calldecls) {
-                        auto tip = func->getTemplateInstantiationPattern();
-                        if (func == td ||
-                            (tip && tip->getCanonicalDecl() == td)) {
-                            called = true;
-                            break;
-                        }
-                    }
-                    if (!called) {
+                    if (!d.d_calldecls.count(td)) {
                         a.report(t, check_name, "TP27",
                                  "Method not called in test driver");
                     }
@@ -936,12 +927,15 @@ void report::operator()(const Expr *expr)
         }
         auto func = callee ? llvm::dyn_cast<FunctionDecl>(callee) : 0;
         if (func) {
-            auto ftd = func->getPrimaryTemplate();
-            if (ftd) {
-                func = ftd->getTemplatedDecl();
-            }
             func = func->getCanonicalDecl();
             d.d_calldecls.insert(func);
+            if (auto ftd = func->getPrimaryTemplate()) {
+                d.d_calldecls.insert(
+                    ftd->getTemplatedDecl()->getCanonicalDecl());
+            }
+            if (auto tip = func->getTemplateInstantiationPattern()) {
+                d.d_calldecls.insert(tip->getCanonicalDecl());
+            }
         }
     }
 }
