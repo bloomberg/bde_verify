@@ -141,7 +141,7 @@ void report::operator()()
         if (ok1) {
             auto b = nodes.getNodeAs<BinaryOperator>("b");
             a.report(e, check_name, "MPOK",
-                     "ManagedPtr without deleter using default-assigned "
+                     "Shared pointer without deleter using default-assigned "
                      "allocator variable")
                 << p->getSourceRange();
             a.report(b, check_name, "MPOK",
@@ -152,8 +152,8 @@ void report::operator()()
         if (ok2) {
             auto v = nodes.getNodeAs<VarDecl>("v");
             a.report(e, check_name, "MPOK",
-                     "ManagedPtr without deleter using default-initialized "
-                     "allocator variable")
+                     "Shared pointer without deleter using "
+                     "default-initialized allocator variable")
                 << p->getSourceRange();
             a.report(v, check_name, "MPOK",
                      "Initialization is here",
@@ -162,13 +162,15 @@ void report::operator()()
 
         if (ok3) {
             a.report(e, check_name, "MPOK",
-                "ManagedPtr without deleter using default allocator directly")
+                     "Shared pointer without deleter using default allocator "
+                     "directly")
                 << p->getSourceRange();
         }
 
         if (n1) {
             a.report(e, check_name, "MP01",
-                     "ManagedPtr without deleter will use 'operator delete'")
+                     "Shared pointer without deleter will use "
+                     "'operator delete'")
                 << n1->getSourceRange();
         }
 
@@ -183,7 +185,7 @@ void report::operator()()
             }
             if (!isSame(p, l)) {
                 a.report(e, check_name, "MP02",
-                    "Allocator and deleter differ in MangedPtr")
+                         "Different allocator and deleter for shared pointer")
                     << p->getSourceRange()
                     << l->getSourceRange();
             }
@@ -191,8 +193,8 @@ void report::operator()()
 
         if (n3) {
             a.report(e, check_name, "MP03",
-                     "Deleter provided for non-placement allocation in "
-                     "MangedPtr")
+                     "Deleter provided for non-placement allocation for "
+                     "shared pointer")
                 << n3->getSourceRange() << l->getSourceRange();
         }
     });
@@ -222,8 +224,8 @@ void report::operator()()
                           ofClass(hasName("BloombergLP::bslma::Default"))))));
     };
 
-    // Match various styles of 'ManagedPtr' construction or loading.
-    auto mp = [&] {
+    // Match various styles of smart pointer construction or loading.
+    auto mp = [&](int deleterArg) {
         return anyOf(
             // No deleter, and allocation is through an allocator
             // pointer that has been assigned the default allocator.
@@ -271,7 +273,7 @@ void report::operator()()
                   hasArgument(1, expr(anything()).bind("l"))),
             allOf(argumentCountIs(3),
                   pa(anything(), "n2"),
-                  hasArgument(2, expr(anything()).bind("l"))),
+                  hasArgument(deleterArg, expr(anything()).bind("l"))),
             // Deleter is present, and allocation is through
             // non-placement new.  Code looks like
             //    bslma::Allocator *a;
@@ -284,39 +286,31 @@ void report::operator()()
             allOf(argumentCountIs(3),
                   hasArgument(
                       0, cxxNewExpr(placementArgumentCountIs(0)).bind("n3")),
-                  hasArgument(2, expr(anything()).bind("l"))));
+                  hasArgument(deleterArg, expr(anything()).bind("l"))));
     };
 
-#if 0
-    mf.addDynamicMatcher(
-        decl(forEachDescendant(
-            cxxConstructExpr(hasDeclaration(cxxConstructorDecl(matchesName(
-                                 "::BloombergLP::bslma::ManagedPtr<"))),
-                             mp())
-                .bind("e"))),
-        &m0);
-    mf.addDynamicMatcher(
-        decl(forEachDescendant(
-            cxxMemberCallExpr(thisPointerType(cxxRecordDecl(matchesName(
-                                  "::BloombergLP::bslma::ManagedPtr"))),
-                              callee(cxxMethodDecl(hasName("load"))),
-                              mp())
-                .bind("c"))),
-        &m0);
-#else
     mf.addDynamicMatcher(
         decl(forEachDescendant(expr(anyOf(
             cxxConstructExpr(hasDeclaration(cxxConstructorDecl(matchesName(
                                  "::BloombergLP::bslma::ManagedPtr<"))),
-                             mp())
+                             mp(3))
+                .bind("e"),
+            cxxConstructExpr(hasDeclaration(cxxConstructorDecl(matchesName(
+                                 "::bsl::shared_ptr<|::std::shared_ptr<"))),
+                             mp(2))
                 .bind("e"),
             cxxMemberCallExpr(thisPointerType(cxxRecordDecl(matchesName(
                                   "::BloombergLP::bslma::ManagedPtr"))),
                               callee(cxxMethodDecl(hasName("load"))),
-                              mp())
+                              mp(3))
+                .bind("c"),
+            cxxMemberCallExpr(thisPointerType(cxxRecordDecl(matchesName(
+                                  "::bsl::shared_ptr|::std::shared_ptr"))),
+                              callee(cxxMethodDecl(
+                                  anyOf(hasName("load"), hasName("reset")))),
+                              mp(2))
                 .bind("c"))))),
         &m0);
-#endif
     mf.match(*tu, *a.context());
 }
 
