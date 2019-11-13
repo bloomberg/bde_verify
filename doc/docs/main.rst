@@ -889,16 +889,24 @@ for additional checks.
    managed-pointer
    +++++++++++++++
 
-   * ``MPOK1``
-     ManagedPtr without deleter using default-assigned allocator variable
-     ManagedPtr without deleter using default-initialized allocator variable
-     ManagedPtr without deleter using default allocator directly
+   Probabale or possible inconsistent uses of allocators and deleters when
+   icreating 'ManagedPtr' or 'shared_pointer'.  The warnings below are also
+   accompanied by notes saying to consider using 'allocateManaged' or
+   'allocate_shared', which prevent these problems.
+
+   * ``MPOK01``
+     Shared pointer without deleter using default-assigned allocator variable.
+
+     Shared pointer without deleter using default-initialized allocator
+     variable.
+
+     Shared pointer without deleter using default allocator directly.
    * ``MP01``
-     ManagedPtr without deleter will use 'operator delete'
+     Shared pointer without deleter will use 'operator delete'.
    * ``MP02``
-     Allocator and deleter differ in MangedPtr construction
+     Different allocator and deleter for shared pointer.
    * ``MP03``
-     Deleter provided for non-placement allocation in MangedPtr construction
+     Deleter provided for non-placement allocation for shared pointer.
 
 .. only:: bde_verify
 

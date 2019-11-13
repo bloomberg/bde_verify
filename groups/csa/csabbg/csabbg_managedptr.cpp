@@ -146,28 +146,28 @@ void report::operator()()
 
         if (ok1) {
             auto b = nodes.getNodeAs<BinaryOperator>("b");
-            a.report(e, check_name, tag = "MPOK",
+            a.report(e, check_name, tag = "MPOK01",
                      "Shared pointer without deleter using default-assigned "
                      "allocator variable")
                 << p->getSourceRange();
-            a.report(b, check_name, "MPOK",
+            a.report(b, check_name, "MPOK01",
                      "Assignment is here",
                      false, DiagnosticIDs::Note);
         }
 
         if (ok2) {
             auto v = nodes.getNodeAs<VarDecl>("v");
-            a.report(e, check_name, tag = "MPOK",
+            a.report(e, check_name, tag = "MPOK01",
                      "Shared pointer without deleter using "
                      "default-initialized allocator variable")
                 << p->getSourceRange();
-            a.report(v, check_name, "MPOK",
+            a.report(v, check_name, "MPOK01",
                      "Initialization is here",
                      false, DiagnosticIDs::Note);
         }
 
         if (ok3) {
-            a.report(e, check_name, tag = "MPOK",
+            a.report(e, check_name, tag = "MPOK01",
                      "Shared pointer without deleter using default allocator "
                      "directly")
                 << p->getSourceRange();

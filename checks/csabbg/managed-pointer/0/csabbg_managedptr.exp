@@ -2,122 +2,122 @@ csabbg_managedptr.t.cpp:28:27: warning: MP01: Shared pointer without deleter wil
     bsl::shared_ptr<char> sp02(new (*pa) char);
                           ^    ~~~~~~~~~~~~~~
 csabbg_managedptr.t.cpp:28:27: note: MP01: Consider using allocate_shared
-csabbg_managedptr.t.cpp:30:27: warning: MPOK: Shared pointer without deleter using default-initialized allocator variable
+csabbg_managedptr.t.cpp:30:27: warning: MPOK01: Shared pointer without deleter using default-initialized allocator variable
     bsl::shared_ptr<char> sp04(new (*da) char);
                           ^         ~~~
-csabbg_managedptr.t.cpp:18:27: note: MPOK: Initialization is here
+csabbg_managedptr.t.cpp:18:27: note: MPOK01: Initialization is here
     bslma::Allocator     *da = bslma::Default::allocator();
                           ^
-csabbg_managedptr.t.cpp:30:27: note: MPOK: Consider using allocate_shared
+csabbg_managedptr.t.cpp:30:27: note: MPOK01: Consider using allocate_shared
     bsl::shared_ptr<char> sp04(new (*da) char);
                           ^
-csabbg_managedptr.t.cpp:32:27: warning: MPOK: Shared pointer without deleter using default-initialized allocator variable
+csabbg_managedptr.t.cpp:32:27: warning: MPOK01: Shared pointer without deleter using default-initialized allocator variable
     bsl::shared_ptr<char> sp06(new (*ba) char);
                           ^         ~~~
-csabbg_managedptr.t.cpp:19:27: note: MPOK: Initialization is here
+csabbg_managedptr.t.cpp:19:27: note: MPOK01: Initialization is here
     bslma::Allocator     *ba = Default::allocator();
                           ^
-csabbg_managedptr.t.cpp:32:27: note: MPOK: Consider using allocate_shared
+csabbg_managedptr.t.cpp:32:27: note: MPOK01: Consider using allocate_shared
     bsl::shared_ptr<char> sp06(new (*ba) char);
                           ^
 csabbg_managedptr.t.cpp:34:27: warning: MP01: Shared pointer without deleter will use 'operator delete'
     bsl::shared_ptr<char> sp08(new (ta) char);
                           ^    ~~~~~~~~~~~~~
 csabbg_managedptr.t.cpp:34:27: note: MP01: Consider using allocate_shared
-csabbg_managedptr.t.cpp:36:27: warning: MPOK: Shared pointer without deleter using default allocator directly
+csabbg_managedptr.t.cpp:36:27: warning: MPOK01: Shared pointer without deleter using default allocator directly
     bsl::shared_ptr<char> sp10(new (*bslma::Default::allocator()) char);
                           ^         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-csabbg_managedptr.t.cpp:36:27: note: MPOK: Consider using allocate_shared
-csabbg_managedptr.t.cpp:39:27: warning: MPOK: Shared pointer without deleter using default allocator directly
+csabbg_managedptr.t.cpp:36:27: note: MPOK01: Consider using allocate_shared
+csabbg_managedptr.t.cpp:39:27: warning: MPOK01: Shared pointer without deleter using default allocator directly
     bsl::shared_ptr<char> sp12(new (*Default::allocator()) char);
                           ^         ~~~~~~~~~~~~~~~~~~~~~
-csabbg_managedptr.t.cpp:39:27: note: MPOK: Consider using allocate_shared
-csabbg_managedptr.t.cpp:42:27: warning: MPOK: Shared pointer without deleter using default-assigned allocator variable
+csabbg_managedptr.t.cpp:39:27: note: MPOK01: Consider using allocate_shared
+csabbg_managedptr.t.cpp:42:27: warning: MPOK01: Shared pointer without deleter using default-assigned allocator variable
     bsl::shared_ptr<char> sp14(new (*aa) char);
                           ^         ~~~
-csabbg_managedptr.t.cpp:24:5: note: MPOK: Assignment is here
+csabbg_managedptr.t.cpp:24:5: note: MPOK01: Assignment is here
     aa = bslma::Default::allocator();
     ^
-csabbg_managedptr.t.cpp:42:27: note: MPOK: Consider using allocate_shared
+csabbg_managedptr.t.cpp:42:27: note: MPOK01: Consider using allocate_shared
     bsl::shared_ptr<char> sp14(new (*aa) char);
                           ^
-csabbg_managedptr.t.cpp:44:27: warning: MPOK: Shared pointer without deleter using default-initialized allocator variable
+csabbg_managedptr.t.cpp:44:27: warning: MPOK01: Shared pointer without deleter using default-initialized allocator variable
     bsl::shared_ptr<char> sp16(new (*ba) char);
                           ^         ~~~
-csabbg_managedptr.t.cpp:19:27: note: MPOK: Initialization is here
+csabbg_managedptr.t.cpp:19:27: note: MPOK01: Initialization is here
     bslma::Allocator     *ba = Default::allocator();
                           ^
-csabbg_managedptr.t.cpp:44:27: note: MPOK: Consider using allocate_shared
+csabbg_managedptr.t.cpp:44:27: note: MPOK01: Consider using allocate_shared
     bsl::shared_ptr<char> sp16(new (*ba) char);
                           ^
-csabbg_managedptr.t.cpp:46:27: warning: MPOK: Shared pointer without deleter using default-assigned allocator variable
+csabbg_managedptr.t.cpp:46:27: warning: MPOK01: Shared pointer without deleter using default-assigned allocator variable
     bsl::shared_ptr<char> sp18(new (*za) char);
                           ^         ~~~
-csabbg_managedptr.t.cpp:25:5: note: MPOK: Assignment is here
+csabbg_managedptr.t.cpp:25:5: note: MPOK01: Assignment is here
     za = Default::allocator();
     ^
-csabbg_managedptr.t.cpp:46:27: note: MPOK: Consider using allocate_shared
+csabbg_managedptr.t.cpp:46:27: note: MPOK01: Consider using allocate_shared
     bsl::shared_ptr<char> sp18(new (*za) char);
                           ^
 csabbg_managedptr.t.cpp:50:5: warning: MP01: Shared pointer without deleter will use 'operator delete'
     bsl::shared_ptr<char>(new (*pa) char);
     ^                     ~~~~~~~~~~~~~~
 csabbg_managedptr.t.cpp:50:5: note: MP01: Consider using allocate_shared
-csabbg_managedptr.t.cpp:52:5: warning: MPOK: Shared pointer without deleter using default-initialized allocator variable
+csabbg_managedptr.t.cpp:52:5: warning: MPOK01: Shared pointer without deleter using default-initialized allocator variable
     bsl::shared_ptr<char>(new (*da) char);
     ^                          ~~~
-csabbg_managedptr.t.cpp:18:27: note: MPOK: Initialization is here
+csabbg_managedptr.t.cpp:18:27: note: MPOK01: Initialization is here
     bslma::Allocator     *da = bslma::Default::allocator();
                           ^
-csabbg_managedptr.t.cpp:52:5: note: MPOK: Consider using allocate_shared
+csabbg_managedptr.t.cpp:52:5: note: MPOK01: Consider using allocate_shared
     bsl::shared_ptr<char>(new (*da) char);
     ^
-csabbg_managedptr.t.cpp:54:5: warning: MPOK: Shared pointer without deleter using default-initialized allocator variable
+csabbg_managedptr.t.cpp:54:5: warning: MPOK01: Shared pointer without deleter using default-initialized allocator variable
     bsl::shared_ptr<char>(new (*ba) char);
     ^                          ~~~
-csabbg_managedptr.t.cpp:19:27: note: MPOK: Initialization is here
+csabbg_managedptr.t.cpp:19:27: note: MPOK01: Initialization is here
     bslma::Allocator     *ba = Default::allocator();
                           ^
-csabbg_managedptr.t.cpp:54:5: note: MPOK: Consider using allocate_shared
+csabbg_managedptr.t.cpp:54:5: note: MPOK01: Consider using allocate_shared
     bsl::shared_ptr<char>(new (*ba) char);
     ^
 csabbg_managedptr.t.cpp:56:5: warning: MP01: Shared pointer without deleter will use 'operator delete'
     bsl::shared_ptr<char>(new (ta) char);
     ^                     ~~~~~~~~~~~~~
 csabbg_managedptr.t.cpp:56:5: note: MP01: Consider using allocate_shared
-csabbg_managedptr.t.cpp:58:5: warning: MPOK: Shared pointer without deleter using default allocator directly
+csabbg_managedptr.t.cpp:58:5: warning: MPOK01: Shared pointer without deleter using default allocator directly
     bsl::shared_ptr<char>(new (*bslma::Default::allocator()) char);
     ^                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-csabbg_managedptr.t.cpp:58:5: note: MPOK: Consider using allocate_shared
-csabbg_managedptr.t.cpp:61:5: warning: MPOK: Shared pointer without deleter using default allocator directly
+csabbg_managedptr.t.cpp:58:5: note: MPOK01: Consider using allocate_shared
+csabbg_managedptr.t.cpp:61:5: warning: MPOK01: Shared pointer without deleter using default allocator directly
     bsl::shared_ptr<char>(new (*Default::allocator()) char);
     ^                          ~~~~~~~~~~~~~~~~~~~~~
-csabbg_managedptr.t.cpp:61:5: note: MPOK: Consider using allocate_shared
-csabbg_managedptr.t.cpp:63:5: warning: MPOK: Shared pointer without deleter using default-assigned allocator variable
+csabbg_managedptr.t.cpp:61:5: note: MPOK01: Consider using allocate_shared
+csabbg_managedptr.t.cpp:63:5: warning: MPOK01: Shared pointer without deleter using default-assigned allocator variable
     bsl::shared_ptr<char>(new (*aa) char);
     ^                          ~~~
-csabbg_managedptr.t.cpp:24:5: note: MPOK: Assignment is here
+csabbg_managedptr.t.cpp:24:5: note: MPOK01: Assignment is here
     aa = bslma::Default::allocator();
     ^
-csabbg_managedptr.t.cpp:63:5: note: MPOK: Consider using allocate_shared
+csabbg_managedptr.t.cpp:63:5: note: MPOK01: Consider using allocate_shared
     bsl::shared_ptr<char>(new (*aa) char);
     ^
-csabbg_managedptr.t.cpp:65:5: warning: MPOK: Shared pointer without deleter using default-initialized allocator variable
+csabbg_managedptr.t.cpp:65:5: warning: MPOK01: Shared pointer without deleter using default-initialized allocator variable
     bsl::shared_ptr<char>(new (*ba) char);
     ^                          ~~~
-csabbg_managedptr.t.cpp:19:27: note: MPOK: Initialization is here
+csabbg_managedptr.t.cpp:19:27: note: MPOK01: Initialization is here
     bslma::Allocator     *ba = Default::allocator();
                           ^
-csabbg_managedptr.t.cpp:65:5: note: MPOK: Consider using allocate_shared
+csabbg_managedptr.t.cpp:65:5: note: MPOK01: Consider using allocate_shared
     bsl::shared_ptr<char>(new (*ba) char);
     ^
-csabbg_managedptr.t.cpp:67:5: warning: MPOK: Shared pointer without deleter using default-assigned allocator variable
+csabbg_managedptr.t.cpp:67:5: warning: MPOK01: Shared pointer without deleter using default-assigned allocator variable
     bsl::shared_ptr<char>(new (*za) char);
     ^                          ~~~
-csabbg_managedptr.t.cpp:25:5: note: MPOK: Assignment is here
+csabbg_managedptr.t.cpp:25:5: note: MPOK01: Assignment is here
     za = Default::allocator();
     ^
-csabbg_managedptr.t.cpp:67:5: note: MPOK: Consider using allocate_shared
+csabbg_managedptr.t.cpp:67:5: note: MPOK01: Consider using allocate_shared
     bsl::shared_ptr<char>(new (*za) char);
     ^
 csabbg_managedptr.t.cpp:70:27: warning: MP03: Deleter provided for non-placement allocation for shared pointer
@@ -180,14 +180,14 @@ csabbg_managedptr.t.cpp:100:7: warning: MP02: Different allocator and deleter fo
     , d_sp09(new (ta) char, &ta)
       ^           ~~         ~~
 csabbg_managedptr.t.cpp:100:7: note: MP02: Consider using allocate_shared
-csabbg_managedptr.t.cpp:101:7: warning: MPOK: Shared pointer without deleter using default allocator directly
+csabbg_managedptr.t.cpp:101:7: warning: MPOK01: Shared pointer without deleter using default allocator directly
     , d_sp10(new (*bslma::Default::allocator()) char)
       ^           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-csabbg_managedptr.t.cpp:101:7: note: MPOK: Consider using allocate_shared
-csabbg_managedptr.t.cpp:104:7: warning: MPOK: Shared pointer without deleter using default allocator directly
+csabbg_managedptr.t.cpp:101:7: note: MPOK01: Consider using allocate_shared
+csabbg_managedptr.t.cpp:104:7: warning: MPOK01: Shared pointer without deleter using default allocator directly
     , d_sp12(new (*Default::allocator()) char)
       ^           ~~~~~~~~~~~~~~~~~~~~~
-csabbg_managedptr.t.cpp:104:7: note: MPOK: Consider using allocate_shared
+csabbg_managedptr.t.cpp:104:7: note: MPOK01: Consider using allocate_shared
 csabbg_managedptr.t.cpp:106:7: warning: MP01: Shared pointer without deleter will use 'operator delete'
     , d_sp16(new (*ba) char)
       ^      ~~~~~~~~~~~~~~
@@ -231,85 +231,85 @@ csabbg_managedptr.t.cpp:115:7: note: MP02: Consider using allocate_shared
 csabbg_managedptr.t.cpp:132:5: warning: MP01: Shared pointer without deleter will use 'operator delete'
     sp.reset(new (*pa) char);
     ^        ~~~~~~~~~~~~~~
-csabbg_managedptr.t.cpp:134:5: warning: MPOK: Shared pointer without deleter using default-initialized allocator variable
+csabbg_managedptr.t.cpp:134:5: warning: MPOK01: Shared pointer without deleter using default-initialized allocator variable
     sp.reset(new (*da) char);
     ^             ~~~
-csabbg_managedptr.t.cpp:122:27: note: MPOK: Initialization is here
+csabbg_managedptr.t.cpp:122:27: note: MPOK01: Initialization is here
     bslma::Allocator     *da = bslma::Default::allocator();
                           ^
-csabbg_managedptr.t.cpp:136:5: warning: MPOK: Shared pointer without deleter using default-initialized allocator variable
+csabbg_managedptr.t.cpp:136:5: warning: MPOK01: Shared pointer without deleter using default-initialized allocator variable
     sp.reset(new (*ba) char);
     ^             ~~~
-csabbg_managedptr.t.cpp:123:27: note: MPOK: Initialization is here
+csabbg_managedptr.t.cpp:123:27: note: MPOK01: Initialization is here
     bslma::Allocator     *ba = Default::allocator();
                           ^
 csabbg_managedptr.t.cpp:138:5: warning: MP01: Shared pointer without deleter will use 'operator delete'
     sp.reset(new (ta) char);
     ^        ~~~~~~~~~~~~~
-csabbg_managedptr.t.cpp:140:5: warning: MPOK: Shared pointer without deleter using default allocator directly
+csabbg_managedptr.t.cpp:140:5: warning: MPOK01: Shared pointer without deleter using default allocator directly
     sp.reset(new (*bslma::Default::allocator()) char);
     ^             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-csabbg_managedptr.t.cpp:143:5: warning: MPOK: Shared pointer without deleter using default allocator directly
+csabbg_managedptr.t.cpp:143:5: warning: MPOK01: Shared pointer without deleter using default allocator directly
     sp.reset(new (*Default::allocator()) char);
     ^             ~~~~~~~~~~~~~~~~~~~~~
-csabbg_managedptr.t.cpp:146:5: warning: MPOK: Shared pointer without deleter using default-assigned allocator variable
+csabbg_managedptr.t.cpp:146:5: warning: MPOK01: Shared pointer without deleter using default-assigned allocator variable
     sp.reset(new (*aa) char);
     ^             ~~~
-csabbg_managedptr.t.cpp:128:5: note: MPOK: Assignment is here
+csabbg_managedptr.t.cpp:128:5: note: MPOK01: Assignment is here
     aa = bslma::Default::allocator();
     ^
-csabbg_managedptr.t.cpp:148:5: warning: MPOK: Shared pointer without deleter using default-initialized allocator variable
+csabbg_managedptr.t.cpp:148:5: warning: MPOK01: Shared pointer without deleter using default-initialized allocator variable
     sp.reset(new (*ba) char);
     ^             ~~~
-csabbg_managedptr.t.cpp:123:27: note: MPOK: Initialization is here
+csabbg_managedptr.t.cpp:123:27: note: MPOK01: Initialization is here
     bslma::Allocator     *ba = Default::allocator();
                           ^
-csabbg_managedptr.t.cpp:150:5: warning: MPOK: Shared pointer without deleter using default-assigned allocator variable
+csabbg_managedptr.t.cpp:150:5: warning: MPOK01: Shared pointer without deleter using default-assigned allocator variable
     sp.reset(new (*za) char);
     ^             ~~~
-csabbg_managedptr.t.cpp:129:5: note: MPOK: Assignment is here
+csabbg_managedptr.t.cpp:129:5: note: MPOK01: Assignment is here
     za = Default::allocator();
     ^
 csabbg_managedptr.t.cpp:154:5: warning: MP01: Shared pointer without deleter will use 'operator delete'
     sp.reset(new (*pa) char);
     ^        ~~~~~~~~~~~~~~
-csabbg_managedptr.t.cpp:156:5: warning: MPOK: Shared pointer without deleter using default-initialized allocator variable
+csabbg_managedptr.t.cpp:156:5: warning: MPOK01: Shared pointer without deleter using default-initialized allocator variable
     sp.reset(new (*da) char);
     ^             ~~~
-csabbg_managedptr.t.cpp:122:27: note: MPOK: Initialization is here
+csabbg_managedptr.t.cpp:122:27: note: MPOK01: Initialization is here
     bslma::Allocator     *da = bslma::Default::allocator();
                           ^
-csabbg_managedptr.t.cpp:158:5: warning: MPOK: Shared pointer without deleter using default-initialized allocator variable
+csabbg_managedptr.t.cpp:158:5: warning: MPOK01: Shared pointer without deleter using default-initialized allocator variable
     sp.reset(new (*ba) char);
     ^             ~~~
-csabbg_managedptr.t.cpp:123:27: note: MPOK: Initialization is here
+csabbg_managedptr.t.cpp:123:27: note: MPOK01: Initialization is here
     bslma::Allocator     *ba = Default::allocator();
                           ^
 csabbg_managedptr.t.cpp:160:5: warning: MP01: Shared pointer without deleter will use 'operator delete'
     sp.reset(new (ta) char);
     ^        ~~~~~~~~~~~~~
-csabbg_managedptr.t.cpp:162:5: warning: MPOK: Shared pointer without deleter using default allocator directly
+csabbg_managedptr.t.cpp:162:5: warning: MPOK01: Shared pointer without deleter using default allocator directly
     sp.reset(new (*bslma::Default::allocator()) char);
     ^             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-csabbg_managedptr.t.cpp:165:5: warning: MPOK: Shared pointer without deleter using default allocator directly
+csabbg_managedptr.t.cpp:165:5: warning: MPOK01: Shared pointer without deleter using default allocator directly
     sp.reset(new (*Default::allocator()) char);
     ^             ~~~~~~~~~~~~~~~~~~~~~
-csabbg_managedptr.t.cpp:167:5: warning: MPOK: Shared pointer without deleter using default-assigned allocator variable
+csabbg_managedptr.t.cpp:167:5: warning: MPOK01: Shared pointer without deleter using default-assigned allocator variable
     sp.reset(new (*aa) char);
     ^             ~~~
-csabbg_managedptr.t.cpp:128:5: note: MPOK: Assignment is here
+csabbg_managedptr.t.cpp:128:5: note: MPOK01: Assignment is here
     aa = bslma::Default::allocator();
     ^
-csabbg_managedptr.t.cpp:169:5: warning: MPOK: Shared pointer without deleter using default-initialized allocator variable
+csabbg_managedptr.t.cpp:169:5: warning: MPOK01: Shared pointer without deleter using default-initialized allocator variable
     sp.reset(new (*ba) char);
     ^             ~~~
-csabbg_managedptr.t.cpp:123:27: note: MPOK: Initialization is here
+csabbg_managedptr.t.cpp:123:27: note: MPOK01: Initialization is here
     bslma::Allocator     *ba = Default::allocator();
                           ^
-csabbg_managedptr.t.cpp:171:5: warning: MPOK: Shared pointer without deleter using default-assigned allocator variable
+csabbg_managedptr.t.cpp:171:5: warning: MPOK01: Shared pointer without deleter using default-assigned allocator variable
     sp.reset(new (*za) char);
     ^             ~~~
-csabbg_managedptr.t.cpp:129:5: note: MPOK: Assignment is here
+csabbg_managedptr.t.cpp:129:5: note: MPOK01: Assignment is here
     za = Default::allocator();
     ^
 csabbg_managedptr.t.cpp:174:5: warning: MP03: Deleter provided for non-placement allocation for shared pointer
