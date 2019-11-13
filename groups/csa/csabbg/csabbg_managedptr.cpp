@@ -126,8 +126,13 @@ void report::operator()()
     MatchFinder mf;
 
     OnMatch<> m0([&](const BoundNodes& nodes) {
-        auto x   = nodes.getNodeAs<CXXConstructExpr>("e");
-        auto c   = nodes.getNodeAs<CXXMemberCallExpr>("c");
+        auto ma  = nodes.getNodeAs<CXXConstructExpr>("ma");
+        auto sa  = nodes.getNodeAs<CXXConstructExpr>("sa");
+        auto x   = ma ? ma : sa;
+        auto mc  = nodes.getNodeAs<CXXMemberCallExpr>("mc");
+        auto sc  = nodes.getNodeAs<CXXMemberCallExpr>("sc");
+        auto c   = mc ? mc : sc;
+        auto e   = x ? llvm::dyn_cast<Expr>(x) : llvm::dyn_cast<Expr>(c);
         auto p   = nodes.getNodeAs<Expr>("p");
         auto l   = nodes.getNodeAs<Expr>("l");
         auto ok1 = nodes.getNodeAs<CXXNewExpr>("ok1");
@@ -136,11 +141,12 @@ void report::operator()()
         auto n1  = nodes.getNodeAs<CXXNewExpr>("n1");
         auto n2  = nodes.getNodeAs<CXXNewExpr>("n2");
         auto n3  = nodes.getNodeAs<CXXNewExpr>("n3");
-        auto e   = x ? llvm::dyn_cast<Expr>(x) : llvm::dyn_cast<Expr>(c);
+
+        const char *tag = 0;
 
         if (ok1) {
             auto b = nodes.getNodeAs<BinaryOperator>("b");
-            a.report(e, check_name, "MPOK",
+            a.report(e, check_name, tag = "MPOK",
                      "Shared pointer without deleter using default-assigned "
                      "allocator variable")
                 << p->getSourceRange();
@@ -151,7 +157,7 @@ void report::operator()()
 
         if (ok2) {
             auto v = nodes.getNodeAs<VarDecl>("v");
-            a.report(e, check_name, "MPOK",
+            a.report(e, check_name, tag = "MPOK",
                      "Shared pointer without deleter using "
                      "default-initialized allocator variable")
                 << p->getSourceRange();
@@ -161,14 +167,14 @@ void report::operator()()
         }
 
         if (ok3) {
-            a.report(e, check_name, "MPOK",
+            a.report(e, check_name, tag = "MPOK",
                      "Shared pointer without deleter using default allocator "
                      "directly")
                 << p->getSourceRange();
         }
 
         if (n1) {
-            a.report(e, check_name, "MP01",
+            a.report(e, check_name, tag = "MP01",
                      "Shared pointer without deleter will use "
                      "'operator delete'")
                 << n1->getSourceRange();
@@ -184,7 +190,7 @@ void report::operator()()
                 l = ul->getSubExpr();
             }
             if (!isSame(p, l)) {
-                a.report(e, check_name, "MP02",
+                a.report(e, check_name, tag = "MP02",
                          "Different allocator and deleter for shared pointer")
                     << p->getSourceRange()
                     << l->getSourceRange();
@@ -192,10 +198,22 @@ void report::operator()()
         }
 
         if (n3) {
-            a.report(e, check_name, "MP03",
+            a.report(e, check_name, tag = "MP03",
                      "Deleter provided for non-placement allocation for "
                      "shared pointer")
                 << n3->getSourceRange() << l->getSourceRange();
+        }
+
+        if (tag && ma) {
+            a.report(e, check_name, tag,
+                     "Consider using allocateManaged",
+                     false, DiagnosticIDs::Note);
+        }
+
+        if (tag && sa) {
+            a.report(e, check_name, tag,
+                     "Consider using allocate_shared",
+                     false, DiagnosticIDs::Note);
         }
     });
 
@@ -294,22 +312,22 @@ void report::operator()()
             cxxConstructExpr(hasDeclaration(cxxConstructorDecl(matchesName(
                                  "::BloombergLP::bslma::ManagedPtr<"))),
                              mp(3))
-                .bind("e"),
+                .bind("ma"),
             cxxConstructExpr(hasDeclaration(cxxConstructorDecl(matchesName(
                                  "::bsl::shared_ptr<|::std::shared_ptr<"))),
                              mp(2))
-                .bind("e"),
+                .bind("sa"),
             cxxMemberCallExpr(thisPointerType(cxxRecordDecl(matchesName(
                                   "::BloombergLP::bslma::ManagedPtr"))),
                               callee(cxxMethodDecl(hasName("load"))),
                               mp(3))
-                .bind("c"),
+                .bind("mc"),
             cxxMemberCallExpr(thisPointerType(cxxRecordDecl(matchesName(
                                   "::bsl::shared_ptr|::std::shared_ptr"))),
                               callee(cxxMethodDecl(
                                   anyOf(hasName("load"), hasName("reset")))),
                               mp(2))
-                .bind("c"))))),
+                .bind("sc"))))),
         &m0);
     mf.match(*tu, *a.context());
 }
