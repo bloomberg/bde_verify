@@ -82,7 +82,7 @@ class Analyser : public Attachments
     bool               is_system_header(clang::SourceLocation);
     template <typename T> bool is_system_header(T const*);
     bool               is_test_driver() const;
-    bool               is_test_driver(const std::string &) const;
+    bool               is_test_driver(llvm::StringRef) const;
     template <typename T> bool is_test_driver(T const*);
     bool               is_main() const;
     bool               is_standard_namespace(std::string const&) const;

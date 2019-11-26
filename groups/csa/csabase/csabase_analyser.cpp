@@ -379,10 +379,9 @@ bool csabase::Analyser::is_component(SourceLocation loc) const
     return is_component(get_location(loc).file());
 }
 
-bool csabase::Analyser::is_test_driver(std::string const &file) const
+bool csabase::Analyser::is_test_driver(llvm::StringRef file) const
 {
-    //-dk:TODO this should be configurable, e.g. using regexp
-    return 6 < file.size() && file.substr(file.size() - 6) == ".t.cpp";
+    return file.endswith(".t.cpp") || file.endswith(".g.cpp");
 }
 
 bool csabase::Analyser::is_test_driver() const
@@ -393,10 +392,10 @@ bool csabase::Analyser::is_test_driver() const
 
 bool csabase::Analyser::is_main() const
 {
-    std::string::size_type size(toplevel().size());
-    std::string suffix(
-        toplevel().substr(size - std::min(size, std::string::size_type(6))));
-    return suffix == ".m.cpp" || suffix == ".t.cpp";
+    llvm::StringRef file = toplevel();
+    return file.endswith(".m.cpp") ||
+           file.endswith(".t.cpp") ||
+           file.endswith(".g.cpp");
 }
 
 // -----------------------------------------------------------------------------

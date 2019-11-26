@@ -54,7 +54,10 @@ namespace
                 }
                 if (stat((     prefix + ".t.cpp").c_str(), &buffer) &&
                     stat(( pkg_prefix + ".t.cpp").c_str(), &buffer) &&
-                    stat((test_prefix + ".t.cpp").c_str(), &buffer)) {
+                    stat((test_prefix + ".t.cpp").c_str(), &buffer) &&
+                    stat((     prefix + ".g.cpp").c_str(), &buffer) &&
+                    stat(( pkg_prefix + ".g.cpp").c_str(), &buffer) &&
+                    stat((test_prefix + ".g.cpp").c_str(), &buffer)) {
                     d_analyser.report(where, check_name, "FI02",
                             "Test file '%0.t.cpp' not accessible", true)
                         << component;
