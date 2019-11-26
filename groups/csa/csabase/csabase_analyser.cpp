@@ -672,8 +672,6 @@ bool csabase::Analyser::is_ADL_candidate(Decl const* decl)
 
 // ----------------------------------------------------------------------------
 
-static llvm::Regex generated("GENERATED FILE -+ DO NOT EDIT");
-
 bool csabase::Analyser::is_generated(SourceLocation loc) const
     // Return true if this is an automatically generated file.  The criterion
     // is a first line containing "GENERATED FILE -- DO NOT EDIT".
@@ -681,7 +679,9 @@ bool csabase::Analyser::is_generated(SourceLocation loc) const
     loc = d_source_manager.getFileLoc(loc);
     FileID fid = d_source_manager.getFileID(loc);
     llvm::StringRef buf = d_source_manager.getBufferData(fid);
-    if (generated.match(buf.split('\n').first)) {
+    llvm::StringRef first_line = buf.split('\n').first;
+    if (first_line.find_lower("do not edit") != first_line.npos &&
+        first_line.find_lower("generated") != first_line.npos) {
         return true;                                                  // RETURN
     }
 

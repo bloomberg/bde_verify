@@ -53,7 +53,7 @@ static void open_file(Analyser& analyser,
 
         if (   !buf.equals(expectcpp)
             && !buf.equals(expectc)
-            && buf.find("GENERATED") == buf.npos) {
+            && buf.find_lower("GENERATED") == buf.npos) {
             std::pair<size_t, size_t> mcpp = mid_mismatch(buf, expectcpp);
             std::pair<size_t, size_t> mc = mid_mismatch(buf, expectc);
             std::pair<size_t, size_t> m;
