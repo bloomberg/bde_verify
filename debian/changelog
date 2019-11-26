@@ -1,3 +1,25 @@
+bde-verify (1.3.10) unstable; urgency=low
+
+  * 2503141 Inc version
+  * 288727f Accept .g.cpp files as test drivers.
+  * 15893ec Suppress more checks for .m.cpp files.
+  * 1f08b68 Broader interpretation of which files are generated.
+  * 568e81c Doc and MPOK => MPOK01
+  * 7460e06 Add mention of allocateManaged/_shared
+  * 3141702 Add shared_ptr checks
+  * 1e803dc Some uncalled improvements.
+  * e27db23 Static uncalled template check
+  * 2590f36 Fix detection of templated calls
+  * 357a0be Fix doc for single MPOK tag
+  * 4207871 Alslo check calls to ManagedPtr::load()
+  * ad74674 Add member initialization checks
+  * 47ba742 Allow long url-only lines
+  * 0bcc0fe Spell section separator fixed; don't print section tag notes if suppressed.
+  * 31c45af Add managed pointer tests
+  * 0491492 More on managed pointer checks
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Tue, 26 Nov 2019 17:29:42 -0500
+
 bde-verify (1.3.9) unstable; urgency=low
 
   * 0165cb1 Increment version
