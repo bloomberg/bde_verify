@@ -61,6 +61,10 @@ namespace
                 attachment.d_done = true;
                 Analyser& analyser(*d_analyser);
 
+                if (fn.extra() == ".m") {
+                    return;                                           // RETURN
+                }
+
                 bool standalone = fn.tag().size() != 0;
 
                 if (standalone) {
