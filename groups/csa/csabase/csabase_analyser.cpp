@@ -381,7 +381,7 @@ bool csabase::Analyser::is_component(SourceLocation loc) const
 
 bool csabase::Analyser::is_test_driver(llvm::StringRef file) const
 {
-    return file.endswith(".t.cpp") || file.endswith(".g.cpp");
+    return file.endswith(".t.cpp") /* || file.endswith(".g.cpp") */;
 }
 
 bool csabase::Analyser::is_test_driver() const
