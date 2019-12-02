@@ -85,7 +85,8 @@ static void include_file(Analyser& analyser,
                  && !analyser.is_toplevel(name)
                  && builtin != name
                  && command_line != name
-                 && "bdes_ident.h" != FileName(name).name())
+                 && "bdes_ident.h" != FileName(name).name()
+                 && "bsls_ident.h" != FileName(name).name())
         {
             analyser.report(where, check_name, "TR09",
                             "Include files precede component header",

@@ -100,6 +100,14 @@ is_component(std::pair<std::string, SourceLocation> const& entry)
 
 // ----------------------------------------------------------------------------
 
+static bool
+is_ident(llvm::StringRef name, llvm::StringRef ident)
+{
+    return name == ident || name == "bdes_ident" || name == "bsls_ident";
+}
+
+// ----------------------------------------------------------------------------
+
 static void
 check_order(Analyser*                                analyser,
             std::string const&                       message,
@@ -139,13 +147,13 @@ check_order(Analyser*                       analyser,
 {
     include_order& data(analyser->attachment<include_order>());
 
-    SourceLocation const* bdes_ident_location(0);
+    SourceLocation const* ident_location(0);
     if (headers.empty()) {
         analyser->report(SourceLocation(), check_name, "SHO03",
                          header
                          ? "Header without include guard included"
                          : "Source without component include");
-        return bdes_ident_location;
+        return ident_location;
     }
     include_order::headers_t::const_iterator it(headers.begin());
     if (it->first != analyser->component() || it++ == headers.end()) {
@@ -155,35 +163,27 @@ check_order(Analyser*                       analyser,
                          : "Source doesn't include component header first");
     }
     std::string ident = analyser->config()->value("ident_header");
-    if (!ident.size()) {
-        ident = analyser->group() == "bal" ||
-                analyser->group() == "bbl" ||
-                analyser->group() == "bdl" ||
-                analyser->group() == "bsl" ||
-                analyser->group() == "btl"
-                    ? "bsls_ident"
-                    : "bdes_ident";
+    if (ident.empty()) {
+        ident = "bsls_ident";
     }
-    if (analyser->component() == ident ||
+    if (is_ident(analyser->component(), ident) ||
         (analyser->is_test_driver() && !header)) {
         if (it != headers.end()) {
-            if (it->first == ident) {
-                bdes_ident_location = &it->second;
-            }
-            if (it->first == ident) {
+            if (is_ident(it->first, ident)) {
+                ident_location = &it->second;
                 ++it;
             }
         }
     }
-    else if (it == headers.end() || it->first != ident) {
+    else if (it == headers.end() || !is_ident(it->first, ident)) {
         analyser->report((it == headers.end() ? it - 1: it)->second,
                          check_name, "SHO06",
                          "Missing include for %0.h")
             << ident;
     }
     else {
-        if (it->first == ident) {
-            bdes_ident_location = &it->second;
+        if (is_ident(it->first, ident)) {
+            ident_location = &it->second;
         }
         ++it;
     }
@@ -261,7 +261,7 @@ check_order(Analyser*                       analyser,
     check_order(analyser, "Group", package_end, group_end, end);
     check_order(analyser, "Component", group_end, end);
 
-    return bdes_ident_location;
+    return ident_location;
 }
 
 // ----------------------------------------------------------------------------
@@ -353,17 +353,17 @@ namespace
                 return;
             }
             include_order& data(d_analyser->attachment<include_order>());
-            SourceLocation const* header_bdes_ident(
+            SourceLocation const* header_ident(
                 check_order(d_analyser, data.d_header, true));
-            SourceLocation const* source_bdes_ident(
+            SourceLocation const* source_ident(
                 check_order(d_analyser, data.d_source, false));
-            if (header_bdes_ident && !source_bdes_ident) {
-                d_analyser->report(*header_bdes_ident, check_name, "SHO08",
+            if (header_ident && !source_ident) {
+                d_analyser->report(*header_ident, check_name, "SHO08",
                                    "Component header includes '..._ident.h' "
                                    "but component source does not");
             }
-            if (!header_bdes_ident && source_bdes_ident) {
-                d_analyser->report(*source_bdes_ident, check_name, "SHO08",
+            if (!header_ident && source_ident) {
+                d_analyser->report(*source_ident, check_name, "SHO08",
                                    "Component source includes '..._ident.h' "
                                    "but header does not");
             }

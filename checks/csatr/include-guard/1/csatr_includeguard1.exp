@@ -21,7 +21,7 @@ In file included from csatr_includeguard1.v.cpp:3:
 ./csatr_includeguard1.v.h:3:9: warning: SHO04: Header without or with wrong include guard
 #ifndef INCLUDED_CSATR_INCLUDEGUARD0
         ^
-./csatr_includeguard1.v.h:3:9: warning: SHO06: Missing include for bdes_ident.h
+./csatr_includeguard1.v.h:3:9: warning: SHO06: Missing include for bsls_ident.h
 ./csatr_includeguard1.v.h:3:9: warning: SHO07: Include for csascm_version.h should go here
 ./csatr_includeguard1.v.h:9:9: note: SHO07: Include for csascm_version.h is here
 #ifndef INCLUDED_CSASCM_VERSION
