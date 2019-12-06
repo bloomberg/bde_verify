@@ -160,26 +160,14 @@ csabbg_managedptr.t.cpp:95:7: warning: MP01: Shared pointer without deleter will
     , d_mp04(new (*da) char)
       ^      ~~~~~~~~~~~~~~
 csabbg_managedptr.t.cpp:95:7: note: MP01: Consider using allocateManaged
-csabbg_managedptr.t.cpp:96:7: warning: MP02: Different allocator and deleter for shared pointer
-    , d_mp05(new (*da) char, da)
-      ^            ~~        ~~
-csabbg_managedptr.t.cpp:96:7: note: MP02: Consider using allocateManaged
 csabbg_managedptr.t.cpp:97:7: warning: MP01: Shared pointer without deleter will use 'operator delete'
     , d_mp06(new (*ba) char)
       ^      ~~~~~~~~~~~~~~
 csabbg_managedptr.t.cpp:97:7: note: MP01: Consider using allocateManaged
-csabbg_managedptr.t.cpp:98:7: warning: MP02: Different allocator and deleter for shared pointer
-    , d_mp07(new (*ba) char, ba)
-      ^            ~~        ~~
-csabbg_managedptr.t.cpp:98:7: note: MP02: Consider using allocateManaged
 csabbg_managedptr.t.cpp:99:7: warning: MP01: Shared pointer without deleter will use 'operator delete'
     , d_mp08(new (ta) char)
       ^      ~~~~~~~~~~~~~
 csabbg_managedptr.t.cpp:99:7: note: MP01: Consider using allocateManaged
-csabbg_managedptr.t.cpp:100:7: warning: MP02: Different allocator and deleter for shared pointer
-    , d_mp09(new (ta) char, &ta)
-      ^           ~~         ~~
-csabbg_managedptr.t.cpp:100:7: note: MP02: Consider using allocateManaged
 csabbg_managedptr.t.cpp:101:7: warning: MPOK01: Shared pointer without deleter using default allocator directly
     , d_mp10(new (*bslma::Default::allocator()) char)
       ^           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -192,10 +180,6 @@ csabbg_managedptr.t.cpp:106:7: warning: MP01: Shared pointer without deleter wil
     , d_mp16(new (*ba) char)
       ^      ~~~~~~~~~~~~~~
 csabbg_managedptr.t.cpp:106:7: note: MP01: Consider using allocateManaged
-csabbg_managedptr.t.cpp:107:7: warning: MP02: Different allocator and deleter for shared pointer
-    , d_mp17(new (*ba) char, ba)
-      ^            ~~        ~~
-csabbg_managedptr.t.cpp:107:7: note: MP02: Consider using allocateManaged
 csabbg_managedptr.t.cpp:108:7: warning: MP03: Deleter provided for non-placement allocation for shared pointer
     , d_ep01(new char, da)
       ^      ~~~~~~~~  ~~
@@ -336,4 +320,4 @@ csabbg_managedptr.t.cpp:180:5: warning: MP02: Different allocator and deleter fo
 csabbg_managedptr.t.cpp:181:5: warning: MP02: Different allocator and deleter for shared pointer
     mp.load(new (*da) char, bslma::Default::allocator());
     ^             ~~        ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-71 warnings generated.
+67 warnings generated.

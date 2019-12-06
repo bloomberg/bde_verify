@@ -181,6 +181,15 @@ void g(ManagedPtr<char> &mp, bslma::Allocator *pa)
     mp.load(new (*da) char, bslma::Default::allocator());
 }
 
+// {DRQS 152850882}
+struct Y {
+    int n;
+    bslma::Allocator *a;
+    bslma::ManagedPtr<Y> p;
+    void foo() { p.load(new(*a) Y(n, a), a); }
+    Y(int n, bslma::Allocator *a = 0) : n(n), a(a), p() { foo(); }
+};
+
 // ----------------------------------------------------------------------------
 // Copyright (C) 2019 Bloomberg Finance L.P.
 //

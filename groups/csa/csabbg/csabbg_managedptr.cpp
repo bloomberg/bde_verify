@@ -81,6 +81,7 @@ bool report::isSame(const Expr *e1, const Expr *e2)
     if (!e1 || !e2) return !e1 && !e2;
     e1 = e1->IgnoreParenImpCasts();
     e2 = e2->IgnoreParenImpCasts();
+    if (e1 == e2) return true;
     if (e1->getStmtClass() != e2->getStmtClass()) return false;
     auto i1 = e1->child_begin();
     auto i2 = e2->child_begin();
@@ -97,6 +98,7 @@ bool report::isSame(const Expr *e1, const Expr *e2)
         return false;
       case Stmt::ArraySubscriptExprClass:
       case Stmt::CXXDefaultArgExprClass:
+      case Stmt::CXXThisExprClass:
       case Stmt::CallExprClass:
       case Stmt::ImplicitCastExprClass:
       case Stmt::ParenExprClass:
