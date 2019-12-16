@@ -48,7 +48,7 @@ my $help     = "";
 my $definc   = 1;
 my $defdef   = 1;
 my $logdir   = "/home/hrosen4/mbig/logs/${nm}";
-my $nsa      = -d $logdir | 0;
+my $nsa      = -d $logdir || 0;
 my @incs;
 my @defs;
 my @wflags;
