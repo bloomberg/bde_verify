@@ -46,6 +46,38 @@ template <class A,
           int   B>
 struct y<B, B, A> { };
 
+template <class A,
+          class B>
+struct X {
+    template <class C,
+              class D>
+    struct Y {
+        template <class E,
+                  class F>
+        struct Z;
+        template <class E,
+                  class F>
+        void f();
+    };
+};
+
+template <class A,
+          class B>
+template <class C,
+          class D>
+template <class E,
+          class F>
+struct X<A,B>::Y<C,D>::Z {
+};
+
+template <class A,
+          class B>
+template <class C,
+          class D>
+template <class E,
+          class F>
+void X<A,B>::Y<C,D>::f() {
+};
 
 // ----------------------------------------------------------------------------
 // Copyright (C) 2015 Bloomberg Finance L.P.

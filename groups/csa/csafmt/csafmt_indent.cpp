@@ -148,6 +148,7 @@ struct report : public RecursiveASTVisitor<report>, public Report<data>
 
     bool WalkUpFromCompoundStmt(CompoundStmt *stmt);
     bool WalkUpFromEnumConstantDecl(EnumConstantDecl *decl);
+    bool WalkUpFromDeclaratorDecl(DeclaratorDecl *tag);
     bool WalkUpFromTagDecl(TagDecl *tag);
     bool WalkUpFromFunctionTypeLoc(FunctionTypeLoc func);
     bool WalkUpFromTemplateDecl(TemplateDecl *tplt);
@@ -328,8 +329,29 @@ bool report::WalkUpFromCompoundStmt(CompoundStmt *stmt)
     return Base::WalkUpFromCompoundStmt(stmt);
 }
 
+bool report::WalkUpFromDeclaratorDecl(DeclaratorDecl *decl)
+{
+    for (unsigned i = 0; i < decl->getNumTemplateParameterLists(); ++i) {
+        TemplateParameterList *tpl = decl->getTemplateParameterList(i);
+        if (!tpl->getLAngleLoc().isMacroID()) {
+            PListTemplateParameterList pl(tpl);
+            process_parameter_list(
+                &pl, tpl->getLAngleLoc(), "Template", "IND05", "IND06");
+        }
+    }
+    return Base::WalkUpFromDeclaratorDecl(decl);
+}
+
 bool report::WalkUpFromTagDecl(TagDecl *tag)
 {
+    for (unsigned i = 0; i < tag->getNumTemplateParameterLists(); ++i) {
+        TemplateParameterList *tpl = tag->getTemplateParameterList(i);
+        if (!tpl->getLAngleLoc().isMacroID()) {
+            PListTemplateParameterList pl(tpl);
+            process_parameter_list(
+                &pl, tpl->getLAngleLoc(), "Template", "IND05", "IND06");
+        }
+    }
     if (tag->getBraceRange().isValid() &&
         !tag->getBraceRange().getEnd().isMacroID()) {
         add_indent(tag->getLocation().getLocWithOffset(1), +4);
