@@ -42,6 +42,11 @@ void f(int A,
     unsigned B
 );
 
+template <class A,
+          int   B>
+struct y<B, B, A> { };
+
+
 // ----------------------------------------------------------------------------
 // Copyright (C) 2015 Bloomberg Finance L.P.
 //

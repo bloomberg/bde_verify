@@ -34,11 +34,6 @@ void f(int A,
 parms.cpp:42:14: note: IND03: Rightmost name is here
     unsigned B
              ^
-parms.cpp:25:5: warning: IND01: Possibly mis-indented line
-    int A,
-    ^
-parms.cpp:25:5: note: IND01: Correct version may be
-                                                                     int A,
 parms.cpp:31:11: warning: IND01: Possibly mis-indented line
           class C);
           ^
@@ -59,4 +54,4 @@ parms.cpp:42:5: warning: IND01: Possibly mis-indented line
     ^
 parms.cpp:42:5: note: IND01: Correct version may be
        unsigned B
-12 warnings generated.
+11 warnings generated.

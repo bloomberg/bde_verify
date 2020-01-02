@@ -151,6 +151,8 @@ struct report : public RecursiveASTVisitor<report>, public Report<data>
     bool WalkUpFromTagDecl(TagDecl *tag);
     bool WalkUpFromFunctionTypeLoc(FunctionTypeLoc func);
     bool WalkUpFromTemplateDecl(TemplateDecl *tplt);
+    bool WalkUpFromClassTemplatePartialSpecializationDecl(
+                                 ClassTemplatePartialSpecializationDecl *tplt);
     bool WalkUpFromAccessSpecDecl(AccessSpecDecl *as);
     bool WalkUpFromCallExpr(CallExpr *call);
     bool WalkUpFromParenListExpr(ParenListExpr *list);
@@ -426,7 +428,7 @@ void report::process_parameter_list(PList          *pl,
     size_t level;
     SourceLocation lpe =
         a.get_trim_line_range(pl->getParam(n - 1)->getLocEnd()).getEnd();
-    if (f.line() == arg1.line()) {
+    if (f.line() == arg1.line() || 0 == strcmp(type, "Template")) {
         Range tr(m, a.get_trim_line_range(f.location()));
         level = arg1.column() - tr.from().column();
         add_indent(arg1.location(), level);
@@ -484,6 +486,20 @@ bool report::WalkUpFromTemplateDecl(TemplateDecl *tplt)
     }
 
     return Base::WalkUpFromTemplateDecl(tplt);
+}
+
+bool report::WalkUpFromClassTemplatePartialSpecializationDecl(
+                                  ClassTemplatePartialSpecializationDecl *tplt)
+{
+    if (!tplt->getLocation().isMacroID()) {
+        TemplateParameterList *tpl = tplt->getTemplateParameters();
+        PListTemplateParameterList pl(tpl);
+
+        process_parameter_list(
+            &pl, tpl->getLAngleLoc(), "Template", "IND05", "IND06");
+    }
+
+    return Base::WalkUpFromClassTemplatePartialSpecializationDecl(tplt);
 }
 
 bool report::WalkUpFromAccessSpecDecl(AccessSpecDecl *as)
