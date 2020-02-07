@@ -75,14 +75,16 @@ struct report : public Report<data>
 
 bool report::isSame(const Expr *e1, const Expr *e2)
 {
-    static int d = 0;
-    struct X { int *p; X(int *p) : p(p) { ++*p; } ~X() { --*p; } } x(&d);
     // This code is based on 'IdenticalExprChecker.cpp' from clang's analyzer.
     if (!e1 || !e2) return !e1 && !e2;
     e1 = e1->IgnoreParenImpCasts();
     e2 = e2->IgnoreParenImpCasts();
     if (e1 == e2) return true;
-    if (e1->getStmtClass() != e2->getStmtClass()) return false;
+    if (e1->getStmtClass() != e2->getStmtClass()) {
+        ERRS(); e1->dump(); ERNL();
+        ERRS(); e2->dump(); ERNL();
+        return false;
+    }
     auto i1 = e1->child_begin();
     auto i2 = e2->child_begin();
     while (i1 != e1->child_end() && i2 != e2->child_end()) {
@@ -95,9 +97,12 @@ bool report::isSame(const Expr *e1, const Expr *e2)
 
     switch (e1->getStmtClass()) {
       default:
+        ERRS(); e1->dump(); ERNL();
+        ERRS(); e2->dump(); ERNL();
         return false;
       case Stmt::ArraySubscriptExprClass:
       case Stmt::CXXDefaultArgExprClass:
+      case Stmt::CXXMemberCallExprClass:
       case Stmt::CXXThisExprClass:
       case Stmt::CallExprClass:
       case Stmt::ImplicitCastExprClass:
