@@ -81,8 +81,6 @@ bool report::isSame(const Expr *e1, const Expr *e2)
     e2 = e2->IgnoreParenImpCasts();
     if (e1 == e2) return true;
     if (e1->getStmtClass() != e2->getStmtClass()) {
-        ERRS(); e1->dump(); ERNL();
-        ERRS(); e2->dump(); ERNL();
         return false;
     }
     auto i1 = e1->child_begin();
@@ -97,8 +95,6 @@ bool report::isSame(const Expr *e1, const Expr *e2)
 
     switch (e1->getStmtClass()) {
       default:
-        ERRS(); e1->dump(); ERNL();
-        ERRS(); e2->dump(); ERNL();
         return false;
       case Stmt::ArraySubscriptExprClass:
       case Stmt::CXXDefaultArgExprClass:
