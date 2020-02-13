@@ -1,6 +1,3 @@
-csabbg_bslstdstring.t.cpp:15:9: warning: ST01: Converting std::string to bsl::string
-    b = s;
-        ^
 csabbg_bslstdstring.t.cpp:17:7: warning: ST01: Converting std::string to bsl::string
     f(s);
       ^
@@ -16,4 +13,4 @@ csabbg_bslstdstring.t.cpp:18:7: warning: ST02: Converting bsl::string to std::st
 csabbg_bslstdstring.t.cpp:20:19: warning: ST02: Converting bsl::string to std::string
     std::string x(b);
                   ^
-6 warnings generated.
+5 warnings generated.
