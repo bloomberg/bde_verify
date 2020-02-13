@@ -67,7 +67,7 @@ my $diagnose = "component";
 my $rwd;
 my $rwf;
 my $tag;
-my $ovr = -1;
+my $ovr = 0;
 my $m32;
 my $m64;
 my $diff = "";

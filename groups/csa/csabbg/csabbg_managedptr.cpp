@@ -75,14 +75,14 @@ struct report : public Report<data>
 
 bool report::isSame(const Expr *e1, const Expr *e2)
 {
-    static int d = 0;
-    struct X { int *p; X(int *p) : p(p) { ++*p; } ~X() { --*p; } } x(&d);
     // This code is based on 'IdenticalExprChecker.cpp' from clang's analyzer.
     if (!e1 || !e2) return !e1 && !e2;
     e1 = e1->IgnoreParenImpCasts();
     e2 = e2->IgnoreParenImpCasts();
     if (e1 == e2) return true;
-    if (e1->getStmtClass() != e2->getStmtClass()) return false;
+    if (e1->getStmtClass() != e2->getStmtClass()) {
+        return false;
+    }
     auto i1 = e1->child_begin();
     auto i2 = e2->child_begin();
     while (i1 != e1->child_end() && i2 != e2->child_end()) {
@@ -98,6 +98,7 @@ bool report::isSame(const Expr *e1, const Expr *e2)
         return false;
       case Stmt::ArraySubscriptExprClass:
       case Stmt::CXXDefaultArgExprClass:
+      case Stmt::CXXMemberCallExprClass:
       case Stmt::CXXThisExprClass:
       case Stmt::CallExprClass:
       case Stmt::ImplicitCastExprClass:
@@ -140,6 +141,7 @@ void report::operator()()
         auto ok1 = nodes.getNodeAs<CXXNewExpr>("ok1");
         auto ok2 = nodes.getNodeAs<CXXNewExpr>("ok2");
         auto ok3 = nodes.getNodeAs<CXXNewExpr>("ok3");
+        auto ok4 = nodes.getNodeAs<CXXNewExpr>("ok4");
         auto n1  = nodes.getNodeAs<CXXNewExpr>("n1");
         auto n2  = nodes.getNodeAs<CXXNewExpr>("n2");
         auto n3  = nodes.getNodeAs<CXXNewExpr>("n3");
@@ -173,6 +175,13 @@ void report::operator()()
                      "Shared pointer without deleter using default allocator "
                      "directly")
                 << p->getSourceRange();
+        }
+
+        if (ok4) {
+            a.report(e, check_name, tag = "MPOK01",
+                     "Shared pointer should use allocator member as deleter")
+                << p->getSourceRange()
+                << l->getSourceRange();
         }
 
         if (n1) {
@@ -239,9 +248,15 @@ void report::operator()()
 
     // Match a call to 'bslma::Default::allocator()'.
     auto da = [&] {
-        return ignoringParenImpCasts(callExpr(callee(
-            cxxMethodDecl(hasName("allocator"),
-                          ofClass(hasName("BloombergLP::bslma::Default"))))));
+        return ignoringParenImpCasts(
+            callExpr(callee(cxxMethodDecl(
+                         hasName("allocator"),
+                         ofClass(hasName("BloombergLP::bslma::Default")))),
+                     anyOf(argumentCountIs(0),
+                           hasArgument(0,
+                                       ignoringParenImpCasts(declRefExpr(
+                                           to(parmVarDecl().bind("da"))))),
+                           hasArgument(0, expr()))));
     };
 
     // Match various styles of smart pointer construction or loading.
@@ -276,6 +291,26 @@ void report::operator()()
             //    ManagedPtr<int>
             //        mp(new (*bslma::Default::allocator()) int);
             allOf(argumentCountIs(1), deref_pa(da(), "ok3")),
+            // Deleter is allocator parameter, allocation is through member
+            // default-initialized with parameter.  This is likely OK.  Code
+            // looks like
+            //    struct X { X(bslma::Allocator *b);
+            //               bslma::Allocator *a;
+            //               ManagedPtr<int> p; };
+            //    X::X(bslma::Allocator *b)
+            //    : a(bslma::Default::allocator(b))
+            //    , p(new (*a) int, b) { }
+            allOf(
+                argumentCountIs(2),
+                deref_pa(memberExpr(hasObjectExpression(cxxThisExpr()),
+                                    member(valueDecl().bind("m"))),
+                         "ok4"),
+                hasAncestor(cxxConstructorDecl(hasAnyConstructorInitializer(
+                    allOf(forField(equalsBoundNode("m")),
+                          withInitializer(da()))))),
+                hasArgument(1,
+                            declRefExpr(to(parmVarDecl(equalsBoundNode("da"))))
+                                .bind("l"))),
             // No deleter, and allocation is through placement new, not
             // matching the above.  Code looks like
             //    bslma::TestAllocator ta;
