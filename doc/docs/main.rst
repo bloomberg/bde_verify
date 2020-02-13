@@ -892,7 +892,9 @@ for additional checks.
    Probabale or possible inconsistent uses of allocators and deleters when
    icreating 'ManagedPtr' or 'shared_pointer'.  The warnings below are also
    accompanied by notes saying to consider using 'allocateManaged' or
-   'allocate_shared', which prevent these problems.
+   'allocate_shared', which prevent these problems.  The 'MPOK01' warning is
+   typically disabled, representing usages that are likely to be correct even
+   though they are not expressed in the preferred way.
 
    * ``MPOK01``
      Shared pointer without deleter using default-assigned allocator variable.
@@ -901,6 +903,8 @@ for additional checks.
      variable.
 
      Shared pointer without deleter using default allocator directly.
+
+     Shared pointer should use allocator member as deleter.
    * ``MP01``
      Shared pointer without deleter will use 'operator delete'.
    * ``MP02``
