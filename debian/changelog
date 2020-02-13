@@ -1,3 +1,16 @@
+bde-verify (1.3.13) unstable; urgency=low
+
+  * cc6b662 Merge branch 'managed-ptr_member-call' into debian
+  * be12097 Add new managed pointer message to docs.
+  * 279bc4f Managed pointer false positive removal, start of BSL_OVERRIDE_STD removal.
+  * e522000 Get rid of debugging
+  * 9cbf0ec Add CXXMemberCallExpr to isSame allocator check
+  * c4f0039 More template parameters to check.
+  * f38a34e Fix template parameter indentation check for partial specializations
+  * 7efbcc6 Use || in perl script to avoid uninitialized warning.
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Thu, 13 Feb 2020 16:00:22 -0500
+
 bde-verify (1.3.12) unstable; urgency=low
 
   * f83511f Fix managed pointer error
