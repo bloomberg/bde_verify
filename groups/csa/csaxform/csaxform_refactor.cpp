@@ -359,8 +359,8 @@ bool report::VisitCXXRecordDecl(CXXRecordDecl *arg)
                 rep = "namespace " + ns[i].str() + " { " + rep + " }";
             }
             SourceRange sr = a.get_full_range(
-                SourceRange(m.getSpellingLoc(arg->getLocStart()),
-                            m.getSpellingLoc(arg->getLocEnd())));
+                SourceRange(m.getSpellingLoc(arg->getBeginLoc()),
+                            m.getSpellingLoc(arg->getEndLoc())));
             if (a.ReplaceText(sr, rep)) {
                 a.report(sr.getBegin(), check_name, "RD01",
                          "Replacing forward declaration " + e.str() +

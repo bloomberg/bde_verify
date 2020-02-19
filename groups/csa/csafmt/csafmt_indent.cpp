@@ -206,7 +206,7 @@ void report::add_indent(SourceLocation sloc, indent ind, bool sing)
 bool report::VisitStmt(Stmt *stmt)
 {
     if (a.is_component(stmt)) {
-        Location l(m, stmt->getLocStart());
+        Location l(m, stmt->getBeginLoc());
         if (l) {
             d.d_to_process[l] = llvm::dyn_cast<Expr>(stmt) != 0;
         }
@@ -228,7 +228,7 @@ bool report::VisitIfStmt(IfStmt *stmt)
 bool report::VisitDecl(Decl *decl)
 {
     if (a.is_component(decl)) {
-        Location l(m, decl->getLocStart());
+        Location l(m, decl->getBeginLoc());
         if (l) {
             d.d_to_process[l] = false;
         }
@@ -240,7 +240,7 @@ bool report::WalkUpFromDoStmt(DoStmt *stmt)
 {
     if (a.is_component(stmt) && !stmt->getDoLoc().isMacroID()) {
         if (!llvm::dyn_cast<CompoundStmt>(stmt->getBody())) {
-            add_indent(stmt->getBody()->getLocStart(), +4);
+            add_indent(stmt->getBody()->getBeginLoc(), +4);
             add_indent(stmt->getWhileLoc(), -4);
         }
     }
@@ -251,8 +251,8 @@ bool report::WalkUpFromForStmt(ForStmt *stmt)
 {
     if (a.is_component(stmt) && !stmt->getForLoc().isMacroID()) {
         if (!llvm::dyn_cast<CompoundStmt>(stmt->getBody())) {
-            add_indent(stmt->getBody()->getLocStart(), +4);
-            add_indent(stmt->getLocEnd(), -4);
+            add_indent(stmt->getBody()->getBeginLoc(), +4);
+            add_indent(stmt->getEndLoc(), -4);
         }
     }
     return Base::WalkUpFromForStmt(stmt);
@@ -263,16 +263,16 @@ bool report::WalkUpFromIfStmt(IfStmt *stmt)
     if (a.is_component(stmt) && !stmt->getIfLoc().isMacroID()) {
         // 'break' and 'continue' have locEnd equal to locStart
         auto end = Lexer::getLocForEndOfToken(
-            stmt->getLocEnd(), 0, m, a.context()->getLangOpts());
+            stmt->getEndLoc(), 0, m, a.context()->getLangOpts());
         if (!llvm::dyn_cast<CompoundStmt>(stmt->getThen())) {
             add_indent(stmt->getIfLoc().getLocWithOffset(2), +4);
             add_indent(stmt->getElse() ? stmt->getElseLoc() : end, -4);
         }
         if (stmt->getElse() &&
             (!llvm::dyn_cast<CompoundStmt>(stmt->getElse()) &&
-             m.getPresumedLineNumber(stmt->getElse()->getLocStart()) !=
+             m.getPresumedLineNumber(stmt->getElse()->getBeginLoc()) !=
              m.getPresumedLineNumber(stmt->getElseLoc()))) {
-            add_indent(stmt->getElse()->getLocStart(), +4);
+            add_indent(stmt->getElse()->getBeginLoc(), +4);
             add_indent(end, -4);
         }
     }
@@ -283,8 +283,8 @@ bool report::WalkUpFromSwitchStmt(SwitchStmt *stmt)
 {
     if (a.is_component(stmt) && !stmt->getSwitchLoc().isMacroID()) {
         if (!llvm::dyn_cast<CompoundStmt>(stmt->getBody())) {
-            add_indent(stmt->getBody()->getLocStart(), +4);
-            add_indent(stmt->getLocEnd(), -4);
+            add_indent(stmt->getBody()->getBeginLoc(), +4);
+            add_indent(stmt->getEndLoc(), -4);
         }
     }
     return Base::WalkUpFromSwitchStmt(stmt);
@@ -294,8 +294,8 @@ bool report::WalkUpFromWhileStmt(WhileStmt *stmt)
 {
     if (a.is_component(stmt) && !stmt->getWhileLoc().isMacroID()) {
         if (!llvm::dyn_cast<CompoundStmt>(stmt->getBody())) {
-            add_indent(stmt->getBody()->getLocStart(), +4);
-            add_indent(stmt->getLocEnd(), -4);
+            add_indent(stmt->getBody()->getBeginLoc(), +4);
+            add_indent(stmt->getEndLoc(), -4);
         }
     }
     return Base::WalkUpFromWhileStmt(stmt);
@@ -373,8 +373,8 @@ void report::process_parameter_list(PList          *pl,
     }
 
     Location f(m, sl);
-    Location arg1(m, pl->getParam(0)->getLocStart());
-    Location argn(m, pl->getParam(n - 1)->getLocStart());
+    Location arg1(m, pl->getParam(0)->getBeginLoc());
+    Location argn(m, pl->getParam(n - 1)->getBeginLoc());
 
     if (n > 1) {
         std::vector<llvm::StringRef> parms(n);
@@ -390,7 +390,7 @@ void report::process_parameter_list(PList          *pl,
         SourceLocation bad = arg1.location();
         for (size_t i = 1; i < n; ++i) {
             auto parm = pl->getParam(i);
-            Location arg(m, parm->getLocStart());
+            Location arg(m, parm->getBeginLoc());
             if (!are_numeric_cognates(parms[i - 1], parms[i])) {
                 if (arg.line() != line) {
                     all_on_one_line = false;
@@ -449,7 +449,7 @@ void report::process_parameter_list(PList          *pl,
 
     size_t level;
     SourceLocation lpe =
-        a.get_trim_line_range(pl->getParam(n - 1)->getLocEnd()).getEnd();
+        a.get_trim_line_range(pl->getParam(n - 1)->getEndLoc()).getEnd();
     if (f.line() == arg1.line() || 0 == strcmp(type, "Template")) {
         Range tr(m, a.get_trim_line_range(f.location()));
         level = arg1.column() - tr.from().column();
@@ -461,7 +461,7 @@ void report::process_parameter_list(PList          *pl,
         for (size_t i = 0; i < n; ++i) {
             size_t line_length =
                 llvm::StringRef(
-                    a.get_source_line(pl->getParam(i)->getLocStart()))
+                    a.get_source_line(pl->getParam(i)->getBeginLoc()))
                     .trim()
                     .size();
             if (length < line_length) {
@@ -470,7 +470,7 @@ void report::process_parameter_list(PList          *pl,
             int line_offset;
             int e;
             bool d;
-            get_indent(Location(m, pl->getParam(i)->getLocStart()),
+            get_indent(Location(m, pl->getParam(i)->getBeginLoc()),
                        line_offset, e, d);
             if (offset < line_offset) {
                 offset = line_offset;
@@ -529,7 +529,7 @@ bool report::WalkUpFromAccessSpecDecl(AccessSpecDecl *as)
     if (!as->getLocation().isMacroID()) {
         Location l(m, as->getAccessSpecifierLoc());
         add_indent(l.location(), -2);
-        add_indent(as->getLocEnd(), +2);
+        add_indent(as->getEndLoc(), +2);
     }
     return Base::WalkUpFromAccessSpecDecl(as);
 }
@@ -542,12 +542,12 @@ bool report::WalkUpFromCallExpr(CallExpr *call)
         --n;
     }
     if (n > 0 &&
-        !call->getLocStart().isMacroID() &&
+        !call->getBeginLoc().isMacroID() &&
         !llvm::dyn_cast<CXXOperatorCallExpr>(call)) {
-        Location l(m, call->getLocStart());
+        Location l(m, call->getBeginLoc());
         Location r(m, call->getRParenLoc());
-        Location a1(m, call->getArg(0)->getLocStart());
-        Location an(m, call->getArg(n - 1)->getLocStart());
+        Location a1(m, call->getArg(0)->getBeginLoc());
+        Location an(m, call->getArg(n - 1)->getBeginLoc());
         int offset, exact_offset;
         bool dotdot;
         get_indent(l, offset, exact_offset, dotdot);
@@ -560,7 +560,7 @@ bool report::WalkUpFromCallExpr(CallExpr *call)
             for (size_t i = 0; i < n; ++i) {
                 size_t line_length =
                     llvm::StringRef(
-                        a.get_source_line(call->getArg(i)->getLocStart()))
+                        a.get_source_line(call->getArg(i)->getBeginLoc()))
                         .trim()
                         .size();
                 if (length < line_length) {
@@ -584,11 +584,11 @@ bool report::WalkUpFromCallExpr(CallExpr *call)
 bool report::WalkUpFromParenListExpr(ParenListExpr *list)
 {
     unsigned n = list->getNumExprs();
-    if (n > 0 && !list->getLocStart().isMacroID()) {
+    if (n > 0 && !list->getBeginLoc().isMacroID()) {
         Location l(m, list->getLParenLoc());
         Location r(m, list->getRParenLoc());
-        Location a1(m, list->getExpr(0)->getLocStart());
-        Location an(m, list->getExpr(n - 1)->getLocStart());
+        Location a1(m, list->getExpr(0)->getBeginLoc());
+        Location an(m, list->getExpr(n - 1)->getBeginLoc());
         if (l.line() == a1.line()) {
             Range tr(m, a.get_trim_line_range(l.location()));
             size_t level = a1.column() - tr.from().column();
@@ -599,7 +599,7 @@ bool report::WalkUpFromParenListExpr(ParenListExpr *list)
             for (size_t i = 0; i < n; ++i) {
                 size_t line_length =
                     llvm::StringRef(
-                            a.get_source_line(list->getExpr(i)->getLocStart()))
+                            a.get_source_line(list->getExpr(i)->getBeginLoc()))
                         .trim().size();
                 if (length < line_length) {
                     length = line_length;
@@ -621,7 +621,7 @@ bool report::WalkUpFromParenListExpr(ParenListExpr *list)
 
 bool report::WalkUpFromSwitchCase(SwitchCase *stmt)
 {
-    if (!stmt->getLocStart().isMacroID()) {
+    if (!stmt->getBeginLoc().isMacroID()) {
         add_indent(stmt->getKeywordLoc(), -2);
         add_indent(stmt->getColonLoc(), +2);
     }

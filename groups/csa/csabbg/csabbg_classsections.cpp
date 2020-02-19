@@ -229,7 +229,7 @@ SourceLocation report::getLoc(const TagData &td) const
 
 SourceLocation report::getLoc(const Decl *decl) const
 {
-    return getLoc(decl->getLocStart());
+    return getLoc(decl->getBeginLoc());
 }
 
 SourceLocation report::getLoc(const Sort &sort) const
@@ -248,7 +248,7 @@ SourceLocation report::getLoc(const Sort &sort) const
 SourceLocation report::getDCLoc(const Decl *decl) const
 {
     auto rd = llvm::dyn_cast<RecordDecl>(decl->getDeclContext());
-    return rd ? getLoc(rd->getLocStart()) :
+    return rd ? getLoc(rd->getBeginLoc()) :
                 m.getLocForStartOfFile(m.getMainFileID());
 }
 

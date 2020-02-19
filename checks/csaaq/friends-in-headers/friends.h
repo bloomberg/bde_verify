@@ -172,7 +172,7 @@ class i
     template <class T> friend void i_function_template_declared_before(T);
     template <class T> friend void i_function_template_declared_after(T);
     template <class T> friend void i_function_template_declared_in_cpp(T);
-    template <class T> friend void i_function_template_defined_here(T) { }
+//  template <class T> friend void i_function_template_defined_here(T) { }
     template <class T> friend void i_function_template_defined_before(T);
     template <class T> friend void i_function_template_defined_after(T);
     template <class T> friend void i_function_template_defined_in_cpp(T);

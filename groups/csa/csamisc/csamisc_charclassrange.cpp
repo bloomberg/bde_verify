@@ -21,14 +21,14 @@ static std::string const check_name("char-classification-range");
 namespace clang {
 namespace ast_matchers {
     AST_MATCHER(Expr, known) {
-        llvm::APSInt value;
-        return Node.EvaluateAsInt(value, Finder->getASTContext());
+        Expr::EvalResult result;
+        return Node.EvaluateAsInt(result, Finder->getASTContext());
     }
     AST_MATCHER_P2(Expr, inRange, long long, low, long long, high) {
-        llvm::APSInt value;
-        return Node.EvaluateAsInt(value, Finder->getASTContext()) &&
-               value.getSExtValue() >= low &&
-               value.getSExtValue() <= high;
+        Expr::EvalResult result;
+        return Node.EvaluateAsInt(result, Finder->getASTContext()) &&
+               result.Val.getInt().getSExtValue() >= low &&
+               result.Val.getInt().getSExtValue() <= high;
     }
 }
 }

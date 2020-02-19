@@ -385,7 +385,7 @@ internal::DynTypedMatcher set_status_matcher()
 void report::match_set_status(const BoundNodes& nodes)
 {
     if (const Stmt *bad = nodes.getNodeAs<Stmt>("bad")) {
-        a.report(bad->getLocEnd(), check_name, "TP24",
+        a.report(bad->getEndLoc(), check_name, "TP24",
                  "`default:` case should set `testStatus = -1;`");
     }
 }
@@ -640,7 +640,7 @@ void report::operator()()
         d.d_return = 0;
         mf.match(*last, *a.context());
         if (!d.d_return) {
-            a.report(last->getLocEnd(), check_name, "TP23",
+            a.report(last->getEndLoc(), check_name, "TP23",
                    "Final statement of `main()` must be `return testStatus;`");
         }
     } else {
@@ -674,10 +674,11 @@ void report::operator()()
             continue;
         }
 
-        llvm::APSInt case_value;
-        cs->getLHS()->EvaluateAsInt(case_value, *a.context());
-        bool negative = 0 >  case_value.getSExtValue();
-        bool zero     = 0 == case_value.getSExtValue();
+        Expr::EvalResult result;
+        cs->getLHS()->EvaluateAsInt(result, *a.context());
+        int64_t case_value = result.Val.getInt().getSExtValue();
+        bool negative = 0 >  case_value;
+        bool zero     = 0 == case_value;
 
         MatchFinder mf;
         OnMatch<report, &report::match_noisy_print> m2(this);
@@ -717,19 +718,19 @@ void report::operator()()
         }
 
         if (!bl.isValid() && !zero) {
-            a.report(sc->getLocStart(), check_name, "TP17",
+            a.report(sc->getBeginLoc(), check_name, "TP17",
                 "Test case does not contain 'if (verbose) print test banner'");
         }
 
         if (!cr.isValid()) {
             if (!zero) {
-                a.report(sc->getLocStart(), check_name, "TP05",
+                a.report(sc->getBeginLoc(), check_name, "TP05",
                          "Test case has no comment");
             }
             continue;
         } else {
             if (zero) {
-                a.report(sc->getLocStart(), check_name, "TP10",
+                a.report(sc->getBeginLoc(), check_name, "TP10",
                          "Case 0 should not have a test comment");
             }
         }
@@ -816,7 +817,7 @@ void report::operator()()
             std::pair<Ci, Ci> be = d.d_cases_of_tests.equal_range(line);
             Ci match_itr;
             for (match_itr = be.first; match_itr != be.second; ++match_itr) {
-                if (match_itr->second == case_value.getSExtValue()) {
+                if (match_itr->second == case_value) {
                     break;
                 }
             }
@@ -830,7 +831,7 @@ void report::operator()()
                 a.report(cr.getBegin().getLocWithOffset(line_pos),
                          check_name, "TP08",
                         "Test plan does not have case number %0 for this item")
-                    << case_value.getSExtValue();
+                    << case_value;
                 a.report(plan_range.getBegin().getLocWithOffset(off),
                          check_name, "TP08",
                          "Test plan item is",
@@ -841,13 +842,12 @@ void report::operator()()
                          check_name, "TP09",
                          "Test plan should contain this item from "
                          "'Testing' section of case %0")
-                    << case_value.getSExtValue();
+                    << case_value;
             }
         }
 
         typedef data::TestsOfCases::const_iterator Ci;
-        std::pair<Ci, Ci> be = d.d_tests_of_cases.equal_range(
-            case_value.getSExtValue());
+        std::pair<Ci, Ci> be = d.d_tests_of_cases.equal_range(case_value);
         for (Ci i = be.first; i != be.second; ++i) {
             if (comment.drop_front(testing_pos).find(i->second) ==
                 comment.npos) {
@@ -856,7 +856,7 @@ void report::operator()()
                          check_name, "TP06",
                          "'Testing' section of case %0 should contain this "
                          "item from test plan")
-                    << case_value.getSExtValue();
+                    << case_value;
             }
         }
     }
@@ -1061,7 +1061,7 @@ void report::match_noisy_print(const BoundNodes& nodes)
 {
     const IfStmt *noisy = nodes.getNodeAs<IfStmt>("noisy");
 
-    if (noisy->getLocStart().isMacroID()) {
+    if (noisy->getBeginLoc().isMacroID()) {
         return;                                                       // RETURN
     }
 
@@ -1073,7 +1073,7 @@ void report::match_no_print(const BoundNodes& nodes)
 {
     const Stmt *quiet = nodes.getNodeAs<Stmt>("loop");
 
-    if (quiet->getLocStart().isMacroID()) {
+    if (quiet->getBeginLoc().isMacroID()) {
         return;                                                       // RETURN
     }
 

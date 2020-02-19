@@ -130,7 +130,7 @@ public:
     template <class T>
     bool operator()(const T *a, const T *b)
     {
-        return m.isBeforeInTranslationUnit(a->getLocStart(), b->getLocStart());
+        return m.isBeforeInTranslationUnit(a->getBeginLoc(), b->getBeginLoc());
     }
 };
 

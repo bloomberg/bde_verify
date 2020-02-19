@@ -135,7 +135,8 @@ void report::operator()()
         auto mc  = nodes.getNodeAs<CXXMemberCallExpr>("mc");
         auto sc  = nodes.getNodeAs<CXXMemberCallExpr>("sc");
         auto c   = mc ? mc : sc;
-        auto e   = x ? llvm::dyn_cast<Expr>(x) : llvm::dyn_cast<Expr>(c);
+        auto e   = x ? llvm::dyn_cast<Expr>(x)
+                   :   llvm::dyn_cast<Expr>(c->getImplicitObjectArgument());
         auto p   = nodes.getNodeAs<Expr>("p");
         auto l   = nodes.getNodeAs<Expr>("l");
         auto ok1 = nodes.getNodeAs<CXXNewExpr>("ok1");
@@ -154,7 +155,7 @@ void report::operator()()
                      "Shared pointer without deleter using default-assigned "
                      "allocator variable")
                 << p->getSourceRange();
-            a.report(b, check_name, "MPOK01",
+            a.report(b->getLHS(), check_name, "MPOK01",
                      "Assignment is here",
                      false, DiagnosticIDs::Note);
         }

@@ -23,7 +23,7 @@ namespace
 void conversions(Analyser& analyser, const CXXConversionDecl* conv)
     // Callback function for inspecting conversion declarations.
 {
-    Location loc(analyser.get_location(conv->getLocStart()));
+    Location loc(analyser.get_location(conv->getBeginLoc()));
     if (analyser.is_component(loc.file()))
     {
         QualType type = conv->getConversionType();

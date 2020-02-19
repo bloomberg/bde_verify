@@ -129,7 +129,7 @@ const NamedDecl *report::top(const NamedDecl *decl)
 void report::operator()()
 {
     for (auto& decl : d.d_fundecls) {
-        Location location(a.get_location(decl.first->getLocStart()));
+        Location location(a.get_location(decl.first->getBeginLoc()));
         data::Ranges& c = d.d_comments[location.file()];
         decl.second = getContract(decl.first, c.begin(), c.end());
     }
@@ -266,7 +266,7 @@ SourceRange report::getContract(const FunctionDecl     *func,
     bool one_liner =
         with_body &&
         m.getPresumedLineNumber(declarator.getBegin()) ==
-            m.getPresumedLineNumber(func->getBody()->getLocEnd());
+            m.getPresumedLineNumber(func->getBody()->getEndLoc());
 
     const CXXConstructorDecl *ctor = llvm::dyn_cast<CXXConstructorDecl>(func);
 
@@ -299,7 +299,7 @@ SourceRange report::getContract(const FunctionDecl     *func,
         // Function with body - look for a comment that starts no earlier than
         // the function declarator and has only whitespace between itself and
         // the open brace of the function.
-        SourceLocation bodyloc = func->getBody()->getLocStart();
+        SourceLocation bodyloc = func->getBody()->getBeginLoc();
         data::Ranges::iterator it;
         for (it = comments_begin; it != comments_end; ++it) {
             if (m.isBeforeInTranslationUnit(bodyloc, it->getBegin())) {
@@ -354,9 +354,9 @@ bool report::isValidContract(const FunctionDecl* func, SourceRange comment)
     const SourceLocation cloc = comment.getBegin();
 
     // Check for bad indentation.
-    llvm::StringRef f = a.get_source_line(func->getLocStart());
+    llvm::StringRef f = a.get_source_line(func->getBeginLoc());
     llvm::StringRef c = a.get_source_line(cloc);
-    int fline = m.getPresumedLineNumber(func->getLocStart());
+    int fline = m.getPresumedLineNumber(func->getBeginLoc());
     int fcolm = int(f.find_first_not_of(' '));
     int cline = m.getPresumedLineNumber(cloc);
     int ccolm = int(c.find_first_not_of(' '));

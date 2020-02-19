@@ -39,12 +39,12 @@ void allFunDecls(Analyser& analyser, const FunctionDecl* func)
             )
         ) {
         if (!pa->getName().empty() && pa->getName() != "a") {
-            analyser.report(pa->getLocStart(), check_name, "SWAB01",
+            analyser.report(pa->getBeginLoc(), check_name, "SWAB01",
                             "First parameter of 'swap' should be named 'a'")
                 << pa->getSourceRange();
         }
         if (!pb->getName().empty() && pb->getName() != "b") {
-            analyser.report(pb->getLocStart(), check_name, "SWAB01",
+            analyser.report(pb->getBeginLoc(), check_name, "SWAB01",
                             "Second parameter of 'swap' should be named 'b'")
                 << pb->getSourceRange();
         }

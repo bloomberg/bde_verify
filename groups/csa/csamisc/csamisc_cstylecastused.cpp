@@ -39,7 +39,7 @@ check_cast(Analyser& analyser, CStyleCastExpr const* expr)
       case CK_FloatingCast:
         break;
       default: {
-          if (!expr->getLocStart().isMacroID() &&
+          if (!expr->getBeginLoc().isMacroID() &&
               !expr->getSubExprAsWritten()->isNullPointerConstant(
                    *analyser.context(), Expr::NPC_ValueDependentIsNotNull)) {
             analyser.report(expr, check_name, "CC01", "C-style cast is used")

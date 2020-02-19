@@ -513,8 +513,8 @@ bool report::hasCommentedCognate(const FunctionDecl *func,
                 return true;                                          // RETURN
             }
             if (cfunc != func) {
-                fm.insert(d_manager.getPresumedLineNumber(decl->getLocStart()),
-                          d_manager.getPresumedLineNumber(decl->getLocEnd()),
+                fm.insert(d_manager.getPresumedLineNumber(decl->getBeginLoc()),
+                          d_manager.getPresumedLineNumber(decl->getEndLoc()),
                           itr);
             }
         }
@@ -522,14 +522,14 @@ bool report::hasCommentedCognate(const FunctionDecl *func,
 
     // A consecutive set of function declarations with nothing else intervening
     // are cognates.
-    unsigned el = d_manager.getPresumedLineNumber(func->getLocEnd());
+    unsigned el = d_manager.getPresumedLineNumber(func->getEndLoc());
     while (fmap::Status status = fm.find_contract(++el)) {
         if (status == fmap::e_Found) {
             return true;                                              // RETURN
         }
     }
 
-    unsigned bl = d_manager.getPresumedLineNumber(func->getLocStart());
+    unsigned bl = d_manager.getPresumedLineNumber(func->getBeginLoc());
     while (fmap::Status status = fm.find_contract(--bl)) {
         if (status == fmap::e_Found) {
             return true;                                              // RETURN
@@ -542,7 +542,7 @@ bool report::hasCommentedCognate(const FunctionDecl *func,
 void report::processAllFunDecls(data::FunDecls& decls)
 {
     for (data::FunDecls::iterator it = decls.begin(); it != decls.end(); ++it) {
-        Location location(d_analyser.get_location(it->first->getLocStart()));
+        Location location(d_analyser.get_location(it->first->getBeginLoc()));
         data::Ranges& c = d.d_comments[location.file()];
         it->second = getContract(it->first, c.begin(), c.end());
     }
@@ -589,7 +589,7 @@ SourceRange report::getContract(const FunctionDecl     *func,
     bool one_liner =
         with_body &&
         d_manager.getPresumedLineNumber(declarator.getBegin()) ==
-            d_manager.getPresumedLineNumber(func->getBody()->getLocEnd());
+            d_manager.getPresumedLineNumber(func->getBody()->getEndLoc());
 
     const CXXConstructorDecl *ctor = llvm::dyn_cast<CXXConstructorDecl>(func);
 
@@ -623,7 +623,7 @@ SourceRange report::getContract(const FunctionDecl     *func,
         // Function with body - look for a comment that starts no earlier than
         // the function declarator and has only whitespace between itself and
         // the open brace of the function.
-        SourceLocation bodyloc = func->getBody()->getLocStart();
+        SourceLocation bodyloc = func->getBody()->getBeginLoc();
         data::Ranges::iterator it;
         for (it = comments_begin; it != comments_end; ++it) {
             if (d_manager.isBeforeInTranslationUnit(bodyloc, it->getBegin())) {
@@ -693,9 +693,9 @@ void report::critiqueContract(const FunctionDecl* func, SourceRange comment)
     const SourceLocation cloc = comment.getBegin();
 
     // Check for bad indentation.
-    llvm::StringRef f = d_analyser.get_source_line(func->getLocStart());
+    llvm::StringRef f = d_analyser.get_source_line(func->getBeginLoc());
     llvm::StringRef c = d_analyser.get_source_line(cloc);
-    int fline = d_manager.getPresumedLineNumber(func->getLocStart());
+    int fline = d_manager.getPresumedLineNumber(func->getBeginLoc());
     int fcolm = int(f.find_first_not_of(' '));
     int cline = d_manager.getPresumedLineNumber(cloc);
     int ccolm = int(c.find_first_not_of(' '));

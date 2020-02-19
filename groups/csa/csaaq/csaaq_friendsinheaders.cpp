@@ -91,8 +91,8 @@ void report::operator()(const CXXRecordDecl *decl)
 
 bool report::isOther(const Decl *decl, const FriendDecl *fd, FileID fid)
 {
-    SourceLocation dl = decl->getLocEnd();
-    SourceLocation fl = fd->getLocEnd();
+    SourceLocation dl = decl->getEndLoc();
+    SourceLocation fl = fd->getEndLoc();
     return dl.isMacroID() ||
            (isDefinition(decl) && dl == fl) ||
            (m.getFileID(dl) == fid && dl != fl);

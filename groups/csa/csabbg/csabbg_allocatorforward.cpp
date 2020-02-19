@@ -753,12 +753,12 @@ static internal::DynTypedMatcher class_using_allocator_matcher()
 
 SourceLocation report::semiAfterRecordDecl(const CXXRecordDecl *record)
 {
-    SourceLocation end = record->getLocEnd();
+    SourceLocation end = record->getEndLoc();
     const Decl *decl = record;
     while (nullptr != (decl = decl->getNextDeclInContext())) {
-        if (m.isBeforeInTranslationUnit(decl->getLocStart(), end)) {
-            if (m.isBeforeInTranslationUnit(end, decl->getLocEnd())) {
-                end = decl->getLocEnd();
+        if (m.isBeforeInTranslationUnit(decl->getBeginLoc(), end)) {
+            if (m.isBeforeInTranslationUnit(end, decl->getEndLoc())) {
+                end = decl->getEndLoc();
             }
         }
         else {
@@ -801,13 +801,13 @@ void report::force_implicit_definitions(const CXXRecordDecl *record)
             !c->doesThisDeclarationHaveABody()) {
             switch (a.sema().getSpecialMember(c)) {
               case Sema::CXXDefaultConstructor:
-                a.sema().DefineImplicitDefaultConstructor(c->getLocStart(), c);
+                a.sema().DefineImplicitDefaultConstructor(c->getBeginLoc(), c);
                 break;
               case Sema::CXXCopyConstructor:
-                a.sema().DefineImplicitCopyConstructor(c->getLocStart(), c);
+                a.sema().DefineImplicitCopyConstructor(c->getBeginLoc(), c);
                 break;
               case Sema::CXXMoveConstructor:
-                a.sema().DefineImplicitMoveConstructor(c->getLocStart(), c);
+                a.sema().DefineImplicitMoveConstructor(c->getBeginLoc(), c);
                 break;
               default:
                 break;
@@ -1393,7 +1393,7 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
                                      "Class %0 has unnecessary d_allocator_p")
                                 << record;
                             if (base_with_allocator) {
-                                a.report(base_with_allocator->getLocStart(),
+                                a.report(base_with_allocator->getBeginLoc(),
                                          check_name, "AP01",
                                          "Use allocator of base class %0",
                                          false, DiagnosticIDs::Note)
@@ -1953,7 +1953,7 @@ bool report::write_ctor_with_allocator_definition(
         decl->getDescribedFunctionTemplate();
 
     if (up) {
-        ins_loc    = ft ? ft->getLocStart() : decl->getLocStart();
+        ins_loc    = ft ? ft->getBeginLoc() : decl->getBeginLoc();
         end_spaces = 0;
     }
     else {
@@ -1977,15 +1977,15 @@ bool report::write_ctor_with_allocator_definition(
 
     if (ft) {
         ot << indent << a.get_source(SourceRange(
-                  ft->getLocStart(),
-                  decl->getLocStart().getLocWithOffset(-1))).rtrim()
+                  ft->getBeginLoc(),
+                  decl->getBeginLoc().getLocWithOffset(-1))).rtrim()
                                                               << "\n" << spaces
            ;
     }
     if (up) {
         ot << indent
-           << a.get_source(SourceRange(decl->getLocStart(),
-                                       decl->getNameInfo().getLocEnd()))
+           << a.get_source(SourceRange(decl->getBeginLoc(),
+                                       decl->getNameInfo().getEndLoc()))
            << '(';
     }
     else {
@@ -2148,8 +2148,8 @@ bool report::write_ctor_with_allocator_declaration(
     if (const auto *ft = decl->getDescribedFunctionTemplate()) {
         ot << "    "
            << a.get_source(SourceRange(
-                  ft->getLocStart(),
-                  decl->getLocStart().getLocWithOffset(-1))).rtrim()
+                  ft->getBeginLoc(),
+                  decl->getBeginLoc().getLocWithOffset(-1))).rtrim()
                                                               << "\n" << spaces
            ;
     }

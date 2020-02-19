@@ -63,9 +63,9 @@ struct report : Report<data> {
 
 bool report::getValue(Expr const *expr, long& value)
 {
-    llvm::APSInt result;
+    Expr::EvalResult result;
     if (expr->EvaluateAsInt(result, *a.context())) {
-        value = result.getSExtValue();
+        value = result.Val.getInt().getSExtValue();
         return true;
     }
     return false;

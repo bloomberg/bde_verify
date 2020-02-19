@@ -133,7 +133,7 @@ void report::operator()(const CallExpr *call)
         }
         func = func->getCanonicalDecl();
         if (!a.is_test_driver() ||
-            !a.is_component_header(func->getLocStart())) {
+            !a.is_component_header(func->getBeginLoc())) {
             d.d_calls.insert(
                 std::make_pair(Location(m, call->getExprLoc()), func));
         }
@@ -143,7 +143,7 @@ void report::operator()(const CallExpr *call)
 void report::operator()()
 {
     for (auto& p : d.d_recdecls) {
-        Location location(a.get_location(p.first->getLocStart()));
+        Location location(a.get_location(p.first->getBeginLoc()));
         data::Ranges& c = d.d_comments[location.file()];
         p.second = getContract(p.first, c.begin(), c.end());
         auto j = d.d_dep_comms.find(p.second.getBegin());
@@ -153,7 +153,7 @@ void report::operator()()
     }
 
     for (auto& p : d.d_fundecls) {
-        Location location(a.get_location(p.first->getLocStart()));
+        Location location(a.get_location(p.first->getBeginLoc()));
         data::Ranges& c = d.d_comments[location.file()];
         p.second = getContract(p.first, c.begin(), c.end());
         auto i = d.d_dep_files.find(location.file());
@@ -233,7 +233,7 @@ SourceRange report::getContract(const FunctionDecl     *func,
     bool with_body = func->doesThisDeclarationHaveABody() && func->getBody();
     bool one_liner = with_body &&
                      m.getPresumedLineNumber(declarator.getBegin()) ==
-                         m.getPresumedLineNumber(func->getBody()->getLocEnd());
+                         m.getPresumedLineNumber(func->getBody()->getEndLoc());
 
     const CXXConstructorDecl *ctor = llvm::dyn_cast<CXXConstructorDecl>(func);
 
@@ -266,7 +266,7 @@ SourceRange report::getContract(const FunctionDecl     *func,
         // Function with body - look for a comment that starts no earlier than
         // the function declarator and has only whitespace between itself and
         // the open brace of the function.
-        SourceLocation bodyloc = func->getBody()->getLocStart();
+        SourceLocation bodyloc = func->getBody()->getBeginLoc();
         data::Ranges::iterator it;
         for (it = comments_begin; it != comments_end; ++it) {
             if (m.isBeforeInTranslationUnit(bodyloc, it->getBegin())) {
@@ -320,12 +320,12 @@ SourceRange report::getContract(const CXXRecordDecl    *rec,
         SourceRange range = rec->getSourceRange();
         auto b = rec->decls_begin();
         for (; b != rec->decls_end(); ++b) {
-            if (b->getLocStart() != range.getBegin()) {
+            if (b->getBeginLoc() != range.getBegin()) {
                 break;
             }
         }
         if (b != rec->decls_end()) {
-            range.setEnd(b->getLocStart());
+            range.setEnd(b->getBeginLoc());
         }
 
         data::Ranges::iterator it;

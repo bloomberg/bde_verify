@@ -8,6 +8,7 @@
 #include <csabase_debug.h>
 #include <csabase_diagnostic_builder.h>
 #include <csabase_filenames.h>
+#include <csabase_location.h>
 #include <csabase_ppobserver.h>
 #include <csabase_registercheck.h>
 #include <llvm/ADT/SmallVector.h>
@@ -72,7 +73,7 @@ static void onIf(Analyser* analyser, SourceLocation where, SourceRange source)
 {
     llvm::SmallVector<llvm::StringRef, 7> matches;
     llvm::StringRef guard;
-    if (ndef.match(analyser->get_source(source, true), &matches)) {
+    if (ndef.match(analyser->get_source(source), &matches)) {
         guard = matches[1];
     }
     analyser->attachment<ExternalGuards>().d_conditions.push(

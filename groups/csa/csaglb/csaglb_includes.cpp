@@ -99,7 +99,7 @@ void report::operator()(SourceLocation Loc, SourceLocation IfLoc)
                 inclusion.d_fe = p.LookupFile(fsl,
                          a.get_source(inclusion.d_file),
                          a.get_source(inclusion.d_fullFile)[0] == '<',
-                         0, 0, dl, 0, 0, 0, 0);
+                         0, 0, dl, 0, 0, 0, 0, 0);
             }
         }
     }

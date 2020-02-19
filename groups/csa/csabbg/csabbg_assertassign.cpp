@@ -45,13 +45,13 @@ void report::operator()()
         auto parent = nodes.getNodeAs<FunctionDecl>("parent");
         auto negate = nodes.getNodeAs<UnaryOperator>("!");
         auto assign = nodes.getNodeAs<BinaryOperator>("=");
-        if (m.getFileID(parent->getLocStart()) ==
+        if (m.getFileID(parent->getBeginLoc()) ==
             m.getFileID(m.getSpellingLoc(assign->getOperatorLoc())) &&
             negate->getOperatorLoc().isMacroID()) {
             a.report(assign->getOperatorLoc(), check_name, "AE01",
                      "Assignment appears as top-level macro condition")
-                << SourceRange(assign->getLocStart(),
-                               assign->getLocEnd());
+                << SourceRange(assign->getBeginLoc(),
+                               assign->getEndLoc());
         }
     });
     mf.addDynamicMatcher(decl(forEachDescendant(unaryOperator(

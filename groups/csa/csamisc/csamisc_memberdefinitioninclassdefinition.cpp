@@ -48,7 +48,7 @@ member_definition_in_class_definition(Analyser& analyser,
         && !decl->isImplicit()
         && !data.reported_[decl->getCanonicalDecl()]
         && !analyser.is_test_driver()
-        && !decl->getLocStart().isMacroID())
+        && !decl->getBeginLoc().isMacroID())
     {
         analyser.report(decl, check_name, "CD01",
                 "Member function '%0' is defined in the class definition.")

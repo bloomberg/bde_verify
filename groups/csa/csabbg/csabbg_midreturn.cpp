@@ -89,7 +89,7 @@ struct report : Report<data>
     {
         const ReturnStmt *ret = nodes.getNodeAs<ReturnStmt>("return");
 
-        if (!d_analyser.is_component(ret->getLocStart())) {
+        if (!d_analyser.is_component(ret->getBeginLoc())) {
             return;                                                   // RETURN
         }
 
@@ -174,7 +174,7 @@ struct report : Report<data>
                         "Mid-function 'return' requires '// RETURN' comment",
                         true);
                 SourceRange line_range =
-                    d_analyser.get_line_range((*it)->getLocEnd());
+                    d_analyser.get_line_range((*it)->getEndLoc());
                 if (line_range.isValid()) {
                     llvm::StringRef line = d_analyser.get_source(line_range);
                     std::string tag = (line.size() < 70
@@ -201,7 +201,7 @@ struct report : Report<data>
         }
 
         SourceManager& m = d_analyser.manager();
-        SourceLocation loc = stmt->getLocEnd();
+        SourceLocation loc = stmt->getEndLoc();
         if (loc.isMacroID()) {
             for (auto r : d_data.d_all_macros) {
                 if (!m.isBeforeInTranslationUnit(loc, r.getBegin()) &&
@@ -212,7 +212,7 @@ struct report : Report<data>
             }
         }
         // This "getLocForEndOfToken" weirdness is necessary because for some
-        // expressions (like "a.def"), "stmt->getLocEnd()" returns a position
+        // expressions (like "a.def"), "stmt->getEndLoc()" returns a position
         // within the expression instead of the end (e.g., 'd', not 'f').
         loc = m.getFileLoc(Lexer::getLocForEndOfToken(
             loc, 0, m, d_analyser.context()->getLangOpts()));

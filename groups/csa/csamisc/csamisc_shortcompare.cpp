@@ -53,7 +53,7 @@ void report::operator()(const BinaryOperator *expr)
                       rst->getKind() == rst->UShort) ||
                      (lst->getKind() == lst->UShort &&
                       rst->getKind() == rst->Short))) {
-                    a.report(expr, check_name, "US01",
+                    a.report(expr->getLHS(), check_name, "US01",
                              "Comparison between signed and unsigned short "
                              "may cause unexpected behavior");
                 }

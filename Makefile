@@ -234,19 +234,19 @@ LIBS     =    -l$(LCB)                                                        \
               -lLLVMSparcAsmParser                                            \
               -lLLVMSparcDesc                                                 \
               -lLLVMSparcInfo                                                 \
-              -lLLVMSparcAsmPrinter                                           \
               -lLLVMOption                                                    \
               -lLLVMX86AsmParser                                              \
               -lLLVMX86CodeGen                                                \
               -lLLVMGlobalISel                                                \
               -lLLVMSelectionDAG                                              \
               -lLLVMAsmPrinter                                                \
+              -lLLVMDebugInfoDWARF                                            \
+              -lLLVMBitstreamReader                                           \
               -lLLVMDebugInfoCodeView                                         \
               -lLLVMDebugInfoMSF                                              \
               -lLLVMX86Desc                                                   \
               -lLLVMMCDisassembler                                            \
               -lLLVMX86Info                                                   \
-              -lLLVMX86AsmPrinter                                             \
               -lLLVMX86Utils                                                  \
               -lLLVMCodeGen                                                   \
               -lLLVMTarget                                                    \
@@ -269,6 +269,7 @@ LIBS     =    -l$(LCB)                                                        \
               -lLLVMProfileData                                               \
               -lLLVMCore                                                      \
               -lLLVMBinaryFormat                                              \
+              -lLLVMRemarks                                                   \
               -lLLVMSupport                                                   \
               -lLLVMDemangle                                                  \
               -lncurses                                                       \

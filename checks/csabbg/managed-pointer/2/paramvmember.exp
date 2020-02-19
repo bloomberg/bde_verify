@@ -1,0 +1,41 @@
+paramvmember.t.cpp:28:7: warning: MPOK01: Shared pointer should use allocator member as deleter
+    , d_osp01(new (*da) char, pa)
+      ^            ~~~        ~~
+paramvmember.t.cpp:28:7: note: MPOK01: Consider using allocate_shared
+paramvmember.t.cpp:29:7: warning: MPOK01: Shared pointer should use allocator member as deleter
+    , d_osp02(new (*ba) char, pa)
+      ^            ~~~        ~~
+paramvmember.t.cpp:29:7: note: MPOK01: Consider using allocate_shared
+paramvmember.t.cpp:30:7: warning: MP02: Different allocator and deleter for shared pointer
+    , d_esp01(new (*da) char, qa)
+      ^             ~~        ~~
+paramvmember.t.cpp:30:7: note: MP02: Consider using allocate_shared
+paramvmember.t.cpp:31:7: warning: MP02: Different allocator and deleter for shared pointer
+    , d_esp02(new (*ba) char, qa)
+      ^             ~~        ~~
+paramvmember.t.cpp:31:7: note: MP02: Consider using allocate_shared
+paramvmember.t.cpp:32:7: warning: MP02: Different allocator and deleter for shared pointer
+    , d_esp03(new ( ta) char, pa)
+      ^             ~~        ~~
+paramvmember.t.cpp:32:7: note: MP02: Consider using allocate_shared
+paramvmember.t.cpp:33:7: warning: MPOK01: Shared pointer should use allocator member as deleter
+    , d_omp01(new (*da) char, pa)
+      ^            ~~~        ~~
+paramvmember.t.cpp:33:7: note: MPOK01: Consider using allocateManaged
+paramvmember.t.cpp:34:7: warning: MPOK01: Shared pointer should use allocator member as deleter
+    , d_omp02(new (*ba) char, pa)
+      ^            ~~~        ~~
+paramvmember.t.cpp:34:7: note: MPOK01: Consider using allocateManaged
+paramvmember.t.cpp:35:7: warning: MP02: Different allocator and deleter for shared pointer
+    , d_emp01(new (*da) char, qa)
+      ^             ~~        ~~
+paramvmember.t.cpp:35:7: note: MP02: Consider using allocateManaged
+paramvmember.t.cpp:36:7: warning: MP02: Different allocator and deleter for shared pointer
+    , d_emp02(new (*ba) char, qa)
+      ^             ~~        ~~
+paramvmember.t.cpp:36:7: note: MP02: Consider using allocateManaged
+paramvmember.t.cpp:37:7: warning: MP02: Different allocator and deleter for shared pointer
+    , d_emp03(new ( ta) char, pa)
+      ^             ~~        ~~
+paramvmember.t.cpp:37:7: note: MP02: Consider using allocateManaged
+10 warnings generated.

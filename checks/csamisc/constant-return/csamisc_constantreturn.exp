@@ -8,9 +8,9 @@ In file included from csamisc_constantreturn.t.cpp:3:
 ./csamisc_constantreturn.t.hpp:22:24: note: CR01: Declaration of 'f' (which always returns the constant 0)
             static int f();
                        ^
-csamisc_constantreturn.t.cpp:13:12: warning: CR01: Function 'g' has only one statement which returns the constant '13'
+csamisc_constantreturn.t.cpp:13:14: warning: CR01: Function 'g' has only one statement which returns the constant '13'
     return 5 + 8;
-           ^
+             ^
 csamisc_constantreturn.t.cpp:11:42: note: CR01: Declaration of 'g' (which always returns the constant 13)
 int bde_verify::csamisc::constantreturn::g()
                                          ^

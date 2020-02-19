@@ -65,14 +65,14 @@ namespace
             suppressions const& attachment(
                 analyser_->attachment<suppressions>());
             for (Decl const* decl : attachment.reports_) {
-                Location declB(analyser_->get_location(decl->getLocStart()));
-                Location declE(analyser_->get_location(decl->getLocEnd()));
+                Location declB(analyser_->get_location(decl->getBeginLoc()));
+                Location declE(analyser_->get_location(decl->getEndLoc()));
                 auto it(attachment.entries_.lower_bound(declB));
                 Decl const* next(decl->getNextDeclInContext());
 
                 if (it == attachment.entries_.end() ||
                     (next &&
-                     analyser_->get_location(next->getLocStart()) < *it &&
+                     analyser_->get_location(next->getBeginLoc()) < *it &&
                      declB < analyser_->get_location(next->getLocation())) ||
                     it->file() != declB.file() ||
                     it->line() < declB.line() ||

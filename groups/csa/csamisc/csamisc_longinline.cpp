@@ -88,8 +88,8 @@ void long_inlines(Analyser& analyser, const FunctionDecl* func)
         data::VecFE&    ad   = d.d_long_inlines;
         Stmt           *body = func->getBody();
         SourceManager&  sm   = analyser.manager();
-        PresumedLoc     b    = sm.getPresumedLoc(body->getLocStart());
-        PresumedLoc     e    = sm.getPresumedLoc(body->getLocEnd());
+        PresumedLoc     b    = sm.getPresumedLoc(body->getBeginLoc());
+        PresumedLoc     e    = sm.getPresumedLoc(body->getEndLoc());
 
         if (b.isInvalid() || e.isInvalid()) {
             ad.push_back(std::make_pair(func, data::e_CONFUSED));

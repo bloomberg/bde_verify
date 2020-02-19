@@ -524,14 +524,14 @@ csabase::Location csabase::Analyser::get_location(Decl const* decl) const
 csabase::Location csabase::Analyser::get_location(Expr const* expr) const
 {
     return expr
-        ? get_location(expr->getLocStart())
+        ? get_location(expr->getExprLoc())
         : Location();
 }
 
 csabase::Location csabase::Analyser::get_location(Stmt const* stmt) const
 {
     return stmt
-        ? get_location(stmt->getLocStart())
+        ? get_location(stmt->getBeginLoc())
         : Location();
 }
 
