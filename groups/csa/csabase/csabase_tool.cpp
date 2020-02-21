@@ -26,6 +26,7 @@
 #include <clang/FrontendTool/Utils.h>
 #include <clang/Tooling/CompilationDatabase.h>
 #include <clang/Tooling/Tooling.h>
+#include <deque>
 #include <memory>
 #include <set>
 #include <string>
@@ -143,14 +144,14 @@ int csabase::run(int argc_, const char **argv_)
 
     SmallVector<const char *, 2560> argv(argv_, argv_ + argc_);
 
-    std::vector<std::string> scratch;
+    std::deque<std::string> scratch;
     std::unique_ptr<CompilationDatabase> Compilations;
     std::string ErrorMessage;
     bool after_dashes = false;
     std::set<std::string> defined, included;
 
     auto ins = [&](StringRef s, size_t i) {
-        scratch.emplace_back(s);
+        scratch.push_back(s);
         argv.insert(argv.begin() + i, scratch.back().data());
         return i + 1;
     };
