@@ -15,7 +15,7 @@ Supported Platforms:
    o Windows
 
 Prerequesites: 
-   o llvm/clang 5.0 (see below for instructions)
+   o llvm/clang 9.0 (see below for instructions)
    o gcc >= 5 (Linux and SunOS)
    o Visual Studio >= 2015 (Windows)
    o nsis with large-string overlay (Windows, more details below)
@@ -23,7 +23,7 @@ Prerequesites:
    o gnu make
    o aspell
 
-Bde_verify incorporates llvm/clang-5.0 libraries.  These may already be
+Bde_verify incorporates llvm/clang-9.0 libraries.  These may already be
 installed on the build machine.  If not, they can be installed (in the
 Bloomberg environment) using dpkg, or built from source on Windows.
 
@@ -45,9 +45,9 @@ Note: this requires a great deal of free disk space.
 
  # Clone the LLVM/Clang repositories
  export GL=http://github.com/llvm-mirror
- git clone -b release_50 $GL/llvm.git  $LCSRC/llvm
- git clone -b release_50 $GL/clang.git $LCSRC/llvm/tools/clang
- git clone -b release_50 $GL/clang-tools-extra.git \
+ git clone -b release_90 $GL/llvm.git  $LCSRC/llvm
+ git clone -b release_90 $GL/clang.git $LCSRC/llvm/tools/clang
+ git clone -b release_90 $GL/clang-tools-extra.git \
                                        $LCSRC/llvm/tools/clang/tools/extra
 
 Building LLVM/Clang on Linux and SunOS
