@@ -3,8 +3,8 @@ BDE Verify - A Static Checker for C++
 Bde_verify is a static analysis tool that verifies that source code adheres
 to the BDE coding standards.
 
-The online documentation for bde_verify can be found here:
-    <http://bloomberg.github.io/bde_verify/bde_verify_build/html/>
+The online documentation for bde_verify can be found at
+<https://bde.bloomberg.com/bde-verify/index.html>
 
 Build Instructions
 ==================
@@ -13,10 +13,12 @@ Supported Platforms:
 - Linux x86
 - SunOS sparc
 - Windows
+- MacOS (Darwin)
 
 Prerequesites: 
 - llvm/clang 9.0 (see below for instructions)
 - gcc >= 5 (Linux and SunOS)
+- Clang >= 9 (Darwin/MacOS)
 - Visual Studio >= 2015 (Windows)
 - nsis with large-string overlay (Windows, more details below)
 - cmake >= 3.4.3
@@ -37,47 +39,69 @@ Installing bde_verify Sources
 
 Installing LLVM/Clang Sources
 =============================
+
+If you are doing this on a **Bloomberg development machine**, follow the
+instructions at
+<http://tutti.prod.bloomberg.com/go-git-go-docs/configuration> to
+configure `git` for access to `github` securely through an https proxy.
+
 Note: this requires a great deal of free disk space.
 
     # We will place LLVM/Clang source code here
-    export LCSRC=/path/to/source/directory
+    export LCSRC=/path/to/llvm/source/directory
     mkdir -p $LCSRC
 
     # Clone the LLVM/Clang repositories
-    export GL=http://github.com/llvm-mirror
-    git clone -b release_90 $GL/llvm.git  $LCSRC/llvm
-    git clone -b release_90 $GL/clang.git $LCSRC/llvm/tools/clang
-    git clone -b release_90 $GL/clang-tools-extra.git \
-                                       $LCSRC/llvm/tools/clang/tools/extra
+    export GL=https://github.com/llvm-mirror
+    git clone -b release_90 $GL/llvm.git  $LCSRC
+    git clone -b release_90 $GL/clang.git $LCSRC/tools/clang
+    git clone -b release_90 $GL/clang-tools-extra.git $LCSRC/tools/clang/tools/extra
 
-Building LLVM/Clang on Linux and SunOS
-======================================
+Building LLVM/Clang
+===================
+
+On Linux, SunOS, and MacOS
+--------------------------
+
+Set build and install directories.
 
     # We will build LLVM/Clang here
-    export LCBLD=/path/to/build/directory
+    export LCBLD=/path/to/llvm/build/directory
     mkdir -p $LCBLD
 
     # We will install LLVM/Clang here
-    export LCINS=/path/to/install/directory
+    export LCINS=/path/to/llvm/install/directory
     mkdir -p $LCINS
 
-    # Configure, build, and install
-    cd $LCBLD
+(Linux and SunOS only) Set up compiler to use:
+
+If `g++ -v` does not find a compiler or yields a gcc version of 4.8 or later,
+set `GCCDIR` to a path that contains `bin/gcc` and `bin/g++`. Recommended
+setting on all Bloomberg Linux and SunOS development machines is
+`export GCCDIR=/opt/bb/lib/gcc-9`.
+
+    # If GCCDIR is not set, default is '$(dirname $(dirname $(which g++)))'.
+    # If set, $GCCDIR/bin/g++ must exist (so GCCDIR should not end in "/bin").
     export GCCDIR=/path/to/gcc/dir
+
+Configure, build, and install
+
+    cd $LCBLD
 
     # CMake configuration for LLVM/Clang in the Bloomberg environment can be
     # complicated due to various compiler installations, especially on SunOS.
-    # Instead of specifying the full configuration here, we use a script provided
-    # within the bde_verify source tree.
+    # Instead of specifying the full configuration here, we use a script
+    # provided within the bde_verify source tree.
     $BVSRC/config_llvm.sh -DCMAKE_INSTALL_PREFIX=$LCINS $LCSRC
 
     # Build and install LLVM/Clang.
-    cmake --build . --target install --config MinSizeRel -- -j 20
+    cmake --build . --target install --config MinSizeRel -j 20
 
-Building LLVM/Clang on Windows
-==============================
+On Windows
+----------
 
-    # Install the NSIS packaging system:
+Install the NSIS packaging system:
+
     #  We refer to version 3.02.1 here, but newer versions should work.
     #
     #  Navigate to <https://sourceforge.net/projects/nsis/files/NSIS%203/3.02.1/>
@@ -86,11 +110,14 @@ Building LLVM/Clang on Windows
     #  Download the large-strings overlay <nsis-3.02.1-strlen_8192.zip>.
     #  Open that archive and extract its files on top of the installed ones.
 
+Set build directory:
+
     # We will build LLVM/Clang here
     export LCBLD=/path/to/build/directory
     mkdir -p $LCBLD
 
-    # Configure and build
+Configure and build, and install llvm:
+
     cd $LCBLD
     cmake $LCSRC/llvm
     cmake --build . --target package --config MinSizeRel
@@ -98,31 +125,64 @@ Building LLVM/Clang on Windows
     # The result is an executable named LLVM-5.{...}-win32.exe
     # Run it to install LLVM/Clang.  When asked, set the path for all users.
 
-Building bde_verify on Linux and SunOS
-======================================
-Note: The build is done in-place in the source directory
+Building bde_verify 
+===================
 
-    # We will install bde_verify here
-    export BVINS=/path/to/bde_verify/install/directory
-    mkdir -p $BVINS
+On Linux, SunOS, and MacOS
+--------------------------
 
-    # Set up compiler to use
-    export GCCDIR=/path/to/gcc/dir
+Note: The build is done in-place in the source directory. The installed
+bde_verify script and executable will be found at
+`$BVSRC/`*OS-Compiler*`/bin` (e.g., `$BVSRC/Linux-g++/bin`). The cmake
+configuration is not set up for easily choosing your own installation
+directory.
 
-    # Build and install bde_verify
-    CXX=$GCCDIR/bin/g++ LLVMDIR=$LCINS DESTDIR=$BVINS make -C $BVSRC -j 20 install
-
-    # Test the build if you like
-    CXX=$GCCDIR/bin/g++ LLVMDIR=$LCINS DESTDIR=$BVINS make -C $BVSRC -k check
-   
-    # The installed bde_verify script will be found at
-    # $BVINS/bin/bde_verify
-
-Building bde_verify on Windows
-==============================
+Set build directory:
 
     # We will build bde_verify here
     export BVBLD=/path/to/bde_verify/build/directory
+    mkdir -p $BVBLD
+
+Set up compiler to use (Linux and SunOS only):
+
+If `g++ -v` does not find a compiler or yields a gcc version of before 4.8,
+set `GCCDIR` to a path that contains `bin/gcc` and `bin/g++`. Recommended
+setting on all Bloomberg Linux and SunOS development machines is
+`export GCCDIR=/opt/bb/lib/gcc-9`.
+
+    # If GCCDIR is not set, default is '$(dirname $(dirname $(which g++)))'.
+    # If set, $GCCDIR/bin/g++ must exist (so GCCDIR should not end in "/bin").
+    export GCCDIR=/path/to/gcc/dir
+
+    # If you set GCCDIR, you must also set these:
+    export CC=$GCCDIR/bin/g++
+    export CXX=$GCCDIR/bin/g++
+
+Configure, build, and install bde_verify:
+
+    # LLVM_DIR should point to a directory containing 'LLVMConfig.cmake'
+    # Alternatively, CMAKE_PREFIX_PATH=$LCINS works on Linux and Mac OS, but
+    # not Sun OS.
+    cd $BVBLD
+    LLVM_DIR=$LCINS/lib64/cmake/llvm cmake $BVSRC
+    cmake --build . --target install -j 20
+
+Test the build if you like.  Note that the 'check' target is not buildable
+through cmake yet; this command will rebuild all of `bde_verify` (slightly
+differently than the cmake build) as well as building the 'check' target.
+
+    cd ..
+    make LLVMDIR=$LCINS -C $BVSRC -k check
+   
+On Windows
+----------
+
+Set build directory:
+
+    # We will build bde_verify here
+    export BVBLD=/path/to/bde_verify/build/directory
+
+Configure, build, and install bde_verify
 
     cd $BVBLD
     cmake $BVSRC

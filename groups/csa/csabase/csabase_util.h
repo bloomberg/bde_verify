@@ -128,7 +128,7 @@ public:
     SortByLocation(clang::SourceManager &m) : m(m) { }
 
     template <class T>
-    bool operator()(const T *a, const T *b)
+    bool operator()(const T *a, const T *b) const
     {
         return m.isBeforeInTranslationUnit(a->getBeginLoc(), b->getBeginLoc());
     }

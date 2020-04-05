@@ -72,9 +72,12 @@ else()
     endif()
     string(REGEX REPLACE "^(.*)/bin/[^/]*$" "\\1" GCCDIR ${GCCDIR})
 
-    if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-        add_definitions("--gcc-toolchain=${GCCDIR}")
-        add_definitions("-Wno-mismatched-tags")
+    if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")
+        set(CMAKE_CXX_COMPILER "clang++")
+        add_compile_options("-Wno-mismatched-tags")
+    elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+        add_compile_options("--gcc-toolchain=${GCCDIR}")
+        add_compile_options("-Wno-mismatched-tags")
     endif()
 
     add_definitions(-D__STDC_LIMIT_MACROS)
@@ -111,6 +114,15 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
         set(CMAKE_EXE_LINKER_FLAGS
             "${CMAKE_EXE_LINKER_FLAGS} -Wl,-L,${L},-rpath,${L}")
     endforeach(L)
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility-inlines-hidden")
+    foreach(L
+        ${LLVM_INSTALL_PREFIX}/lib64
+        /usr/local/lib
+    )
+        set(CMAKE_EXE_LINKER_FLAGS
+            "${CMAKE_EXE_LINKER_FLAGS} -Wl,-L,${L},-rpath,${L}")
+    endforeach(L)
 endif()
 
 set(G ${CMAKE_CURRENT_SOURCE_DIR}/groups/csa)
@@ -121,6 +133,7 @@ include_directories(
     ${LLVM_INCLUDE_DIRS}
     /opt/bb/include
     /opt/swt/include
+    /usr/local/include  # For aspell.h
 )
 
 add_library(csabase
@@ -348,11 +361,12 @@ llvmlib(rt)
 llvmlib(tinfo)
 llvmlib(malloc)
 
+message("install prefix = ${CMAKE_INSTALL_PREFIX}")
 string(REGEX REPLACE
     "^.*[/\\]([^/\\]*)$"
     "${CMAKE_CURRENT_SOURCE_DIR}/${CMAKE_SYSTEM_NAME}-\\1"
     CMAKE_INSTALL_PREFIX
-    ${CMAKE_CXX_COMPILER}
+    "/${CMAKE_CXX_COMPILER}"
 )
 string(REGEX REPLACE
     "[.].*$"
@@ -395,7 +409,7 @@ set(CPACK_PACKAGE_VERSION       ${BDE_VERIFY_VERSION})
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
 set(CPACK_NSIS_COMPRESSOR "/SOLID lzma \r\n SetCompressorDictSize 32")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "BDE Verify - Static C++ code analysis")
-set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/README")
+set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/README.md")
 
 include(CPack)
 
