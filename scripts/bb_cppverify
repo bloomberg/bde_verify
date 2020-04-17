@@ -80,30 +80,134 @@ sub usage()
     print "
 usage: $0 [options] [additional compiler options] file.cpp ...
     -I{directory}
+            Add {directory} to the include path.
+
     -D{macro}
-    -w                       # disable normal compiler warnings
+            Define {macro} for the compilation.
+
+    -w
+            Disable compiler warnings (but not $nm warnings).
+
     -W{warning}
+            Enable the specified compiler {warning}.
+
     -f{flag}
+            Pass the specifed {flag} through to the compiler.  This is
+            for often-specified compiler options such as -fexceptions.
+
     --config=config_file     [$config]  
-    --cl=config_line
+            Specify the file containing $nm configuration options.
+
+    --cl={config_line}
+            Treat the sepcified {config_line} as if it were appended
+            to the configuration file.
+
     --bb=dir                 [$bb]
+            Specify the trunk directory where Bloomberg software is
+            installed.  $nm will add directories to the include path
+            from here unless --nodefdef is specified.
+
     --exe=bde_verify         [$exe]
+            Specify the underlying $nm executable program that this
+            script will invoke.  (This is generally needed only for
+            people testing new versions of $nm.)
+
     --cc=/path/to/g++        [$cc]
+            Sepecify the location of a GNU C++ compiler that $nm will
+            use to find system and compiler-dependent header files.
+            This will default to the value of the CXX environment
+            variable if present, and a g++ found in the path otherwise.
+            Typically, you shoud specify the same version that you use
+            to build your software.
+
     --diff=file (- = stdin)  [$diff]
+            Specify a file in 'diff' format (such as might be produced
+            by running 'git diff').  If this is specified, $nm warnigs
+            will be produced only for lines that appear in the 'diff'
+            file.  This is used to restrict $nm output to only those
+            lines that have been changed instead of the entire file.
+
     --[no]definc             [$definc]
+            Have $nm supply or not supply default include paths.
+
     --[no]defdef             [$defdef]
-    --[no]ovr                # whether to define BSL_OVERRIDES_STD
-    --[no]nsa                [$nsa] (command logged for tracking purposes)
-    --p=directory            [$comp_db_dir] # compilation database directory
-    --rewrite-dir=dir
+            Have $nm supply or not supply default macro definitions.
+
+    --[no]ovr
+            Have $nm define or undefine BSL_OVERRIDES_STD.  Note that
+            this macro is now obsolete, so --noovr is the default.
+
+    --[no]nsa                [$nsa]
+            $nm logs its uses for tracking and evaluation purposes.
+            Specifying --nonsa turns off this logging.
+
+    --p=directory            [$comp_db_dir]
+            Specify a directory containing a compilation database
+            (named 'compile_commands.json') from which $nm will
+            extract -I and -D options for the files being checked.
+            (Compilation databases are build artifacts created by
+            request during compilation.)  When using this option,
+            also specify --nodefdef and --nodefinc to avoid collisions
+            between the compilation database and the defaults.
+
+    --rewrite-dir=directory
+            Certain $nm checks optionally produce rewritten files
+            containing corrections or changes to the input files.
+            To enable rewriting, specify this option, and rewritten
+            files will be placed in the specified directory with
+            '-rewritten' affixed to their names.
+
     --rewrite-file=file
+            For those $nm checks that produce rewritten files, use
+            the specified file to accumulate changes that will be
+            eventually written out when $nm is invoked with the
+            '--rewrite-dir' option.  This is not normally needed,
+            but might be used to accumulate changes from multiple
+            runs of different checks on the same files.
+
     --diagnose={main,component,nogen,all}
+            Specify for which files $nm will display warnings.
+                main        Warn only for files given on the command
+                            line, but not on any files they include.
+
+                component   Warn for any files given on the command
+                            line and header files of that component
+                            (e.g., if foo.cpp is specified on the
+                            command line, $nm will warn about foo.cpp
+                            and foo.h, but not about an also-included
+                            bar.h).  This is the default.
+
+                nogen       Do not warn about files that appear to be
+                            automatically generated.
+
+                all         Warn about all files included in the
+                            translation unit.  Gneerally unuseful.
+
     --std=type
+            Pass the desired C++ standard version to the compiler.
+
     --tag=string
+            Include '[string]' in warning messages emitted by $nm.
+            This can help to identify which messages in the output
+            come from $nm and which from the underlying compiler.
+
     --debug
+            Output a very noisy representation of the program while
+            processing it.  Only meant for $nm developers.
+
     --verbose
+            Output the full command line passed to the underlying
+            executable program.  (Note that -D and -I options from
+            a specified compilation database are not visible here
+            because the database is processed by the underlying
+            program.)
+
     --version
+            Display the version numbers of $nm and of the
+            LLVM/CLang software incorporated.
+
     --help
+            Display this information.
 
 For full documentation, see {TEAM BDE:BB_CPPVERIFY<GO>} or
 <http://cms.prod.bloomberg.com/team/display/bde/bb_cppverify>.
