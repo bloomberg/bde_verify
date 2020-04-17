@@ -33,15 +33,56 @@ yet; we plan to increase this over time.)
 environment, running ``/opt/bb/bin/`` |bv| will launch the appropriate
 version. 
 
-|bv| now contains the experimental feature of automatically rewriting a class
+|Bv| now contains the experimental feature of automatically rewriting a class
 to be allocator-aware.  To use it, enable the ``allocator-forward`` check, set
 the ``allocator_transform`` configuration variable to contain the name(s) of
 the classes to be modfied, and enable rewriting as specified above.  The
 rewritten class does not yet fully comply with the BDE coding standard (|bv|
 will complain!)
 
-Options
--------
+Options and Configuration
+-------------------------
+
+|Bv| reads a configuration file to determine which checks it should run and to
+set values of parameters that affect some checks.  That file is distributed
+along with |bv| (in the installation as ``.../etc/bde-verify/bde_verify.cfg``.)
+
+You may prepare your own customized copy and use the ``--config`` option to use
+that file instead of the standard one.  Additionally, you may specify the
+option ``--cl 'line'`` multiple times, and |bv| will treat those lines as if
+they were appended to the configuration file.  This is often used to have |bv|
+perform a single check, as in
+
+    |bv| ``--cl='all off'`` ``--cl='check longlines on'`` file.cpp
+
+Details of the configuration file contents are described below.
+
+Compilation Options and Databases
+---------------------------------
+
+Invoking |bv| is similar to invoking the compiler.  The same ``-I`` and ``-D``
+options must be provided so that the program is compiled with appropriate
+header files and macro definitions, and the 32/64-bit and C++ standard mode
+specifications will affect the results.  In the Bloomberg environment, |bv|
+attempts to help by providing default macro definitions and include paths that
+point to installed headers.  However, it is likely that users of |bv| will want
+full control over macros and include paths.  The ``--nodefdef`` option prevents
+|bv| from providing its own macro definitions and the ``--nodefinc`` option
+prevents |bv| from supplying its own include paths.  Users can specify those
+options and then provide exactly the ``-D`` and ``-I`` parameters needed.
+
+In addition, |bv| can extract these options from a compilation database.  A
+compilation databse is a file named ``compile_commands.json`` that is produced
+as an artifact of compilation by many build systems.  |Bv| accepts a
+``--p=directory`` option where the specified directory is the one containing
+the compilation database.  When a file to be processed is found in the
+compilation database, |bv| will extract the ``-D`` and ``-I`` paramaters from
+the database and apply them to its run.  (Note that when using the compilation
+database, you should also specify ``--nodefdef`` and ``--nodefinc`` to avoid
+mixing in the defaults.)
+
+Command-line Options
+--------------------
 
 ===================== ==========================================================
 Parameter             Description
@@ -52,12 +93,13 @@ Parameter             Description
 --exe binary          bde_verify executable file
 --cc compiler         C++ compiler used to find system include directories
 --definc              set up default include paths
---diff file           restrict output using git diff in file (``-`` for stdin)
 --nodefinc            do not set up default include paths
+--diff file           restrict output using git diff in file (``-`` for stdin)
 --defdef              set up default macro definitions
 --nodefdef            do not set up default macro definitions
---ovr                 define BSL_OVERRIDES_STD
---noovr               do not define BSL_OVERRIDES_STD
+--ovr                 define BSL_OVERRIDES_STD (deprecated)
+--noovr               undefine BSL_OVERRIDES_STD (default)
+--p dir               use compilation database ``compile_commands.json`` from this directory
 --rewrite-dir dir     place rewritten files (as name-rewritten) in dir
 --rewrite dir         (same as --rewrite-dir)
 --rd dir              (same as --rewrite-dir)
@@ -122,7 +164,7 @@ Config Entry                    Description
 ``set`` *parameter value*       Set a parameter used by a check.
 ``append`` *parameter value*    Append to a parameter used by a check.
 ``prepend`` *parameter value*   Prepend to a parameter used by a check.
-``suppress`` *tag files*...     Messages with the specified *tag* are
+``suppress`` *tag* *files*...   Messages with the specified *tag* are
                                 suppressed for the specified *files*. Either
                                 *tag* or *files* (but not both) may be ``*``.
                                 The *tag* may be a group *name*, suppressing
