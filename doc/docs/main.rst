@@ -81,6 +81,48 @@ the database and apply them to its run.  (Note that when using the compilation
 database, you should also specify ``--nodefdef`` and ``--nodefinc`` to avoid
 mixing in the defaults.)
 
+Here is an example of building and then running |bv| in the BDE code base
+using a compilation database::
+
+    # Check out a source tree and go into it
+    % git clone bbgithub:bde/bde
+    % cd bde
+
+    # Configure, build, and run one test program
+    % eval $(/bb/bde/bbshr/bde-tools/bin/bde_build_env.py)
+    % /bb/bde/bbshr/bde-tools/bin/cmake_build.py configure build \
+      --tests run --targets bdlb_randomdevice
+
+    # Run bde_verify using the resulting compilation database
+    % /opt/bb/bin/bde_verify -nodefdef -nodefinc \
+      -p $(dirname $(find _build/ -name compile_commands.json)) \
+      groups/bdl/bdlb/bdlb_randomdevice.h
+
+As of this writing, that produces output from the pedantic "that-which"
+grammar check but nothing else::
+
+    groups/bdl/bdlb/bdlb_randomdevice.h:17:62: warning: TW01: Possibly prefer 'that' over 'which'
+    // random number generators.  Two variants are provided: one which may block,
+                                                                 ^
+    groups/bdl/bdlb/bdlb_randomdevice.h:19:4: warning: TW01: Possibly prefer 'that' over 'which'
+    // which does not block, but which potentially should not be used for
+       ^
+    groups/bdl/bdlb/bdlb_randomdevice.h:39:54: warning: TW01: Possibly prefer 'that' over 'which'
+    // both available and leaving it for users to decide which to use.
+                                                         ^
+    3 warnings generated.
+
+Without the compilation database, we would need to specify the include paths::
+
+    % /opt/bb/bin/bde_verify -nodefdef -nodefinc \
+      -I groups/bsl/bsls -I groups/bsl/bslscm -I groups/bdl/bdlscm \
+      groups/bdl/bdlb/bdlb_randomdevice.h
+
+Or we could let |bv| use the installed versions of the headers instead of the
+local ones, and simply run::
+
+    % bde_verify groups/bdl/bdlb/bdlb_randomdevice.h
+
 Command-line Options
 --------------------
 
