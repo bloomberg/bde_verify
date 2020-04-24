@@ -10,6 +10,7 @@
 #include <csabase_diagnostic_builder.h>
 #include <csabase_ppobserver.h>
 #include <csabase_registercheck.h>
+#include <csabase_report.h>
 #include <csabase_util.h>
 #include <utils/array.hpp>
 #include <utils/event.hpp>
@@ -34,47 +35,47 @@ static std::string const check_name("include-order");
 
 namespace
 {
-    struct include_order
-    {
-        typedef std::vector<std::pair<std::string, SourceLocation> >
-            headers_t;
-        headers_t d_header;
-        headers_t d_source;
-        void add_include(bool                         in_header,
-                         std::string                  header,
-                         SourceLocation const& where)
-        {
-            std::string::size_type pos(header.find('.'));
-            if (pos != header.npos) {
-                header = header.substr(0u, pos);
-            }
 
-            headers_t& headers(in_header? d_header: d_source);
-            if (headers.empty() || headers.back().first != header) {
-                headers.push_back(std::make_pair(header, where));
-            }
-        }
-    };
-}
-
-// ----------------------------------------------------------------------------
-
-namespace
+struct data
 {
-    struct has_prefix
+    typedef std::vector<std::pair<std::string, SourceLocation>> headers_t;
+
+    headers_t d_header;
+    headers_t d_source;
+
+    void add_include(bool                  in_header,
+                     std::string           header,
+                     SourceLocation const& where)
     {
-        typedef std::pair<std::string, SourceLocation> const&
-            argument_type;
-        has_prefix(std::string const& prefix)
-            : d_prefix(prefix)
-        {
+        std::string::size_type pos(header.find('.'));
+        if (pos != header.npos) {
+            header = header.substr(0u, pos);
         }
-        bool operator()(argument_type entry) const
-        {
-            return entry.first.find(d_prefix) == 0;
+
+        headers_t &headers = in_header? d_header : d_source;
+        if (headers.empty() || headers.back().first != header) {
+            headers.push_back(std::make_pair(header, where));
         }
-        std::string d_prefix;
-    };
+    }
+};
+
+struct has_prefix
+{
+    typedef std::pair<std::string, SourceLocation> const &argument_type;
+
+    has_prefix(std::string const& prefix)
+        : d_prefix(prefix)
+    {
+    }
+
+    bool operator()(argument_type entry) const
+    {
+        return entry.first.find(d_prefix) == 0;
+    }
+
+    std::string d_prefix;
+};
+
 }
 
 // ----------------------------------------------------------------------------
@@ -106,166 +107,6 @@ is_ident(llvm::StringRef name, llvm::StringRef ident)
     return name == ident || name == "bdes_ident" || name == "bsls_ident";
 }
 
-// ----------------------------------------------------------------------------
-
-static void
-check_order(Analyser*                                analyser,
-            std::string const&                       message,
-            include_order::headers_t::const_iterator it,
-            include_order::headers_t::const_iterator end)
-{
-    for (; end != (it = std::adjacent_find(it, end, &first_is_greater));
-         ++it) {
-        analyser->report(it[1].second, check_name, "SHO01",
-                         "%0 header out of order")
-            << message;
-    }
-}
-
-static void
-check_order(Analyser*                                analyser,
-            std::string const&                       message,
-            include_order::headers_t::const_iterator it,
-            include_order::headers_t::const_iterator section_end,
-            include_order::headers_t::const_iterator end)
-{
-    check_order(analyser, message, it, section_end);
-    for (it = section_end;
-         end != (it = std::find_if(
-                     it, end, has_prefix(analyser->package() + "_")));
-         ++it) {
-        analyser->report(it->second, check_name, "SHO02",
-                         "%0 header coming late")
-            << message;
-    }
-}
-
-static SourceLocation const*
-check_order(Analyser*                       analyser,
-            include_order::headers_t const& headers,
-            bool                            header)
-{
-    include_order& data(analyser->attachment<include_order>());
-
-    SourceLocation const* ident_location(0);
-    if (headers.empty()) {
-        analyser->report(SourceLocation(), check_name, "SHO03",
-                         header
-                         ? "Header without include guard included"
-                         : "Source without component include");
-        return ident_location;
-    }
-    include_order::headers_t::const_iterator it(headers.begin());
-    if (it->first != analyser->component() || it++ == headers.end()) {
-        analyser->report(headers[0].second, check_name, "SHO04",
-                         header
-                         ? "Header without or with wrong include guard"
-                         : "Source doesn't include component header first");
-    }
-    std::string ident = analyser->config()->value("ident_header");
-    if (ident.empty()) {
-        ident = "bsls_ident";
-    }
-    if (is_ident(analyser->component(), ident) ||
-        (analyser->is_test_driver() && !header)) {
-        if (it != headers.end()) {
-            if (is_ident(it->first, ident)) {
-                ident_location = &it->second;
-                ++it;
-            }
-        }
-    }
-    else if (it == headers.end() || !is_ident(it->first, ident)) {
-        analyser->report((it == headers.end() ? it - 1: it)->second,
-                         check_name, "SHO06",
-                         "Missing include for %0.h")
-            << ident;
-    }
-    else {
-        if (is_ident(it->first, ident)) {
-            ident_location = &it->second;
-        }
-        ++it;
-    }
-
-    // These components are or are needed by b??scm_version, and so should not
-    // themselves require inclusion of b??scm_version.
-    static std::string const subscm[] = {
-        "bdes_ident",
-        "bdescm_versiontag",
-        "bdlscm_version",
-        "bdlscm_versiontag",
-        "bsls_buildtarget",
-        "bsls_ident",
-        "bsls_linkcoercion",
-        "bsls_platform",
-        "bslscm_version",
-        "bslscm_versiontag",
-    };
-
-    std::string version = analyser->group().size() ?
-                              analyser->group() + "scm_version" :
-                              analyser->package() + "_version";
-    std::string vh = version + ".h";
-    if (   (   analyser->package() == "bsls"
-            || analyser->package() == "bdls"
-            || (&headers == &data.d_header &&
-                analyser->component() == version))
-        && header
-        && it != headers.end()
-        && it->first == version) {
-        analyser->report(it->second, check_name, "SHO09",
-                         "'%0' components should not include '%1'")
-                    << analyser->package()
-                    << vh;
-    }
-
-    if (   analyser->package() != "bsls"
-        && analyser->package() != "bdls"
-        && (&headers != &data.d_header || analyser->component() != version)
-        && std::find(utils::begin(subscm),
-                     utils::end(subscm),
-                     analyser->component()) == utils::end(subscm)
-        && header
-        && (it == headers.end()
-            || it->first != version
-            || it++ == headers.end())) {
-        include_order::headers_t::const_iterator last_it(headers.begin());
-        while (last_it != headers.end() && last_it->first != version) {
-            ++last_it;
-        }
-        if (last_it == headers.end()) {
-            analyser->report((it == headers.end() ? it - 1 : it)->second,
-                             check_name, "SHO07", "Missing include for %0")
-                << vh;
-        } else {
-            analyser->report((it == headers.end() ? it - 1 : it)->second,
-                             check_name, "SHO07",
-                             "Include for %0 should go here")
-                << vh;
-            analyser->report(last_it->second, check_name, "SHO07",
-                             "Include for %0 is here", true,
-                             DiagnosticIDs::Note)
-                << vh;
-        }
-    }
-
-    include_order::headers_t::const_iterator end
-          = std::find_if(it, headers.end(),
-                         std::not1(std::ptr_fun(&is_component)));
-    include_order::headers_t::const_iterator package_end = std::find_if(
-        it, end, std::not1(has_prefix(analyser->package() + "_")));
-    check_order(analyser, "Package", it, package_end, end);
-    include_order::headers_t::const_iterator group_end
-          = std::find_if(it, end, std::not1(has_prefix(analyser->group())));
-    check_order(analyser, "Group", package_end, group_end, end);
-    check_order(analyser, "Component", group_end, end);
-
-    return ident_location;
-}
-
-// ----------------------------------------------------------------------------
-
 static inline bool
 is_space(unsigned char c)
 {
@@ -276,101 +117,226 @@ is_space(unsigned char c)
 
 namespace
 {
-    std::string const prefix0("included_");
-    std::string const prefix1("!defined(included_");
-    std::string const prefix2("!definedincluded_");
 
-    struct binder
+std::string const prefix0("included_");
+std::string const prefix1("!defined(included_");
+std::string const prefix2("!definedincluded_");
+
+struct report : public Report<data>
+{
+    INHERIT_REPORT_CTOR(report, Report, data);
+
+    void operator()(SourceLocation, SourceRange range) const // onIf
     {
-        binder(Analyser* analyser)
-            : d_analyser(analyser)
-        {
+        if (!a.is_component(range.getBegin())) {
+            return;
+        }
+        std::string value = a.get_source(range);
+        value.erase(std::remove_if(value.begin(), value.end(), &is_space),
+                    value.end());
+        value = to_lower(value);
+        if (value.find(prefix1) == 0 && value[value.size() - 1] == ')') {
+            d.add_include(
+                a.is_component_header(range.getBegin()),
+                value.substr(
+                    prefix1.size(), value.size() - prefix1.size() - 1),
+                range.getBegin());
+        }
+        else if (value.find(prefix2) == 0) {
+            d.add_include(
+                a.is_component_header(range.getBegin()),
+                value.substr(prefix2.size()),
+                range.getBegin());
+        }
+    }
+
+    void operator()(SourceLocation where, Token const& token) const // onIfndef
+    {
+        if (!a.is_component(token.getLocation())) {
+            return;
         }
 
-        void operator()(SourceLocation,
-                        SourceRange range) const // onIf
+        if (IdentifierInfo const* id = token.getIdentifierInfo())
         {
-            if (!d_analyser->is_component(range.getBegin())) {
-                return;
-            }
-            include_order& data(d_analyser->attachment<include_order>());
-            char const* begin(
-                d_analyser->manager().getCharacterData(range.getBegin()));
-            char const* end(
-                d_analyser->manager().getCharacterData(range.getEnd()));
-            std::string value(begin, end);
-            value.erase(std::remove_if(value.begin(), value.end(),
-                                       &is_space), value.end());
+            std::string value(id->getNameStart());
             value = to_lower(value);
-            if (value.find(prefix1) == 0 && value[value.size() - 1] == ')') {
-                data.add_include(
-                    d_analyser->is_component_header(range.getBegin()),
-                    value.substr(
-                        prefix1.size(), value.size() - prefix1.size() - 1),
-                    range.getBegin());
-            }
-            else if (value.find(prefix2) == 0) {
-                data.add_include(
-                    d_analyser->is_component_header(range.getBegin()),
-                    value.substr(prefix2.size()),
-                    range.getBegin());
+            if (value.find(prefix0) == 0) {
+                d.add_include(
+                    a.is_component_header(token.getLocation()),
+                    value.substr(prefix0.size()),
+                    token.getLocation());
             }
         }
-        void operator()(SourceLocation where,
-                        Token const& token) const // onIfndef
-        {
-            if (!d_analyser->is_component(token.getLocation())) {
-                return;
-            }
+    }
 
-            include_order& data(d_analyser->attachment<include_order>());
-            if (IdentifierInfo const* id = token.getIdentifierInfo())
-            {
-                std::string value(id->getNameStart());
-                value = to_lower(value);
-                if (value.find(prefix0) == 0) {
-                    data.add_include(
-                        d_analyser->is_component_header(token.getLocation()),
-                        value.substr(prefix0.size()),
-                        token.getLocation());
+    void operator()(SourceLocation where, bool, std::string const& name)
+    {
+        if (a.is_component(where)) {
+            bool in_header = a.is_component_header(where);
+            d.add_include(in_header, name, where);
+        }
+    }
+
+    void operator()()  // translation unit done
+    {
+        if (a.is_test_driver() || a.is_component_header(a.toplevel())) {
+            return;
+        }
+        SourceLocation const *header_ident = check_order(d.d_header, true);
+        SourceLocation const *source_ident = check_order(d.d_source, false);
+        if (header_ident && !source_ident) {
+            a.report(*header_ident, check_name, "SHO08",
+                     "Component header includes '..._ident.h' but component "
+                     "source does not");
+        }
+        if (!header_ident && source_ident) {
+            a.report(*source_ident, check_name, "SHO08",
+                     "Component source includes '..._ident.h' but header does "
+                     "not");
+        }
+    }
+
+    void check_order(std::string const&              message,
+                     data::headers_t::const_iterator it,
+                     data::headers_t::const_iterator end)
+    {
+        for (; end != (it = std::adjacent_find(it, end, &first_is_greater));
+             ++it) {
+            a.report(it[1].second, check_name, "SHO01",
+                     "%0 header out of order")
+                << message;
+        }
+    }
+
+    void check_order(std::string const&              message,
+                     data::headers_t::const_iterator it,
+                     data::headers_t::const_iterator section_end,
+                     data::headers_t::const_iterator end)
+    {
+        check_order(message, it, section_end);
+        for (it = section_end;
+             end !=
+             (it = std::find_if(it, end, has_prefix(a.package() + "_")));
+             ++it) {
+            a.report(it->second, check_name, "SHO02",
+                     "%0 header coming late")
+                << message;
+        }
+    }
+
+    SourceLocation const *check_order(data::headers_t const& headers,
+                                      bool                   header)
+    {
+        SourceLocation const *ident_location(0);
+        if (headers.empty()) {
+            a.report(SourceLocation(), check_name, "SHO03",
+                     header ? "Header without include guard included"
+                            : "Source without component include");
+            return ident_location;
+        }
+        data::headers_t::const_iterator it(headers.begin());
+        if (it->first != a.component() || it++ == headers.end()) {
+            a.report(headers[0].second, check_name, "SHO04",
+                     header ? "Header without or with wrong include guard"
+                            : "Source doesn't include component header first");
+        }
+        std::string ident = a.config()->value("ident_header");
+        if (ident.empty()) {
+            ident = "bsls_ident";
+        }
+        if (is_ident(a.component(), ident) ||
+            (a.is_test_driver() && !header)) {
+            if (it != headers.end()) {
+                if (is_ident(it->first, ident)) {
+                    ident_location = &it->second;
+                    ++it;
                 }
             }
         }
-        void operator()(SourceLocation where,
-                        bool,
-                        std::string const& name)
-        {
-            if (d_analyser->is_component(where)) {
-                include_order& data(d_analyser->attachment<include_order>());
-                bool in_header(d_analyser->is_component_header(where));
-                data.add_include(in_header, name, where);
-            }
+        else if (it == headers.end() || !is_ident(it->first, ident)) {
+            a.report((it == headers.end() ? it - 1 : it)->second,
+                     check_name, "SHO06",
+                     "Missing include for %0.h")
+                << ident;
         }
-        void operator()()  // translation unit done
-        {
-            if (d_analyser->is_test_driver() ||
-                d_analyser->is_component_header(d_analyser->toplevel())) {
-                return;
+        else {
+            if (is_ident(it->first, ident)) {
+                ident_location = &it->second;
             }
-            include_order& data(d_analyser->attachment<include_order>());
-            SourceLocation const* header_ident(
-                check_order(d_analyser, data.d_header, true));
-            SourceLocation const* source_ident(
-                check_order(d_analyser, data.d_source, false));
-            if (header_ident && !source_ident) {
-                d_analyser->report(*header_ident, check_name, "SHO08",
-                                   "Component header includes '..._ident.h' "
-                                   "but component source does not");
+            ++it;
+        }
+
+        // These components are or are needed by b??scm_version, and so should
+        // not themselves require inclusion of b??scm_version.
+        static std::string const subscm[] = {
+            "bdes_ident",
+            "bdescm_versiontag",
+            "bdlscm_version",
+            "bdlscm_versiontag",
+            "bsls_buildtarget",
+            "bsls_ident",
+            "bsls_linkcoercion",
+            "bsls_platform",
+            "bslscm_version",
+            "bslscm_versiontag",
+        };
+
+        std::string version = a.group().size() ? a.group() + "scm_version"
+                                               : a.package() + "_version";
+        std::string vh = version + ".h";
+        if ((a.package() == "bsls" || a.package() == "bdls" ||
+             (&headers == &d.d_header &&
+              a.component() == version)) &&
+            header && it != headers.end() && it->first == version) {
+            a.report(it->second, check_name, "SHO09",
+                     "'%0' components should not include '%1'")
+                << a.package() << vh;
+        }
+
+        if (a.package() != "bsls" && a.package() != "bdls" &&
+            (&headers != &d.d_header || a.component() != version) &&
+            std::find(utils::begin(subscm),
+                      utils::end(subscm),
+                      a.component()) == utils::end(subscm) &&
+            header &&
+            (it == headers.end() || it->first != version ||
+             it++ == headers.end())) {
+            data::headers_t::const_iterator last_it(headers.begin());
+            while (last_it != headers.end() && last_it->first != version) {
+                ++last_it;
             }
-            if (!header_ident && source_ident) {
-                d_analyser->report(*source_ident, check_name, "SHO08",
-                                   "Component source includes '..._ident.h' "
-                                   "but header does not");
+            if (last_it == headers.end()) {
+                a.report((it == headers.end() ? it - 1 : it)->second,
+                         check_name, "SHO07",
+                         "Missing include for %0")
+                    << vh;
+            }
+            else {
+                a.report((it == headers.end() ? it - 1 : it)->second,
+                         check_name, "SHO07",
+                         "Include for %0 should go here")
+                    << vh;
+                a.report(last_it->second, check_name, "SHO07",
+                         "Include for %0 is here",
+                         true, DiagnosticIDs::Note)
+                    << vh;
             }
         }
 
-        Analyser* d_analyser;
-    };
+        data::headers_t::const_iterator end = std::find_if(
+            it, headers.end(), std::not1(std::ptr_fun(&is_component)));
+        data::headers_t::const_iterator package_end = std::find_if(
+            it, end, std::not1(has_prefix(a.package() + "_")));
+        check_order("Package", it, package_end, end);
+        data::headers_t::const_iterator group_end =
+            std::find_if(it, end, std::not1(has_prefix(a.group())));
+        check_order("Group", package_end, group_end, end);
+        check_order("Component", group_end, end);
+
+        return ident_location;
+    }
+};
+
 }
 
 // ----------------------------------------------------------------------------
@@ -378,10 +344,10 @@ namespace
 static void
 subscribe(Analyser& analyser, Visitor&, PPObserver& observer)
 {
-    analyser.onTranslationUnitDone += binder(&analyser);
-    observer.onInclude             += binder(&analyser);
-    observer.onIfndef              += binder(&analyser);
-    observer.onIf                  += binder(&analyser);
+    analyser.onTranslationUnitDone += report(analyser);
+    observer.onInclude             += report(analyser);
+    observer.onIfndef              += report(analyser);
+    observer.onIf                  += report(analyser);
 }
 
 // ----------------------------------------------------------------------------

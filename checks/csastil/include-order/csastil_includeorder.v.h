@@ -58,6 +58,12 @@
 #include <iosfwd>
 #endif
 
+// The following once caused a crash; check that it's fixed.
+#define XXXX __cplusplus
+#if XXXX < 201103L
+#endif
+#undef  XXXX
+
 #endif
 
 // ----------------------------------------------------------------------------
