@@ -81,8 +81,9 @@ the database and apply them to its run.  (Note that when using the compilation
 database, you should also specify ``--nodefdef`` and ``--nodefinc`` to avoid
 mixing in the defaults.)
 
-Here is an example of building and then running |bv| in the BDE code base
-using a compilation database::
+Here is an example of building a component in the Bloomberg development
+environment from the BDE code base and then running |bv| using the resulting
+compilation database::
 
     # Check out a source tree and go into it
     % git clone bbgithub:bde/bde
@@ -126,44 +127,82 @@ local ones, and simply run::
 Command-line Options
 --------------------
 
-===================== ==========================================================
-Parameter             Description
-===================== ==========================================================
---config file         configuration file
---cl line             additional configuration lines
---bb dir              base directory for |BDE| header includes
---exe binary          bde_verify executable file
---cc compiler         C++ compiler used to find system include directories
---definc              set up default include paths
---nodefinc            do not set up default include paths
---diff file           restrict output using git diff in file (``-`` for stdin)
---defdef              set up default macro definitions
---nodefdef            do not set up default macro definitions
---ovr                 define BSL_OVERRIDES_STD (deprecated)
---noovr               undefine BSL_OVERRIDES_STD (default)
---p dir               use compilation database ``compile_commands.json`` from this directory
---rewrite-dir dir     place rewritten files (as name-rewritten) in dir
---rewrite dir         (same as --rewrite-dir)
---rd dir              (same as --rewrite-dir)
---rewrite-file file   accumulate rewrite specifications into file
---rf file             (same as --rewrite-file)
---std type            specify C++ version
---tag string          make first line of each warning contain [string]
---diagnose type       report and rewrite only for main, component, nogen, or all
---m32                 process in 32-bit mode
---m64                 process in 64-bit mode
---nsa                 allow logging for purposes of tracking usage
---nonsa               disallow logging for purposes of tracking usage
---debug               display internal information as checks are performed
---verbose             display command line passed to clang
--v                    (same as --verbose)
---help                display this help message (also -?)
--I directory          add directory to header search path
--D macro              define macro
--W warning            enable warning
--f flag               specify compiler flag
--w                    disable normal compiler warnings
-===================== ==========================================================
++-----------------------+-----------------------------------------------------+
+| Parameter             | Description                                         |
++=======================+=====================================================+
+| **Pass-Through**      |                                                     |
+| **Options**           |                                                     |
++-----------------------+-----------------------------------------------------+
+| -I\ *directory*       | Add *directory* to the include path.                |
++-----------------------+-----------------------------------------------------+
+| -D\ *macro*           | Define *macro*                                      |
++-----------------------+-----------------------------------------------------+
+| -W\ *warning*         | enable compiler *warning*                           |
++-----------------------+-----------------------------------------------------+
+| -w                    | disable normal compiler warnings                    |
++-----------------------+-----------------------------------------------------+
+| -f\ *flag*            | specify compiler *flag*                             |
++-----------------------+-----------------------------------------------------+
+| | -m32                | process in 32/64-bit mode                           |
+| | -m64                |                                                     |
++-----------------------+-----------------------------------------------------+
+| -std=\ *type*         | specify C++ version                                 |
++-----------------------+-----------------------------------------------------+
+| -\ *misc*             | various ignored options, e.g., -pipe                |
++-----------------------+-----------------------------------------------------+
+| **Paths and**         |                                                     |
+| **Directories**       |                                                     |
++-----------------------+-----------------------------------------------------+
+| -bb dir               | base directory for |BDE| header includes            |
++-----------------------+-----------------------------------------------------+
+| -exe binary           | bde_verify executable file                          |
++-----------------------+-----------------------------------------------------+
+| -cc compiler          | C++ compiler used to find system include directories|
++-----------------------+-----------------------------------------------------+
+| **Operation**         |                                                     |
++-----------------------+-----------------------------------------------------+
+| -config *file*        | configuration file                                  |
++-----------------------+-----------------------------------------------------+
+| -cl *'line'*          | additional configuration line                       |
++-----------------------+-----------------------------------------------------+
+| -[no]defdef           | [do not] set up default macro definitions           |
++-----------------------+-----------------------------------------------------+
+| -[no]definc           | [do not] use default include paths                  |
++-----------------------+-----------------------------------------------------+
+| -[no]ovr              | | [un]define ``BSL_OVERRIDES_STD``                  |
+|                       | | this macro is deprecated, so default is --noovr   |
++-----------------------+-----------------------------------------------------+
+| -diff *file*          | | restrict output using git diff in *file*          |
+|                       | | (``-`` for stdin)                                 |
++-----------------------+-----------------------------------------------------+
+| -p *dir*              | get -I and -D options from compilation database     |
+|                       | file *dir* / ``compile_commands.json``              |
++-----------------------+-----------------------------------------------------+
+| | -rewrite-dir *dir*  | place rewritten files (as *name*\ -rewritten) in    |
+| | -rewrite *dir*      | *dir*                                               |
+| | -rd *dir*           |                                                     |
++-----------------------+-----------------------------------------------------+
+| | -rewrite-file *file*| accumulate rewrite specifications into *file*       |
+| | -rf *file*          |                                                     |
++-----------------------+-----------------------------------------------------+
+| -diagnose type        | report and rewrite only for main, component, nogen, |
+|                       | or all                                              |
++-----------------------+-----------------------------------------------------+
+| **Miscellaneous**     |                                                     |
++-----------------------+-----------------------------------------------------+
+| -debug                | display internal information as checks are done     |
++-----------------------+-----------------------------------------------------+
+| -[no]nsa              | [do not] allow logging for purposes of tracking     |
+|                       | usage                                               |
++-----------------------+-----------------------------------------------------+
+| -tag *string*         | make first line of each warning contain *[string]*  |
++-----------------------+-----------------------------------------------------+
+| | -verbose            | display command line passed to clang                |
+| | -v                  |                                                     |
++-----------------------+-----------------------------------------------------+
+| | -help               | display help for usage                              |
+| | -?                  |                                                     |
++-----------------------+-----------------------------------------------------+
 
 Git-Diff Output Restriction
 ---------------------------
