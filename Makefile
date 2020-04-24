@@ -57,7 +57,11 @@ GCCOTHERLIBDIRS = ${shell \
 
 # Set up locations and flags for the compiler that will build bde_verify.
 ifeq ($(notdir $(CXX)),clang++)
-    CXXFLAGS   += --gcc-toolchain=$(GCCDIR) -Wno-mismatched-tags
+    ifeq ($(SYSTEM),Darwin)
+        CXXFLAGS   += -Wno-mismatched-tags
+    else
+        CXXFLAGS   += --gcc-toolchain=$(GCCDIR) -Wno-mismatched-tags
+    endif
 endif
 ifeq ($(notdir $(CXX)),g++)
     CXXFLAGS   += -Wno-maybe-uninitialized
@@ -80,6 +84,10 @@ ifeq ($(SYSTEM),Linux)
     ifneq (,$(wildcard $(foreach L,$(LIBDIRS),$(L)/libtinfo.so)))
         EXTRALIBS += -ltinfo
     endif
+    SPARC_LIBS = -lLLVMSparcCodeGen                                           \
+                 -lLLVMSparcAsmParser                                         \
+                 -lLLVMSparcDesc                                              \
+                 -lLLVMSparcInfo
 else ifeq ($(SYSTEM),SunOS)
     AR          = /usr/ccs/bin/ar
     CXXFLAGS   += -D_GLIBCXX_USE_CXX11_ABI=1
@@ -99,10 +107,24 @@ else ifeq ($(SYSTEM),SunOS)
     ifneq (,$(wildcard $(foreach L,$(LIBDIRS),$(L)/libmalloc.so)))
         EXTRALIBS += -lmalloc
     endif
+    SPARC_LIBS = -lLLVMSparcCodeGen                                           \
+                 -lLLVMSparcAsmParser                                         \
+                 -lLLVMSparcDesc                                              \
+                 -lLLVMSparcInfo
+else ifeq ($(SYSTEM),Darwin)
+    AR          = /usr/bin/ar
+    LIBDIRS     = $(LLVMDIR)/lib64                                            \
+                  $(PREFIX)/local/lib64
+    LDFLAGS    += -Wl,-rpath,'$$ORIGIN/../../lib64'
+    LDFLAGS    += $(foreach L,$(LIBDIRS),                                     \
+                    -L$(abspath $(L)) -Wl,-rpath,$(abspath $(L)))
+    ifneq (,$(wildcard $(foreach L,$(LIBDIRS),$(L)/libtinfo.so)))
+        EXTRALIBS += -ltinfo
+    endif
 endif
 
-OBJ        := $(SYSTEM)-$(notdir $(CXX))
-DESTDIR    ?= $(CURDIR)/$(OBJ)
+DESTDIR    ?= $(CURDIR)/$(SYSTEM)-$(notdir $(CXX))
+OBJ        := $(notdir $(DESTDIR))
 
 VERBOSE ?= @
 
@@ -230,10 +252,7 @@ LIBS     =    -l$(LCB)                                                        \
               -lLLVMObjCARCOpts                                               \
               -lLLVMDebugInfoPDB                                              \
               -lLLVMCoverage                                                  \
-              -lLLVMSparcCodeGen                                              \
-              -lLLVMSparcAsmParser                                            \
-              -lLLVMSparcDesc                                                 \
-              -lLLVMSparcInfo                                                 \
+	      $(SPARC_LIBS)                                                   \
               -lLLVMOption                                                    \
               -lLLVMX86AsmParser                                              \
               -lLLVMX86CodeGen                                                \

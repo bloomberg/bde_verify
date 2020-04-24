@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 # bde_verify                                                         -*-perl-*-
 
-# Bde_verify is a static analysis tool that verifies that source code adheres 
+# Bde_verify is a static analysis tool that verifies that source code adheres
 # to the BDE coding standards.  Many of the checks are specific to Bloomberg LP
 # and this wrapper script contains default options for the Bloomberg LP
 # environment.
@@ -11,9 +11,10 @@ use warnings;
 use Getopt::Long qw(:config no_ignore_case);
 use Cwd;
 
-my @known_systems = ('AIX', 'HP-UX', 'Linux', 'SunOS');
+my @known_systems = ('AIX', 'HP-UX', 'Linux', 'SunOS', 'Darwin');
 chomp(my $system   = `uname -s`);
 $system = 'Linux' unless grep(/$system/, @known_systems);
+my $cc = ($system eq 'Darwin') ? 'clang++' : 'g++';
 
 my @known_hw = ('powerpc', 'ia64', 'x86_64', 'sparc', 'i386');
 chomp(my $hw = `uname -p`);
@@ -40,7 +41,7 @@ $exe         = "${pt}scripts/$enm"              unless -x $exe;
 $exe         = "${pt}$enm"                      unless -x $exe;
 
 my @cl;
-chomp(my $cc = $ENV{CXX} || `which g++`);
+chomp($cc = $ENV{CXX} || `which $cc`);
 my $debug    = "";
 my $verbose  = "";
 my $version  = "";
@@ -84,7 +85,7 @@ usage: $0 [options] [additional compiler options] file.cpp ...
     -w                       # disable normal compiler warnings
     -W{warning}
     -f{flag}
-    --config=config_file     [$config]  
+    --config=config_file     [$config]
     --cl=config_line
     --bb=dir                 [$bb]
     --exe=bde_verify         [$exe]
@@ -236,16 +237,15 @@ push(@pass, "-m32") if $m32;
 push(@pass, "-m64") if $m64;
 push(@pass, "-std=$std") if $std;
 
-if (0) {
-# Get the compiler include paths.
-unshift(@incs, xclang(
-        map { ( "-isystem", $_ ) }
-        map { Cwd::abs_path($_) }
-        grep { -d }
-        map { chomp; $_; }
-        qx{ $cc -xc++ @pass -E -v /dev/null 2>&1 |
-            sed -n '/^#include/,/^End of search list/p' |
-            sed -n '/^ [/]/s/ //p'}));
+if ($system eq 'Darwin') {
+    # Get the compiler include paths.
+    unshift(@incs, xclang(
+                map { ( "-isystem", $_ ) }
+                map { Cwd::abs_path($_) }
+                grep { -d }
+                map { chomp; split /\s/, $_; }
+                qx{ $cc -xc++ @pass -E -v /dev/null 2>&1 |
+                sed -n '/^#include/,/^End of search list/p' }));
 }
 
 push(@pass, "--gcc-toolchain=${gccdir}") if -d "${gccdir}";
@@ -291,8 +291,15 @@ if ($nsa) {
     }
 }
 
-#eval "use BSD::Resource; setrlimit(RLIMIT_CORE, 0, 0);";
-syscall($system eq 'Linux' ? 160 : 128, 4, pack('LL', 0, 0));
+# use BSD::Resource; setrlimit(RLIMIT_CORE, 0, 0);
+if ($system eq "Darwin") {
+    # Not sure if L is 32-bits or 64-bits.  It is harmless to assume that it's
+    # only 32 bits and that we need two to equal 64 bits.
+    my $struct = pack('LLLL', 0, 0, 0, 0);
+    syscall(195, 4, $struct);
+} else {
+    syscall($system eq 'Linux' ? 160 : 128, 4, pack('LL', 0, 0));
+}
 exec @command;
 
 ## ----------------------------------------------------------------------------
