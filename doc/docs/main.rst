@@ -133,60 +133,104 @@ Command-line Options
 | **Pass-Through**      |                                                     |
 | **Options**           |                                                     |
 +-----------------------+-----------------------------------------------------+
+| -D\ *macro*           | Define *macro* for the compilation.                 |
++-----------------------+-----------------------------------------------------+
 | -I\ *directory*       | Add *directory* to the include path.                |
 +-----------------------+-----------------------------------------------------+
-| -D\ *macro*           | Define *macro*                                      |
+| -W\ *warning*         | Enable the specified compiler *warning*.            |
 +-----------------------+-----------------------------------------------------+
-| -W\ *warning*         | enable compiler *warning*                           |
+| -f\ *flag*            | Pass the specifed *flag* through to the compiler.   |
+|                       | This is for often-specified compiler options such   |
+|                       | as -fexceptions.                                    |
 +-----------------------+-----------------------------------------------------+
-| -w                    | disable normal compiler warnings                    |
-+-----------------------+-----------------------------------------------------+
-| -f\ *flag*            | specify compiler *flag*                             |
-+-----------------------+-----------------------------------------------------+
-| | -m32                | process in 32/64-bit mode                           |
+| | -m32                | Process in 32-bit or 64-bit mode.                   |
 | | -m64                |                                                     |
 +-----------------------+-----------------------------------------------------+
-| -std=\ *type*         | specify C++ version                                 |
+| -std=\ *type*         | Specify C++ version as *type*.                      |
 +-----------------------+-----------------------------------------------------+
-| -\ *misc*             | various ignored options, e.g., -pipe                |
+| -w                    | Disable normal compiler warnings (but not |bv|      |
+|                       | warnings).                                          |
++-----------------------+-----------------------------------------------------+
+| -\ *misc*             | Various ignored compiler options, e.g., -pipe.      |
 +-----------------------+-----------------------------------------------------+
 | **Paths and**         |                                                     |
 | **Directories**       |                                                     |
 +-----------------------+-----------------------------------------------------+
-| -bb dir               | base directory for |BDE| header includes            |
+| -bb *directory*       | Specify the trunk *directory* where Bloomberg       |
+|                       | software is installed.  |Bv| will add directories   |
+|                       | to the include path from here unless -nodefinc is   |
+|                       | is specified.                                       |
 +-----------------------+-----------------------------------------------------+
-| -exe binary           | bde_verify executable file                          |
+| -cc *compiler*        | Specify the full path of a g++ or clang++ compiler. |
+|                       | |Bv| will use this to find system and               |
+|                       | compiler-dependent header files.  This defaults to  |
+|                       | the value of the CXX environment variable if        |
+|                       | present, and a compiler found in the shell path     |
+|                       | otherwise.  Typically specify the same compiler     |
+|                       | used in the build.                                  |
 +-----------------------+-----------------------------------------------------+
-| -cc compiler          | C++ compiler used to find system include directories|
+| -exe *program*        | Specify the underlying executable file that |bv|    |
+|                       | will invoke (usually when testing a new version).   |
 +-----------------------+-----------------------------------------------------+
 | **Operation**         |                                                     |
 +-----------------------+-----------------------------------------------------+
-| -config *file*        | configuration file                                  |
+| -config *file*        | Specify the *file* containing |bv| configuration    |
+|                       | options.  (The file format is described below.)     |
 +-----------------------+-----------------------------------------------------+
-| -cl *'line'*          | additional configuration line                       |
+| -cl *'line'*          | Specify an additional configuration *line* (may be  |
+|                       | repeated multiple times).  These lines are treated  |
+|                       | as if they were appended to the configuration file. |
 +-----------------------+-----------------------------------------------------+
-| -[no]defdef           | [do not] set up default macro definitions           |
+| -[no]defdef           | [Do not] set up default macro definitions.          |
+|                       | However, |BV| is always defined.                    |
 +-----------------------+-----------------------------------------------------+
-| -[no]definc           | [do not] use default include paths                  |
+| -[no]definc           | [Do not] use default include paths.                 |
 +-----------------------+-----------------------------------------------------+
-| -[no]ovr              | | [un]define ``BSL_OVERRIDES_STD``                  |
-|                       | | this macro is deprecated, so default is --noovr   |
+| -[no]ovr              | | [Un]define ``BSL_OVERRIDES_STD``.                 |
+|                       | | This macro is deprecated, so the default is       |
+|                       |   --noovr.                                          |
 +-----------------------+-----------------------------------------------------+
-| -diff *file*          | | restrict output using git diff in *file*          |
-|                       | | (``-`` for stdin)                                 |
+| -diff *file*          | Specify a *file* (use ``-`` for standard input) in  |
+|                       | diff format (such as might be produced by running   |
+|                       | ``git diff``).  |Bv| output will be restricted to   |
+|                       | only those lines that are marked as changed.        |
+|                       |                                                     |
+|                       | Reading standard input facilitiates piping:         |
+|                       |                                                     |
+|                       | | git diff | |bv| -diff - file.cpp                  |
 +-----------------------+-----------------------------------------------------+
-| -p *dir*              | get -I and -D options from compilation database     |
-|                       | file *dir* / ``compile_commands.json``              |
+| -p *directory*        | Specify a *directory* containg a file named         |
+|                       | ``compile_commands.json``.  |Bv| will look there    |
+|                       | for build lines for the files it is processing and  |
+|                       | use -D and -I options it finds.  (Use -nodefdef and |
+|                       | -nodefinc to avoid mixing in default values.)       |
+|                       | Such "compilation database" files are produced by   |
+|                       | many build systems.                                 |
 +-----------------------+-----------------------------------------------------+
-| | -rewrite-dir *dir*  | place rewritten files (as *name*\ -rewritten) in    |
-| | -rewrite *dir*      | *dir*                                               |
-| | -rd *dir*           |                                                     |
+| | -rewrite-dir        | Certain |bv| checks can create modified files       |
+|   *directory*         | that contain suggested changes.  These files are    |
+| | -rewrite            | created with the name *file*-\ ``rewritten`` in the |
+|   *directory*         | given *directory* if this option is specified.  If  |
+| | -rd *directory*     | this option is not specified, no rewritten files    |
+|                       | are created.                                        |
 +-----------------------+-----------------------------------------------------+
-| | -rewrite-file *file*| accumulate rewrite specifications into *file*       |
-| | -rf *file*          |                                                     |
+| | -rewrite-file       | Certain |bv| checks can create modified files       |
+|   *file*              | that contain suggested changes.  If this option is  |
+| | -rf *file*          | specified, a cumulative database of changes to be   |
+|                       | made is kept in *file* (and maintained across       |
+|                       | multiple runs of |bv|).  Those changed files are    |
+|                       | created once |bv| is run with the -rd option.       |
+|                       | (This option is generally not used.)                |
 +-----------------------+-----------------------------------------------------+
-| -diagnose type        | report and rewrite only for main, component, nogen, |
-|                       | or all                                              |
+| -diagnose *type*      | Limit files for which |bv| warnings will appear:    |
+|                       |                                                     |
+|                       | | ``main``        Specified file only.              |
+|                       | | ``component``   Specified file and its .h file.   |
+|                       | | ``nogen``       Skip auto-generated files.        |
+|                       | | ``all``         All included header files.        |
+|                       |                                                     |
+|                       | The default is ``component``.  Use ``main`` if you  |
+|                       | plan to run |bv| on .h and .cpp files separately.   |
 +-----------------------+-----------------------------------------------------+
 | **Miscellaneous**     |                                                     |
 +-----------------------+-----------------------------------------------------+

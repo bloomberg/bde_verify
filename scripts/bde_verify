@@ -86,11 +86,11 @@ usage: $0 [options] [additional compiler options] file.cpp ...
     -D{macro}
             Define {macro} for the compilation.
 
-    -w
-            Disable compiler warnings (but not $nm warnings).
-
     -W{warning}
             Enable the specified compiler {warning}.
+
+    -w
+            Disable compiler warnings (but not $nm warnings).
 
     -f{flag}
             Pass the specifed {flag} through to the compiler.  This is
