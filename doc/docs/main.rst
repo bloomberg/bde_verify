@@ -24,7 +24,7 @@ permission from Dietmar to visit those pages.)
 .. _original list of implemented checks:
    https://github.com/dietmarkuehl/coolyser/wiki/Overview
 
-If the ``--rewrite=dir`` option is specified, |bv| will make some suggested
+If the ``-rewrite-dir dir`` option is specified, |bv| will make some suggested
 changes by itself and place the modified files in the specified directory with
 ``-rewritten`` appended to the file names. (Not much rewriting is being done
 yet; we plan to increase this over time.)
@@ -47,13 +47,13 @@ Options and Configuration
 set values of parameters that affect some checks.  That file is distributed
 along with |bv| (in the installation as ``.../etc/bde-verify/bde_verify.cfg``.)
 
-You may prepare your own customized copy and use the ``--config`` option to use
+You may prepare your own customized copy and use the ``-config`` option to use
 that file instead of the standard one.  Additionally, you may specify the
-option ``--cl 'line'`` multiple times, and |bv| will treat those lines as if
+option ``-cl 'line'`` multiple times, and |bv| will treat those lines as if
 they were appended to the configuration file.  This is often used to have |bv|
 perform a single check, as in
 
-    |bv| ``--cl='all off'`` ``--cl='check longlines on'`` file.cpp
+    |bv| ``-cl 'all off'`` ``-cl 'check longlines on'`` file.cpp
 
 Details of the configuration file contents are described below.
 
@@ -66,19 +66,19 @@ header files and macro definitions, and the 32/64-bit and C++ standard mode
 specifications will affect the results.  In the Bloomberg environment, |bv|
 attempts to help by providing default macro definitions and include paths that
 point to installed headers.  However, it is likely that users of |bv| will want
-full control over macros and include paths.  The ``--nodefdef`` option prevents
-|bv| from providing its own macro definitions and the ``--nodefinc`` option
+full control over macros and include paths.  The ``-nodefdef`` option prevents
+|bv| from providing its own macro definitions and the ``-nodefinc`` option
 prevents |bv| from supplying its own include paths.  Users can specify those
 options and then provide exactly the ``-D`` and ``-I`` parameters needed.
 
 In addition, |bv| can extract these options from a compilation database.  A
 compilation databse is a file named ``compile_commands.json`` that is produced
 as an artifact of compilation by many build systems.  |Bv| accepts a
-``--p=directory`` option where the specified directory is the one containing
+``-p directory`` option where the specified directory is the one containing
 the compilation database.  When a file to be processed is found in the
 compilation database, |bv| will extract the ``-D`` and ``-I`` paramaters from
 the database and apply them to its run.  (Note that when using the compilation
-database, you should also specify ``--nodefdef`` and ``--nodefinc`` to avoid
+database, you should also specify ``-nodefdef`` and ``-nodefinc`` to avoid
 mixing in the defaults.)
 
 Here is an example of building a component in the Bloomberg development
@@ -146,7 +146,7 @@ Command-line Options
 | | -m32                | Process in 32-bit or 64-bit mode.                   |
 | | -m64                |                                                     |
 +-----------------------+-----------------------------------------------------+
-| -std=\ *type*         | Specify C++ version as *type*.                      |
+| -std *type*           | Specify C++ version as *type*.                      |
 +-----------------------+-----------------------------------------------------+
 | -w                    | Disable normal compiler warnings (but not |bv|      |
 |                       | warnings).                                          |
@@ -188,7 +188,7 @@ Command-line Options
 +-----------------------+-----------------------------------------------------+
 | -[no]ovr              | | [Un]define ``BSL_OVERRIDES_STD``.                 |
 |                       | | This macro is deprecated, so the default is       |
-|                       |   --noovr.                                          |
+|                       |   -noovr.                                           |
 +-----------------------+-----------------------------------------------------+
 | -diff *file*          | Specify a *file* (use ``-`` for standard input) in  |
 |                       | diff format (such as might be produced by running   |
@@ -224,27 +224,34 @@ Command-line Options
 +-----------------------+-----------------------------------------------------+
 | -diagnose *type*      | Limit files for which |bv| warnings will appear:    |
 |                       |                                                     |
-|                       | | ``main``        Specified file only.              |
-|                       | | ``component``   Specified file and its .h file.   |
-|                       | | ``nogen``       Skip auto-generated files.        |
-|                       | | ``all``         All included header files.        |
+|                       | | ``main``        - Specified file only.            |
+|                       | | ``component``   - Specified file and its .h file. |
+|                       | | ``nogen``       - Skip auto-generated files.      |
+|                       | | ``all``         - All included header files.      |
 |                       |                                                     |
 |                       | The default is ``component``.  Use ``main`` if you  |
 |                       | plan to run |bv| on .h and .cpp files separately.   |
 +-----------------------+-----------------------------------------------------+
 | **Miscellaneous**     |                                                     |
 +-----------------------+-----------------------------------------------------+
-| -debug                | display internal information as checks are done     |
+| -debug                | Output a very noisy representation of the program   |
+|                       | while processing it, meant for |bv| developers.     |
 +-----------------------+-----------------------------------------------------+
-| -[no]nsa              | [do not] allow logging for purposes of tracking     |
-|                       | usage                                               |
+| -[no]nsa              | [Do not] allow logging of |bv| command lines for    |
+|                       | purposes of tracking and evaluating usage.          |
 +-----------------------+-----------------------------------------------------+
-| -tag *string*         | make first line of each warning contain *[string]*  |
+| -tag *string*         | Include *[string]* in |bv| messages, to distinguish |
+|                       | them from compiler messages.                        |
 +-----------------------+-----------------------------------------------------+
-| | -verbose            | display command line passed to clang                |
-| | -v                  |                                                     |
+| | -verbose            | Display the full command line passed to the         |
+| | -v                  | underlying executable program.  Note that options   |
+|                       | from the compilation database are read by that      |
+|                       | program and so will not appear here.                |
 +-----------------------+-----------------------------------------------------+
-| | -help               | display help for usage                              |
+| -version              | Display the version number of |bv| and of the Clang |
+|                       | compiler it is based upon.                          |
++-----------------------+-----------------------------------------------------+
+| | -help               | Display this usage information.                     |
 | | -?                  |                                                     |
 +-----------------------+-----------------------------------------------------+
 
@@ -256,11 +263,11 @@ command.  Such output contains lines beginning with ``+++`` representing a file
 with changes and lines starting with ``@`` and containing ``+LINE_NUMBER`` or
 ``+LINE_NUMBER,NUMBER_OF_LINES`` representing which lines in the file have
 changed.  Such diffs may be saved in a file and given to |bv| via the option
-``--diff=file`` or they may be piped into |bv| via the option ``--diff=-`` in
+``-diff file`` or they may be piped into |bv| via the option ``-diff -`` in
 which case standard input will be read for the diffs.
 
-Note that (for now) the file names upon which |bv| will operate must still be
-specified on the command line; they are not picked up from the diff.
+Note that the file names upon which |bv| will operate must still be specified
+on the command line; they are not picked up from the diff.
 
 Configuration
 -------------
@@ -269,8 +276,18 @@ disabled, and specifies the enterprise namespace in which components live. By
 default, that namespace is ``BloombergLP``, and almost all checks are enabled.
 The configuration file consists of a set of options, one per line, processed
 in order. Additional configuration lines may be supplied on the command line
-as described above. In particular, specifying ``-cl='load file'`` will
+as described above. In particular, specifying ``-cl 'load file'`` will
 augment the default configuration with the contents of ``file``.
+
+Checks and Tags
+---------------
+|Bv| implements a set of *checks*\ , each representing a category of issues to
+be detected.  Each such check may result in one or more types of warning being
+issued, and those warnings are prefixed with a *tag* consisting of capital
+letters followed by digits.  If a check is disabled, none of its warnings will
+appear.  If a check is enabled, individual tags may optionally be suppressed.
+Each check and tag is described later in this document.  The configuration file 
+is used to enable or disable individual checks and tags.
 
 =============================== ===============================================
 Config Entry                    Description
@@ -380,10 +397,8 @@ indicates that some condition fails to hold.
 Checks
 ------
 
-These are the checks supported by the tool. A few are of dubious value and may
-be removed in the future. The tag prefixes (especially the ``TR``\ *nn* ones)
-are subject to change as tests are refined or updated. We welcome suggestions
-for additional checks.
+These are the checks supported by the tool.  (A few are of dubious value and
+may be removed in the future.)  We welcome suggestions for additional checks.
 
 .. only:: bde_verify or bb_cppverify
 
