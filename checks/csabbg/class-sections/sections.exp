@@ -1,38 +1,38 @@
 In file included from sections.cpp:1:
-./sections.h:5:10: warning: KS00: Declaration without tag
+./sections.h:5:10: warning: KS00: Declaration not preceded by section tag comment
     void accessor_0() const;
          ^
-./sections.h:6:10: warning: KS00: Declaration without tag
+./sections.h:6:10: warning: KS00: Declaration not preceded by section tag comment
     void manipulator_0();
          ^
-./sections.h:7:10: warning: KS00: Declaration without tag
+./sections.h:7:10: warning: KS00: Declaration not preceded by section tag comment
     void aspect_0();
          ^
-./sections.h:8:16: warning: KS00: Declaration without tag
+./sections.h:8:16: warning: KS00: Declaration not preceded by section tag comment
     static int s_class_data_0;
                ^
-./sections.h:9:17: warning: KS00: Declaration without tag
+./sections.h:9:17: warning: KS00: Declaration not preceded by section tag comment
     static void s_class_method_0();
                 ^
-./sections.h:10:22: warning: KS00: Declaration without tag
+./sections.h:10:22: warning: KS00: Declaration not preceded by section tag comment
     static const int s_CONSTANT_0 = 7;
                      ^
-./sections.h:11:5: warning: KS00: Declaration without tag
+./sections.h:11:5: warning: KS00: Declaration not preceded by section tag comment
     X(Z<0>);
     ^
-./sections.h:12:8: warning: KS00: Declaration without tag
+./sections.h:12:8: warning: KS00: Declaration not preceded by section tag comment
     X& operator=(Z<0>);
        ^
-./sections.h:13:9: warning: KS00: Declaration without tag
+./sections.h:13:9: warning: KS00: Declaration not preceded by section tag comment
     int d_data_0;
         ^
-./sections.h:14:17: warning: KS00: Declaration without tag
+./sections.h:14:17: warning: KS00: Declaration not preceded by section tag comment
     typedef int Type_0;
                 ^
-./sections.h:15:5: warning: KS00: Declaration without tag
+./sections.h:15:5: warning: KS00: Declaration not preceded by section tag comment
     operator Z<0>();
     ^
-./sections.h:16:5: warning: KS00: Declaration without tag
+./sections.h:16:5: warning: KS00: Declaration not preceded by section tag comment
     operator Z<0>() const;
     ^
 ./sections.h:20:5: warning: KS01: Tag requires public declaration

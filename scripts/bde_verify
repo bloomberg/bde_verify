@@ -46,8 +46,8 @@ my $debug    = "";
 my $verbose  = "";
 my $version  = "";
 my $help     = "";
-my $definc   = 1;
-my $defdef   = 1;
+my $definc   = -1;
+my $defdef   = -1;
 my $logdir   = "/home/hrosen4/mbig/logs/${nm}";
 my $nsa      = -d $logdir || 0;
 my @incs;
@@ -62,7 +62,7 @@ my @lflags = (
 );
 my $dummy;
 my @dummy;
-my $std;
+my $std = "";
 my $warnoff;
 my $diagnose = "component";
 my $rwd;
@@ -75,6 +75,9 @@ my $diff = "";
 my $comp_db_dir = "";
 
 my $command = join " \\\n ", $0, map { join "\\ ", split(/ /, $_, -1) } @ARGV;
+
+sub defdef() { $defdef = 1 - ($comp_db_dir ne "") if $defdef == -1; $defdef }
+sub definc() { $definc = 1 - ($comp_db_dir ne "") if $definc == -1; $definc }
 
 sub usage()
 {
@@ -132,10 +135,10 @@ usage: $0 [options] [additional compiler options] file.cpp ...
 
                 % git diff | $nm -diff - file.cpp...
 
-    -[no]definc              [$definc]
+    -[no]definc              [@{[definc()]}]
             Have $nm supply or not supply default include paths.
 
-    -[no]defdef              [$defdef]
+    -[no]defdef              [@{[defdef()]}]
             Have $nm supply or not supply default macro definitions.
             The BDE_VERIFY macro will be defined regardless.
 
@@ -153,8 +156,8 @@ usage: $0 [options] [additional compiler options] file.cpp ...
             extract -I and -D options for the files being checked.
             (Compilation databases are build artifacts created by
             request during compilation.)  When using this option,
-            also specify -nodefdef and -nodefinc to avoid collisions
-            between the compilation database and the defaults.
+            -nodefdef and -nodefinc become the default to avoid
+            collisions with the compilation database.
 
     -rewrite-dir {directory}
     -rewrite {directory}
@@ -191,8 +194,8 @@ usage: $0 [options] [additional compiler options] file.cpp ...
                 all         Warn about all files included in the
                             translation unit.  Gneerally unuseful.
 
-    -std type                [$std]
-            Pass the desired C++ standard version to the compiler.
+    -std {version}           [$std]
+            Pass the desired C++ standard {version} to the compiler.
 
     -tag {string}
             Include '[string]' in warning messages emitted by $nm.
@@ -301,8 +304,8 @@ push(@defs, (
     "_SYS_SYSMACROS_H",
     "_THREAD_SAFE",
     "__USE_XOPEN2K8",
-)) if $defdef;
-if ($ovr == 1 || $ovr != 0 && $defdef && !grep(m{\bb[sd]l[^/]*$}, @ARGV)) {
+)) if defdef();
+if ($ovr == 1 || $ovr != 0 && defdef() && !grep(m{\bb[sd]l[^/]*$}, @ARGV)) {
     push(@defs, "BSL_OVERRIDES_STD");
 }
 @defs = map { "-D$_" } @defs;
@@ -337,7 +340,7 @@ push(@incs, (
     "/bb/build/share/stp/include/00offlonly",
     "/bbsrc/thirdparty/bbit/include",
     "$bb/opt/bb/include/stlport",
-)) if $bb and $definc;
+)) if $bb and definc();
 @incs = map { ( "-I", $_ ) }
         map { $_ eq Cwd::cwd() ? "." : $_ }
         map { Cwd::abs_path($_) }

@@ -653,7 +653,8 @@ void report::operator()()
             m.isBeforeInTranslationUnit(getLoc(i->range.getBegin()),
                                         getDCLoc(decl))) {
             if (!decl->isInAnonymousNamespace()) {
-                a.report(decl, check_name, "KS00", "Declaration without tag");
+                a.report(decl, check_name, "KS00",
+                         "Declaration not preceded by section tag comment");
             }
             continue;
         }

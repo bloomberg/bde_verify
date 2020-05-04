@@ -6,6 +6,45 @@ Synopsis
 --------
 |bv| ``[options...] [compiler options...] file...``
 
+Usage Examples
+--------------
+
+|bv| my_comp.cpp
+    Run |bv| using all defaults.  This will use a set of -D and -I directives
+    appropriate to the Bloomberg environment, and a configuration file that has
+    most checks enabled.
+
+|bv| -D EXPERT=0 -I common my_comp.cpp
+    Run |bv| using all defaults, and also include custom macro definitions and
+    include paths.
+
+|bv| -nodefdef -D EXPERT=1 -nodefinc -I common -I local my_comp.cpp
+    Run |bv| using no default macros or include paths, supplying our own.  The
+    default configuration file is still used.  (The |BV| macro is always
+    defined.)
+
+|bv| -p build_dir my_comp.cpp
+    Run |bv| using no default macros or include paths, extracting appropriate
+    ones from a compilation database file named ``compile_commands.json`` that
+    must be present in the specified build_dir directory.
+
+|bv| -config my_bv.cfg my_comp.cpp
+    Run |bv| using default macros and paths, but with a custom configuration
+    file.
+
+|bv| -cl 'all off' -cl 'check longlines on' -cl 'check headline on' my_comp.cpp
+    Run |bv| using defaults, with all but the 'longlines' and 'headline' checks
+    disabled.
+
+|bv| -cl 'append dictionary presquash untreeify' my_comp.cpp
+    Run |bv| using defaults, modifying the ``dictionary`` configuration
+    setting (used by the spelling checker) to include extra words.
+
+|bv| -cl 'all off' -cl 'check headline on' -rewrite-dir . my_comp.cpp
+    Run |bv| using defaults, with all but the 'headline' checks disabled.
+    If the first line of the file is malformed, produce a corrected version
+    named my_comp.cpp-rewritten in the current directory.
+
 Description
 -----------
 The |bv| command performs a variety of checks intended to foster improved
@@ -405,7 +444,10 @@ may be removed in the future.)  We welcome suggestions for additional checks.
    allocator-forward
    +++++++++++++++++
 
-   Checks dealing with allocator forwarding and traits.
+   Checks dealing with allocator forwarding and traits.  Allocator-aware
+   classes have a number of requirements, such as having constructors that
+   accept allocator parameters, passing those parameters to constructors
+   of sub-objects, and setting type traits correctly.
 
    An experimental and preliminary feature has been added to this check to
    enable automatic allocatorization of classes via the rewriting facility.
@@ -470,6 +512,10 @@ may be removed in the future.)  We welcome suggestions for additional checks.
    allocator-new
    +++++++++++++
 
+   In BDE code, a placement new overload is provided that takes an allocator
+   reference.  Passing an allocator pointer to placement new will not call
+   that overload.
+
    * ``ANP01``
      Calls to placement new with an argument that is a pointer to an allocator.
 
@@ -477,6 +523,9 @@ may be removed in the future.)  We welcome suggestions for additional checks.
 
    alphabetical-functions
    ++++++++++++++++++++++
+
+   BDE coding guidelines specify that functions in a group should be in
+   alphanumeric order.
 
    * ``FABC01``
      Functions in a component section that are not in alphanumeric order.
@@ -489,6 +538,10 @@ may be removed in the future.)  We welcome suggestions for additional checks.
 
 .. only:: bde_verify or bb_cppverify
 
+   Header files should not contain anonymous namespaces, because each
+   compilation unit that includes such a header gets a separate instance
+   of that namespace, and that is generally not wanted.
+
    anon-namespace
    ++++++++++++++
    * ``ANS01``
@@ -499,6 +552,9 @@ may be removed in the future.)  We welcome suggestions for additional checks.
    array-argument
    ++++++++++++++
 
+   A function parameter that is declared as an array with a specified size
+   is really just a pointer, and having the size present is misleading.
+
    * ``AA01``
      Sized array parameter is really a pointer.
 
@@ -506,6 +562,10 @@ may be removed in the future.)  We welcome suggestions for additional checks.
 
    array-initialization
    ++++++++++++++++++++
+
+   Warn when an array initializer that has fewer elements than the array
+   size has a final initializer that is not the default element value, to
+   guard against incorrect initialization.
 
    * ``II01``
      Incomplete array initialization in which the last value is not the default
@@ -516,6 +576,9 @@ may be removed in the future.)  We welcome suggestions for additional checks.
    assert-assign
    +++++++++++++
 
+   Assertion conditions are often a top-level "expected == actual" expression
+   and may erroneously be written as an "expected = actual" assignment.
+
    * ``AE01``
      Top-level macro condition is an assignment.
 
@@ -524,7 +587,13 @@ may be removed in the future.)  We welcome suggestions for additional checks.
    banner
    ++++++
 
-   Malformed banners.
+   BDE coding guidelines have a variety of banner requirements, for example::
+
+                            // ==============
+                            // class abcd_efg
+                            // ==============
+
+   for class definitions.  This check catches a few style violations.
 
    * ``BAN02``
      Banner rule lines do not extend to column 79.
@@ -541,6 +610,10 @@ may be removed in the future.)  We welcome suggestions for additional checks.
    base
    ++++
 
+   |Bv| detects pragmas and comments that direct it to save and restore its
+   internal state using a stack, and checks that the stack is manipulated
+   appropriately.
+
    * ``PR01``
      ``#pragma`` |bv| ``pop`` when stack is empty.
    * ``PR02``
@@ -550,6 +623,11 @@ may be removed in the future.)  We welcome suggestions for additional checks.
 
    boolcomparison
    ++++++++++++++
+
+   Rather than comparing boolean values against 'true' or 'false', they
+   should be tested directly, i.e., ``if (!cond)`` rather than
+   ``if (false == cond)``.
+
    * ``BC01``
      Comparison of a Boolean expression with literal ``true`` or ``false``.
 
@@ -559,8 +637,10 @@ may be removed in the future.)  We welcome suggestions for additional checks.
    +++++++++++++++++
 
    Rewrite code which compiles with ``BSL_OVERRIDES_STD`` defined to not
-   require that.
-   Use the ``-rewrite`` option to generate the rewritten file.
+   require that.  Use the ``-rewrite`` option to generate the rewritten file.
+
+   Note that ``BSL_OVERRIDES_STD`` is now obsolete and Bloomberg internal code
+   has already been changed not to use it.
 
    * ``IS01``
      Include of header is needed to declare a symbol.
@@ -595,6 +675,8 @@ may be removed in the future.)  We welcome suggestions for additional checks.
    c-cast
    ++++++
 
+   Discourage use of C-style cast expressions.
+
    * ``CC01``
      C-style cast expression. (Dispensation is granted to ``(void)expr``.)
 
@@ -602,6 +684,10 @@ may be removed in the future.)  We welcome suggestions for additional checks.
 
    char-classification-range
    +++++++++++++++++++++++++
+
+   Detect that signed character or too-large arguments are being passed to
+   standard library character classification functions.  Those functions
+   require that their parameters lie in the range [-1 .. 255].
 
    * ``ISC01``
      ``char`` variable passed to ``is...`` function may sign-extend, causing
@@ -618,6 +704,10 @@ may be removed in the future.)  We welcome suggestions for additional checks.
    char-vs-string
    ++++++++++++++
 
+   A ``const char *`` function parameter is usually expected to be the
+   address of a null-terminated character array, and passing the address
+   of a single character as an argument may be a program-logic error.
+
    * ``ADC01``
      Passing the address of a single character as an argument to a
      ``const char *`` parameter.
@@ -628,10 +718,12 @@ may be removed in the future.)  We welcome suggestions for additional checks.
    ++++++++++++++
 
    BDE coding standards require that class member declarations appear in tagged
-   sections (e.g., ``// MANIPULATORS``, ``// CREATORS``, et al.)
+   sections (e.g., ``// MANIPULATORS``, ``// CREATORS``, ``// PUBLIC DATA``, et
+   al.)  This check verifies that tags are present for declarations at all, and
+   if so, that they match the accessibility and types of the declarations.
 
    * ``KS00``
-     Declaration without tag.
+     Declaration not preceed by section tag comment.
    * ``KS01``
      Tag requires public declaration.
    * ``KS02``
@@ -672,7 +764,8 @@ may be removed in the future.)  We welcome suggestions for additional checks.
    comments
    ++++++++
 
-   Comments containing erroneous or deprecated text.
+   Comments containing erroneous or deprecated text according to BDE coding
+   standards or general lore.
 
    * ``FVS01``
      Deprecate the phrase *fully value semantic*.
@@ -705,7 +798,9 @@ may be removed in the future.)  We welcome suggestions for additional checks.
    comparison-order
    ++++++++++++++++
 
-   Comparisons whose operand order should be reversed.
+   In order to guard against accidental assignment (``=`` when ``==`` was
+   meant), equality comparisons between constant and non-constant expressions
+   should have the constant expression on the left.
 
    * ``CO01``
      Non-modifiable operand should be on the left.
@@ -717,6 +812,9 @@ may be removed in the future.)  We welcome suggestions for additional checks.
    component-header
    ++++++++++++++++
 
+   A component implementation file should include the component header file,
+   and the component header should be the first included header.
+
    * ``TR09``
      Component implementation file does not include its header file ahead of
      other includes or declarations.
@@ -725,6 +823,11 @@ may be removed in the future.)  We welcome suggestions for additional checks.
 
    component-prefix
    ++++++++++++++++
+
+   BDE coding style requires that globally visible names provided by a
+   component have the component name as a prefix.  For example, the BDE
+   component bdlt_calendar provides ``bdlt::Calendar_BusinessDayConstIter`` as
+   well as ``bdlt::Calendar`` itself.  This rule applies to macros as well.
 
    * ``CP01``
      Globally visible name is not prefixed by component name.
@@ -736,6 +839,8 @@ may be removed in the future.)  We welcome suggestions for additional checks.
 
    constant-return
    +++++++++++++++
+
+   Discourage the use of functions that just return a constant value.
 
    * ``CR01``
      Single statement function returns a constant value.
@@ -787,34 +892,30 @@ may be removed in the future.)  We welcome suggestions for additional checks.
    deprecated
    ++++++++++
 
+   Detect use of deprecated functions and types.
+
    * ``DP01``
      Call to deprecated function.
-
-.. only:: bde_verify
-
-   diagnostic-filter
-   +++++++++++++++++
-
-   Not a check.
 
 .. only:: bde_verify or bb_cppverify
 
    do-not-use-endl
    +++++++++++++++
 
+   Discourage use of ``endl`` because it flushes the output stream and can
+   therefore cause programs to be unnecessarily slow.  Rather output ``\\n``
+   and use ``flush`` in the rare times it's explicitly needed.
+
    * ``NE01``
      Prefer using ``'\\n'`` over ``endl``.
-
-.. only:: bde_verify
-
-   dump-ast
-   ++++++++
-   Not a check.
 
 .. only:: bde_verify or bb_cppverify
 
    entity-restrictions
    +++++++++++++++++++
+
+   BDE style recommends having names be declared within component classes,
+   not at global scope.
 
    * ``TR17``
      Items declared in global scope.
@@ -824,6 +925,9 @@ may be removed in the future.)  We welcome suggestions for additional checks.
    enum-value
    ++++++++++
 
+   BDE guidelines call for using ``Enum`` as the name of an enumeration type
+   within a component.  The previously commonly used ``Value`` is obsolete.
+
    * ``EV01``
      Component enumeration tag is ``Value``.
 
@@ -832,7 +936,23 @@ may be removed in the future.)  We welcome suggestions for additional checks.
    external-guards
    +++++++++++++++
 
-   Incorrect or missing use of external header guards.
+   Header files should be guarded against multiple inclusion, like so::
+
+       // abcd_efg.h
+       #ifndef INCLUDED_ABCD_EFG
+       #define INCLUDED_ABCD_EFG
+           // ... stuff ...
+       #endif
+
+   Formerly, BDE style required guard checking in headers, as in the following
+   code, but this is now obsolete.  The ``SEG03`` warning is that this check is
+   missing and the ``SEG04`` warning is that this check is present.  (The
+   former is disabled in the default configuration file.)::
+
+       // abcd_xyz.h
+       #ifndef INCLUDED_ABCD_EFG
+       #include <abcd_efg.h>
+       #endif
 
    * ``SEG01``
      Include guard without include file.
@@ -848,7 +968,9 @@ may be removed in the future.)  We welcome suggestions for additional checks.
    files
    +++++
 
-   Missing or inaccessible component header file or test driver.
+   Missing or inaccessible component header file or test driver.  BDE style
+   requires that a component have a header file, an implementation file, and a
+   test driver file.
 
    * ``FI01``
      Component header file is missing.
@@ -860,6 +982,9 @@ may be removed in the future.)  We welcome suggestions for additional checks.
    free-functions-depend
    +++++++++++++++++++++
 
+   Free functions (not part of a component class) declared in a header file
+   should have a parameter whose type is declared by that header file.
+
    * ``AQS01``
      Free function parameter must depend on a local definition.
 
@@ -867,6 +992,10 @@ may be removed in the future.)  We welcome suggestions for additional checks.
 
    friends-in-headers
    ++++++++++++++++++
+
+   BDE style requires that if a class or method is granted friendship, that
+   entity must be declared in the same header file.  (We call this the dictum
+   of "no long-distance friendship").
 
    * ``AQP01``
      Friends must be declared in the same header.
@@ -876,7 +1005,15 @@ may be removed in the future.)  We welcome suggestions for additional checks.
    function-contract
    +++++++++++++++++
    
-   Incorrect or missing function contracts.
+   Incorrect or missing function contracts.  BDE coding guidelines describe the
+   detailed requirements, including indentation, position, and the proper way
+   of documenting parameters.  A correct example is::
+
+       double total(double amount, int number = 1);
+           // Return the total amount to charge for an order where one item
+           // costs the specified 'amount'.  Optionally specify the 'number'
+           // of items in the order.  If 'number' is not specified, a single
+           // item is assumed.
 
    * ``FD01``
      Missing contract.
@@ -899,6 +1036,8 @@ may be removed in the future.)  We welcome suggestions for additional checks.
    global-data
    +++++++++++
 
+   Programs should not contain global data outside of classes.
+
    * ``AQb01``
      Data variable with global visibilty.
 
@@ -907,6 +1046,8 @@ may be removed in the future.)  We welcome suggestions for additional checks.
    global-function-only-in-source
    ++++++++++++++++++++++++++++++
 
+   Globally visible functions must be declared in header files.
+
    * ``TR10``
      Globally visible function not declared in header.
 
@@ -914,6 +1055,8 @@ may be removed in the future.)  We welcome suggestions for additional checks.
 
    global-type-only-in-source
    ++++++++++++++++++++++++++
+
+   Globally visible types must be declared in header files.
 
    * ``TR10``
      Globally visible type not declared in header.
@@ -925,7 +1068,9 @@ may be removed in the future.)  We welcome suggestions for additional checks.
    groupname
    +++++++++
 
-   Component is not properly named or located.
+   BDE style requires a particular layout for component file locations - for
+   example, the component header abcd_efg.h is expected to be found as
+   ``abc/abcd/abcd_efg.h``.
 
    * ``GN01``
      Component does not have a distinguishable correctly formed package group
@@ -938,6 +1083,10 @@ may be removed in the future.)  We welcome suggestions for additional checks.
    hash-pointer
    ++++++++++++
 
+   When a pointer is passed to a call of an object of type std::hash<TYPE*>,
+   the hash will apply to the value of the pointer rather than to what the
+   pointer points.  This is generally not what is wanted.
+
    * ``HC01``
      Warn that use of ``std::hash<TYPE*>()(ptr)`` uses only the value and not
      the contents of *ptr*.
@@ -947,6 +1096,9 @@ may be removed in the future.)  We welcome suggestions for additional checks.
    headline
    ++++++++
 
+   The first line of a component file should start with ``// file_name`` and
+   end in column 79 with with ``-*-C++-*-``.
+
    * ``HL01``
      The headline of the file is incorrect.
 
@@ -954,6 +1106,10 @@ may be removed in the future.)  We welcome suggestions for additional checks.
 
    implicit-ctor
    +++++++++++++
+
+   Constructors that are not designated ``explicit`` and take one argument can
+   be used to implicitly convert that argument to class type.  They should be
+   tagged with an ``// IMPLICT`` comment.
 
    * ``IC01``
      Non-``explicit`` constructor which may be invoked implicitly and
@@ -964,6 +1120,8 @@ may be removed in the future.)  We welcome suggestions for additional checks.
    in-enterprise-namespace
    +++++++++++++++++++++++
 
+   All top-level declarations should be within the enterprise namespace.
+
    * ``AQQ01``
      Declaration not in enterprise namespace.
 
@@ -972,6 +1130,17 @@ may be removed in the future.)  We welcome suggestions for additional checks.
    include-guard
    +++++++++++++
 
+   Header files should be protected against multiple inclusion using guards::
+
+       // abcd_efg.h
+       #ifndef INCLUDED_ABCD_EFG
+       #define INCLUDED_ABCD_EFG
+           // ... stuff ...
+       #endif
+
+   The include guard is expected to properly match its file name and be used as
+   above.
+
    * ``TR14``
      Header file does not set up or use its include guard macro properly.
 
@@ -979,6 +1148,10 @@ may be removed in the future.)  We welcome suggestions for additional checks.
 
    include-in-extern-c
    +++++++++++++++++++
+
+   Header files should not be included inside ``extern "C" { }`` sections
+   because being declared within "C" linkage can change the meaning of the
+   constructs they contain.
 
    * ``IEC01``
      Header file included within C linkage specification.
@@ -1012,6 +1185,8 @@ may be removed in the future.)  We welcome suggestions for additional checks.
    indentation
    +++++++++++
 
+   BDE coding standards have a variety of indentation formatting requirements.
+
    * ``IND01``
      Line is (possibly) mis-indented.
    * ``IND02``
@@ -1035,6 +1210,10 @@ may be removed in the future.)  We welcome suggestions for additional checks.
    leaking-macro
    +++++++++++++
 
+   Macros that are left defined at the end of a header file must begin with
+   the name of the component (unless they are include guard macros, which have
+   their own form).
+
    * ``SLM01``
      Component header file macro neither an include guard nor prefixed by
      component name.
@@ -1044,7 +1223,7 @@ may be removed in the future.)  We welcome suggestions for additional checks.
    local-friendship-only
    +++++++++++++++++++++
 
-   Long-distance friendship.
+   "Long-distance" friendship is not permitted.
 
    * ``TR19``
      Friendship granted outside of component.
@@ -1054,6 +1233,11 @@ may be removed in the future.)  We welcome suggestions for additional checks.
    long-inline
    +++++++++++
 
+   Very long functions in header files (often function templates) should not be
+   declared inline if they are too long.  "Too long" is defined by the
+   configuration variable ``max_inline_lines``.  (|Bv| will count statements
+   rather than physical lines.)
+
    * ``LI01``
      Inline function is longer than configuration file parameter
      ``max_inline_lines`` (default 10).
@@ -1062,6 +1246,9 @@ may be removed in the future.)  We welcome suggestions for additional checks.
 
    longlines
    +++++++++
+
+   BDE style requires that lines be no longer than 79 characters long.
+   By request of the |bv| management, this is not a configurable value.
 
    * ``LL01``
      Line exceeds 79 characters.
@@ -1099,6 +1286,9 @@ may be removed in the future.)  We welcome suggestions for additional checks.
    member-definition-in-class-definition
    +++++++++++++++++++++++++++++++++++++
 
+   BDE style requires that methods be declared in classes but defined outside
+   of them.
+
    * ``CD01``
      Method defined directly in class definition.
 
@@ -1106,6 +1296,9 @@ may be removed in the future.)  We welcome suggestions for additional checks.
 
    member-names
    ++++++++++++
+
+   BDE style requires that data members of classes (but not ``structs``) be
+   private, and that paerticular naming conventions be followed.
 
    * ``MN01``
      Class data members must be private.
@@ -1136,6 +1329,9 @@ may be removed in the future.)  We welcome suggestions for additional checks.
    mid-return
    ++++++++++
 
+   BDE style requires that ``return`` statements in functions, other than the
+   final one, be tagged with a ``// RETURN`` comment ending in column 79.
+
    * ``MR01``
      Non-final ``return`` statement not tagged with ``// RETURN``.
    * ``MR02``
@@ -1146,6 +1342,14 @@ may be removed in the future.)  We welcome suggestions for additional checks.
    namespace-tags
    ++++++++++++++
 
+   The closing brace of a multi-line namespace declaration should be marked
+   with one of these comments::
+
+       }  // close enterprise namespace
+       }  // close package namespace
+       }  // close unnamed namespace
+       }  // close namespace name
+
    * ``NT01``
      Multi-line namespace blocks must end with
      ``// close [ enterprise | package | unnamed | description ] namespace``.
@@ -1154,6 +1358,9 @@ may be removed in the future.)  We welcome suggestions for additional checks.
 
    nested-declarations
    +++++++++++++++++++
+
+   Declarations should be nested within a package namespace inside the
+   enterprise namespace.
 
    * ``TR04``
      Declarations not properly nested in package namespace.
@@ -1169,6 +1376,8 @@ may be removed in the future.)  We welcome suggestions for additional checks.
    nonascii
    ++++++++
 
+   Source code should contain only 7-bit ASCII characters.
+
    * ``NA01``
      Source code contains bytes with value greater than 127.
 
@@ -1176,6 +1385,9 @@ may be removed in the future.)  We welcome suggestions for additional checks.
 
    operator-void-star
    ++++++++++++++++++
+
+   Classes should not contain operators that permit them to be implictly
+   converted to ``void *`` or ``bool`` to prevent accidental misuse.
 
    * ``CB01``
      Class contains conversion operator to ``void *`` or ``bool``.
@@ -1202,6 +1414,9 @@ may be removed in the future.)  We welcome suggestions for additional checks.
 
    ref-to-movableref
    +++++++++++++++++
+
+   BDE provides a ``MovableRef`` type meant to simulate rvalue references in
+   C++03 code.  Objects of this type should be passed by value.
 
    * ``MRR01``
      MovableRef should be passed by value, not reference.
@@ -1254,6 +1469,10 @@ may be removed in the future.)  We welcome suggestions for additional checks.
    runtime-initialization
    ++++++++++++++++++++++
 
+   Global variables with initializers that run when the program is loaded are
+   error-prone, although less so when they appear in the prgram file containing
+   ``main()``.
+
    * ``AQa01``
      Global variable with runtime initialization in file without main().
    * ``AQa02``
@@ -1277,18 +1496,13 @@ may be removed in the future.)  We welcome suggestions for additional checks.
    spell-check
    +++++++++++
 
-   * ``SP01``
-     Misspelled word in comment.
-   * ``SP02``
-     Cannot start spell checker.  (Not an error in the examined file.)
-   * ``SP03``
-     Misspelled word in parameter name.
-
    Spell-checking is disabled by default in the config file
    (``check spell-check off``) to avoid noise.
 
-   Words in configuration parameter ``dictionary`` (default too numerous to
-   mention - see config file) are assumed correct.
+   Words in configuration parameter ``dictionary`` are assumed correct.
+   Extra words can be added to a config file or when the program is run::
+
+       |bv| -cl 'append dictionary treeify unsquash' ...
 
    Words that appear at least as many times as non-zero configuration
    parameter ``spelled_ok_count`` (default 3) are assumed correct.
@@ -1297,10 +1511,21 @@ may be removed in the future.)  We welcome suggestions for additional checks.
 
    .. _GNU Aspell: http://aspell.net
 
+   * ``SP01``
+     Misspelled word in comment.
+   * ``SP02``
+     Cannot start spell checker.  (Not an error in the examined file.)
+   * ``SP03``
+     Misspelled word in parameter name.
+
+
 .. only:: bde_verify or bb_cppverify
 
    strict-alias
    ++++++++++++
+
+   C++ grows ever less fond of type punning.  Casting between pointer types
+   (except for void and char types) will trigger this check.
 
    * ``SAL01``
      Possible strict-aliasing violation.
@@ -1310,6 +1535,8 @@ may be removed in the future.)  We welcome suggestions for additional checks.
    string-add
    ++++++++++
 
+   Adding an integer to a string literal is deemed suspect.
+
    * ``SA01``
      Addition of integer and string literal.
 
@@ -1317,6 +1544,9 @@ may be removed in the future.)  We welcome suggestions for additional checks.
 
    swap-a-b
    ++++++++
+
+   BDE style requires that the parameters of a free ``swap`` functionbe named
+   ``a`` and ``b``.
 
    * ``SWAB01``
      Parameters of free *swap* function are not named *a* and *b*.
@@ -1336,6 +1566,10 @@ may be removed in the future.)  We welcome suggestions for additional checks.
 
    template-typename
    +++++++++++++++++
+
+   BDE coding style requires that template type parameters be designated with
+   ``class`` rather than ``typename``, that they not be single-letter names,
+   and that they should be in all-capital letters.
 
    * ``TY01``
      Use of ``typename`` instead of ``class`` in ``template`` header.
@@ -1426,6 +1660,8 @@ may be removed in the future.)  We welcome suggestions for additional checks.
    that-which
    ++++++++++
 
+   Grammar check preferring the word ``that`` to ``which`` in many cases.
+
    * ``TW01``
      Prefer ``that`` to ``which``.
    * ``TW02``
@@ -1436,6 +1672,8 @@ may be removed in the future.)  We welcome suggestions for additional checks.
    throw-non-std-exception
    +++++++++++++++++++++++
 
+   Thrown exception objects should inherit from ``std::exception``.
+
    * ``FE01``
      Throwing exception not derived from ``std::exception``.
 
@@ -1443,6 +1681,9 @@ may be removed in the future.)  We welcome suggestions for additional checks.
 
    transitive-includes
    +++++++++++++++++++
+
+   A source files should include all headers that declare names used by that
+   source file, even when those headers would be included indirectly.
 
    * ``AQK01``
      Header included transitively should be included directly.
@@ -1454,15 +1695,19 @@ may be removed in the future.)  We welcome suggestions for additional checks.
    unnamed-temporary
    +++++++++++++++++
 
+   A temporary unnamed object will be immediately destroyed, and it is
+   unlikely to be the intended use.  The canonical example of this error
+   is ``mutex m; mutex_guard(&m);``.
+
    * ``UT01``
      Unnamed object will be immediately destroyed.
-
-   The canonical example of this error is ``mutex m; mutex_guard(&m);``.
 
 .. only:: bde_verify
 
    upper-case-names
    ++++++++++++++++
+
+   BDE style does not permit variable and type names to be all upper-case.
 
    * ``UC01``
      Names of variables and types should not be all upper-case.
@@ -1471,6 +1716,9 @@ may be removed in the future.)  We welcome suggestions for additional checks.
 
    using-declaration-in-header
    +++++++++++++++++++++++++++
+
+   Header files should not contain ``using`` declarations because they can
+   cause mysterious name clashes in files that include them.
 
    * ``TR16``
      Header file contains ``using`` declaration.
@@ -1485,6 +1733,9 @@ may be removed in the future.)  We welcome suggestions for additional checks.
    using-directive-in-header
    +++++++++++++++++++++++++
 
+   Header files should not contain ``using`` directives because they can
+   cause mysterious name clashes in files that include them.
+
    * ``TR16``
      Header file contains ``using`` directive.
    * ``AQJ02``
@@ -1497,6 +1748,9 @@ may be removed in the future.)  We welcome suggestions for additional checks.
 
    verify-same-argument-names
    ++++++++++++++++++++++++++
+
+   The declaration and definition of a function should use the same names for
+   the function parameters.
 
    * ``AN01``
      Function declaration and definition use different parameter names.
