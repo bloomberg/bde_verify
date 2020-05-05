@@ -116,25 +116,25 @@ as an artifact of compilation by many build systems.  |Bv| accepts a
 ``-p directory`` option where the specified directory is the one containing
 the compilation database.  When a file to be processed is found in the
 compilation database, |bv| will extract the ``-D`` and ``-I`` paramaters from
-the database and apply them to its run.  (Note that when using the compilation
-database, you should also specify ``-nodefdef`` and ``-nodefinc`` to avoid
-mixing in the defaults.)
+the database and apply them to its run.  (In this case, |bv| will act as if
+``-nodefdef`` and ``-nodefinc`` were the defaults.)
 
 Here is an example of building a component in the Bloomberg development
 environment from the BDE code base and then running |bv| using the resulting
 compilation database::
 
-    # Check out a source tree and go into it
+    # Check out build tools and a source tree
+    % git clone bbgithub:bde/bde-tools
     % git clone bbgithub:bde/bde
     % cd bde
 
     # Configure, build, and run one test program
-    % eval $(/bb/bde/bbshr/bde-tools/bin/bde_build_env.py)
-    % /bb/bde/bbshr/bde-tools/bin/cmake_build.py configure build \
+    % eval $(../bde-tools/bin/bde_build_env.py)
+    % ../bde-tools/bin/cmake_build.py configure build \
       --tests run --targets bdlb_randomdevice
 
     # Run bde_verify using the resulting compilation database
-    % /opt/bb/bin/bde_verify -nodefdef -nodefinc \
+    % bde_verify \
       -p $(dirname $(find _build/ -name compile_commands.json)) \
       groups/bdl/bdlb/bdlb_randomdevice.h
 
