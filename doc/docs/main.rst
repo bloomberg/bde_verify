@@ -14,19 +14,19 @@ Usage Examples
     appropriate to the Bloomberg environment, and a configuration file that has
     most checks enabled.
 
-|bv| -D EXPERT=0 -I common my_comp.cpp
+|bv| -I/my/include/directory -DIMPORTANT_FLAG my_comp.cpp
     Run |bv| using all defaults, and also include custom macro definitions and
     include paths.
 
-|bv| -nodefdef -D EXPERT=1 -nodefinc -I common -I local my_comp.cpp
+|bv| -nodefinc -I/my/include/directory -nodefdef -DIMPORTANT_FLAG my_comp.cpp
     Run |bv| using no default macros or include paths, supplying our own.  The
     default configuration file is still used.  (The |BV| macro is always
     defined.)
 
-|bv| -p build_dir my_comp.cpp
+|bv| -p my/build/directory my_comp.cpp
     Run |bv| using no default macros or include paths, extracting appropriate
     ones from a compilation database file named ``compile_commands.json`` that
-    must be present in the specified build_dir directory.
+    must be present in the specified directory.
 
 |bv| -config my_bv.cfg my_comp.cpp
     Run |bv| using default macros and paths, but with a custom configuration
@@ -40,10 +40,10 @@ Usage Examples
     Run |bv| using defaults, modifying the ``dictionary`` configuration
     setting (used by the spelling checker) to include extra words.
 
-|bv| -cl 'all off' -cl 'check headline on' -rewrite-dir . my_comp.cpp
+|bv| -cl 'all off' -cl 'check headline on' -rewrite-dir my/rw/dir my_comp.cpp
     Run |bv| using defaults, with all but the 'headline' checks disabled.
     If the first line of the file is malformed, produce a corrected version
-    named my_comp.cpp-rewritten in the current directory.
+    named ``my/rw/dir/my_comp.cpp-rewritten``.
 
 Description
 -----------
@@ -120,12 +120,12 @@ the database and apply them to its run.  (In this case, |bv| will act as if
 ``-nodefdef`` and ``-nodefinc`` were the defaults.)
 
 Here is an example of building a component in the Bloomberg development
-environment from the BDE code base and then running |bv| using the resulting
-compilation database::
+environment from the public BDE code base and then running |bv| using the
+resulting compilation database::
 
     # Check out build tools and a source tree
-    % git clone bbgithub:bde/bde-tools
-    % git clone bbgithub:bde/bde
+    % git clone https://github.com/bloomberg/bde-tools.git
+    % git clone https://github.com/bloomberg/bde.git
     % cd bde
 
     # Configure, build, and run one test program
@@ -154,12 +154,12 @@ grammar check but nothing else::
 
 Without the compilation database, we would need to specify the include paths::
 
-    % /opt/bb/bin/bde_verify -nodefdef -nodefinc \
+    % bde_verify -nodefdef -nodefinc \
       -I groups/bsl/bsls -I groups/bsl/bslscm -I groups/bdl/bdlscm \
       groups/bdl/bdlb/bdlb_randomdevice.h
 
-Or we could let |bv| use the installed versions of the headers instead of the
-local ones, and simply run::
+Within Bloomberg, we could let |bv| use the installed versions of the headers
+instead of the local ones, and simply run::
 
     % bde_verify groups/bdl/bdlb/bdlb_randomdevice.h
 
