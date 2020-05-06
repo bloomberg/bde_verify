@@ -28,6 +28,8 @@ my $pt       = $me;
 $pt          =~ s{(bin/|scripts/)?[^/]*$}{};
 my $nm       = ${0};
 $nm          =~ s{.*/}{};
+my $macro    = ${nm};
+$macro       =~ s{^([^.]*).*}{\U$1\E};
 
 my $config   = "${pt}etc/bde-verify/${nm}.cfg";
 $config      = "${pt}${nm}.cfg"                 unless -r $config;
@@ -99,7 +101,7 @@ usage: $0 [options] [additional compiler options] file.cpp ...
             Pass the specifed {flag} through to the compiler.  This is
             for often-specified compiler options such as -fexceptions.
 
-    -config config_file      [$config]  
+    -config config_file      [$config]
             Specify the file containing $nm configuration options.
 
     -cl {config_line}
@@ -221,6 +223,53 @@ usage: $0 [options] [additional compiler options] file.cpp ...
     -?
             Display this information.
 
+Usage Examples
+--------------
+
+$nm my_comp.cpp
+    Run $nm using all defaults.  This will use a set of -D and -I
+    directives appropriate to the Bloomberg environment, and a
+    configuration file that has most checks enabled.
+
+$nm -I/my/include/directory -DIMPORTANT_FLAG my_comp.cpp
+    Run $nm using all defaults, and also include custom macro
+    definitions and include paths.
+
+$nm -nodefinc -I/my/include/directory -nodefdef -DFLAG my_comp.cpp
+    Run $nm using no default macros or include paths, supplying our
+    own.  The default configuration file is still used.
+    (The $macro macro is always defined.)
+
+$nm -p my/build/directory my_comp.cpp
+    Run $nm using no default macros or include paths, extracting
+    appropriate ones from a compilation database file named
+    compile_commands.json that must be present in the specified directory.
+
+$nm -config my_bv.cfg my_comp.cpp
+    Run $nm using default macros and paths, but with a custom
+    configuration file.
+
+$nm \\
+        -cl 'all off' \\
+        -cl 'check longlines on' \\
+        -cl 'check headline on' \\
+        my_comp.cpp
+    Run $nm using defaults, with all but the 'longlines' and
+    'headline' checks disabled.
+
+$nm -cl 'append dictionary presquash untreeify' my_comp.cpp
+    Run $nm using defaults, modifying the 'dictionary' configuration
+    setting (used by the spelling checker) to include extra words.
+
+$nm \\
+        -cl 'all off' \\
+        -cl 'check headline on' \\
+        -rewrite-dir my/rw/dir \\
+        my_comp.cpp
+    Run $nm using defaults, with all but the 'headline' checks
+    disabled.  If the first line of the file is malformed, produce a
+    corrected version named 'my/rw/dir/my_comp.cpp-rewritten'.
+
 For full documentation, see <https://bde.bloomberg.com/bde-verify/>.
 
 Invoked as:
@@ -289,8 +338,6 @@ my %uf     = ( "no-strict-aliasing" => 1,
 @wflags = map { "-W$_" } grep { not /,/ } @wflags;
 unshift @wflags, "-w" if $warnoff;
 
-my $macro = ${nm};
-$macro =~ s{^([^.]*).*}{\U$1\E};
 push(@defs, ($macro));
 push(@defs, (
     "BDE_API",
