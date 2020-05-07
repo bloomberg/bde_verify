@@ -28,7 +28,7 @@ using namespace clang;
 
 // ----------------------------------------------------------------------------
 
-static std::string const check_name("dump-ast");
+static std::string const check_name(".dump-ast");
 
 // ----------------------------------------------------------------------------
 

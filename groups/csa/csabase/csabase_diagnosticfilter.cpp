@@ -22,12 +22,6 @@ using namespace csabase;
 using namespace llvm;
 using namespace clang;
 
-// ----------------------------------------------------------------------------
-
-static std::string const check_name("diagnostic-filter");
-
-// ----------------------------------------------------------------------------
-
 std::map<std::string, std::set<unsigned>>
     csabase::DiagnosticFilter::s_diff_lines;
 
@@ -142,7 +136,7 @@ static void check(Analyser& analyser, const TranslationUnitDecl*)
 
 // ----------------------------------------------------------------------------
 
-static RegisterCheck register_check(check_name, &check);
+static RegisterCheck register_check(".diagnostic-filter", &check);
 
 // ----------------------------------------------------------------------------
 // Copyright (C) 2014 Bloomberg Finance L.P.

@@ -29,7 +29,12 @@ void
 csabase::CheckRegistry::add_check(std::string const& name,
                                   CheckRegistry::Subscriber check)
 {
-    checks().insert(std::make_pair(name, check));
+    if (name.size() > 0 && name.front() == '.') {
+        add_check(name.substr(1), check);
+    }
+    else {
+        checks().insert(std::make_pair(name, check));
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -43,12 +48,15 @@ csabase::CheckRegistry::attach(Analyser& analyser,
     typedef std::map<std::string, Config::Status> checks_type;
     checks_type const& config(analyser.config()->checks());
     for (const auto &cfg : config) {
-        if (checks().find(cfg.first) == checks().end()) {
+        if (checks().find(cfg.first) == checks().end() &&
+            checks().find("." + cfg.first) == checks().end()) {
             llvm::errs() << "unknown check '" << cfg.first << "'; "
                          << "existing checks:\n";
             for (const_iterator cit(checks().begin()), cend(checks().end());
                  cit != cend; cit = checks().equal_range(cit->first).second) {
-                llvm::errs() << "  check " << cit->first << " on\n";
+                if (cit->first[0] != '\0' && cit->first[0] != '.') {
+                    llvm::errs() << "  check " << cit->first << " on\n";
+                }
             }
             break;
         }
@@ -56,6 +64,9 @@ csabase::CheckRegistry::attach(Analyser& analyser,
 
     for (const auto& check : checks()) {
         checks_type::const_iterator cit(config.find(check.first));
+        if (cit == config.end()) {
+            cit = config.find("." + check.first);
+        }
         if (check.first.size() == 0 ||
             (config.end() != cit && cit->second == Config::on) ||
             (config.end() == cit && analyser.config()->all())) {

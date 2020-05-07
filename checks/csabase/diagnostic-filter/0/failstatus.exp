@@ -1,13 +1,13 @@
-failstatus.cpp:5:9: error: KS00: Declaration without tag
+failstatus.cpp:5:9: error: KS00: Declaration not preceded by section tag comment
     int d_a;
         ^
-failstatus.cpp:10:9: error: KS00: Declaration without tag
+failstatus.cpp:10:9: error: KS00: Declaration not preceded by section tag comment
     int d_a;
         ^
-failstatus.cpp:15:9: error: KS00: Declaration without tag
+failstatus.cpp:15:9: error: KS00: Declaration not preceded by section tag comment
     int d_a;
         ^
-failstatus.cpp:20:9: warning: KS00: Declaration without tag
+failstatus.cpp:20:9: warning: KS00: Declaration not preceded by section tag comment
     int d_a;
         ^
 1 warning and 3 errors generated.

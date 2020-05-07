@@ -6,6 +6,45 @@ Synopsis
 --------
 |bv| ``[options...] [compiler options...] file...``
 
+Usage Examples
+--------------
+
+|bv| my_comp.cpp
+    Run |bv| using all defaults.  This will use a set of -D and -I directives
+    appropriate to the Bloomberg environment, and a configuration file that has
+    most checks enabled.
+
+|bv| -I/my/include/directory -DIMPORTANT_FLAG my_comp.cpp
+    Run |bv| using all defaults, and also include custom macro definitions and
+    include paths.
+
+|bv| -nodefinc -I/my/include/directory -nodefdef -DIMPORTANT_FLAG my_comp.cpp
+    Run |bv| using no default macros or include paths, supplying our own.  The
+    default configuration file is still used.  (The |BV| macro is always
+    defined.)
+
+|bv| -p my/build/directory my_comp.cpp
+    Run |bv| using no default macros or include paths, extracting appropriate
+    ones from a compilation database file named ``compile_commands.json`` that
+    must be present in the specified directory.
+
+|bv| -config my_bv.cfg my_comp.cpp
+    Run |bv| using default macros and paths, but with a custom configuration
+    file.
+
+|bv| -cl 'all off' -cl 'check longlines on' -cl 'check headline on' my_comp.cpp
+    Run |bv| using defaults, with all but the 'longlines' and 'headline' checks
+    disabled.
+
+|bv| -cl 'append dictionary presquash untreeify' my_comp.cpp
+    Run |bv| using defaults, modifying the ``dictionary`` configuration
+    setting (used by the spelling checker) to include extra words.
+
+|bv| -cl 'all off' -cl 'check headline on' -rewrite-dir my/rw/dir my_comp.cpp
+    Run |bv| using defaults, with all but the 'headline' checks disabled.
+    If the first line of the file is malformed, produce a corrected version
+    named ``my/rw/dir/my_comp.cpp-rewritten``.
+
 Description
 -----------
 The |bv| command performs a variety of checks intended to foster improved
@@ -24,7 +63,7 @@ permission from Dietmar to visit those pages.)
 .. _original list of implemented checks:
    https://github.com/dietmarkuehl/coolyser/wiki/Overview
 
-If the ``--rewrite=dir`` option is specified, |bv| will make some suggested
+If the ``-rewrite-dir dir`` option is specified, |bv| will make some suggested
 changes by itself and place the modified files in the specified directory with
 ``-rewritten`` appended to the file names. (Not much rewriting is being done
 yet; we plan to increase this over time.)
@@ -33,53 +72,227 @@ yet; we plan to increase this over time.)
 environment, running ``/opt/bb/bin/`` |bv| will launch the appropriate
 version. 
 
-|bv| now contains the experimental feature of automatically rewriting a class
+|Bv| now contains the experimental feature of automatically rewriting a class
 to be allocator-aware.  To use it, enable the ``allocator-forward`` check, set
 the ``allocator_transform`` configuration variable to contain the name(s) of
 the classes to be modfied, and enable rewriting as specified above.  The
 rewritten class does not yet fully comply with the BDE coding standard (|bv|
 will complain!)
 
-Options
--------
+Options and Configuration
+-------------------------
 
-===================== ==========================================================
-Parameter             Description
-===================== ==========================================================
---config file         configuration file
---cl line             additional configuration lines
---bb dir              base directory for |BDE| header includes
---exe binary          bde_verify executable file
---cc compiler         C++ compiler used to find system include directories
---definc              set up default include paths
---diff file           restrict output using git diff in file (``-`` for stdin)
---nodefinc            do not set up default include paths
---defdef              set up default macro definitions
---nodefdef            do not set up default macro definitions
---ovr                 define BSL_OVERRIDES_STD
---noovr               do not define BSL_OVERRIDES_STD
---rewrite-dir dir     place rewritten files (as name-rewritten) in dir
---rewrite dir         (same as --rewrite-dir)
---rd dir              (same as --rewrite-dir)
---rewrite-file file   accumulate rewrite specifications into file
---rf file             (same as --rewrite-file)
---std type            specify C++ version
---tag string          make first line of each warning contain [string]
---diagnose type       report and rewrite only for main, component, nogen, or all
---m32                 process in 32-bit mode
---m64                 process in 64-bit mode
---nsa                 allow logging for purposes of tracking usage
---nonsa               disallow logging for purposes of tracking usage
---debug               display internal information as checks are performed
---verbose             display command line passed to clang
--v                    (same as --verbose)
---help                display this help message (also -?)
--I directory          add directory to header search path
--D macro              define macro
--W warning            enable warning
--f flag               specify compiler flag
--w                    disable normal compiler warnings
-===================== ==========================================================
+|Bv| reads a configuration file to determine which checks it should run and to
+set values of parameters that affect some checks.  That file is distributed
+along with |bv| (in the installation as ``.../etc/bde-verify/bde_verify.cfg``.)
+
+You may prepare your own customized copy and use the ``-config`` option to use
+that file instead of the standard one.  Additionally, you may specify the
+option ``-cl 'line'`` multiple times, and |bv| will treat those lines as if
+they were appended to the configuration file.  This is often used to have |bv|
+perform a single check, as in
+
+    |bv| ``-cl 'all off'`` ``-cl 'check longlines on'`` file.cpp
+
+Details of the configuration file contents are described below.
+
+Compilation Options and Databases
+---------------------------------
+
+Invoking |bv| is similar to invoking the compiler.  The same ``-I`` and ``-D``
+options must be provided so that the program is compiled with appropriate
+header files and macro definitions, and the 32/64-bit and C++ standard mode
+specifications will affect the results.  In the Bloomberg environment, |bv|
+attempts to help by providing default macro definitions and include paths that
+point to installed headers.  However, it is likely that users of |bv| will want
+full control over macros and include paths.  The ``-nodefdef`` option prevents
+|bv| from providing its own macro definitions and the ``-nodefinc`` option
+prevents |bv| from supplying its own include paths.  Users can specify those
+options and then provide exactly the ``-D`` and ``-I`` parameters needed.
+
+In addition, |bv| can extract these options from a compilation database.  A
+compilation databse is a file named ``compile_commands.json`` that is produced
+as an artifact of compilation by many build systems.  |Bv| accepts a
+``-p directory`` option where the specified directory is the one containing
+the compilation database.  When a file to be processed is found in the
+compilation database, |bv| will extract the ``-D`` and ``-I`` paramaters from
+the database and apply them to its run.  (In this case, |bv| will act as if
+``-nodefdef`` and ``-nodefinc`` were the defaults.)
+
+Here is an example of building a component in the Bloomberg development
+environment from the public BDE code base and then running |bv| using the
+resulting compilation database::
+
+    # Check out build tools and a source tree
+    % git clone https://github.com/bloomberg/bde-tools.git
+    % git clone https://github.com/bloomberg/bde.git
+    % cd bde
+
+    # Configure, build, and run one test program
+    % eval $(../bde-tools/bin/bde_build_env.py)
+    % ../bde-tools/bin/cmake_build.py configure build \
+      --tests run --targets bdlb_randomdevice
+
+    # Run bde_verify using the resulting compilation database
+    % bde_verify \
+      -p $(dirname $(find _build/ -name compile_commands.json)) \
+      groups/bdl/bdlb/bdlb_randomdevice.h
+
+As of this writing, that produces output from the pedantic "that-which"
+grammar check but nothing else::
+
+    groups/bdl/bdlb/bdlb_randomdevice.h:17:62: warning: TW01: Possibly prefer 'that' over 'which'
+    // random number generators.  Two variants are provided: one which may block,
+                                                                 ^
+    groups/bdl/bdlb/bdlb_randomdevice.h:19:4: warning: TW01: Possibly prefer 'that' over 'which'
+    // which does not block, but which potentially should not be used for
+       ^
+    groups/bdl/bdlb/bdlb_randomdevice.h:39:54: warning: TW01: Possibly prefer 'that' over 'which'
+    // both available and leaving it for users to decide which to use.
+                                                         ^
+    3 warnings generated.
+
+Without the compilation database, we would need to specify the include paths::
+
+    % bde_verify -nodefdef -nodefinc \
+      -I groups/bsl/bsls -I groups/bsl/bslscm -I groups/bdl/bdlscm \
+      groups/bdl/bdlb/bdlb_randomdevice.h
+
+Within Bloomberg, we could let |bv| use the installed versions of the headers
+instead of the local ones, and simply run::
+
+    % bde_verify groups/bdl/bdlb/bdlb_randomdevice.h
+
+Command-line Options
+--------------------
+
++-----------------------+-----------------------------------------------------+
+| Parameter             | Description                                         |
++=======================+=====================================================+
+| **Pass-Through**      |                                                     |
+| **Options**           |                                                     |
++-----------------------+-----------------------------------------------------+
+| -D\ *macro*           | Define *macro* for the compilation.                 |
++-----------------------+-----------------------------------------------------+
+| -I\ *directory*       | Add *directory* to the include path.                |
++-----------------------+-----------------------------------------------------+
+| -W\ *warning*         | Enable the specified compiler *warning*.            |
++-----------------------+-----------------------------------------------------+
+| -f\ *flag*            | Pass the specifed *flag* through to the compiler.   |
+|                       | This is for often-specified compiler options such   |
+|                       | as -fexceptions.                                    |
++-----------------------+-----------------------------------------------------+
+| | -m32                | Process in 32-bit or 64-bit mode.                   |
+| | -m64                |                                                     |
++-----------------------+-----------------------------------------------------+
+| -std *type*           | Specify C++ version as *type*.                      |
++-----------------------+-----------------------------------------------------+
+| -w                    | Disable normal compiler warnings (but not |bv|      |
+|                       | warnings).                                          |
++-----------------------+-----------------------------------------------------+
+| -\ *misc*             | Various ignored compiler options, e.g., -pipe.      |
++-----------------------+-----------------------------------------------------+
+| **Paths and**         |                                                     |
+| **Directories**       |                                                     |
++-----------------------+-----------------------------------------------------+
+| -bb *directory*       | Specify the trunk *directory* where Bloomberg       |
+|                       | software is installed.  |Bv| will add directories   |
+|                       | to the include path from here unless -nodefinc is   |
+|                       | is specified.                                       |
++-----------------------+-----------------------------------------------------+
+| -cc *compiler*        | Specify the full path of a g++ or clang++ compiler. |
+|                       | |Bv| will use this to find system and               |
+|                       | compiler-dependent header files.  This defaults to  |
+|                       | the value of the CXX environment variable if        |
+|                       | present, and a compiler found in the shell path     |
+|                       | otherwise.  Typically specify the same compiler     |
+|                       | used in the build.                                  |
++-----------------------+-----------------------------------------------------+
+| -exe *program*        | Specify the underlying executable file that |bv|    |
+|                       | will invoke (usually when testing a new version).   |
++-----------------------+-----------------------------------------------------+
+| **Operation**         |                                                     |
++-----------------------+-----------------------------------------------------+
+| -config *file*        | Specify the *file* containing |bv| configuration    |
+|                       | options.  (The file format is described below.)     |
++-----------------------+-----------------------------------------------------+
+| -cl *'line'*          | Specify an additional configuration *line* (may be  |
+|                       | repeated multiple times).  These lines are treated  |
+|                       | as if they were appended to the configuration file. |
++-----------------------+-----------------------------------------------------+
+| -[no]defdef           | [Do not] set up default macro definitions.          |
+|                       | However, |BV| is always defined.                    |
++-----------------------+-----------------------------------------------------+
+| -[no]definc           | [Do not] use default include paths.                 |
++-----------------------+-----------------------------------------------------+
+| -[no]ovr              | | [Un]define ``BSL_OVERRIDES_STD``.                 |
+|                       | | This macro is deprecated, so the default is       |
+|                       |   -noovr.                                           |
++-----------------------+-----------------------------------------------------+
+| -diff *file*          | Specify a *file* (use ``-`` for standard input) in  |
+|                       | diff format (such as might be produced by running   |
+|                       | ``git diff``).  |Bv| output will be restricted to   |
+|                       | only those lines that are marked as changed.        |
+|                       |                                                     |
+|                       | Reading standard input facilitiates piping:         |
+|                       |                                                     |
+|                       | | git diff | |bv| -diff - file.cpp                  |
++-----------------------+-----------------------------------------------------+
+| -p *directory*        | Specify a *directory* containg a file named         |
+|                       | ``compile_commands.json``.  |Bv| will look there    |
+|                       | for build lines for the files it is processing and  |
+|                       | use -D and -I options it finds.  (Use -nodefdef and |
+|                       | -nodefinc to avoid mixing in default values.)       |
+|                       | Such "compilation database" files are produced by   |
+|                       | many build systems.                                 |
++-----------------------+-----------------------------------------------------+
+| | -rewrite-dir        | Certain |bv| checks can create modified files       |
+|   *directory*         | that contain suggested changes.  These files are    |
+| | -rewrite            | created with the name *file*-\ ``rewritten`` in the |
+|   *directory*         | given *directory* if this option is specified.  If  |
+| | -rd *directory*     | this option is not specified, no rewritten files    |
+|                       | are created.                                        |
++-----------------------+-----------------------------------------------------+
+| | -rewrite-file       | Certain |bv| checks can create modified files       |
+|   *file*              | that contain suggested changes.  If this option is  |
+| | -rf *file*          | specified, a cumulative database of changes to be   |
+|                       | made is kept in *file* (and maintained across       |
+|                       | multiple runs of |bv|).  Those changed files are    |
+|                       | created once |bv| is run with the -rd option.       |
+|                       | (This option is generally not used.)                |
++-----------------------+-----------------------------------------------------+
+| -diagnose *type*      | Limit files for which |bv| warnings will appear:    |
+|                       |                                                     |
+|                       | | ``main``        - Specified file only.            |
+|                       | | ``component``   - Specified file and its .h file. |
+|                       | | ``nogen``       - Skip auto-generated files.      |
+|                       | | ``all``         - All included header files.      |
+|                       |                                                     |
+|                       | The default is ``component``.  Use ``main`` if you  |
+|                       | plan to run |bv| on .h and .cpp files separately.   |
++-----------------------+-----------------------------------------------------+
+| **Miscellaneous**     |                                                     |
++-----------------------+-----------------------------------------------------+
+| -debug                | Output a very noisy representation of the program   |
+|                       | while processing it, meant for |bv| developers.     |
++-----------------------+-----------------------------------------------------+
+| -[no]nsa              | [Do not] allow logging of |bv| command lines for    |
+|                       | purposes of tracking and evaluating usage.          |
++-----------------------+-----------------------------------------------------+
+| -tag *string*         | Include *[string]* in |bv| messages, to distinguish |
+|                       | them from compiler messages.                        |
++-----------------------+-----------------------------------------------------+
+| | -verbose            | Display the full command line passed to the         |
+| | -v                  | underlying executable program.  Note that options   |
+|                       | from the compilation database are read by that      |
+|                       | program and so will not appear here.                |
++-----------------------+-----------------------------------------------------+
+| -version              | Display the version number of |bv| and of the Clang |
+|                       | compiler it is based upon.                          |
++-----------------------+-----------------------------------------------------+
+| | -help               | Display this usage information.                     |
+| | -?                  |                                                     |
++-----------------------+-----------------------------------------------------+
 
 Git-Diff Output Restriction
 ---------------------------
@@ -89,11 +302,11 @@ command.  Such output contains lines beginning with ``+++`` representing a file
 with changes and lines starting with ``@`` and containing ``+LINE_NUMBER`` or
 ``+LINE_NUMBER,NUMBER_OF_LINES`` representing which lines in the file have
 changed.  Such diffs may be saved in a file and given to |bv| via the option
-``--diff=file`` or they may be piped into |bv| via the option ``--diff=-`` in
+``-diff file`` or they may be piped into |bv| via the option ``-diff -`` in
 which case standard input will be read for the diffs.
 
-Note that (for now) the file names upon which |bv| will operate must still be
-specified on the command line; they are not picked up from the diff.
+Note that the file names upon which |bv| will operate must still be specified
+on the command line; they are not picked up from the diff.
 
 Configuration
 -------------
@@ -102,8 +315,18 @@ disabled, and specifies the enterprise namespace in which components live. By
 default, that namespace is ``BloombergLP``, and almost all checks are enabled.
 The configuration file consists of a set of options, one per line, processed
 in order. Additional configuration lines may be supplied on the command line
-as described above. In particular, specifying ``-cl='load file'`` will
+as described above. In particular, specifying ``-cl 'load file'`` will
 augment the default configuration with the contents of ``file``.
+
+Checks and Tags
+---------------
+|Bv| implements a set of *checks*\ , each representing a category of issues to
+be detected.  Each such check may result in one or more types of warning being
+issued, and those warnings are prefixed with a *tag* consisting of capital
+letters followed by digits.  If a check is disabled, none of its warnings will
+appear.  If a check is enabled, individual tags may optionally be suppressed.
+Each check and tag is described later in this document.  The configuration file 
+is used to enable or disable individual checks and tags.
 
 =============================== ===============================================
 Config Entry                    Description
@@ -122,7 +345,7 @@ Config Entry                    Description
 ``set`` *parameter value*       Set a parameter used by a check.
 ``append`` *parameter value*    Append to a parameter used by a check.
 ``prepend`` *parameter value*   Prepend to a parameter used by a check.
-``suppress`` *tag files*...     Messages with the specified *tag* are
+``suppress`` *tag* *files*...   Messages with the specified *tag* are
                                 suppressed for the specified *files*. Either
                                 *tag* or *files* (but not both) may be ``*``.
                                 The *tag* may be a group *name*, suppressing
@@ -213,17 +436,18 @@ indicates that some condition fails to hold.
 Checks
 ------
 
-These are the checks supported by the tool. A few are of dubious value and may
-be removed in the future. The tag prefixes (especially the ``TR``\ *nn* ones)
-are subject to change as tests are refined or updated. We welcome suggestions
-for additional checks.
+These are the checks supported by the tool.  (A few are of dubious value and
+may be removed in the future.)  We welcome suggestions for additional checks.
 
 .. only:: bde_verify or bb_cppverify
 
    allocator-forward
    +++++++++++++++++
 
-   Checks dealing with allocator forwarding and traits.
+   Checks dealing with allocator forwarding and traits.  Allocator-aware
+   classes have a number of requirements, such as having constructors that
+   accept allocator parameters, passing those parameters to constructors
+   of sub-objects, and setting type traits correctly.
 
    An experimental and preliminary feature has been added to this check to
    enable automatic allocatorization of classes via the rewriting facility.
@@ -288,6 +512,10 @@ for additional checks.
    allocator-new
    +++++++++++++
 
+   In BDE code, a placement new overload is provided that takes an allocator
+   reference.  Passing an allocator pointer to placement new will not call
+   that overload.
+
    * ``ANP01``
      Calls to placement new with an argument that is a pointer to an allocator.
 
@@ -295,6 +523,9 @@ for additional checks.
 
    alphabetical-functions
    ++++++++++++++++++++++
+
+   BDE coding guidelines specify that functions in a group should be in
+   alphanumeric order.
 
    * ``FABC01``
      Functions in a component section that are not in alphanumeric order.
@@ -307,6 +538,10 @@ for additional checks.
 
 .. only:: bde_verify or bb_cppverify
 
+   Header files should not contain anonymous namespaces, because each
+   compilation unit that includes such a header gets a separate instance
+   of that namespace, and that is generally not wanted.
+
    anon-namespace
    ++++++++++++++
    * ``ANS01``
@@ -317,6 +552,9 @@ for additional checks.
    array-argument
    ++++++++++++++
 
+   A function parameter that is declared as an array with a specified size
+   is really just a pointer, and having the size present is misleading.
+
    * ``AA01``
      Sized array parameter is really a pointer.
 
@@ -324,6 +562,10 @@ for additional checks.
 
    array-initialization
    ++++++++++++++++++++
+
+   Warn when an array initializer that has fewer elements than the array
+   size has a final initializer that is not the default element value, to
+   guard against incorrect initialization.
 
    * ``II01``
      Incomplete array initialization in which the last value is not the default
@@ -334,6 +576,9 @@ for additional checks.
    assert-assign
    +++++++++++++
 
+   Assertion conditions are often a top-level "expected == actual" expression
+   and may erroneously be written as an "expected = actual" assignment.
+
    * ``AE01``
      Top-level macro condition is an assignment.
 
@@ -342,7 +587,13 @@ for additional checks.
    banner
    ++++++
 
-   Malformed banners.
+   BDE coding guidelines have a variety of banner requirements, for example::
+
+                            // ==============
+                            // class abcd_efg
+                            // ==============
+
+   for class definitions.  This check catches a few style violations.
 
    * ``BAN02``
      Banner rule lines do not extend to column 79.
@@ -359,6 +610,10 @@ for additional checks.
    base
    ++++
 
+   |Bv| detects pragmas and comments that direct it to save and restore its
+   internal state using a stack, and checks that the stack is manipulated
+   appropriately.
+
    * ``PR01``
      ``#pragma`` |bv| ``pop`` when stack is empty.
    * ``PR02``
@@ -368,6 +623,11 @@ for additional checks.
 
    boolcomparison
    ++++++++++++++
+
+   Rather than comparing boolean values against 'true' or 'false', they
+   should be tested directly, i.e., ``if (!cond)`` rather than
+   ``if (false == cond)``.
+
    * ``BC01``
      Comparison of a Boolean expression with literal ``true`` or ``false``.
 
@@ -377,8 +637,10 @@ for additional checks.
    +++++++++++++++++
 
    Rewrite code which compiles with ``BSL_OVERRIDES_STD`` defined to not
-   require that.
-   Use the ``-rewrite`` option to generate the rewritten file.
+   require that.  Use the ``-rewrite`` option to generate the rewritten file.
+
+   Note that ``BSL_OVERRIDES_STD`` is now obsolete and Bloomberg internal code
+   has already been changed not to use it.
 
    * ``IS01``
      Include of header is needed to declare a symbol.
@@ -413,6 +675,8 @@ for additional checks.
    c-cast
    ++++++
 
+   Discourage use of C-style cast expressions.
+
    * ``CC01``
      C-style cast expression. (Dispensation is granted to ``(void)expr``.)
 
@@ -420,6 +684,10 @@ for additional checks.
 
    char-classification-range
    +++++++++++++++++++++++++
+
+   Detect that signed character or too-large arguments are being passed to
+   standard library character classification functions.  Those functions
+   require that their parameters lie in the range [-1 .. 255].
 
    * ``ISC01``
      ``char`` variable passed to ``is...`` function may sign-extend, causing
@@ -436,6 +704,10 @@ for additional checks.
    char-vs-string
    ++++++++++++++
 
+   A ``const char *`` function parameter is usually expected to be the
+   address of a null-terminated character array, and passing the address
+   of a single character as an argument may be a program-logic error.
+
    * ``ADC01``
      Passing the address of a single character as an argument to a
      ``const char *`` parameter.
@@ -446,10 +718,12 @@ for additional checks.
    ++++++++++++++
 
    BDE coding standards require that class member declarations appear in tagged
-   sections (e.g., ``// MANIPULATORS``, ``// CREATORS``, et al.)
+   sections (e.g., ``// MANIPULATORS``, ``// CREATORS``, ``// PUBLIC DATA``, et
+   al.)  This check verifies that tags are present for declarations at all, and
+   if so, that they match the accessibility and types of the declarations.
 
    * ``KS00``
-     Declaration without tag.
+     Declaration not preceed by section tag comment.
    * ``KS01``
      Tag requires public declaration.
    * ``KS02``
@@ -490,7 +764,8 @@ for additional checks.
    comments
    ++++++++
 
-   Comments containing erroneous or deprecated text.
+   Comments containing erroneous or deprecated text according to BDE coding
+   standards or general lore.
 
    * ``FVS01``
      Deprecate the phrase *fully value semantic*.
@@ -523,7 +798,9 @@ for additional checks.
    comparison-order
    ++++++++++++++++
 
-   Comparisons whose operand order should be reversed.
+   In order to guard against accidental assignment (``=`` when ``==`` was
+   meant), equality comparisons between constant and non-constant expressions
+   should have the constant expression on the left.
 
    * ``CO01``
      Non-modifiable operand should be on the left.
@@ -535,6 +812,9 @@ for additional checks.
    component-header
    ++++++++++++++++
 
+   A component implementation file should include the component header file,
+   and the component header should be the first included header.
+
    * ``TR09``
      Component implementation file does not include its header file ahead of
      other includes or declarations.
@@ -543,6 +823,11 @@ for additional checks.
 
    component-prefix
    ++++++++++++++++
+
+   BDE coding style requires that globally visible names provided by a
+   component have the component name as a prefix.  For example, the BDE
+   component bdlt_calendar provides ``bdlt::Calendar_BusinessDayConstIter`` as
+   well as ``bdlt::Calendar`` itself.  This rule applies to macros as well.
 
    * ``CP01``
      Globally visible name is not prefixed by component name.
@@ -554,6 +839,8 @@ for additional checks.
 
    constant-return
    +++++++++++++++
+
+   Discourage the use of functions that just return a constant value.
 
    * ``CR01``
      Single statement function returns a constant value.
@@ -605,34 +892,30 @@ for additional checks.
    deprecated
    ++++++++++
 
+   Detect use of deprecated functions and types.
+
    * ``DP01``
      Call to deprecated function.
-
-.. only:: bde_verify
-
-   diagnostic-filter
-   +++++++++++++++++
-
-   Not a check.
 
 .. only:: bde_verify or bb_cppverify
 
    do-not-use-endl
    +++++++++++++++
 
+   Discourage use of ``endl`` because it flushes the output stream and can
+   therefore cause programs to be unnecessarily slow.  Rather output ``\\n``
+   and use ``flush`` in the rare times it's explicitly needed.
+
    * ``NE01``
      Prefer using ``'\\n'`` over ``endl``.
-
-.. only:: bde_verify
-
-   dump-ast
-   ++++++++
-   Not a check.
 
 .. only:: bde_verify or bb_cppverify
 
    entity-restrictions
    +++++++++++++++++++
+
+   BDE style recommends having names be declared within component classes,
+   not at global scope.
 
    * ``TR17``
      Items declared in global scope.
@@ -642,6 +925,9 @@ for additional checks.
    enum-value
    ++++++++++
 
+   BDE guidelines call for using ``Enum`` as the name of an enumeration type
+   within a component.  The previously commonly used ``Value`` is obsolete.
+
    * ``EV01``
      Component enumeration tag is ``Value``.
 
@@ -650,7 +936,23 @@ for additional checks.
    external-guards
    +++++++++++++++
 
-   Incorrect or missing use of external header guards.
+   Header files should be guarded against multiple inclusion, like so::
+
+       // abcd_efg.h
+       #ifndef INCLUDED_ABCD_EFG
+       #define INCLUDED_ABCD_EFG
+           // ... stuff ...
+       #endif
+
+   Formerly, BDE style required guard checking in headers, as in the following
+   code, but this is now obsolete.  The ``SEG03`` warning is that this check is
+   missing and the ``SEG04`` warning is that this check is present.  (The
+   former is disabled in the default configuration file.)::
+
+       // abcd_xyz.h
+       #ifndef INCLUDED_ABCD_EFG
+       #include <abcd_efg.h>
+       #endif
 
    * ``SEG01``
      Include guard without include file.
@@ -666,7 +968,9 @@ for additional checks.
    files
    +++++
 
-   Missing or inaccessible component header file or test driver.
+   Missing or inaccessible component header file or test driver.  BDE style
+   requires that a component have a header file, an implementation file, and a
+   test driver file.
 
    * ``FI01``
      Component header file is missing.
@@ -678,6 +982,9 @@ for additional checks.
    free-functions-depend
    +++++++++++++++++++++
 
+   Free functions (not part of a component class) declared in a header file
+   should have a parameter whose type is declared by that header file.
+
    * ``AQS01``
      Free function parameter must depend on a local definition.
 
@@ -685,6 +992,10 @@ for additional checks.
 
    friends-in-headers
    ++++++++++++++++++
+
+   BDE style requires that if a class or method is granted friendship, that
+   entity must be declared in the same header file.  (We call this the dictum
+   of "no long-distance friendship").
 
    * ``AQP01``
      Friends must be declared in the same header.
@@ -694,7 +1005,15 @@ for additional checks.
    function-contract
    +++++++++++++++++
    
-   Incorrect or missing function contracts.
+   Incorrect or missing function contracts.  BDE coding guidelines describe the
+   detailed requirements, including indentation, position, and the proper way
+   of documenting parameters.  A correct example is::
+
+       double total(double amount, int number = 1);
+           // Return the total amount to charge for an order where one item
+           // costs the specified 'amount'.  Optionally specify the 'number'
+           // of items in the order.  If 'number' is not specified, a single
+           // item is assumed.
 
    * ``FD01``
      Missing contract.
@@ -717,6 +1036,8 @@ for additional checks.
    global-data
    +++++++++++
 
+   Programs should not contain global data outside of classes.
+
    * ``AQb01``
      Data variable with global visibilty.
 
@@ -725,6 +1046,8 @@ for additional checks.
    global-function-only-in-source
    ++++++++++++++++++++++++++++++
 
+   Globally visible functions must be declared in header files.
+
    * ``TR10``
      Globally visible function not declared in header.
 
@@ -732,6 +1055,8 @@ for additional checks.
 
    global-type-only-in-source
    ++++++++++++++++++++++++++
+
+   Globally visible types must be declared in header files.
 
    * ``TR10``
      Globally visible type not declared in header.
@@ -743,7 +1068,9 @@ for additional checks.
    groupname
    +++++++++
 
-   Component is not properly named or located.
+   BDE style requires a particular layout for component file locations - for
+   example, the component header abcd_efg.h is expected to be found as
+   ``abc/abcd/abcd_efg.h``.
 
    * ``GN01``
      Component does not have a distinguishable correctly formed package group
@@ -756,6 +1083,10 @@ for additional checks.
    hash-pointer
    ++++++++++++
 
+   When a pointer is passed to a call of an object of type std::hash<TYPE*>,
+   the hash will apply to the value of the pointer rather than to what the
+   pointer points.  This is generally not what is wanted.
+
    * ``HC01``
      Warn that use of ``std::hash<TYPE*>()(ptr)`` uses only the value and not
      the contents of *ptr*.
@@ -765,6 +1096,9 @@ for additional checks.
    headline
    ++++++++
 
+   The first line of a component file should start with ``// file_name`` and
+   end in column 79 with with ``-*-C++-*-``.
+
    * ``HL01``
      The headline of the file is incorrect.
 
@@ -772,6 +1106,10 @@ for additional checks.
 
    implicit-ctor
    +++++++++++++
+
+   Constructors that are not designated ``explicit`` and take one argument can
+   be used to implicitly convert that argument to class type.  They should be
+   tagged with an ``// IMPLICT`` comment.
 
    * ``IC01``
      Non-``explicit`` constructor which may be invoked implicitly and
@@ -782,6 +1120,8 @@ for additional checks.
    in-enterprise-namespace
    +++++++++++++++++++++++
 
+   All top-level declarations should be within the enterprise namespace.
+
    * ``AQQ01``
      Declaration not in enterprise namespace.
 
@@ -790,6 +1130,17 @@ for additional checks.
    include-guard
    +++++++++++++
 
+   Header files should be protected against multiple inclusion using guards::
+
+       // abcd_efg.h
+       #ifndef INCLUDED_ABCD_EFG
+       #define INCLUDED_ABCD_EFG
+           // ... stuff ...
+       #endif
+
+   The include guard is expected to properly match its file name and be used as
+   above.
+
    * ``TR14``
      Header file does not set up or use its include guard macro properly.
 
@@ -797,6 +1148,10 @@ for additional checks.
 
    include-in-extern-c
    +++++++++++++++++++
+
+   Header files should not be included inside ``extern "C" { }`` sections
+   because being declared within "C" linkage can change the meaning of the
+   constructs they contain.
 
    * ``IEC01``
      Header file included within C linkage specification.
@@ -830,6 +1185,8 @@ for additional checks.
    indentation
    +++++++++++
 
+   BDE coding standards have a variety of indentation formatting requirements.
+
    * ``IND01``
      Line is (possibly) mis-indented.
    * ``IND02``
@@ -853,6 +1210,10 @@ for additional checks.
    leaking-macro
    +++++++++++++
 
+   Macros that are left defined at the end of a header file must begin with
+   the name of the component (unless they are include guard macros, which have
+   their own form).
+
    * ``SLM01``
      Component header file macro neither an include guard nor prefixed by
      component name.
@@ -862,7 +1223,7 @@ for additional checks.
    local-friendship-only
    +++++++++++++++++++++
 
-   Long-distance friendship.
+   "Long-distance" friendship is not permitted.
 
    * ``TR19``
      Friendship granted outside of component.
@@ -872,6 +1233,11 @@ for additional checks.
    long-inline
    +++++++++++
 
+   Very long functions in header files (often function templates) should not be
+   declared inline if they are too long.  "Too long" is defined by the
+   configuration variable ``max_inline_lines``.  (|Bv| will count statements
+   rather than physical lines.)
+
    * ``LI01``
      Inline function is longer than configuration file parameter
      ``max_inline_lines`` (default 10).
@@ -880,6 +1246,9 @@ for additional checks.
 
    longlines
    +++++++++
+
+   BDE style requires that lines be no longer than 79 characters long.
+   By request of the |bv| management, this is not a configurable value.
 
    * ``LL01``
      Line exceeds 79 characters.
@@ -917,6 +1286,9 @@ for additional checks.
    member-definition-in-class-definition
    +++++++++++++++++++++++++++++++++++++
 
+   BDE style requires that methods be declared in classes but defined outside
+   of them.
+
    * ``CD01``
      Method defined directly in class definition.
 
@@ -924,6 +1296,9 @@ for additional checks.
 
    member-names
    ++++++++++++
+
+   BDE style requires that data members of classes (but not ``structs``) be
+   private, and that paerticular naming conventions be followed.
 
    * ``MN01``
      Class data members must be private.
@@ -954,6 +1329,9 @@ for additional checks.
    mid-return
    ++++++++++
 
+   BDE style requires that ``return`` statements in functions, other than the
+   final one, be tagged with a ``// RETURN`` comment ending in column 79.
+
    * ``MR01``
      Non-final ``return`` statement not tagged with ``// RETURN``.
    * ``MR02``
@@ -964,6 +1342,14 @@ for additional checks.
    namespace-tags
    ++++++++++++++
 
+   The closing brace of a multi-line namespace declaration should be marked
+   with one of these comments::
+
+       }  // close enterprise namespace
+       }  // close package namespace
+       }  // close unnamed namespace
+       }  // close namespace name
+
    * ``NT01``
      Multi-line namespace blocks must end with
      ``// close [ enterprise | package | unnamed | description ] namespace``.
@@ -972,6 +1358,9 @@ for additional checks.
 
    nested-declarations
    +++++++++++++++++++
+
+   Declarations should be nested within a package namespace inside the
+   enterprise namespace.
 
    * ``TR04``
      Declarations not properly nested in package namespace.
@@ -987,6 +1376,8 @@ for additional checks.
    nonascii
    ++++++++
 
+   Source code should contain only 7-bit ASCII characters.
+
    * ``NA01``
      Source code contains bytes with value greater than 127.
 
@@ -994,6 +1385,9 @@ for additional checks.
 
    operator-void-star
    ++++++++++++++++++
+
+   Classes should not contain operators that permit them to be implictly
+   converted to ``void *`` or ``bool`` to prevent accidental misuse.
 
    * ``CB01``
      Class contains conversion operator to ``void *`` or ``bool``.
@@ -1020,6 +1414,9 @@ for additional checks.
 
    ref-to-movableref
    +++++++++++++++++
+
+   BDE provides a ``MovableRef`` type meant to simulate rvalue references in
+   C++03 code.  Objects of this type should be passed by value.
 
    * ``MRR01``
      MovableRef should be passed by value, not reference.
@@ -1072,6 +1469,10 @@ for additional checks.
    runtime-initialization
    ++++++++++++++++++++++
 
+   Global variables with initializers that run when the program is loaded are
+   error-prone, although less so when they appear in the prgram file containing
+   ``main()``.
+
    * ``AQa01``
      Global variable with runtime initialization in file without main().
    * ``AQa02``
@@ -1095,18 +1496,13 @@ for additional checks.
    spell-check
    +++++++++++
 
-   * ``SP01``
-     Misspelled word in comment.
-   * ``SP02``
-     Cannot start spell checker.  (Not an error in the examined file.)
-   * ``SP03``
-     Misspelled word in parameter name.
-
    Spell-checking is disabled by default in the config file
    (``check spell-check off``) to avoid noise.
 
-   Words in configuration parameter ``dictionary`` (default too numerous to
-   mention - see config file) are assumed correct.
+   Words in configuration parameter ``dictionary`` are assumed correct.
+   Extra words can be added to a config file or when the program is run::
+
+       |bv| -cl 'append dictionary treeify unsquash' ...
 
    Words that appear at least as many times as non-zero configuration
    parameter ``spelled_ok_count`` (default 3) are assumed correct.
@@ -1115,10 +1511,21 @@ for additional checks.
 
    .. _GNU Aspell: http://aspell.net
 
+   * ``SP01``
+     Misspelled word in comment.
+   * ``SP02``
+     Cannot start spell checker.  (Not an error in the examined file.)
+   * ``SP03``
+     Misspelled word in parameter name.
+
+
 .. only:: bde_verify or bb_cppverify
 
    strict-alias
    ++++++++++++
+
+   C++ grows ever less fond of type punning.  Casting between pointer types
+   (except for void and char types) will trigger this check.
 
    * ``SAL01``
      Possible strict-aliasing violation.
@@ -1128,6 +1535,8 @@ for additional checks.
    string-add
    ++++++++++
 
+   Adding an integer to a string literal is deemed suspect.
+
    * ``SA01``
      Addition of integer and string literal.
 
@@ -1135,6 +1544,9 @@ for additional checks.
 
    swap-a-b
    ++++++++
+
+   BDE style requires that the parameters of a free ``swap`` functionbe named
+   ``a`` and ``b``.
 
    * ``SWAB01``
      Parameters of free *swap* function are not named *a* and *b*.
@@ -1154,6 +1566,10 @@ for additional checks.
 
    template-typename
    +++++++++++++++++
+
+   BDE coding style requires that template type parameters be designated with
+   ``class`` rather than ``typename``, that they not be single-letter names,
+   and that they should be in all-capital letters.
 
    * ``TY01``
      Use of ``typename`` instead of ``class`` in ``template`` header.
@@ -1244,6 +1660,8 @@ for additional checks.
    that-which
    ++++++++++
 
+   Grammar check preferring the word ``that`` to ``which`` in many cases.
+
    * ``TW01``
      Prefer ``that`` to ``which``.
    * ``TW02``
@@ -1254,6 +1672,8 @@ for additional checks.
    throw-non-std-exception
    +++++++++++++++++++++++
 
+   Thrown exception objects should inherit from ``std::exception``.
+
    * ``FE01``
      Throwing exception not derived from ``std::exception``.
 
@@ -1261,6 +1681,9 @@ for additional checks.
 
    transitive-includes
    +++++++++++++++++++
+
+   A source files should include all headers that declare names used by that
+   source file, even when those headers would be included indirectly.
 
    * ``AQK01``
      Header included transitively should be included directly.
@@ -1272,15 +1695,19 @@ for additional checks.
    unnamed-temporary
    +++++++++++++++++
 
+   A temporary unnamed object will be immediately destroyed, and it is
+   unlikely to be the intended use.  The canonical example of this error
+   is ``mutex m; mutex_guard(&m);``.
+
    * ``UT01``
      Unnamed object will be immediately destroyed.
-
-   The canonical example of this error is ``mutex m; mutex_guard(&m);``.
 
 .. only:: bde_verify
 
    upper-case-names
    ++++++++++++++++
+
+   BDE style does not permit variable and type names to be all upper-case.
 
    * ``UC01``
      Names of variables and types should not be all upper-case.
@@ -1289,6 +1716,9 @@ for additional checks.
 
    using-declaration-in-header
    +++++++++++++++++++++++++++
+
+   Header files should not contain ``using`` declarations because they can
+   cause mysterious name clashes in files that include them.
 
    * ``TR16``
      Header file contains ``using`` declaration.
@@ -1303,6 +1733,9 @@ for additional checks.
    using-directive-in-header
    +++++++++++++++++++++++++
 
+   Header files should not contain ``using`` directives because they can
+   cause mysterious name clashes in files that include them.
+
    * ``TR16``
      Header file contains ``using`` directive.
    * ``AQJ02``
@@ -1315,6 +1748,9 @@ for additional checks.
 
    verify-same-argument-names
    ++++++++++++++++++++++++++
+
+   The declaration and definition of a function should use the same names for
+   the function parameters.
 
    * ``AN01``
      Function declaration and definition use different parameter names.
