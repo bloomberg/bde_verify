@@ -4,7 +4,7 @@ Bde_verify is a static analysis tool that verifies that source code adheres
 to the BDE coding standards.
 
 The online documentation for bde_verify can be found at
-<https://bde.bloomberg.com/bde-verify/index.html>
+<https://bloomberg.github.io/bde_verify/>
 
 Build Instructions
 ==================
