@@ -35,7 +35,7 @@ Installing bde_verify Sources
     # We will place bde_verify source code here
     export BVSRC=/path/to/bde_verify/source/directory
     mkdir -p $BVSRC
-    git clone -b master https://bbgithub.dev.bloomberg.com/bde/bde-verify $BVSRC
+    git clone -b master https://github.com/bloomberg/bde_verify $BVSRC
 
 Installing LLVM/Clang Sources
 =============================
