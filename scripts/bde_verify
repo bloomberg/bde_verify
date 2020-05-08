@@ -270,7 +270,7 @@ $nm \\
     disabled.  If the first line of the file is malformed, produce a
     corrected version named 'my/rw/dir/my_comp.cpp-rewritten'.
 
-For full documentation, see <https://bde.bloomberg.com/bde-verify/>.
+For full documentation, see <https://bloomberg.github.io/bde_verify/>.
 
 Invoked as:
 $command
