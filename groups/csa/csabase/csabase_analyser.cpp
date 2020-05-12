@@ -1,8 +1,23 @@
 // csabase_analyser.cpp                                               -*-C++-*-
 
 #include <csabase_analyser.h>
+#include <csabase_checkregistry.h>
+#include <csabase_config.h>
+#include <csabase_debug.h>
+#include <csabase_diagnostic_builder.h>
+#include <csabase_diagnosticfilter.h>
 #include <csabase_filenames.h>
+#include <csabase_location.h>
+#include <csabase_ppobserver.h>
 #include <csabase_util.h>
+#include <csabase_visitor.h>
+#include <llvm/ADT/ArrayRef.h>
+
+#include <llvm/ADT/SmallPtrSet.h>
+#include <llvm/Support/FileSystem.h>
+#include <llvm/Support/Path.h>
+#include <llvm/Support/Regex.h>
+
 #include <clang/AST/Decl.h>
 #include <clang/AST/DeclBase.h>
 #include <clang/AST/DeclCXX.h>
@@ -22,25 +37,11 @@
 #include <clang/Rewrite/Core/Rewriter.h>
 #include <clang/Sema/Lookup.h>
 #include <clang/Sema/Sema.h>
-#include <csabase_checkregistry.h>
-#include <csabase_config.h>
-#include <csabase_debug.h>
-#include <csabase_diagnosticfilter.h>
-#include <csabase_filenames.h>
-#include <csabase_location.h>
-#include <csabase_ppobserver.h>
-#include <csabase_visitor.h>
-#include <llvm/ADT/ArrayRef.h>
-#include <llvm/ADT/SmallPtrSet.h>
-#include <llvm/Support/FileSystem.h>
-#include <llvm/Support/Path.h>
-#include <llvm/Support/Regex.h>
-#include <stddef.h>
+
 #include <algorithm>
 #include <map>
+#include <stddef.h>
 #include <utility>
-#include <csabase_debug.h>
-#include <csabase_diagnostic_builder.h>
 #include <utils/event.hpp>
 
 using namespace csabase;

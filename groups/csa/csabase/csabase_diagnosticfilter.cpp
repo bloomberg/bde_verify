@@ -80,14 +80,20 @@ csabase::DiagnosticFilter::HandleDiagnostic(DiagnosticsEngine::Level level,
         d_prev_handle = false;
     }
     else {
+        Location loc(d_analyser->manager(), info.getLocation());
+        bool notfile = loc.file() == "<unknown>" ||
+                       loc.file() == "<built-in>" ||
+                       loc.file() == "<command-line>";
         if (!handle) {
             handle = level >= DiagnosticsEngine::Error;
         }
         if (!handle) {
-            handle = d_diagnose == "all";
+            handle = d_diagnose == "all" &&
+                     !notfile;
         }
         if (!handle) {
             handle = d_diagnose == "nogen" &&
+                     !notfile &&
                      !d_analyser->is_generated(info.getLocation());
         }
         if (!handle) {
