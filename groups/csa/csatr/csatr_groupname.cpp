@@ -69,12 +69,17 @@ struct on_group_open
 
             std::string const& group(analyser.group());
 
+            bool standalone  = fn.tag().size() != 0 ||
+                               fn.extra() == ".m";
+
+            if (standalone) {
+                return;
+            }
+
             bool traditional = group.size() == 3 &&
                                groupchar(group[0]) &&
                                groupchar(group[1]) &&
                                groupchar(group[2]);
-            bool standalone  = fn.tag().size() != 0 ||
-                               fn.extra() == ".m";
 
             if (traditional) {
                 llvm::SmallVector<char, 1024> vpath(fn.pkgdir().begin(),
@@ -96,7 +101,7 @@ struct on_group_open
                     }
                 }
             }
-            else if (!standalone) {
+            else {
                 analyser.report(where, check_name, "GN01",
                         "Group names must consist of three lower-case "
                         "letters: '%0'", true)

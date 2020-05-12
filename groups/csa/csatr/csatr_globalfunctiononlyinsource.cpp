@@ -55,6 +55,7 @@ global_function_only_in_source(Analyser& analyser, FunctionDecl const* decl)
                         decl_not_in_toplevel(&analyser))
             == decl->redecls_end()
         && !analyser.is_test_driver()
+        && analyser.get_location(decl).extra() != ".m"
         && !decl->isMain())
     {
         analyser.report(decl, check_name, "TR10",

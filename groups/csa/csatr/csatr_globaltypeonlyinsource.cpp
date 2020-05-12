@@ -58,6 +58,7 @@ global_type_only_in_source(Analyser& analyser, TypeDecl const* decl)
         && decl->isExternallyVisible()
         && decl->getDeclName().isIdentifier()
         && !decl->getDeclName().getAsString().empty()
+        && analyser.get_location(decl).extra() != ".m"
         )
     {
         auto r = llvm::dyn_cast<TagDecl>(decl);
