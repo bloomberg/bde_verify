@@ -70,7 +70,8 @@ struct on_group_open
             std::string const& group(analyser.group());
 
             bool standalone  = fn.tag().size() != 0 ||
-                               fn.extra() == ".m";
+                               fn.extra() == ".m" ||
+                               fn.extra() == ".g";
 
             if (standalone) {
                 return;

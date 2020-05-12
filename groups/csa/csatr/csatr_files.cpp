@@ -37,7 +37,9 @@ namespace
                         std::string const& name) const
         {
             FileName fn(name);
-            if (!fn.name().startswith("m_") && fn.extra() != ".m" &&
+            if (!fn.name().startswith("m_") &&
+                fn.extra() != ".m" &&
+                fn.extra() != ".g" &&
                 d_analyser.is_toplevel(name)) {
                 struct stat buffer;
                 std::string component = fn.component().str();

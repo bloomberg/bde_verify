@@ -61,7 +61,7 @@ namespace
                 attachment.d_done = true;
                 Analyser& analyser(*d_analyser);
 
-                if (fn.extra() == ".m") {
+                if (fn.extra() == ".m" || fn.extra() == ".g") {
                     return;                                           // RETURN
                 }
 

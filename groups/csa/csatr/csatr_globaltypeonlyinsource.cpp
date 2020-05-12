@@ -6,6 +6,7 @@
 #include <clang/AST/DeclarationName.h>
 #include <csabase_analyser.h>
 #include <csabase_diagnostic_builder.h>
+#include <csabase_filenames.h>
 #include <csabase_location.h>
 #include <csabase_registercheck.h>
 #include <algorithm>
@@ -58,7 +59,8 @@ global_type_only_in_source(Analyser& analyser, TypeDecl const* decl)
         && decl->isExternallyVisible()
         && decl->getDeclName().isIdentifier()
         && !decl->getDeclName().getAsString().empty()
-        && analyser.get_location(decl).extra() != ".m"
+        && FileName(analyser.get_location(decl).file()).extra() != ".m"
+        && FileName(analyser.get_location(decl).file()).extra() != ".g"
         )
     {
         auto r = llvm::dyn_cast<TagDecl>(decl);

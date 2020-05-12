@@ -7,6 +7,7 @@
 #include <clang/Basic/SourceLocation.h>
 #include <csabase_analyser.h>
 #include <csabase_diagnostic_builder.h>
+#include <csabase_filenames.h>
 #include <csabase_location.h>
 #include <csabase_registercheck.h>
 #include <llvm/Support/Casting.h>
@@ -55,7 +56,8 @@ global_function_only_in_source(Analyser& analyser, FunctionDecl const* decl)
                         decl_not_in_toplevel(&analyser))
             == decl->redecls_end()
         && !analyser.is_test_driver()
-        && analyser.get_location(decl).extra() != ".m"
+        && FileName(analyser.get_location(decl).file()).extra() != ".m"
+        && FileName(analyser.get_location(decl).file()).extra() != ".g"
         && !decl->isMain())
     {
         analyser.report(decl, check_name, "TR10",
