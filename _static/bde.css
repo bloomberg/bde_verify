@@ -1,0 +1,39 @@
+/* Make the content area wide (originally 800px) */
+.wy-nav-content {
+    padding: 1em 2em;
+    max-width: 1000px !important;
+}
+
+p {
+    font-size: inherit;
+}
+
+.rst-content tt.literal, .rst-content code.literal {
+    color: #074268;
+    background: #e9f3fa;
+    font-size: inherit;
+    border-style: none;
+}
+
+.rubric > .faq-header-class {
+    display: block;
+    font-size: 1.4em;
+    margin-top: 1em;
+    margin-bottom: 0.5em;
+    line-height: 100%;
+    margin-left: 0;
+    margin-right: 0;
+    font-weight: bold;
+}
+
+.wy-table-responsive table {
+    margin-bottom: 24px !important;
+}
+
+.wy-table-responsive table td {
+    white-space: normal !important;
+}
+
+.underline {
+    text-decoration: underline;
+}
