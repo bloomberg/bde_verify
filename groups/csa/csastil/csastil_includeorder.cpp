@@ -40,8 +40,16 @@ struct data
 {
     typedef std::vector<std::pair<std::string, SourceLocation>> headers_t;
 
+    bool d_saw_header;
+    bool d_saw_source;
     headers_t d_header;
     headers_t d_source;
+
+    data()
+    : d_saw_header(false)
+    , d_saw_source(false)
+    {
+    }
 
     void add_include(bool                  in_header,
                      std::string           header,
@@ -177,6 +185,23 @@ struct report : public Report<data>
         }
     }
 
+    void operator()(SourceLocation                now,
+                    PPCallbacks::FileChangeReason reason,
+                    SrcMgr::CharacteristicKind    type,
+                    FileID                        prev)
+    {
+        if (reason == PPCallbacks::EnterFile) {
+            if (!d.d_saw_header || !d.d_saw_source) {
+                if (a.is_component_header(now)) {
+                    d.d_saw_header = true;
+                }
+                else if (a.is_component(now)) {
+                    d.d_saw_source = true;
+                }
+            }
+        }
+    }
+
     void operator()()  // translation unit done
     {
         if (a.is_test_driver() || a.is_component_header(a.toplevel())) {
@@ -184,12 +209,14 @@ struct report : public Report<data>
         }
         SourceLocation const *header_ident = check_order(d.d_header, true);
         SourceLocation const *source_ident = check_order(d.d_source, false);
-        if (header_ident && !source_ident) {
+        if (d.d_saw_header && d.d_saw_source &&
+            header_ident && !source_ident) {
             a.report(*header_ident, check_name, "SHO08",
                      "Component header includes '..._ident.h' but component "
                      "source does not");
         }
-        if (!header_ident && source_ident) {
+        if (d.d_saw_header && d.d_saw_source &&
+            !header_ident && source_ident) {
             a.report(*source_ident, check_name, "SHO08",
                      "Component source includes '..._ident.h' but header does "
                      "not");
@@ -348,6 +375,7 @@ subscribe(Analyser& analyser, Visitor&, PPObserver& observer)
     observer.onInclude             += report(analyser);
     observer.onIfndef              += report(analyser);
     observer.onIf                  += report(analyser);
+    observer.onPPFileChanged       += report(analyser);
 }
 
 // ----------------------------------------------------------------------------
