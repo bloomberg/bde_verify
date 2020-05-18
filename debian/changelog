@@ -1,3 +1,45 @@
+bde-verify (1.3.15) unstable; urgency=low
+
+  * 007a0f3 Merge pull request #53 from hrosen4/fix-for-dpkg
+  * d96f7e8 Darwin change broke dpkg-build variables
+  * 0ed1788 Some fixes around bsls_ident.h
+  * 4060b67 Treat .g files like .m files
+  * f8e16fe Ignore .m.cpp files in a few more places
+  * 845ba42 Don't issue warnings on non-files
+  * 0223331 Merge pull request #52 from hrosen4/docs-for-external
+  * c41e6a3 bbgithub -> github
+  * 22bfcd8 Update external doc locations
+  * 4089d75 Refer to github instead of bbgithub
+  * 6a6759d Merge branch 'master' of bbgithub:hrosen4/bde-verify
+  * 01d79d4 Bump version number
+  * b9e6727 Merge branch 'master' of bbgithub:hrosen4/bde-verify
+  * 81dcb0c Bump version number
+  * af341c1 Merge pull request #51 from hrosen4/update-docs
+  * f687123 add usage examples to scripts
+  * 3df975c Use public github in examples.
+  * 800da24 Checkout tools in BDE example
+  * 1c4774f More documentation-oriented changes.
+  * 6a1e106 Bump version number
+  * ee74c6a Merge branch 'update-docs' of bbgithub:hrosen4/bde-verify into update-docs
+  * 4f8f1ac Update docs
+  * 0372153 Documentation updates
+  * 0e19a4a Updating docs
+  * 66678f5 Update docs
+  * fb93fc5 Documenttaion updates
+  * 9b266d7 Update docs
+  * 94de6cf Documentation updates
+  * f480c1c Merge pull request #50 from phalpern/phalpern/bde_verify-macos
+  * 885925f Update configuration, scripts, and README.md for Darwin (MacOS) build. Main change was to use Clang to build instead of gcc. README.md change focused on using cmake to build. Drive-by fix to a const-corrrectness issue.
+  * 18e41b7 Merge pull request #49 from hrosen4/include-order-crash
+  * b74b0fa Fix a crash caused by mismatched buffers
+  * ab50001 Updating docs
+  * 931e770 Update docs
+  * 79ec1ba Documenttaion updates
+  * cd9c9bd Merge pull request #48 from dkuhl/master
+  * 592cde2 change the README to use basic mark down
+
+ -- Hyman Rosen <hrosen4@bloomberg.net>  Mon, 18 May 2020 16:21:20 -0400
+
 bde-verify (1.3.14) unstable; urgency=low
 
   * 4d69d38 Merge pull request #47 from hrosen4/ut01-cpp17_drqs-155840935
