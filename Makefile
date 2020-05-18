@@ -123,8 +123,8 @@ else ifeq ($(SYSTEM),Darwin)
     endif
 endif
 
-DESTDIR    ?= $(CURDIR)/$(SYSTEM)-$(notdir $(CXX))
-OBJ        := $(notdir $(DESTDIR))
+OBJ        := $(SYSTEM)-$(notdir $(CXX))
+DESTDIR    ?= $(CURDIR)/$(OBJ)
 
 VERBOSE ?= @
 
