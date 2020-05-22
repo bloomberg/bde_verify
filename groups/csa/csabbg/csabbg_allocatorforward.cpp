@@ -1077,7 +1077,9 @@ static internal::DynTypedMatcher ctor_decl_matcher()
 void report::match_ctor_decl(const BoundNodes& nodes)
 {
     auto decl = nodes.getNodeAs<CXXConstructorDecl>("c");
-    d.ctors_.push_back(decl);
+    if (!decl->isDeleted()) {
+        d.ctors_.push_back(decl);
+    }
 }
 
 static internal::DynTypedMatcher allocator_method_matcher()
@@ -1237,7 +1239,9 @@ bool report::has_public_copy_constructor(const CXXRecordDecl *decl)
     }
 
     for (auto c : decl->ctors()) {
-        if (c->isCopyConstructor() && c->getAccess() == AS_public) {
+        if (c->isCopyConstructor() &&
+            c->getAccess() == AS_public &&
+            !c->isDeleted()) {
             return true;                                              // RETURN
         }
     }
@@ -1286,6 +1290,9 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
     for (auto itr = begin; itr != end; ++itr) {
         const CXXConstructorDecl *decl = *itr;
         if (decl->isFunctionTemplateSpecialization()) {
+            continue;
+        }
+        if (decl->isDeleted()) {
             continue;
         }
         const CXXRecordDecl *record = decl->getParent()->getCanonicalDecl();
