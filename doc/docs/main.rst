@@ -1111,9 +1111,12 @@ may be removed in the future.)  We welcome suggestions for additional checks.
    be used to implicitly convert that argument to class type.  They should be
    tagged with an ``// IMPLICT`` comment.
 
-   * ``IC01``
+   * ``IEC01``
      Non-``explicit`` constructor which may be invoked implicitly and
      not marked with ``// IMPLICIT``
+
+  *  ``IEC02``
+     The ``// IMPLICIT`` tag should begin in column 69.
 
 .. only:: bde_verify or bb_cppverify
 
@@ -1153,7 +1156,7 @@ may be removed in the future.)  We welcome suggestions for additional checks.
    because being declared within "C" linkage can change the meaning of the
    constructs they contain.
 
-   * ``IEC01``
+   * ``IC01``
      Header file included within C linkage specification.
 
 .. only:: bde_verify

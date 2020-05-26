@@ -25,6 +25,7 @@ namespace bde_verify {
             {
                 bar(int); // -> warn
                 bar(char);                                          // IMPLICIT
+                bar(double);  // IMPLICIT
             };
 
             template <class T>

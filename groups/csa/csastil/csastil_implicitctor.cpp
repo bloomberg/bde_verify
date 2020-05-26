@@ -76,8 +76,7 @@ namespace
                      declB < analyser_->get_location(next->getLocation())) ||
                     it->file() != declB.file() ||
                     it->line() < declB.line() ||
-                    it->line() > declE.line() + 1 ||
-                    it->column() != 69) {
+                    it->line() > declE.line() + 1) {
                     analyser_->report(decl, check_name, "IEC01",
                             "Constructor suitable for implicit conversions")
                         << decl->getSourceRange();
