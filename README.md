@@ -23,7 +23,7 @@ Prerequesites:
 - nsis with large-string overlay (Windows, more details below)
 - cmake >= 3.4.3
 - gnu make
-- aspell
+- aspell (package `libaspell-dev`)
 
 Bde_verify incorporates llvm/clang-9.0 libraries.  These may already be
 installed on the build machine.  If not, they can be installed (in the
