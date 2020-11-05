@@ -21,7 +21,7 @@ static void printer(Target& out, Type::TypeClass value)
 #define TYPE(Class, Base) case Type::Class: out << #Class; break;
 #define LAST_TYPE(Class)
 #define ABSTRACT_TYPE(Class, Base)
-#include "clang/AST/TypeNodes.def"
+#include "clang/AST/TypeNodes.inc"
     default: out << "unknown-type-class=" << value; break;
     }
 }
