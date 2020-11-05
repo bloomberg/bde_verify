@@ -30,7 +30,6 @@
 #include <csaglb_includes.h>
 #include <llvm/ADT/APSInt.h>
 #include <llvm/ADT/Optional.h>
-#include <llvm/ADT/VariadicFunction.h>
 #include <llvm/Support/Casting.h>
 #include <utils/event.hpp>
 #include <utils/function.hpp>

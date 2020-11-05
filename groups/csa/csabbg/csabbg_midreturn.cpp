@@ -23,7 +23,6 @@
 #include <csaglb_comments.h>
 #include <llvm/ADT/Optional.h>
 #include <llvm/ADT/StringRef.h>
-#include <llvm/ADT/VariadicFunction.h>
 #include <llvm/Support/Casting.h>
 #include <stddef.h>
 #include <utils/event.hpp>
