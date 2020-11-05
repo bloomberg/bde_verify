@@ -256,7 +256,7 @@ void csabase::PPObserver::EndOfMainFile()
 
 // -----------------------------------------------------------------------------
 
-void csabase::PPObserver::FileSkipped(FileEntry const& file,
+void csabase::PPObserver::FileSkipped(FileEntryRef const& file,
                                       Token const& token,
                                       SrcMgr::CharacteristicKind kind)
 {
