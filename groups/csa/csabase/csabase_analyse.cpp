@@ -275,7 +275,7 @@ std::unique_ptr<ASTConsumer>
 PluginAction::CreateASTConsumer(CompilerInstance& compiler,
                                 llvm::StringRef source)
 {
-    return llvm::make_unique<AnalyseConsumer>(compiler, source, *this);
+    return std::make_unique<AnalyseConsumer>(compiler, source, *this);
 }
 
 // -----------------------------------------------------------------------------
