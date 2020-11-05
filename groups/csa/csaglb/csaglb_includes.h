@@ -30,7 +30,7 @@
 namespace csabase {
 struct IncludesData {
     struct Inclusion {
-        Inclusion() : d_fe(0) { }
+        Inclusion() : d_fe(nullptr) { }
 
         clang::SourceRange      d_fullRange;
             // The full range of the inclusion, including the include-guard

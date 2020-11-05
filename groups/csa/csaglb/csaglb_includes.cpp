@@ -96,10 +96,19 @@ void report::operator()(SourceLocation Loc, SourceLocation IfLoc)
             }
             if (!inclusion.d_fe) {
                 const DirectoryLookup *dl = 0;
-                inclusion.d_fe = p.LookupFile(fsl,
+                auto lookupFileRef = p.LookupFile(fsl,
                          a.get_source(inclusion.d_file),
                          a.get_source(inclusion.d_fullFile)[0] == '<',
                          0, 0, dl, 0, 0, 0, 0, 0);
+
+                if (lookupFileRef) {
+                    // TODO: Port the d_fe method to FileEntryRef
+                    // curently that's not easily possible without
+                    // a big rework.
+                    inclusion.d_fe = &lookupFileRef->getFileEntry();
+                } else {
+                    inclusion.d_fe = nullptr;
+                }
             }
         }
     }
