@@ -325,9 +325,9 @@ int csabase::run(int argc_, const char **argv_)
     }
 
     IntrusiveRefCntPtr<DiagnosticOptions> DiagOpts = new DiagnosticOptions;
-    std::unique_ptr<OptTable> Opts(createDriverOptTable());
+    const OptTable &Opts = getDriverOptTable();
     unsigned MissingIndex, MissingCount;
-    InputArgList Args = Opts->ParseArgs(argv, MissingIndex, MissingCount);
+    InputArgList Args = Opts.ParseArgs(argv, MissingIndex, MissingCount);
     (void)ParseDiagnosticArgs(*DiagOpts, Args);
 
     TextDiagnosticPrinter *DiagClient =
