@@ -2555,7 +2555,7 @@ void report::check_wrong_parm(const CXXConstructExpr *expr)
 
             if (const MaterializeTemporaryExpr* mte =
                            llvm::dyn_cast<MaterializeTemporaryExpr>(arg)) {
-                arg = mte->GetTemporaryExpr();
+                arg = mte->getSubExpr();
                 continue;
             }
 
@@ -2652,7 +2652,8 @@ void report::check_uses_allocator(const CXXConstructExpr *expr)
 
         if (const MaterializeTemporaryExpr *mte =
                 llvm::dyn_cast<MaterializeTemporaryExpr>(arg)) {
-            arg = mte->GetTemporaryExpr();
+
+            arg = mte->getSubExpr();
             continue;
         }
 

@@ -51,7 +51,7 @@ isDefaultValue(Analyser& analyser, InitListExpr const* expr, Expr const* init)
                 && llvm::dyn_cast<MaterializeTemporaryExpr>(ctor->getArg(0)))
             {
                 init = llvm::dyn_cast<MaterializeTemporaryExpr>(
-                    ctor->getArg(0))->GetTemporaryExpr();
+                    ctor->getArg(0))->getSubExpr();
             }
         }
     }
