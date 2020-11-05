@@ -58,9 +58,9 @@ bool report::wrong_prefix(const NamedDecl *named)
 void report::operator()()
 {
     for (const auto &bg : d.d_badglobals) {
-        a.report(bg.first.location(), check_name, "CP01",
-                 "Globally visible identifier '%0' without component prefix")
-            << bg.second;
+        auto report = a.report(bg.first.location(), check_name, "CP01",
+                 "Globally visible identifier '%0' without component prefix");
+        report << bg.second;
     }
 }
 

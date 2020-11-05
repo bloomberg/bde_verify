@@ -64,9 +64,9 @@ void report::operator()(UsingDirectiveDecl const* decl)
         if (!a.is_global_package() &&
             a.is_header(a.get_location(decl).file())) {
             NamedDecl const* name(decl->getNominatedNamespaceAsWritten());
-            a.report(decl, check_name, "TR16",
-                     "Namespace level using directive for '%0' in header file")
-                << name->getQualifiedNameAsString();
+            auto r = a.report(decl, check_name, "TR16",
+                     "Namespace level using directive for '%0' in header file");
+            r << name->getQualifiedNameAsString();
         }
         set_ud(d.d_uds[m.getFileID(sl)], sl);
     }

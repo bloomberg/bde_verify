@@ -60,11 +60,11 @@ global_function_only_in_source(Analyser& analyser, FunctionDecl const* decl)
         && FileName(analyser.get_location(decl).file()).extra() != ".g"
         && !decl->isMain())
     {
-        analyser.report(decl, check_name, "TR10",
+        auto report = analyser.report(decl, check_name, "TR10",
                         "Globally visible function '%0' "
-                        "is not declared in header.")
-                        << decl->getQualifiedNameAsString()
-                        << decl->getNameInfo().getSourceRange();
+                        "is not declared in header.");
+        report << decl->getQualifiedNameAsString()
+               << decl->getNameInfo().getSourceRange();
     }
 }
 

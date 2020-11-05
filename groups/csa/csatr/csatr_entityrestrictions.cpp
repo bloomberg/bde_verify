@@ -29,9 +29,9 @@ static void enum_declaration(Analyser& analyser, EnumDecl const* decl)
         && !decl->getLocation().isMacroID()
         && analyser.is_component_header(decl)
         && !analyser.is_standard_namespace(decl->getQualifiedNameAsString())) {
-        analyser.report(decl, check_name, "TR17",
-                        "Enum '%0' declared at global scope")
-            << decl->getName();
+        auto report = analyser.report(decl, check_name, "TR17",
+                        "Enum '%0' declared at global scope");
+        report << decl->getName();
     }
 }
 
@@ -44,9 +44,9 @@ static void var_declaration(Analyser& analyser, VarDecl const* decl)
         && !decl->getLocation().isMacroID()
         && analyser.is_component_header(decl)
         && !analyser.is_standard_namespace(decl->getQualifiedNameAsString())) {
-        analyser.report(decl, check_name, "TR17",
-                        "Variable '%0' declared at global scope")
-            << decl->getName();
+        auto report = analyser.report(decl, check_name, "TR17",
+                        "Variable '%0' declared at global scope");
+        report << decl->getName();
     }
 }
 
@@ -77,9 +77,9 @@ static void function_declaration(Analyser& analyser, FunctionDecl const* decl)
         && !analyser.is_ADL_candidate(decl)
         && !analyser.is_standard_namespace(decl->getQualifiedNameAsString())
         ) {
-        analyser.report(decl, check_name, "TR17",
-                        "Function '%0' declared at global scope")
-            << decl->getNameAsString()
+        auto report = analyser.report(decl, check_name, "TR17",
+                        "Function '%0' declared at global scope");
+        report << decl->getNameAsString()
             << decl->getNameInfo().getSourceRange();
     }
 }
@@ -101,9 +101,9 @@ static void typedef_declaration(Analyser& analyser, TypedefDecl const* decl)
         && decl->getNameAsString().find(package) != 0
         && !analyser.is_standard_namespace(decl->getQualifiedNameAsString())
         ) {
-        analyser.report(decl, check_name, "TR17",
-                        "Typedef '%0' declared at global scope")
-            << decl->getNameAsString();
+        auto report = analyser.report(decl, check_name, "TR17",
+                        "Typedef '%0' declared at global scope");
+        report << decl->getNameAsString();
     }
 }
 

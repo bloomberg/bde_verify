@@ -195,10 +195,10 @@ void report::check_switch(SwitchStmt const* stmt)
             if (previous_label > 0 &&
                 value > 0 &&
                 previous_label - 1 != value) {
-                a.report(cs, check_name, "LO01",
+                auto report = a.report(cs, check_name, "LO01",
                          "Case label out of order: "
-                         "previous=%0 value=%1")
-                    << previous_label
+                         "previous=%0 value=%1");
+                report << previous_label
                     << value;
             }
             previous_label = value;
@@ -218,9 +218,9 @@ void report::check_switch(SwitchStmt const* stmt)
         }
     }
     if (min_label > 1) {
-        a.report(min_case, check_name, "SM01",
-                 "Switch missing case values below %0")
-            << min_label;
+        auto report = a.report(min_case, check_name, "SM01",
+                 "Switch missing case values below %0");
+        report << min_label;
     }
 }
 

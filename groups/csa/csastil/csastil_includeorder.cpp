@@ -229,9 +229,10 @@ struct report : public Report<data>
     {
         for (; end != (it = std::adjacent_find(it, end, &first_is_greater));
              ++it) {
-            a.report(it[1].second, check_name, "SHO01",
-                     "%0 header out of order")
-                << message;
+            auto report = a.report(it[1].second, check_name, "SHO01",
+                     "%0 header out of order");
+    
+            report << message;
         }
     }
 
@@ -245,9 +246,9 @@ struct report : public Report<data>
              end !=
              (it = std::find_if(it, end, has_prefix(a.package() + "_")));
              ++it) {
-            a.report(it->second, check_name, "SHO02",
-                     "%0 header coming late")
-                << message;
+            auto report = a.report(it->second, check_name, "SHO02",
+                     "%0 header coming late");
+            report << message;
         }
     }
 
@@ -281,10 +282,10 @@ struct report : public Report<data>
             }
         }
         else if (it == headers.end() || !is_ident(it->first, ident)) {
-            a.report((it == headers.end() ? it - 1 : it)->second,
+            auto report = a.report((it == headers.end() ? it - 1 : it)->second,
                      check_name, "SHO06",
-                     "Missing include for %0.h")
-                << ident;
+                     "Missing include for %0.h");
+            report << ident;
         }
         else {
             if (is_ident(it->first, ident)) {
@@ -315,9 +316,9 @@ struct report : public Report<data>
              (&headers == &d.d_header &&
               a.component() == version)) &&
             header && it != headers.end() && it->first == version) {
-            a.report(it->second, check_name, "SHO09",
-                     "'%0' components should not include '%1'")
-                << a.package() << vh;
+            auto report = a.report(it->second, check_name, "SHO09",
+                     "'%0' components should not include '%1'");
+            report << a.package() << vh;
         }
 
         if (a.package() != "bsls" && a.package() != "bdls" &&
@@ -333,20 +334,20 @@ struct report : public Report<data>
                 ++last_it;
             }
             if (last_it == headers.end()) {
-                a.report((it == headers.end() ? it - 1 : it)->second,
+                auto report = a.report((it == headers.end() ? it - 1 : it)->second,
                          check_name, "SHO07",
-                         "Missing include for %0")
-                    << vh;
+                         "Missing include for %0");
+                report << vh;
             }
             else {
-                a.report((it == headers.end() ? it - 1 : it)->second,
+                auto r1 = a.report((it == headers.end() ? it - 1 : it)->second,
                          check_name, "SHO07",
-                         "Include for %0 should go here")
-                    << vh;
-                a.report(last_it->second, check_name, "SHO07",
+                         "Include for %0 should go here");
+                r1 << vh;
+                auto r2 = a.report(last_it->second, check_name, "SHO07",
                          "Include for %0 is here",
-                         true, DiagnosticIDs::Note)
-                    << vh;
+                         true, DiagnosticIDs::Note);
+                r2 << vh;
             }
         }
 

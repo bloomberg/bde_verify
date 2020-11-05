@@ -120,20 +120,20 @@ static void onEndif(Analyser* analyser, SourceLocation end, SourceLocation)
             std::string include_guard =
                 "INCLUDED_" + FileName(include).component().upper();
             if (include.empty()) {
-                analyser->report(where, check_name, "SEG01",
-                                 "Include guard '%0' without include file")
-                    << guard;
+                auto report = analyser->report(where, check_name, "SEG01",
+                                 "Include guard '%0' without include file");
+                report << guard;
             }
             else if (   include_guard != guard
                      && (   include.find('_') != include.npos
                          || include_guard + "_H" != guard)
                      ) {
-                analyser->report(where, check_name, "SEG02",
+                auto report = analyser->report(where, check_name, "SEG02",
                                  "Include guard '%0' mismatch for included "
-                                 "file '%1' - use '%2'")
-                    << guard
-                    << include
-                    << (include.find('_') == include.npos ?
+                                 "file '%1' - use '%2'");
+                report  << guard
+                        << include
+                        << (include.find('_') == include.npos ?
                             include_guard + "_H" :
                             include_guard);
             }
@@ -165,19 +165,19 @@ static void onInclude(Analyser* analyser,
 
     if (analyser->is_component_header(where)) {
         if (unguarded) {
-            analyser->report(where, check_name, "SEG03",
+            auto report = analyser->report(where, check_name, "SEG03",
                              "Include of '%0' without external include guard "
-                             "'%1'")
-                << file
-                << "INCLUDED_" + FileName(file).component().upper();
+                             "'%1'");
+            report << file
+                   << "INCLUDED_" + FileName(file).component().upper();
         }
         else {
             std::string guard = context.d_conditions.top().first;
-            analyser->report(where, check_name, "SEG04",
+            auto report = analyser->report(where, check_name, "SEG04",
                              "Include of '%0' with external include guard "
-                             "'%1'")
-                << file
-                << guard;
+                             "'%1'");
+            report << file
+                   << guard;
         }
     }
 }

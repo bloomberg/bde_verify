@@ -75,9 +75,9 @@ void report::operator()()
 {
     MatchFinder mf;
     OnMatch<> m1([&](const BoundNodes &nodes) {
-        a.report(nodes.getNodeAs<CallExpr>("c"), check_name, "SU01",
-                 "Prefer 'using %0::swap; swap(...);'")
-            << (d.d_bsl ? "bsl" : "std");
+        auto report = a.report(nodes.getNodeAs<CallExpr>("c"), check_name, "SU01",
+                 "Prefer 'using %0::swap; swap(...);'");
+        report << (d.d_bsl ? "bsl" : "std");
     });
     mf.addDynamicMatcher(
         decl(forEachDescendant(callExpr(

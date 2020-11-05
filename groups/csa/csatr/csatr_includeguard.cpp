@@ -81,9 +81,9 @@ void report::operator()(SourceLocation, SourceRange range)
         llvm::StringRef value = a.get_source(range);
         llvm::Regex re("^ *! *defined *[(]? *" + guard() + " *[)]? *\r*$");
         if (!re.match(value)) {
-            a.report(range.getBegin(), check_name, "TR14",
-                              "Wrong include guard (expected '!defined(%0)')")
-                << guard();
+            auto report = a.report(range.getBegin(), check_name, "TR14",
+                              "Wrong include guard (expected '!defined(%0)')");
+            report << guard();
         }
         d.d_test = true;
     }
@@ -95,10 +95,10 @@ void report::operator()(SourceLocation where, Token const& token)
         !d.d_test) {
         if (IdentifierInfo const* id = token.getIdentifierInfo()) {
             if (id->getNameStart() != guard()) {
-                a.report(token.getLocation(), check_name, "TR14",
+                auto report = a.report(token.getLocation(), check_name, "TR14",
                                   "Wrong name for include guard "
-                                  "(expected '%0')")
-                    << guard();
+                                  "(expected '%0')");
+                report << guard();
             }
             d.d_test = true;
         }
@@ -122,13 +122,13 @@ void report::operator()(SourceLocation location,
 {
     if (a.is_component_header(filename) &&
         !(d.d_test && d.d_define)) {
-        a.report(location, check_name, "TR14",
+        auto report = a.report(location, check_name, "TR14",
                  d.d_test
                  ? "Missing define for include guard %0"
                  : d.d_define
                  ? "Missing test for include guard %0"
-                 : "Missing include guard %0")
-            << guard();
+                 : "Missing include guard %0");
+        report << guard();
     }
 }
 

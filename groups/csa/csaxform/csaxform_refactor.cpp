@@ -362,10 +362,10 @@ bool report::VisitCXXRecordDecl(CXXRecordDecl *arg)
                 SourceRange(m.getSpellingLoc(arg->getBeginLoc()),
                             m.getSpellingLoc(arg->getEndLoc())));
             if (a.ReplaceText(sr, rep)) {
-                a.report(sr.getBegin(), check_name, "RD01",
+                auto report = a.report(sr.getBegin(), check_name, "RD01",
                          "Replacing forward declaration " + e.str() +
-                         " with " + rep)
-                    << sr;
+                         " with " + rep);
+                report << sr;
             }
         }
     }
@@ -421,9 +421,9 @@ bool report::replace(SourceRange sr, llvm::StringRef e)
             rep += "::";
         }
         if (a.ReplaceText(sr, rep)) {
-            a.report(sr.getBegin(), check_name, "RC01",
-                     "Replacing " + src.str() + " with " + rep)
-                << sr;
+            auto report = a.report(sr.getBegin(), check_name, "RC01",
+                     "Replacing " + src.str() + " with " + rep);
+            report << sr;
         }
         return true;
     }

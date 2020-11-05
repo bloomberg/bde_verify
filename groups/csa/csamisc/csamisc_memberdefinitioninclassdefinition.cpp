@@ -50,9 +50,9 @@ member_definition_in_class_definition(Analyser& analyser,
         && !analyser.is_test_driver()
         && !decl->getBeginLoc().isMacroID())
     {
-        analyser.report(decl, check_name, "CD01",
-                "Member function '%0' is defined in the class definition.")
-            << decl->getQualifiedNameAsString();
+        auto report = analyser.report(decl, check_name, "CD01",
+                "Member function '%0' is defined in the class definition.");
+        report << decl->getQualifiedNameAsString();
         data.reported_[decl->getCanonicalDecl()] = true;
     }
 }

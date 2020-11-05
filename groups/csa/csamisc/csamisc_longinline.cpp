@@ -145,8 +145,8 @@ struct report
                   ss << "Unknown inline function problem " << it->second;
               } break;
             }
-            d_analyser->report(it->first, check_name, "LI01", ss.str())
-                << it->first->getNameInfo().getSourceRange();
+            auto report = d_analyser->report(it->first, check_name, "LI01", ss.str());
+            report << it->first->getNameInfo().getSourceRange();
         }
     }
 };
