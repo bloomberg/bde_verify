@@ -115,12 +115,13 @@ void report::check_fvs(SourceRange range, llvm::StringRef comment)
         std::pair<size_t, size_t> mm = mid_match(s, text);
         size_t matchpos = offset + mm.first;
         offset = matchpos + text.size();
-        a.report(range.getBegin().getLocWithOffset(matchpos),
+        auto report = a.report(range.getBegin().getLocWithOffset(matchpos),
                  check_name, "FVS01",
                  "The term \"%0\" is deprecated; use a description "
-                 "appropriate to the component type")
-            << text
-            << getOffsetRange(range, matchpos, offset - 1 - matchpos);
+                 "appropriate to the component type");
+
+        report << text
+               << getOffsetRange(range, matchpos, offset - 1 - matchpos);
     }
 }
 
@@ -139,12 +140,13 @@ void report::check_pp(SourceRange range, llvm::StringRef comment)
         std::pair<size_t, size_t> mm = mid_match(s, text);
         size_t matchpos = offset + mm.first;
         offset = matchpos + text.size();
-        a.report(range.getBegin().getLocWithOffset(matchpos),
+        auto report = a.report(range.getBegin().getLocWithOffset(matchpos),
                  check_name, "PP01",
-                 "The term \"%0\" is deprecated; use 'function%1'")
-            << text
-            << (matches[1].size() == 1 ? "s" : "")
-            << getOffsetRange(range, matchpos, offset - 1 - matchpos);
+                 "The term \"%0\" is deprecated; use 'function%1'");
+        
+        report << text
+               << (matches[1].size() == 1 ? "s" : "")
+               << getOffsetRange(range, matchpos, offset - 1 - matchpos);
     }
 }
 
@@ -163,13 +165,14 @@ void report::check_mr(SourceRange range, llvm::StringRef comment)
         std::pair<size_t, size_t> mm = mid_match(s, text);
         size_t matchpos = offset + mm.first;
         offset = matchpos + text.size();
-        a.report(range.getBegin().getLocWithOffset(matchpos),
+        auto report = a.report(range.getBegin().getLocWithOffset(matchpos),
                  check_name, "MOR01",
                  "The term \"%0 %1\" is deprecated; use \"%1 "
-                 "offering %0 access\"")
-            << matches[1]
-            << matches[3]
-            << getOffsetRange(range, matchpos, offset - 1 - matchpos);
+                 "offering %0 access\"");
+        
+        report << matches[1]
+               << matches[3]
+               << getOffsetRange(range, matchpos, offset - 1 - matchpos);
     }
 }
 
@@ -207,13 +210,15 @@ void report::report_bubble(const Range &r, llvm::StringRef text)
     auto& reported_ranges = d.d_reported;
     if (!reported_ranges.count(r)) {
         reported_ranges.insert(r);
-        a.report(r.from().location(), check_name, "BADB01",
-                 "Incorrectly formed inheritance bubble")
-            << SourceRange(r.from().location(), r.to().location());
-        a.report(r.from().location(), check_name, "BADB01",
+        auto r1 = a.report(r.from().location(), check_name, "BADB01",
+                 "Incorrectly formed inheritance bubble");
+
+        r1 << SourceRange(r.from().location(), r.to().location());
+        auto r2 = a.report(r.from().location(), check_name, "BADB01",
                  "Correct format is%0",
-                 false, DiagnosticIDs::Note)
-            << bubble(text, r.from().column());
+                 false, DiagnosticIDs::Note);
+    
+        r2 << bubble(text, r.from().column());
     }
 }
 
@@ -410,11 +415,12 @@ void report::check_wrapped(SourceRange range, llvm::StringRef comment)
         std::pair<size_t, size_t> bad_pos =
             bad_wrap_pos(text, ll - wrap_slack);
         if (bad_pos.first != text.npos) {
-            a.report(
+            auto report = a.report(
                 range.getBegin().getLocWithOffset(matchpos + bad_pos.first),
                 check_name, "BW01",
-                "This text fits on the previous line - consider using bdewrap")
-                << getOffsetRange(range,
+                "This text fits on the previous line - consider using bdewrap");
+            
+            report << getOffsetRange(range,
                                   matchpos + bad_pos.first,
                                   bad_pos.second - bad_pos.first);
         }
@@ -453,15 +459,16 @@ void report::check_purpose(SourceRange range, llvm::StringRef comment)
             std::string expected =
                 "//@PURPOSE: " + matches[1].trim().str() + ".";
             std::pair<size_t, size_t> mm = mid_mismatch(text, expected);
-            a.report(range.getBegin().getLocWithOffset(matchpos + mm.first),
+            auto r1 = a.report(range.getBegin().getLocWithOffset(matchpos + mm.first),
                      check_name, "PRP01",
-                     "Invalid format for @PURPOSE line")
-                << text;
-            a.report(range.getBegin().getLocWithOffset(matchpos + mm.first),
+                     "Invalid format for @PURPOSE line");
+            r1 << text;
+
+            auto r2 = a.report(range.getBegin().getLocWithOffset(matchpos + mm.first),
                      check_name, "PRP01",
                      "Correct format is\n%0",
-                     false, DiagnosticIDs::Note)
-                << expected;
+                     false, DiagnosticIDs::Note);
+            r2 << expected;
         }
     }
 }
@@ -519,11 +526,11 @@ void report::check_description(SourceRange range, llvm::StringRef comment)
             }
             std::string qc = ("'" + matches[2] + "'").str();
             if (dpos != comment.npos && desc.find(qc) == desc.npos) {
-                a.report(range.getBegin().getLocWithOffset(dpos),
+                auto report = a.report(range.getBegin().getLocWithOffset(dpos),
                          check_name, "DC01",
                          "Description should contain single-quoted "
-                         "class name %0")
-                    << qc;
+                         "class name %0");
+                report << qc;
             }
         }
         cpos = comment.find('\n', cpos);

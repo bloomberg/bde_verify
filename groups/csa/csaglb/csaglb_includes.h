@@ -5,8 +5,12 @@
 #include <llvm/ADT/StringRef.h>
 #include <clang/Basic/SourceLocation.h>
 #include <clang/Lex/Token.h>
+#include <clang/Basic/FileManager.h>
+
 #include <map>
 #include <vector>
+#include <optional>
+
 
 // Maintain a "database" of included files, including their redundant include
 // guards if present, and including as well those inclusions that are skipped

@@ -401,7 +401,7 @@ bool csabase::Analyser::is_main() const
 
 // -----------------------------------------------------------------------------
 
-csabase::diagnostic_builder
+std::optional<csabase::diagnostic_builder>
 csabase::Analyser::report(SourceLocation where,
                           std::string const& check,
                           std::string const& tag,
@@ -424,7 +424,7 @@ csabase::Analyser::report(SourceLocation where,
         return csabase::diagnostic_builder(
             compiler_.getDiagnostics().Report(where, id), always);
     }
-    return csabase::diagnostic_builder();
+    return {};
 }
 
 // -----------------------------------------------------------------------------

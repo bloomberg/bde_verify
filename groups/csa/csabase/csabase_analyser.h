@@ -23,6 +23,7 @@
 #include <string>
 #include <utils/event.hpp>
 #include <vector>
+#include <optional>
 
 namespace clang { class CompilerInstance; }
 namespace clang { class Decl; }
@@ -93,7 +94,7 @@ class Analyser : public Attachments
     bool               is_generated(clang::SourceLocation) const;
     bool               is_toplevel(std::string const&) const;
 
-    diagnostic_builder report(clang::SourceLocation       where,
+    std::optional<diagnostic_builder> report(clang::SourceLocation       where,
                               std::string const&          check,
                               std::string const&          tag,
                               std::string const&          message,
@@ -102,7 +103,7 @@ class Analyser : public Attachments
                                                 clang::DiagnosticIDs::Warning);
 
     template <typename T>
-    diagnostic_builder report(T where,
+    std::optional<diagnostic_builder> report(T where,
                               std::string const&          check,
                               std::string const&          tag,
                               std::string const&          message,
@@ -200,7 +201,7 @@ void Analyser::process_decls(InIt it, InIt end)
 
 template <typename T>
 inline
-diagnostic_builder Analyser::report(
+std::optional<diagnostic_builder> Analyser::report(
     T where,
     std::string const&          check,
     std::string const&          tag,

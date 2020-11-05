@@ -59,9 +59,9 @@ void files::operator()(SourceLocation     loc,
         if (!(*s & 0x80)) {
             if (begin != 0) {
                 SourceRange bad(getOffsetRange(loc, begin - b, s - begin - 1));
-                d_analyser.report(bad.getBegin(), check_name, "NA01",
-                                  "Non-ASCII characters")
-                    << bad;
+                auto report = d_analyser.report(bad.getBegin(), check_name, "NA01",
+                                  "Non-ASCII characters");
+                report << bad;
                 begin = 0;
             }
         } else {

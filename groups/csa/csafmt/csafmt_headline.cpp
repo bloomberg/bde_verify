@@ -69,11 +69,11 @@ static void open_file(Analyser& analyser,
             analyser.report(where.getLocWithOffset(m.first),
                             check_name, "HL01",
                             "File headline incorrect", true);
-            analyser.report(where.getLocWithOffset(m.first),
+            auto report = analyser.report(where.getLocWithOffset(m.first),
                             check_name, "HL01",
                             "Correct format is\n%0",
-                            true, DiagnosticIDs::Note)
-                << expect;
+                            true, DiagnosticIDs::Note);
+            report << expect;
             if (m.first == 0) {
                 analyser.InsertTextBefore(
                     where.getLocWithOffset(m.first), expect + "\n");

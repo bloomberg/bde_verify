@@ -1004,9 +1004,11 @@ void report::operator()(SourceLocation        where,
     if (tn.startswith("BDE_BUILD_TARGET_") &&
         !a.is_component_header(std::string("bsls_buildtarget.h")) &&
         !d.d_all_includes.count("bsls_buildtarget.h")) {
-        a.report(token.getLocation(), check_name, "AQK02",
-                 "Use of %0 macro requires inclusion of <bsls_buildtarget.h>")
-            << tn;
+        auto builder = a.report(
+            token.getLocation(), check_name, "AQK02",
+            "Use of %0 macro requires inclusion of <bsls_buildtarget.h>");
+
+        builder << tn.str();
     }
 }
 
@@ -1026,9 +1028,10 @@ void report::operator()(const Token&          token,
     if (tn.startswith("BDE_BUILD_TARGET_") &&
         !a.is_component_header(std::string("bsls_buildtarget.h")) &&
         !d.d_all_includes.count("bsls_buildtarget.h")) {
-        a.report(token.getLocation(), check_name, "AQK02",
-                 "Use of %0 macro requires inclusion of <bsls_buildtarget.h>")
-            << tn;
+        auto builder = a.report(
+            token.getLocation(), check_name, "AQK02",
+            "Use of %0 macro requires inclusion of <bsls_buildtarget.h>");
+        builder << tn;
     }
 }
 
@@ -1129,9 +1132,10 @@ void report::require_file(std::string     name,
     if (!d.d_once[fid].count(name) /*||
         m.isBeforeInTranslationUnit(srcloc, d.d_once[fid][name])*/) {
         d.d_once[fid][name] = srcloc;
-        a.report(srcloc, check_name, "AQK01", "Need #include <%0> for '%1'")
-            << name
-            << symbol;
+        auto builder = a.report(
+            srcloc, check_name, "AQK01", "Need #include <%0> for '%1'");
+        builder << name << symbol;
+
         if (a.is_component_header(ff.name())) {
             d.d_once[m.getMainFileID()][name] = srcloc;
         }

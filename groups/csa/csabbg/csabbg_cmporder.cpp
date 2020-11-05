@@ -64,15 +64,15 @@ void report::operator()(const BinaryOperator *op)
         const char *tag = 0;
         if (carefullyIsModifiable(lhs) && !carefullyIsModifiable(rhs)) {
             tag = "CO01";
-            a.report(op->getOperatorLoc(), check_name, tag,
-                     "Non-modifiable operand should be on the left")
-                << op->getSourceRange();
+            auto report = a.report(op->getOperatorLoc(), check_name, tag,
+                     "Non-modifiable operand should be on the left");
+            report << op->getSourceRange();
         }
         else if (!carefullyIsEvaluatable(lhs) && carefullyIsEvaluatable(rhs)) {
             tag = "CO02";
-            a.report(op->getOperatorLoc(), check_name, tag,
-                     "Constant-expression operand should be on the left")
-                << op->getSourceRange();
+            auto report = a.report(op->getOperatorLoc(), check_name, tag,
+                     "Constant-expression operand should be on the left");
+            report << op->getSourceRange();
         }
         if (tag) {
             SourceRange lr(
@@ -96,10 +96,12 @@ void report::operator()(const BinaryOperator *op)
             std::string rev = a.get_source(rr, true).str() +
                               wr.str() + rop.str() + wl.str() +
                               a.get_source(lr, true).str();
-            a.report(op->getOperatorLoc(), check_name, tag,
-                     "Replace with %0", false, DiagnosticIDs::Note)
-                << rev
-                << op->getSourceRange();
+            auto report = a.report(op->getOperatorLoc(), check_name, tag,
+                     "Replace with %0", false, DiagnosticIDs::Note);
+
+            report << rev
+                   << op->getSourceRange();
+
             a.ReplaceText(a.get_full_range(op->getSourceRange()), rev);
         }
     }

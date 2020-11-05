@@ -188,9 +188,13 @@ void report::operator()()
             continue;
         }
         bool sys = m.isInSystemHeader(d.d_types[file].first);
-        d_analyser.report(f.second.d_file.getBegin(), check_name, "PC01",
-                         "C++ %0 included within C linkage specification")
-            << (sys ? "system header" : "header");
+
+        auto builder = d_analyser.report(
+            f.second.d_file.getBegin(), check_name, "PC01",
+            "C++ %0 included within C linkage specification");
+
+        builder << (sys ? "system header" : "header");
+
         d_analyser.report(lsd->getLocation(), check_name, "PC01",
                           "C linkage specification here",
                           false, DiagnosticIDs::Note);

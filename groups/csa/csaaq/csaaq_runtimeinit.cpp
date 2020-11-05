@@ -91,18 +91,21 @@ void report::operator()()
         d.d_inits.begin(), d.d_inits.end(), csabase::SortByLocation(m));
     if (d.d_is_main) {
         for (auto decl : vars) {
-            a.report(decl, check_name, "AQa02",
+            auto builder = a.report(
+                    decl, check_name, "AQa02",
                      "Global variable '%0' of type %1 with runtime "
-                     "initialization in translation unit with main()")
-                << decl->getName() << decl->getType();
+                     "initialization in translation unit with main()");
+            builder << decl->getName() << decl->getType();
         }
     }
     else {
         for (auto decl : vars) {
-            a.report(decl, check_name, "AQa01",
-                     "Global variable '%0' of type %1 with runtime "
-                     "initialization in translation unit without main()")
-                << decl->getName() << decl->getType();
+            auto builder = a.report(
+                decl, check_name, "AQa01",
+                "Global variable '%0' of type %1 with runtime "
+                "initialization in translation unit without main()");
+            
+            builder << decl->getName() << decl->getType();
         }
     }
 }

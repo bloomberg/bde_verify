@@ -554,10 +554,11 @@ void report::processAllFunDecls(data::FunDecls& decls)
             critiqueContract(it->first, it->second);
         }
         else if (!hasCommentedCognate(it->first, decls)) {
-            d_analyser.report(it->first->getNameInfo().getLoc(),
+            auto report = d_analyser.report(it->first->getNameInfo().getLoc(),
                               check_name, "FD01",
-                              "Function declaration requires contract")
-                << it->first->getNameInfo().getSourceRange();
+                              "Function declaration requires contract");
+            
+            report << it->first->getNameInfo().getSourceRange();
         }
     }
 }
@@ -700,11 +701,11 @@ void report::critiqueContract(const FunctionDecl* func, SourceRange comment)
     int cline = d_manager.getPresumedLineNumber(cloc);
     int ccolm = int(c.find_first_not_of(' '));
     if (fline != cline && ccolm != fcolm + 4) {
-        d_analyser.report(cloc, check_name, "FD02",
+        auto report = d_analyser.report(cloc, check_name, "FD02",
             "Function contracts should be indented 4, not %0, spaces "
-            "from their function declaration")
-            << (ccolm - fcolm)
-            << comment;
+            "from their function declaration");
+        report << (ccolm - fcolm)
+               << comment;
     }
 
     // Now check that the function contract documents the parameters.
@@ -747,12 +748,14 @@ void report::critiqueContract(const FunctionDecl* func, SourceRange comment)
 
         if (!matched) {
             llvm::StringRef name = parm->getName();
-            d_analyser.report(
+            auto report = d_analyser.report(
                 parm->getLocation(),
                 check_name, "FD03",
-                "Parameter '%0' is not documented in the function contract")
-                << name
-                << parm->getSourceRange();
+                "Parameter '%0' is not documented in the function contract");
+            
+            report << name
+                   << parm->getSourceRange();
+            
             note_double_tick(&dt, "FD03");
         }
 
@@ -821,23 +824,25 @@ void report::critiqueContract(const FunctionDecl* func, SourceRange comment)
                          k < 1 ||
                          !words[k - 1].is_optionally)) {
                         SourceRange r = word_range(comment, words[j]);
-                        d_analyser.report(
+                        auto report = d_analyser.report(
                                 r.getBegin(),
                                 check_name, "FD05",
                                 "Call out the first appearance of an optional "
                                 "parameter in a function contract using the "
-                                "phrase 'optionally specify'")
-                            << r;
+                                "phrase 'optionally specify'");
+                        
+                        report << r;
+                        
                         note_double_tick(&dt, "FD05");
                     } else if (!specify_found) {
                         SourceRange r = word_range(comment, words[j]);
-                        d_analyser.report(
+                        auto report = d_analyser.report(
                                 r.getBegin(),
                                 check_name, "FD06",
                                 "Call out the first appearance of a parameter "
                                 "in a function contract using the word "
-                                "'specified' or 'specify'")
-                            << r;
+                                "'specified' or 'specify'");
+                        report << r;
                         note_double_tick(&dt, "FD06");
                     }
                     specify_index = k;
@@ -850,13 +855,13 @@ void report::critiqueContract(const FunctionDecl* func, SourceRange comment)
                         const Word& word = words[k - 1];
                         if (word.is_specify) {
                             SourceRange r = word_range(comment, word);
-                            d_analyser.report(
+                            auto report = d_analyser.report(
                                 r.getBegin(),
                                 check_name, "FD07",
                                 "Call out only the first appearance of a "
                                 "parameter in a function contract with the "
-                                "word 'specified' or 'specify'")
-                                << r;
+                                "word 'specified' or 'specify'");
+                            report << r;
                             note_double_tick(&dt, "FD07");
                             break;
                         } else if (!word.is_noise) {
@@ -877,13 +882,13 @@ void report::critiqueContract(const FunctionDecl* func, SourceRange comment)
                     !word.is_noise &&
                     !(parm_info[i].is_quoted && word.is_spelled_ok)) {
                     SourceRange r = word_range(comment, word);
-                    d_analyser.report(
+                    auto report = d_analyser.report(
                             r.getBegin(),
                             check_name, "FD04",
                             "Parameter '%0' is not single-quoted in the "
-                            "function contract")
-                        << parms[i]
-                        << r;
+                            "function contract");
+                    report << parms[i]
+                           << r;
                     note_double_tick(&dt, "FD04");
                 }
             }

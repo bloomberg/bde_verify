@@ -181,10 +181,10 @@ struct report : Report<data>
                                        ? std::string(70 - line.size(), ' ')
                                        : "\n" + std::string(70, ' ')
                                       ) + "// RETURN";
-                    d_analyser.report(*it, check_name, "MR01",
+                    auto report = d_analyser.report(*it, check_name, "MR01",
                                       "Correct text is\n%0",
-                                      true, DiagnosticIDs::Note)
-                        << line.str() + tag;
+                                      true, DiagnosticIDs::Note);
+                    report << line.str() + tag;
                     d_analyser.InsertTextBefore(line_range.getEnd(), tag);
                 }
             }
@@ -246,10 +246,10 @@ struct report : Report<data>
                                        ? std::string(70 - line.size(), ' ')
                                        : "\n" + std::string(70, ' ')
                                       ) + "// RETURN";
-                    d_analyser.report(*it, check_name, "MR02",
+                    auto report = d_analyser.report(*it, check_name, "MR02",
                             "Correct text is\n%0",
-                            true, DiagnosticIDs::Note)
-                        << line.str() + tag;
+                            true, DiagnosticIDs::Note);
+                    report << line.str() + tag;
                     line_range.setBegin(
                         line_range.getBegin().getLocWithOffset(line.size()));
                     d_analyser.ReplaceText(line_range, tag);

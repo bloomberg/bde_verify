@@ -867,21 +867,22 @@ void report::operator()(SourceLocation              where,
                 llvm::StringRef s = d_analyser.get_source(r);
                 size_t pos = s.find(d_data.d_guard);
                 if (pos != s.npos) {
-                    d_analyser.report(r.getBegin(), check_name, "SB02",
-                                      "Replacing include guard %0 with %1")
-                        << fi->std_guard
-                        << fi->bsl_guard;
+                    auto report = d_analyser.report(r.getBegin(), check_name, "SB02",
+                                      "Replacing include guard %0 with %1");
+                    report << fi->std_guard << fi->bsl_guard;
                     d_analyser.ReplaceText(
                         getOffsetRange(r, pos, d_data.d_guard.size()),
                         fi->bsl_guard);
                 }
             }
-            d_analyser.report(where, check_name, "SB01",
-                              "Replacing header %2%0%3 with <%1>")
-                << fi->std
-                << fi->bsl
-                << (angled ? "<" : "\"")
-                << (angled ? ">" : "\"");
+            auto report = d_analyser.report(where, check_name, "SB01",
+                              "Replacing header %2%0%3 with <%1>");
+            
+            report << fi->std
+                   << fi->bsl
+                   << (angled ? "<" : "\"")
+                   << (angled ? ">" : "\"");
+
             SourceRange r = d_analyser.get_trim_line_range(where);
             std::string s = "#include <" + std::string(fi->bsl) + ">";
             if (d_data.d_insert_extcpp && d_analyser.is_header(loc.file())) {
@@ -898,9 +899,9 @@ void report::operator()(SourceLocation              where,
                 llvm::StringRef s = d_analyser.get_source(r);
                 size_t pos = s.find("#define " + d_data.d_guard.str());
                 if (pos != s.npos) {
-                    d_analyser.report(r.getBegin(), check_name, "SB03",
-                             "Removing include guard definition of %0")
-                        << d_data.d_guard;
+                    auto report = d_analyser.report(r.getBegin(), check_name, "SB03",
+                             "Removing include guard definition of %0");
+                    report << d_data.d_guard;
                     d_analyser.RemoveText(r);
                 }
             }
@@ -1065,9 +1066,10 @@ void report::operator()(Token const&           token,
         inc_for_std_decl(
             "bsl", range.getBegin(), d_analyser.lookup_name("bsl::"));
         d_analyser.ReplaceText(range.getBegin(), token.getLength(), "bsl");
-        d_analyser.report(loc, check_name, "SB04",
-                          "Replacing macro '%0' with 'bsl'")
-            << macro;
+        auto report = d_analyser.report(loc, check_name, "SB04",
+                          "Replacing macro '%0' with 'bsl'");
+        
+        report << macro;
     }
     else {
         Location loc(m, mi->getDefinitionLoc());
@@ -1203,20 +1205,20 @@ void report::operator()(SourceRange range, SourceLocation endifLoc)
                         range.getBegin().getLocWithOffset(m.first);
                     if (d_data.d_guard == fi->std_guard) {
                         m = mid_match(source, matches[1]);
-                        d_analyser.report(rbm, check_name, "SB02",
-                                          "Replacing include guard %0 with %1")
-                            << fi->std_guard
-                            << fi->bsl_guard;
+                        auto report = d_analyser.report(rbm, check_name, "SB02",
+                                          "Replacing include guard %0 with %1");
+                        report << fi->std_guard
+                               << fi->bsl_guard;
                         d_analyser.ReplaceText(
                             getOffsetRange(range, m.first, matches[1].size()),
                             fi->bsl_guard);
                     }
                     m = mid_match(source, matches[2]);
                     rbm = range.getBegin().getLocWithOffset(m.first);
-                    d_analyser.report(rbm, check_name, "SB01",
-                                      "Replacing header <%0> with <%1>")
-                        << matches[2]
-                        << fi->bsl;
+                    auto report = d_analyser.report(rbm, check_name, "SB01",
+                                      "Replacing header <%0> with <%1>");
+                    report << matches[2]
+                           << fi->bsl;
                     std::string s = "#include <" + std::string(fi->bsl) + ">";
                     if (d_data.d_insert_extcpp &&
                         d_analyser.is_header(loc.file())) {
@@ -1228,9 +1230,9 @@ void report::operator()(SourceRange range, SourceLocation endifLoc)
                     if (matches[3].size() > 0) {
                         m = mid_match(source, matches[3]);
                         rbm = range.getBegin().getLocWithOffset(m.first);
-                        d_analyser.report(rbm, check_name, "SB03",
-                                     "Removing include guard definition of %0")
-                            << d_data.d_guard;
+                        auto report = d_analyser.report(rbm, check_name, "SB03",
+                                     "Removing include guard definition of %0");
+                        report << d_data.d_guard;
                         d_analyser.RemoveText(d_analyser.get_line_range(rbm));
                     }
                 }
@@ -1391,7 +1393,8 @@ void report::add_include(FileID             fid,
         if (m.getFileID(ia) == m.getFileID(ip)) {
             ip = ia;
         }
-        d_analyser.report(ip, check_name, "IS02", "Inserting %0") << text;
+        auto report = d_analyser.report(ip, check_name, "IS02", "Inserting %0");
+        report << text;
         d_analyser.InsertTextBefore(ip, text);
     }
 }
@@ -1454,10 +1457,11 @@ void report::require_file(std::string     name,
 
         if (ft != e_NIL) {
             d_data.d_once[fid][name] = sl;
-            d_analyser.report(sl, check_name, "IS01",
-                              "Need #include <%0> for symbol %1")
-                << name
-                << symbol;
+            auto report = d_analyser.report(sl, check_name, "IS01",
+                              "Need #include <%0> for symbol %1");
+            
+            report << name
+                   << symbol;
         }
 #if 0
         else if (symbol == "bsl") {

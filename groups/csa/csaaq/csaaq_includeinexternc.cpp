@@ -10,6 +10,7 @@
 #include <csabase_clang.h>
 #include <csabase_config.h>
 #include <csabase_debug.h>
+#include <csabase_diagnostic_builder.h>
 #include <csabase_ppobserver.h>
 #include <csabase_registercheck.h>
 #include <csabase_report.h>
@@ -162,17 +163,23 @@ void report::operator()()
             a.is_system_header(d.d_prop[file])) {
             continue;
         }
-        a.report(sl, check_name, "IC01",
-                 "'%0' header included within C linkage specification",
-                 true)
-            << ns;
+        auto report_1 = a.report(
+            sl, check_name, "IC01",
+            "'%0' header included within C linkage specification",
+            true);
+
+        report_1 << ns.str();
+
         a.report(lsd->getLocation(), check_name, "IC01",
                  "C linkage specification here",
                  true, DiagnosticIDs::Note);
-        a.report(d.d_prop[file], check_name, "IC01",
-                 "'%0' evidence here",
-                 true, DiagnosticIDs::Note)
-            << ns;
+
+        auto report_2 = a.report(
+            d.d_prop[file], check_name, "IC01",
+            "'%0' evidence here",
+            true, DiagnosticIDs::Note);
+
+        report_2 << ns.str();
     }
 }
 
