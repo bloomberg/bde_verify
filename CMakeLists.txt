@@ -160,6 +160,11 @@ add_library(csabase
     ${G}/csabase/csabase_visitor.cpp
 )
 
+set_target_properties(csabase PROPERTIES
+            CXX_STANDARD 17
+            CXX_EXTENSIONS OFF
+)
+
 target_compile_features(csabase PUBLIC cxx_auto_type)
 target_compile_definitions(csabase PRIVATE
                            BDE_VERIFY_VERSION="${BDE_VERIFY_VERSION}")
@@ -254,7 +259,10 @@ add_executable(bde_verify_bin
     ${G}/csaxform/csaxform_refactor_config.cpp
 )
 
-target_compile_features(bde_verify_bin PUBLIC cxx_auto_type)
+set_target_properties(bde_verify_bin PROPERTIES
+            CXX_STANDARD 17
+            CXX_EXTENSIONS OFF
+)
 
 set(CMAKE_SKIP_RPATH ON)
 
