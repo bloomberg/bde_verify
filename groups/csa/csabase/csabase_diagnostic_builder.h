@@ -17,6 +17,8 @@ class diagnostic_builder
     diagnostic_builder(clang::DiagnosticBuilder other, bool always = true);
     diagnostic_builder& operator<<(long long argument);
     diagnostic_builder& operator<<(long argument);
+    diagnostic_builder& operator<<(const llvm::StringRef &ref);
+
     template <typename T>
     diagnostic_builder& operator<<(T const& argument);
     explicit operator bool() const;
@@ -45,6 +47,12 @@ inline
 diagnostic_builder& diagnostic_builder::operator<<(long long argument)
 {
     return *this << static_cast<int>(argument);
+}
+
+inline
+diagnostic_builder& diagnostic_builder::operator<<(const llvm::StringRef &ref)
+{
+    return *this << ref.str();
 }
 
 inline
