@@ -77,7 +77,7 @@ static void onIf(Analyser* analyser, SourceLocation where, SourceRange source)
         guard = matches[1];
     }
     analyser->attachment<ExternalGuards>().d_conditions.push(
-        std::make_pair(guard, where));
+        std::make_pair(guard.str(), where));
 }
 
 // ----------------------------------------------------------------------------
@@ -94,10 +94,10 @@ static std::string getInclude(llvm::StringRef source)
     llvm::SmallVector<llvm::StringRef, 7> matches;
     if (next_include_before_if.match(source, &matches)) {
         if (matches[3].size()) {
-            return matches[3];
+            return matches[3].str();
         }
         if (matches[5].size()) {
-            return matches[5];
+            return matches[5].str();
         }
     }
     return std::string();

@@ -127,7 +127,7 @@ void report::operator()()
     auto tu = a.context()->getTranslationUnitDecl();
 
     for (auto &id : a.attachment<IncludesData>().d_inclusions) {
-        d.d_includes[a.get_source(id.second.d_file)].emplace_back(
+        d.d_includes[a.get_source(id.second.d_file).str()].emplace_back(
             id.second.d_fullRange);
     }
 
@@ -196,7 +196,7 @@ void report::operator()(SourceLocation loc,
                 r = r.drop_front(5).drop_back(1).trim();
                 SmallVector<llvm::StringRef, 5> fs;
                 r.split(fs, ",", -1, false);
-                auto &v = d.d_files[fs[0].trim()];
+                auto &v = d.d_files[fs[0].trim().str()];
                 for (unsigned i = 1; i < fs.size(); ++i) {
                     v.emplace_back(fs[i].trim());
                 }
@@ -416,7 +416,7 @@ bool report::replace(SourceRange sr, llvm::StringRef e)
         sr = a.get_full_range(SourceRange(
             m.getSpellingLoc(sr.getBegin()), m.getSpellingLoc(sr.getEnd())));
         llvm::StringRef src = a.get_source(sr, true);
-        std::string rep = i->second;
+        std::string rep = i->second.str();
         if (src.endswith("::")) {
             rep += "::";
         }

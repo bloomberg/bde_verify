@@ -685,10 +685,10 @@ FileType report::classify(llvm::StringRef name,
         name = fn.name();
     }
 
-    if (d_data.d_file_info.find(name) == d_data.d_file_info.end()) {
-        d_data.d_file_info[name].second = e_UNK;
+    if (d_data.d_file_info.find(name.str()) == d_data.d_file_info.end()) {
+        d_data.d_file_info[name.str()].second = e_UNK;
     }
-    auto& p = d_data.d_file_info[name];
+    auto& p = d_data.d_file_info[name.str()];
     if (pfvi) {
         *pfvi = &p.first;
     }
@@ -771,7 +771,7 @@ void report::push_include(FileID fid, llvm::StringRef name, SourceLocation sl)
     for (FileID f : d_data.d_fileid_stack) {
         if (f == fid) {
             d_data.d_includes[f].push_back(std::make_tuple(
-                name, d_analyser.get_line_range(sl).getBegin(), true));
+                name.str(), d_analyser.get_line_range(sl).getBegin(), true));
         }
         else if (!d_data.d_ovr_stack.back()) {
             SourceLocation sfl = sl;
@@ -805,7 +805,7 @@ void report::push_include(FileID fid, llvm::StringRef name, SourceLocation sl)
                 d_data.d_fid_map[t] = sfl;
             }
             d_data.d_includes[f].push_back(std::make_tuple(
-                name, d_analyser.get_line_range(sfl).getBegin(), false));
+                name.str(), d_analyser.get_line_range(sfl).getBegin(), false));
         }
     }
 }
@@ -814,7 +814,7 @@ void report::change_include(FileID fid, llvm::StringRef name)
 {
     for (FileID f : d_data.d_fileid_stack) {
         if (f == fid || !d_data.d_ovr_stack.back()) {
-            std::get<0>(d_data.d_includes[f].back()) = name;
+            std::get<0>(d_data.d_includes[f].back()) = name.str();
         }
     }
 }
@@ -837,7 +837,7 @@ void report::operator()(SourceLocation              where,
     FileName fnn(name);
 
     if (name.endswith("_version.h") || name.endswith("_ident.h") ||
-        (d_analyser.is_header(name) && fnw.component() == fnn.component())) {
+        (d_analyser.is_header(name.str()) && fnw.component() == fnn.component())) {
         d_data.d_top_for_insert[m.getFileID(where)] =
             d_analyser.get_line_range(d_analyser.get_line_range(where)
                                           .getEnd()
@@ -1204,7 +1204,7 @@ void report::operator()(SourceRange range, SourceLocation endifLoc)
                     SourceLocation rbm =
                         range.getBegin().getLocWithOffset(m.first);
                     if (d_data.d_guard == fi->std_guard) {
-                        m = mid_match(source, matches[1]);
+                        m = mid_match(source.str(), matches[1].str());
                         auto report = d_analyser.report(rbm, check_name, "SB02",
                                           "Replacing include guard %0 with %1");
                         report << fi->std_guard
@@ -1213,7 +1213,7 @@ void report::operator()(SourceRange range, SourceLocation endifLoc)
                             getOffsetRange(range, m.first, matches[1].size()),
                             fi->bsl_guard);
                     }
-                    m = mid_match(source, matches[2]);
+                    m = mid_match(source.str(), matches[2].str());
                     rbm = range.getBegin().getLocWithOffset(m.first);
                     auto report = d_analyser.report(rbm, check_name, "SB01",
                                       "Replacing header <%0> with <%1>");
@@ -1228,7 +1228,7 @@ void report::operator()(SourceRange range, SourceLocation endifLoc)
                         d_analyser.get_trim_line_range(rbm), s);
                     change_include(fid, fi->bsl);
                     if (matches[3].size() > 0) {
-                        m = mid_match(source, matches[3]);
+                        m = mid_match(source.str(), matches[3].str());
                         rbm = range.getBegin().getLocWithOffset(m.first);
                         auto report = d_analyser.report(rbm, check_name, "SB03",
                                      "Removing include guard definition of %0");
@@ -1357,7 +1357,7 @@ void report::add_include(FileID             fid,
             continue;
         }
         llvm::StringRef inc = pfvi_inc->size() ? pfvi_inc->front()->bsl : pn;
-        if (!d_analyser.is_component_header(inc) &&
+        if (!d_analyser.is_component_header(inc.str()) &&
             !inc.endswith("_version.h") &&
             !inc.endswith("_ident.h") &&
             (pfvi_inc->size() && pfvi_name->size() ?

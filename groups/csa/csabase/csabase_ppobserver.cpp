@@ -11,22 +11,35 @@
 #include <csabase_config.h>
 #include <utils/event.hpp>
 
-namespace clang { class IdentifierInfo; }
-namespace clang { class MacroArgs; }
-namespace clang { class MacroDirective; }
-namespace clang { class Module; }
-namespace clang { class Token; }
+namespace clang
+{
+    class IdentifierInfo;
+}
+namespace clang
+{
+    class MacroArgs;
+}
+namespace clang
+{
+    class MacroDirective;
+}
+namespace clang
+{
+    class Module;
+}
+namespace clang
+{
+    class Token;
+}
 
 using namespace csabase;
 using namespace clang;
 
 // -----------------------------------------------------------------------------
 
-csabase::PPObserver::PPObserver(SourceManager const* source_manager,
-                                Config* config)
-: source_manager_(source_manager)
-, connected_(true)
-, config_(config)
+csabase::PPObserver::PPObserver(SourceManager const *source_manager,
+                                Config *config)
+    : source_manager_(source_manager), connected_(true), config_(config)
 {
 }
 
@@ -49,22 +62,22 @@ namespace
 {
     struct Handler : CommentHandler
     {
-        Handler(PPObserver* observer)
-        : observer_(observer)
+        Handler(PPObserver *observer)
+            : observer_(observer)
         {
         }
 
-        bool HandleComment(Preprocessor&, SourceRange range)
+        bool HandleComment(Preprocessor &, SourceRange range)
         {
             observer_->HandleComment(range);
             return false;
         }
 
-        PPObserver* observer_;
+        PPObserver *observer_;
     };
-}
+} // namespace
 
-CommentHandler* csabase::PPObserver::get_comment_handler()
+CommentHandler *csabase::PPObserver::get_comment_handler()
 {
     return new Handler(this);
 }
@@ -80,7 +93,7 @@ std::string csabase::PPObserver::get_file(SourceLocation location) const
 
 void csabase::PPObserver::do_include_file(SourceLocation location,
                                           bool is_angled,
-                                          std::string const& file)
+                                          std::string const &file)
 {
     std::string msg("do_include_file '" + file + "' angled=" +
                     (is_angled ? "true" : "false"));
@@ -89,8 +102,8 @@ void csabase::PPObserver::do_include_file(SourceLocation location,
 }
 
 void csabase::PPObserver::do_open_file(SourceLocation location,
-                                       std::string const& from,
-                                       std::string const& file)
+                                       std::string const &from,
+                                       std::string const &file)
 {
     std::string msg("do_open_file '" + file + "'");
     Debug d(msg.c_str());
@@ -98,30 +111,30 @@ void csabase::PPObserver::do_open_file(SourceLocation location,
 }
 
 void csabase::PPObserver::do_close_file(SourceLocation location,
-                                        std::string const& from,
-                                        std::string const& file)
+                                        std::string const &from,
+                                        std::string const &file)
 {
     std::string msg("do_close_file '" + file + "'");
     Debug d(msg.c_str());
     onCloseFile(location, from, file);
 }
 
-void csabase::PPObserver::do_skip_file(std::string const& from,
-                                       std::string const& file)
+void csabase::PPObserver::do_skip_file(std::string const &from,
+                                       std::string const &file)
 {
     std::string msg("do_skip_file(" + from + ", " + file + ")");
     Debug d(msg.c_str());
     onSkipFile(from, file);
 }
 
-void csabase::PPObserver::do_file_not_found(std::string const& file)
+void csabase::PPObserver::do_file_not_found(std::string const &file)
 {
     std::string msg("do_file_not_found(" + file + ")");
     Debug d(msg.c_str());
     onFileNotFound(file);
 }
 
-void csabase::PPObserver::do_other_file(std::string const& file,
+void csabase::PPObserver::do_other_file(std::string const &file,
                                         PPCallbacks::FileChangeReason reason)
 {
     std::string msg("do_other_file '" + file + "'");
@@ -130,37 +143,37 @@ void csabase::PPObserver::do_other_file(std::string const& file,
 }
 
 void csabase::PPObserver::do_ident(SourceLocation location,
-                                   std::string const& ident)
+                                   std::string const &ident)
 {
     Debug d("do_ident");
     onIdent(location, ident);
 }
 
 void csabase::PPObserver::do_pragma(SourceLocation location,
-                                    std::string const& value)
+                                    std::string const &value)
 {
     Debug d("do_pragma");
     onPragma(location, value);
 }
 
-void csabase::PPObserver::do_macro_expands(Token const& token,
-                                           const MacroDirective* macro,
+void csabase::PPObserver::do_macro_expands(Token const &token,
+                                           const MacroDirective *macro,
                                            SourceRange range,
-                                           MacroArgs const* args)
+                                           MacroArgs const *args)
 {
     Debug d("do_macro_expands");
     onMacroExpands(token, macro, range, args);
 }
 
-void csabase::PPObserver::do_macro_defined(Token const& token,
-                                           const MacroDirective* macro)
+void csabase::PPObserver::do_macro_defined(Token const &token,
+                                           const MacroDirective *macro)
 {
     Debug d("do_macro_defined");
     onMacroDefined(token, macro);
 }
 
-void csabase::PPObserver::do_macro_undefined(Token const& token,
-                                             const MacroDirective* macro)
+void csabase::PPObserver::do_macro_undefined(Token const &token,
+                                             const MacroDirective *macro)
 {
     Debug d("do_macro_undefined");
     onMacroUndefined(token, macro);
@@ -178,13 +191,13 @@ void csabase::PPObserver::do_elif(SourceLocation where, SourceRange range)
     onElif(where, range);
 }
 
-void csabase::PPObserver::do_ifdef(SourceLocation where, Token const& token)
+void csabase::PPObserver::do_ifdef(SourceLocation where, Token const &token)
 {
     Debug d("do_ifdef");
     onIfdef(where, token);
 }
 
-void csabase::PPObserver::do_ifndef(SourceLocation where, Token const& token)
+void csabase::PPObserver::do_ifndef(SourceLocation where, Token const &token)
 {
     Debug d("do_ifndef");
     onIfndef(where, token);
@@ -222,23 +235,23 @@ void csabase::PPObserver::FileChanged(SourceLocation location,
         switch (reason)
         {
         case PPCallbacks::EnterFile:
-            {
-                std::string file(get_file(location));
-                do_open_file(location,
-                             files_.empty() ? std::string() : files_.top(),
-                             file);
-                files_.push(file);
-            }
-            break;
+        {
+            std::string file(get_file(location));
+            do_open_file(location,
+                         files_.empty() ? std::string() : files_.top(),
+                         file);
+            files_.push(file);
+        }
+        break;
         case PPCallbacks::ExitFile:
-            {
-                std::string file(files_.top());
-                files_.pop();
-                do_close_file(source_manager_->getLocForEndOfFile(prev),
-                              files_.empty() ? std::string() : files_.top(),
-                              file);
-            }
-            break;
+        {
+            std::string file(files_.top());
+            files_.pop();
+            do_close_file(source_manager_->getLocForEndOfFile(prev),
+                          files_.empty() ? std::string() : files_.top(),
+                          file);
+        }
+        break;
         default:
             do_other_file(get_file(location), reason);
             break;
@@ -256,70 +269,103 @@ void csabase::PPObserver::EndOfMainFile()
 
 // -----------------------------------------------------------------------------
 
-void csabase::PPObserver::FileSkipped(FileEntryRef const& file,
-                                      Token const& token,
+void csabase::PPObserver::FileSkipped(FileEntryRef const &file,
+                                      Token const &token,
                                       SrcMgr::CharacteristicKind kind)
 {
     onPPFileSkipped(file, token, kind);
 
-    do_skip_file(files_.empty()? std::string(): files_.top(), file.getName());
+    do_skip_file(files_.empty() ? std::string() : files_.top(), file.getName().str());
 }
 
 // -----------------------------------------------------------------------------
 
 bool csabase::PPObserver::FileNotFound(llvm::StringRef name,
-                                       llvm::SmallVectorImpl<char>& path)
+                                       llvm::SmallVectorImpl<char> &path)
 {
     onPPFileNotFound(name, path);
 
-    do_file_not_found(name);
+    do_file_not_found(name.str());
     return false;
 }
 
 // -----------------------------------------------------------------------------
 
-void
-csabase::PPObserver::Ident(SourceLocation location, llvm::StringRef ident)
+void csabase::PPObserver::Ident(SourceLocation location, llvm::StringRef ident)
 {
     onPPIdent(location, ident);
 
-    do_ident(location, ident);
+    do_ident(location, ident.str());
 }
 
 // -----------------------------------------------------------------------------
 
 static llvm::Regex pragma_bdeverify(
-    "^ *# *pragma +b[bd]e?_?verify +"         "("              // 1
-        "(" "push"                           ")|"              // 2
-        "(" "pop"                            ")|"              // 3
-        "(" "[-] *([[:alnum:]]+|[*])"        ")|"              // 4 5
-        "(" "[+] *([[:alnum:]]+|[*])"        ")|"              // 6 7
-        "(" "set +([_[:alnum:]]+) *(.*[^ ])" ")|"              // 8 9 10
-        "(" "append +([_[:alnum:]]+) *(.*[^ ])" ")|"           // 11 12 13
-        "(" "prepend +([_[:alnum:]]+) *(.*[^ ])" ")|"          // 14 15 16
-        "(" "re-exports? +[<\"]?([_./[:alnum:]]+)[\">]?" ")|"  // 17 18
-        "\r*$"
+    "^ *# *pragma +b[bd]e?_?verify +"
+    "(" // 1
+    "("
+    "push"
+    ")|" // 2
+    "("
+    "pop"
+    ")|" // 3
+    "("
+    "[-] *([[:alnum:]]+|[*])"
+    ")|" // 4 5
+    "("
+    "[+] *([[:alnum:]]+|[*])"
+    ")|" // 6 7
+    "("
+    "set +([_[:alnum:]]+) *(.*[^ ])"
+    ")|" // 8 9 10
+    "("
+    "append +([_[:alnum:]]+) *(.*[^ ])"
+    ")|" // 11 12 13
+    "("
+    "prepend +([_[:alnum:]]+) *(.*[^ ])"
+    ")|" // 14 15 16
+    "("
+    "re-exports? +[<\"]?([_./[:alnum:]]+)[\">]?"
+    ")|" // 17 18
+    "\r*$"
     ")",
     llvm::Regex::NoFlags);
 
 static llvm::Regex comment_bdeverify(
-    "^ *// *B[BD]E?_?VERIFY +pragma *: *"     "("              // 1
-        "(" "push"                           ")|"              // 2
-        "(" "pop"                            ")|"              // 3
-        "(" "[-] *([[:alnum:]]+|[*])" ")|"                     // 4 5
-        "(" "[+] *([[:alnum:]]+|[*])" ")|"                     // 6 7
-        "(" "set +([_[:alnum:]]+) *(.*[^ ])" ")|"              // 8 9 10
-        "(" "append +([_[:alnum:]]+) *(.*[^ ])" ")|"           // 11 12 13
-        "(" "prepend +([_[:alnum:]]+) *(.*[^ ])" ")|"          // 14 15 16
-        "(" "re-exports? +[<\"]?([_./[:alnum:]]+)[\">]?" ")|"  // 17 18
-        "\r*$"
+    "^ *// *B[BD]E?_?VERIFY +pragma *: *"
+    "(" // 1
+    "("
+    "push"
+    ")|" // 2
+    "("
+    "pop"
+    ")|" // 3
+    "("
+    "[-] *([[:alnum:]]+|[*])"
+    ")|" // 4 5
+    "("
+    "[+] *([[:alnum:]]+|[*])"
+    ")|" // 6 7
+    "("
+    "set +([_[:alnum:]]+) *(.*[^ ])"
+    ")|" // 8 9 10
+    "("
+    "append +([_[:alnum:]]+) *(.*[^ ])"
+    ")|" // 11 12 13
+    "("
+    "prepend +([_[:alnum:]]+) *(.*[^ ])"
+    ")|" // 14 15 16
+    "("
+    "re-exports? +[<\"]?([_./[:alnum:]]+)[\">]?"
+    ")|" // 17 18
+    "\r*$"
     ")",
     llvm::Regex::NoFlags);
 
-static bool handle_bv_pragma(const SourceManager&  m,
-                             Config               *c,
-                             SourceLocation        l,
-                             llvm::Regex&          r)
+static bool handle_bv_pragma(const SourceManager &m,
+                             Config *c,
+                             SourceLocation l,
+                             llvm::Regex &r)
 {
     FileID fid = m.getFileID(l);
     unsigned line = m.getPresumedLineNumber(l);
@@ -328,31 +374,47 @@ static bool handle_bv_pragma(const SourceManager&  m,
             m.getFileOffset(m.translateLineCol(fid, line, 1u)),
             m.getFileOffset(m.translateLineCol(fid, line, ~0u)));
     llvm::SmallVector<llvm::StringRef, 20> matches;
-    if (r.match(directive, &matches)) {
-        if (!matches[2].empty()) {                        // push
+    if (r.match(directive, &matches))
+    {
+        if (!matches[2].empty())
+        { // push
             c->push_suppress(l);
-        } else if (!matches[3].empty()) {                 // pop
+        }
+        else if (!matches[3].empty())
+        { // pop
             c->pop_suppress(l);
-        } else if (!matches[5].empty()) {                 // suppress
-            c->suppress(matches[5], l, true);
-        } else if (!matches[7].empty()) {                 // unsuppress
-            c->suppress(matches[7], l, false);
-        } else if (!matches[8].empty()) {                 // set
-            c->set_bv_value(l, matches[9], matches[10]);
-        } else if (!matches[11].empty()) {                // append
-            std::string old = c->value(matches[12], l);
+        }
+        else if (!matches[5].empty())
+        { // suppress
+            c->suppress(matches[5].str(), l, true);
+        }
+        else if (!matches[7].empty())
+        { // unsuppress
+            c->suppress(matches[7].str(), l, false);
+        }
+        else if (!matches[8].empty())
+        { // set
+            c->set_bv_value(l, matches[9].str(), matches[10].str());
+        }
+        else if (!matches[11].empty())
+        { // append
+            std::string old = c->value(matches[12].str(), l);
             std::string sp = old.size() > 0 ? " " : "";
-            c->set_bv_value(l, matches[12], old + sp + matches[13].str());
-        } else if (!matches[14].empty()) {                // prepend
-            std::string old = c->value(matches[15], l);
+            c->set_bv_value(l, matches[12].str(), old + sp + matches[13].str());
+        }
+        else if (!matches[14].empty())
+        { // prepend
+            std::string old = c->value(matches[15].str(), l);
             std::string sp = old.size() > 0 ? " " : "";
-            c->set_bv_value(l, matches[15], matches[16].str() + old + sp);
-        } else if (!matches[17].empty()) {
+            c->set_bv_value(l, matches[15].str(), matches[16].str() + old + sp);
+        }
+        else if (!matches[17].empty())
+        {
             FileName including_file(m.getFilename(l));
             FileName reexported_file(matches[18]);
-            c->set_reexports(including_file.name(), reexported_file.name());
+            c->set_reexports(including_file.name().str(), reexported_file.name().str());
         }
-        return true;                                                  // RETURN
+        return true; // RETURN
     }
     return false;
 }
@@ -362,7 +424,8 @@ void csabase::PPObserver::do_comment(SourceRange range)
     Debug d("do_comment");
 
     if (!handle_bv_pragma(
-            *source_manager_, config_, range.getBegin(), comment_bdeverify)) {
+            *source_manager_, config_, range.getBegin(), comment_bdeverify))
+    {
         onComment(range);
     }
 }
@@ -371,7 +434,8 @@ void csabase::PPObserver::PragmaDirective(SourceLocation location,
                                           PragmaIntroducerKind introducer)
 {
     if (!handle_bv_pragma(
-            *source_manager_, config_, location, pragma_bdeverify)) {
+            *source_manager_, config_, location, pragma_bdeverify))
+    {
         onPPPragmaDirective(location, introducer);
     }
 }
@@ -382,7 +446,7 @@ void csabase::PPObserver::PragmaComment(SourceLocation location,
 {
     onPPPragmaComment(location, id, value);
 
-    do_pragma(location, value);
+    do_pragma(location, value.str());
 }
 
 void csabase::PPObserver::PragmaDetectMismatch(SourceLocation loc,
@@ -392,8 +456,7 @@ void csabase::PPObserver::PragmaDetectMismatch(SourceLocation loc,
     onPPPragmaDetectMismatch(loc, name, value);
 }
 
-void
-csabase::PPObserver::PragmaDebug(SourceLocation loc, llvm::StringRef debugtype)
+void csabase::PPObserver::PragmaDebug(SourceLocation loc, llvm::StringRef debugtype)
 {
     onPPPragmaDebug(loc, debugtype);
 }
@@ -419,7 +482,7 @@ void csabase::PPObserver::PragmaDiagnostic(SourceLocation loc,
 }
 
 void csabase::PPObserver::PragmaOpenCLExtension(SourceLocation nameloc,
-                                                const IdentifierInfo* name,
+                                                const IdentifierInfo *name,
                                                 SourceLocation stateloc,
                                                 unsigned state)
 {
@@ -450,46 +513,46 @@ void csabase::PPObserver::PragmaMessage(SourceLocation location,
 {
     onPPPragmaMessage(location, nmspc, kind, value);
 
-    do_pragma(location, value);
+    do_pragma(location, value.str());
 }
 
 // -----------------------------------------------------------------------------
 
-void csabase::PPObserver::MacroExpands(Token const& token,
-                                       const MacroDefinition& macro,
+void csabase::PPObserver::MacroExpands(Token const &token,
+                                       const MacroDefinition &macro,
                                        SourceRange range,
-                                       const MacroArgs* args)
+                                       const MacroArgs *args)
 {
     onPPMacroExpands(token, macro, range, args);
 
     do_macro_expands(token, macro.getLocalDirective(), range, args);
 }
 
-void csabase::PPObserver::MacroDefined(Token const& token,
-                                       const MacroDirective* macro)
+void csabase::PPObserver::MacroDefined(Token const &token,
+                                       const MacroDirective *macro)
 {
     onPPMacroDefined(token, macro);
 
     do_macro_defined(token, macro);
 }
 
-void csabase::PPObserver::MacroUndefined(Token const&            token,
-                                         const MacroDefinition&  macro,
-                                         const MacroDirective   *undef)
+void csabase::PPObserver::MacroUndefined(Token const &token,
+                                         const MacroDefinition &macro,
+                                         const MacroDirective *undef)
 {
     onPPMacroUndefined(token, macro, undef);
 
     do_macro_undefined(token, undef);
 }
 
-void csabase::PPObserver::Defined(const Token& token,
-                                  const MacroDefinition& macro,
+void csabase::PPObserver::Defined(const Token &token,
+                                  const MacroDefinition &macro,
                                   SourceRange range)
 {
     onPPDefined(token, macro, range);
 }
 
-void csabase::PPObserver::SourceRangeSkipped(SourceRange    range,
+void csabase::PPObserver::SourceRangeSkipped(SourceRange range,
                                              SourceLocation endifLoc)
 {
     onPPSourceRangeSkipped(range, endifLoc);
@@ -517,8 +580,8 @@ void csabase::PPObserver::Elif(SourceLocation loc,
 }
 
 void csabase::PPObserver::Ifdef(SourceLocation loc,
-                                Token const& token,
-                                const MacroDefinition& md)
+                                Token const &token,
+                                const MacroDefinition &md)
 {
     onPPIfdef(loc, token, md);
 
@@ -526,8 +589,8 @@ void csabase::PPObserver::Ifdef(SourceLocation loc,
 }
 
 void csabase::PPObserver::Ifndef(SourceLocation loc,
-                                 Token const& token,
-                                 const MacroDefinition& md)
+                                 Token const &token,
+                                 const MacroDefinition &md)
 {
     onPPIfndef(loc, token, md);
 
@@ -561,28 +624,28 @@ void csabase::PPObserver::Context()
 }
 
 void csabase::PPObserver::InclusionDirective(
-                                     SourceLocation              HashLoc,
-                                     const Token&                IncludeTok,
-                                     llvm::StringRef             FileName,
-                                     bool                        IsAngled,
-                                     CharSourceRange             FilenameRange,
-                                     const FileEntry            *File,
-                                     llvm::StringRef             SearchPath,
-                                     llvm::StringRef             RelativePath,
-                                     const Module               *Imported,
-                                     SrcMgr::CharacteristicKind  FileType)
+    SourceLocation HashLoc,
+    const Token &IncludeTok,
+    llvm::StringRef FileName,
+    bool IsAngled,
+    CharSourceRange FilenameRange,
+    const FileEntry *File,
+    llvm::StringRef SearchPath,
+    llvm::StringRef RelativePath,
+    const Module *Imported,
+    SrcMgr::CharacteristicKind FileType)
 {
     onPPInclusionDirective(HashLoc, IncludeTok, FileName, IsAngled,
                            FilenameRange, File, SearchPath, RelativePath,
                            Imported, FileType);
 
-    do_include_file(HashLoc, IsAngled, FileName);
+    do_include_file(HashLoc, IsAngled, FileName.str());
     //-dk:TODO make constructive use of this...
 }
 
 void csabase::PPObserver::moduleImport(SourceLocation ImportLoc,
                                        ModuleIdPath Path,
-                                       const Module* Imported)
+                                       const Module *Imported)
 {
     onPPmoduleImport(ImportLoc, Path, Imported);
 }

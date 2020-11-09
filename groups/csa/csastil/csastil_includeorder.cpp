@@ -139,7 +139,7 @@ struct report : public Report<data>
         if (!a.is_component(range.getBegin())) {
             return;
         }
-        std::string value = a.get_source(range);
+        std::string value = a.get_source(range).str();
         value.erase(std::remove_if(value.begin(), value.end(), &is_space),
                     value.end());
         value = to_lower(value);

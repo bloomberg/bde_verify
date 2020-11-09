@@ -273,7 +273,7 @@ void report::operator()()
                         std::string r = a.get_source(SourceRange(
                             mi->getReplacementToken(0).getLocation(),
                             mi->getReplacementToken(mi->getNumTokens() - 1)
-                                .getEndLoc()));
+                                .getEndLoc())).str();
                         if (r.npos == r.find('\n')) {
                             s_matched[Tags[Macro]][s] = r;
                         }
@@ -447,8 +447,8 @@ void report::operator()()
         for (int t = 0; t < NTags; ++t) {
             for (llvm::StringRef i : s_names[0][Tags[t]]) {
                 std::string bm =
-                    s_matched[Tags[t]].count(i)
-                        ? s_matched[Tags[t]][i]
+                    s_matched[Tags[t]].count(i.str())
+                        ? s_matched[Tags[t]][i.str()]
                         : best_match(i, s_names[1][Tags[t]]).str();
                 if (bm.size() == 0) {
                     if (t == Typedef) {

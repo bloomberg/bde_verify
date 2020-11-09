@@ -72,7 +72,7 @@ void files::operator()(SourceLocation loc,
             if (text.endswith("\r\n")) {
                 --n;
             }
-            std::pair<size_t, size_t> m = mid_match(s, text);
+            std::pair<size_t, size_t> m = mid_match(s.str(), text.str());
             size_t matchpos = offset + m.first;
             offset = matchpos + n;
             SourceLocation sloc = loc.getLocWithOffset(matchpos);

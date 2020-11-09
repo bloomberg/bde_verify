@@ -37,13 +37,13 @@ std::map<std::string, csabase::FileName> csabase::FileName::s_file_names_;
 
 void csabase::FileName::reset(llvm::StringRef sr)
 {
-    auto i = s_file_names_.find(sr);
+    auto i = s_file_names_.find(sr.str());
     if (i != s_file_names_.end()) {
         *this = i->second;
         return;                                                       // RETURN
     }
     if (sr.startswith("<")) {  // Not a real file
-        name_ = full_ = sr;
+        name_ = full_ = sr.str();
         tag_ = "<";
     }
     else {
@@ -98,7 +98,7 @@ void csabase::FileName::reset(llvm::StringRef sr)
             // Something else - don't look for package structure.
         }
     }
-    s_file_names_[sr] = *this;
+    s_file_names_[sr.str()] = *this;
 
 #if 0
     ERRS() << "component   " << component_; ERNL();

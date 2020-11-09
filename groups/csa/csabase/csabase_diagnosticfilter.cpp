@@ -119,7 +119,7 @@ csabase::DiagnosticFilter::HandleDiagnostic(DiagnosticsEngine::Level level,
             if (n != file.npos) {
                 file = file.drop_front(n + 1);
             }
-            auto fi = s_diff_lines.find(file);
+            auto fi = s_diff_lines.find(file.str());
             if (fi != s_diff_lines.end()) {
                 unsigned line = sm.getSpellingLineNumber(sl);
                 handle = fi->second.count(line);

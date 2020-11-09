@@ -584,7 +584,7 @@ void report::operator()()
             d.d_tests_of_cases.insert(std::make_pair(test_num, item));
             d.d_cases_of_tests.insert(std::make_pair(item, test_num));
             if (tested_method.match(item, &matches)) {
-                ++d.d_names_in_plan[matches[1]];
+                ++d.d_names_in_plan[matches[1].str()];
             }
         }
 
@@ -747,7 +747,7 @@ void report::operator()()
                 llvm::StringRef t = matches[2];
                 testing_pos = comment.find(t);
                 line_pos = testing_pos + t.size();
-                std::pair<size_t, size_t> m = mid_mismatch(t, banner_text);
+                std::pair<size_t, size_t> m = mid_mismatch(t.str(), banner_text.str());
                 if (m.first != t.size()) {
                     a.report(
                         cr.getBegin().getLocWithOffset(testing_pos + m.first),
@@ -814,7 +814,7 @@ void report::operator()()
                 break;
             }
             typedef data::CasesOfTests::const_iterator Ci;
-            std::pair<Ci, Ci> be = d.d_cases_of_tests.equal_range(line);
+            std::pair<Ci, Ci> be = d.d_cases_of_tests.equal_range(line.str());
             Ci match_itr;
             for (match_itr = be.first; match_itr != be.second; ++match_itr) {
                 if (match_itr->second == case_value) {
@@ -1319,7 +1319,7 @@ void report::search(SourceLocation *best_loc,
                 // Record a better match whenever one is found.
                 if (distance < *best_distance) {
                     *best_distance = distance;
-                    std::pair<size_t, size_t> mm = mid_mismatch(s, needle);
+                    std::pair<size_t, size_t> mm = mid_mismatch(s.str(), needle.str());
                     *best_loc = r.getBegin().getLocWithOffset(mm.first);
                     *best_needle = needle;
                     // Return on an exact match.

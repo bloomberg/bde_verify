@@ -1604,7 +1604,7 @@ void report::include(SourceLocation loc, llvm::StringRef name)
         if (FileName(f.second.d_fe->getName()).name() == name) {
             FileName src(f.first.getFileEntry()->getName());
             if (src.name() == ins.name() ||
-                a.is_component_header(src.name())) {
+                a.is_component_header(src.name().str())) {
                 d.added_[ins_loc.getFileID()].insert(name);
                 return;
             }
@@ -1618,7 +1618,7 @@ void report::include(SourceLocation loc, llvm::StringRef name)
             if (insert_after) {
                 ip = f.second.d_fullRange.getEnd();
                 FileName fn(f.second.d_fe->getName());
-                if (!a.is_component(fn.name()) && fn.name() > name) {
+                if (!a.is_component(fn.name().str()) && fn.name() > name) {
                     insert_after = false;
                     ip = f.second.d_fullRange.getBegin();
                     break;

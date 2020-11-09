@@ -67,7 +67,7 @@ struct data
 void data::append(Analyser& analyser, SourceRange range)
 {
     SourceManager& m = analyser.manager();
-    data::Ranges& c = d_comments[m.getFilename(range.getBegin())];
+    data::Ranges& c = d_comments[m.getFilename(range.getBegin()).str()];
     if (c.size() != 0 && areConsecutive(m, c.back(), range)) {
         c.back().setEnd(range.getEnd());
     } else {

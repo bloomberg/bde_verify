@@ -95,7 +95,7 @@ void get_displays(llvm::StringRef text,
     displays->clear();
     while (display.match(s = text.drop_front(offset), &matches)) {
         llvm::StringRef           d        = matches[0];
-        std::pair<size_t, size_t> m        = mid_match(s, d);
+        std::pair<size_t, size_t> m        = mid_match(s.str(), d.str());
         size_t                    matchpos = offset + m.first;
         offset                             = matchpos + d.size();
 
@@ -140,7 +140,7 @@ void report::check_comment(SourceRange comment_range)
             matches[3].size() != 79 &&
             matches[4].size() <= 1 &&
             separator.size() != matches[1].size()) {
-            std::string expected_banner = matches[3].trim();
+            std::string expected_banner = matches[3].trim().str();
             std::string extra =
                 expected_banner.substr(expected_banner.size() - 2);
             while (expected_banner.size() < 79) {

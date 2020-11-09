@@ -192,7 +192,7 @@ csabase::Config::process(std::string const& line)
                 } else if ("prepend" == command) {
                     rest = rest + " " + value(key);
                 }
-                set_value(key, StringRef(rest).trim());
+                set_value(key, StringRef(rest).trim().str());
             }
             else {
                 errs() << "WARNING: " << command
@@ -212,7 +212,7 @@ csabase::Config::process(std::string const& line)
             std::string file;
             while (args >> file) {
                 FileName fn(file);
-                if (d_suppressions.insert(std::make_pair(tag, fn.name()))
+                if (d_suppressions.insert(std::make_pair(tag, fn.name().str()))
                         .second &&
                     d_groups.count(tag)) {
                     for (const auto& group_item : d_groups.find(tag)->second) {
@@ -233,7 +233,7 @@ csabase::Config::process(std::string const& line)
             std::string file;
             while (args >> file) {
                 FileName fn(file);
-                auto p = std::make_pair(tag, fn.name());
+                auto p = std::make_pair(tag, fn.name().str());
                 if (d_suppressions.erase(p) && d_groups.count(tag)) {
                     for (const auto& group_item : d_groups.find(tag)->second) {
                         process("unsuppress " + group_item + " " + file);
@@ -363,9 +363,9 @@ void csabase::Config::bv_stack_level(
     FileName fn(location.file());
     stack->clear();
     stack->push_back(where);
-    if (d_local_bv_pragmas.find(fn.name()) != d_local_bv_pragmas.end()) {
+    if (d_local_bv_pragmas.find(fn.name().str()) != d_local_bv_pragmas.end()) {
         const std::vector<BVData>& ls =
-            d_local_bv_pragmas.find(fn.name())->second;
+            d_local_bv_pragmas.find(fn.name().str())->second;
         for (size_t i = 0; i < ls.size(); ++i) {
             if (d_manager.isBeforeInTranslationUnit(where, ls[i].where)) {
                 break;
@@ -385,9 +385,9 @@ const std::string& csabase::Config::value(const std::string& key,
     if (where.isValid()) {
         Location location(d_manager, where);
         FileName fn(location.file());
-        if (d_local_bv_pragmas.find(fn.name()) != d_local_bv_pragmas.end()) {
+        if (d_local_bv_pragmas.find(fn.name().str()) != d_local_bv_pragmas.end()) {
             const std::vector<BVData>& ls =
-                d_local_bv_pragmas.find(fn.name())->second;
+                d_local_bv_pragmas.find(fn.name().str())->second;
             // Find the pragma stack of the diagnostic location.
             std::vector<SourceLocation> stack;
             bv_stack_level(&stack, where);
@@ -453,9 +453,9 @@ bool csabase::Config::suppressed(const std::string& tag,
     Location location(d_manager, where);
     FileName fn(location.file());
 
-    if (d_local_bv_pragmas.find(fn.name()) != d_local_bv_pragmas.end()) {
+    if (d_local_bv_pragmas.find(fn.name().str()) != d_local_bv_pragmas.end()) {
         const std::vector<BVData>& ls =
-            d_local_bv_pragmas.find(fn.name())->second;
+            d_local_bv_pragmas.find(fn.name().str())->second;
         std::vector<SourceLocation> stack;
         bv_stack_level(&stack, where);
         char found = 0;
@@ -494,14 +494,14 @@ void csabase::Config::push_suppress(SourceLocation where)
 {
     Location location(d_manager, where);
     FileName fn(location.file());
-    d_local_bv_pragmas[fn.name()].push_back(BVData(where, '>'));
+    d_local_bv_pragmas[fn.name().str()].push_back(BVData(where, '>'));
 }
 
 void csabase::Config::pop_suppress(SourceLocation where)
 {
     Location location(d_manager, where);
     FileName fn(location.file());
-    d_local_bv_pragmas[fn.name()].push_back(BVData(where, '<'));
+    d_local_bv_pragmas[fn.name().str()].push_back(BVData(where, '<'));
 }
 
 void csabase::Config::suppress(const std::string& tag,
@@ -512,7 +512,7 @@ void csabase::Config::suppress(const std::string& tag,
     if (!in_progress.count(tag)) {
         Location location(d_manager, where);
         FileName fn(location.file());
-        d_local_bv_pragmas[fn.name()]
+        d_local_bv_pragmas[fn.name().str()]
             .push_back(BVData(where, on ? '-' : '+', tag));
         if (d_groups.find(tag) != d_groups.end()) {
             in_progress.insert(tag);
@@ -531,7 +531,7 @@ void csabase::Config::set_bv_value(SourceLocation where,
 {
     Location location(d_manager, where);
     FileName fn(location.file());
-    d_local_bv_pragmas[fn.name()]
+    d_local_bv_pragmas[fn.name().str()]
         .push_back(BVData(where, '=', variable, value));
 }
 
@@ -781,7 +781,7 @@ void csabase::Config::appendGoodWords(std::vector<std::string>& words) const
     llvm::StringRef(default_dictionary).split(raw_good_words, " ", -1, false);
     llvm::StringRef(value("dictionary")).split(raw_good_words, " ", -1, false);
     for (const auto &s : raw_good_words) {
-        std::vector<std::string> e = brace_expand(s);
+        std::vector<std::string> e = brace_expand(s.str());
         words.insert(words.end(), e.begin(), e.end());
     }
 }

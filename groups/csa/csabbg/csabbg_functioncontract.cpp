@@ -675,7 +675,7 @@ SourceRange word_range(SourceRange context, const Word& word)
 void report::note_double_tick(SourceLocation *dt, llvm::StringRef tag)
 {
     if (dt->isValid()) {
-        d_analyser.report(*dt, check_name, tag,
+        d_analyser.report(*dt, check_name, tag.str(),
                           "Possible mis-detection due to double tick",
                           false, DiagnosticIDs::Note);
         *dt = SourceLocation();
