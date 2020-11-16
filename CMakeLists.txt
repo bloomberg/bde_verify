@@ -120,8 +120,11 @@ endif()
 set(G ${CMAKE_CURRENT_SOURCE_DIR}/groups/csa)
 
 include_directories(
-  ${G}/csabase ${G}/csaglb ${LLVM_INCLUDE_DIRS} /opt/bb/include
-  /opt/swt/include /usr/local/include # For aspell.h
+  ${G}/csabase ${G}/csaglb
+  ${LLVM_INCLUDE_DIRS}
+  /opt/bb/include
+  /opt/swt/include
+  /usr/local/include # For aspell.h
 )
 
 add_library(
@@ -242,15 +245,31 @@ add_executable(
   ${G}/csaxform/csaxform_refactor.cpp
   ${G}/csaxform/csaxform_refactor_config.cpp)
 
-set_target_properties(bde_verify_bin PROPERTIES CXX_STANDARD 17 CXX_EXTENSIONS
-                                                                OFF)
+set_target_properties(
+  bde_verify_bin
+  PROPERTIES
+  CXX_STANDARD 17
+  CXX_EXTENSIONS OFF
+)
 
 set(CMAKE_SKIP_RPATH ON)
 
-set(CMAKE_LIBRARY_PATH ${LLVM_LIBRARY_DIRS} /opt/swt/lib64 /opt/bb/lib64
-                       /usr/lib/sparcv9 /usr/lib64)
+set(CMAKE_LIBRARY_PATH
+  ${LLVM_LIBRARY_DIRS}
+  /opt/swt/lib64
+  /opt/bb/lib64
+  /usr/lib/sparcv9
+  /usr/lib64
+)
 
-target_link_libraries(bde_verify_bin csabase clang-cpp LLVM aspell ${system_libs})
+target_link_libraries(
+  bde_verify_bin
+  csabase
+  clang-cpp
+  LLVM
+  aspell
+  ${system_libs}
+)
 
 message("install prefix = ${CMAKE_INSTALL_PREFIX}")
 string(
