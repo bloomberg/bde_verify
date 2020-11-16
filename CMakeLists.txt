@@ -151,7 +151,6 @@ add_library(
 
 set_target_properties(csabase PROPERTIES CXX_STANDARD 17 CXX_EXTENSIONS OFF)
 
-target_compile_features(csabase PUBLIC cxx_auto_type)
 target_compile_definitions(csabase
                            PRIVATE BDE_VERIFY_VERSION="${BDE_VERIFY_VERSION}")
 
