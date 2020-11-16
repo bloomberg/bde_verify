@@ -69,11 +69,11 @@ namespace
 
                 if (standalone) {
                     if (fn.name().find('_', 2) == fn.name().npos) {
-                        analyser.report(where, check_name, "PN01",
+                        auto report = analyser.report(where, check_name, "PN01",
                                     "Component file name '%0' in standalone "
                                     "component contains only one underscore",
-                                    true)
-                            << fn.name();
+                                    true);
+                        report << fn.name();
                     }
                     return;                                           // RETURN
                 }
@@ -87,12 +87,11 @@ namespace
                         ).str();
                     struct stat buffer;
                     if (stat(super.c_str(), &buffer)) {
-                        analyser.report(where, check_name, "PN02",
+                        auto report = analyser.report(where, check_name, "PN02",
                                     "Cannot find component header file '%0' "
                                     "to which this component '%1' is "
-                                    "subordinate")
-                            << super
-                            << fn.component();
+                                    "subordinate");
+                        report << super << fn.component();
                         return;                                       // RETURN
                     }
                 }
@@ -101,10 +100,10 @@ namespace
                 llvm::StringRef srgroup = fn.group();
                 int pkgsize = srpackage.size() - srgroup.size();
                 if (srpackage != srgroup && (pkgsize < 1 || pkgsize > 4)) {
-                    analyser.report(where, check_name, "PN03",
+                    auto report = analyser.report(where, check_name, "PN03",
                             "Package name %0 must consist of 1-4 characters "
-                            "preceded by the group name: '%0'", true)
-                        << srgroup.str();
+                            "preceded by the group name: '%0'", true);
+                    report << srgroup.str();
                 }
 
                 bool digit_ok = false;
@@ -129,12 +128,12 @@ namespace
                     }
                 }
                 if (bad) {
-                    analyser.report(where, check_name, "PN04",
+                    auto report = analyser.report(where, check_name, "PN04",
                             "Package and group names must consist of lower "
                             "case alphanumeric characters, start with a lower "
                             "case letter, and be separated by underscores: "
-                            "'%0'", true)
-                        << srpackage;
+                            "'%0'", true);
+                    report << srpackage;
                 }
 
                 llvm::SmallVector<char, 1024> svpath(fn.pkgdir().begin(),
@@ -148,11 +147,11 @@ namespace
                     struct stat indirect;
                     if (stat(expect.c_str(), &indirect) != 0 ||
                         direct.st_ino != indirect.st_ino) {
-                        analyser.report(where, check_name, "PN05",
+                        auto report = analyser.report(where, check_name, "PN05",
                                 "Component '%0' doesn't seem to be in package "
-                                "'%1'", true)
-                            << fn.component()
-                            << srpackage;
+                                "'%1'", true);
+                        report << fn.component()
+                               << srpackage;
                     }
                 }
             }

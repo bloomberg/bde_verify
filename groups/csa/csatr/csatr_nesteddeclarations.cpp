@@ -96,10 +96,10 @@ static void check(Analyser& analyser, Decl const* decl)
                 name.find("operator delete") == std::string::npos &&
                 (analyser.is_component_header(location.file()) ||
                  named->isExternallyVisible())) {
-                analyser.report(decl, check_name, "TR04",
-                                "Declaration of '%0' at global scope", true)
-                    << decl->getSourceRange()
-                    << name;
+                auto report = analyser.report(decl, check_name, "TR04",
+                                "Declaration of '%0' at global scope", true);
+                report << decl->getSourceRange()
+                       << name;
             }
             return;                                                   // RETURN
         }
@@ -154,13 +154,12 @@ static void check(Analyser& analyser, Decl const* decl)
                 )
             {
                 //-dk:TODO check if this happens in the correct namespace
-                analyser.report(decl, check_name, "TR04",
+                auto report = analyser.report(decl, check_name, "TR04",
                     "Declaration of '%0' not within package namespace '%1'",
-                    true)
-                    << decl->getSourceRange()
-                    << name
-                    << (analyser.config()->toplevel_namespace() + "::" + analyser.package())
-                    ;
+                    true);
+                report << decl->getSourceRange()
+                       << name
+                       << (analyser.config()->toplevel_namespace() + "::" + analyser.package());
             }
         }
     }

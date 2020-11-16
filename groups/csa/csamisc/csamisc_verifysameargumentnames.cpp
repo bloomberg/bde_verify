@@ -48,17 +48,17 @@ struct same_argument_names
                     const ParmVarDecl* pp = p->getParamDecl(i);
                     const ParmVarDecl* cp = c->getParamDecl(i);
                     if (!arg_names_match(pp, cp)) {
-                        analyser_->report(cp->getLocation(),
+                        auto r1 = analyser_->report(cp->getLocation(),
                                           check_name, "AN01",
                                           "Parameter name mismatch for "
-                                          "%ordinal0 parameter %1")
-                            << int(i + 1) << cp;
-                        analyser_->report(pp->getLocation(),
+                                          "%ordinal0 parameter %1");
+                        r1 << int(i + 1) << cp;
+                        auto r2 = analyser_->report(pp->getLocation(),
                                           check_name, "AN01",
                                           "The other declaration uses %0",
                                           false,
-                                          DiagnosticIDs::Note)
-                            << pp;
+                                          DiagnosticIDs::Note);
+                        r2 << pp;
                     }
                 }
             }

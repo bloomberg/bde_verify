@@ -72,22 +72,22 @@ void files::operator()(SourceLocation loc,
             if (text.endswith("\r\n")) {
                 --n;
             }
-            std::pair<size_t, size_t> m = mid_match(s, text);
+            std::pair<size_t, size_t> m = mid_match(s.str(), text.str());
             size_t matchpos = offset + m.first;
             offset = matchpos + n;
             SourceLocation sloc = loc.getLocWithOffset(matchpos);
             if (text[0] == '\t') {
-                d_analyser.report(sloc, check_name, "TAB01",
-                        "Tab character%s0 in source")
-                    << static_cast<long>(n);
+                auto report = d_analyser.report(sloc, check_name, "TAB01",
+                        "Tab character%s0 in source");
+                report << static_cast<long>(n);
                 d_analyser.ReplaceText(
                     sloc, n, std::string(n, ' '));
             }
             else {
-                d_analyser.report(loc.getLocWithOffset(matchpos),
+                auto report = d_analyser.report(loc.getLocWithOffset(matchpos),
                         check_name, "ESP01",
-                        "Space%s0 at end of line")
-                    << static_cast<long>(n - 1);
+                        "Space%s0 at end of line");
+                report << static_cast<long>(n - 1);
                 d_analyser.RemoveText(sloc, n - 1);
             }
         }

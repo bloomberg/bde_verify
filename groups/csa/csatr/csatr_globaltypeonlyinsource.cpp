@@ -65,18 +65,18 @@ global_type_only_in_source(Analyser& analyser, TypeDecl const* decl)
     {
         auto r = llvm::dyn_cast<TagDecl>(decl);
         if (r && r->getDefinition() == decl) {
-            analyser.report(decl, check_name, "TR11",
+            auto report = analyser.report(decl, check_name, "TR11",
                             "Globally visible type '%0' "
-                            "should be defined in header.")
-                << decl->getQualifiedNameAsString();
+                            "should be defined in header.");
+            report << decl->getQualifiedNameAsString();
         }
         else if (std::find_if(decl->redecls_begin(), decl->redecls_end(),
                               decl_not_in_toplevel(&analyser)) ==
                  decl->redecls_end()) {
-            analyser.report(decl, check_name, "TR10",
+            auto report = analyser.report(decl, check_name, "TR10",
                             "Globally visible type '%0' "
-                            "is not declared in header.")
-                << decl->getQualifiedNameAsString();
+                            "is not declared in header.");
+            report << decl->getQualifiedNameAsString();
         }
     }
 }

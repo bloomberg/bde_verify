@@ -79,9 +79,9 @@ static void onCloseFile(Analyser* analyser,
             && llvm::StringRef(macro.first).upper().find(component) != 0
             )
         {
-            analyser->report(macro.second, check_name, "SLM01",
-                             "Macro definition '%0' leaks from header")
-                << macro.first;
+            auto report = analyser->report(macro.second, check_name, "SLM01",
+                             "Macro definition '%0' leaks from header");
+            report << macro.first;
         }
     }
     context.d_macros.pop();
@@ -113,7 +113,7 @@ static void onTranslationUnitDone(Analyser* analyser)
     onCloseFile(analyser,
                 SourceLocation(),
                 "",
-                m.getFilename(m.getLocForStartOfFile(m.getMainFileID())));
+                m.getFilename(m.getLocForStartOfFile(m.getMainFileID())).str());
 }
 
 // ----------------------------------------------------------------------------

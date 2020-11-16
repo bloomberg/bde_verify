@@ -50,9 +50,9 @@ namespace
                     llvm::sys::path::get_separator().str() + component;
                 if (stat((    prefix + ".h").c_str(), &buffer) &&
                     stat((pkg_prefix + ".h").c_str(), &buffer)) {
-                    d_analyser.report(where, check_name, "FI01",
-                            "Header file '%0.h' not accessible", true)
-                        << component;
+                    auto report = d_analyser.report(where, check_name, "FI01",
+                            "Header file '%0.h' not accessible", true);
+                    report << component;
                 }
                 if (stat((     prefix + ".t.cpp").c_str(), &buffer) &&
                     stat(( pkg_prefix + ".t.cpp").c_str(), &buffer) &&
@@ -60,9 +60,9 @@ namespace
                     stat((     prefix + ".g.cpp").c_str(), &buffer) &&
                     stat(( pkg_prefix + ".g.cpp").c_str(), &buffer) &&
                     stat((test_prefix + ".g.cpp").c_str(), &buffer)) {
-                    d_analyser.report(where, check_name, "FI02",
-                            "Test file '%0.t.cpp' not accessible", true)
-                        << component;
+                    auto report = d_analyser.report(where, check_name, "FI02",
+                            "Test file '%0.t.cpp' not accessible", true);
+                    report << component;
                 }
             }
         }

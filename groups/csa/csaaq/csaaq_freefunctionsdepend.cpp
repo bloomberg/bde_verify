@@ -139,7 +139,7 @@ void report::operator()(const FunctionDecl *decl)
         }
     }
     SourceLocation sl = m.getExpansionLoc(decl->getLocation());
-    if (a.is_header(m.getFilename(sl)) &&
+    if (a.is_header(m.getFilename(sl).str()) &&
         !a.is_system_header(m.getFilename(sl)) &&
         isFree(decl) &&
         !depends(sl, decl->getTypeSourceInfo()->getType())) {

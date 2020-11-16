@@ -36,7 +36,7 @@ static void open_file(Analyser& analyser,
                       const std::string& name)
 {
     FileName fn(name);
-    std::string filename = fn.name();
+    std::string filename = fn.name().str();
     if (analyser.is_component_header(name) || analyser.is_toplevel(name)) {
         const SourceManager &m = analyser.manager();
         llvm::StringRef buf = m.getBuffer(m.getFileID(where))->getBuffer();
@@ -54,8 +54,8 @@ static void open_file(Analyser& analyser,
         if (   !buf.equals(expectcpp)
             && !buf.equals(expectc)
             && buf.find_lower("GENERATED") == buf.npos) {
-            std::pair<size_t, size_t> mcpp = mid_mismatch(buf, expectcpp);
-            std::pair<size_t, size_t> mc = mid_mismatch(buf, expectc);
+            std::pair<size_t, size_t> mcpp = mid_mismatch(buf.str(), expectcpp);
+            std::pair<size_t, size_t> mc = mid_mismatch(buf.str(), expectc);
             std::pair<size_t, size_t> m;
             std::string expect;
 
@@ -69,11 +69,11 @@ static void open_file(Analyser& analyser,
             analyser.report(where.getLocWithOffset(m.first),
                             check_name, "HL01",
                             "File headline incorrect", true);
-            analyser.report(where.getLocWithOffset(m.first),
+            auto report = analyser.report(where.getLocWithOffset(m.first),
                             check_name, "HL01",
                             "Correct format is\n%0",
-                            true, DiagnosticIDs::Note)
-                << expect;
+                            true, DiagnosticIDs::Note);
+            report << expect;
             if (m.first == 0) {
                 analyser.InsertTextBefore(
                     where.getLocWithOffset(m.first), expect + "\n");

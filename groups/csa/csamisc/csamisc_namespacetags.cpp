@@ -35,9 +35,9 @@ static void namespace_tags(Analyser& analyser, NamespaceDecl const *decl)
         std::string s = tag.size() ? "}  // close " + tag + " namespace" :
                                      "}  // close namespace " + nsname;
         if (line != s) {
-            analyser.report(rbr, check_name, "NT01",
-                            "End of %0 namespace should be marked with \"%1\"")
-                << (nsname.size() ? nsname : "anonymous") << s;
+            auto report = analyser.report(rbr, check_name, "NT01",
+                            "End of %0 namespace should be marked with \"%1\"");
+            report << (nsname.size() ? nsname : "anonymous") << s;
             analyser.ReplaceText(line_range, s);
         }
     }

@@ -95,7 +95,7 @@ void get_displays(llvm::StringRef text,
     displays->clear();
     while (display.match(s = text.drop_front(offset), &matches)) {
         llvm::StringRef           d        = matches[0];
-        std::pair<size_t, size_t> m        = mid_match(s, d);
+        std::pair<size_t, size_t> m        = mid_match(s.str(), d.str());
         size_t                    matchpos = offset + m.first;
         offset                             = matchpos + d.size();
 
@@ -140,16 +140,16 @@ void report::check_comment(SourceRange comment_range)
             matches[3].size() != 79 &&
             matches[4].size() <= 1 &&
             separator.size() != matches[1].size()) {
-            std::string expected_banner = matches[3].trim();
+            std::string expected_banner = matches[3].trim().str();
             std::string extra =
                 expected_banner.substr(expected_banner.size() - 2);
             while (expected_banner.size() < 79) {
                 expected_banner += extra;
             }
             expected_banner = expected_banner.substr(0, 79);
-            a.report(separator_start, check_name, "BAN02",
-                     "Banner ends at column %0 instead of 79")
-                << static_cast<int>(matches[3].size());
+            auto report = a.report(separator_start, check_name, "BAN02",
+                     "Banner ends at column %0 instead of 79");
+            report << static_cast<int>(matches[3].size());
             SourceRange line_range = a.get_line_range(separator_start);
             if (line_range.isValid()) {
                 a.ReplaceText(line_range, expected_banner);
@@ -207,9 +207,9 @@ void report::check_comment(SourceRange comment_range)
                 "Improperly centered banner text";
             SourceLocation sl = banner_start.getLocWithOffset(text_pos);
             a.report(sl, check_name, "BAN03", error);
-            a.report(sl, check_name, "BAN03", "Correct text is\n%0",
-                     false, DiagnosticIDs::Note)
-                << expected_text;
+            auto report = a.report(sl, check_name, "BAN03", "Correct text is\n%0",
+                     false, DiagnosticIDs::Note);
+            report << expected_text;
             SourceRange line_range = a.get_line_range(sl);
             if (line_range.isValid()) {
                 a.ReplaceText(line_range, expected_text);
@@ -229,9 +229,9 @@ void report::check_comment(SourceRange comment_range)
                 bottom_rule.str();
             a.report(bottom_loc, check_name, "BAN04",
                      "Improperly centered underlining");
-            a.report(bottom_loc, check_name, "BAN04", "Correct version is\n%0",
-                     false, DiagnosticIDs::Note)
-                << expected_text;
+            auto report = a.report(bottom_loc, check_name, "BAN04", "Correct version is\n%0",
+                     false, DiagnosticIDs::Note);
+            report << expected_text;
             SourceRange line_range = a.get_line_range(bottom_loc);
             if (line_range.isValid()) {
                 a.ReplaceText(line_range, expected_text);

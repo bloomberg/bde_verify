@@ -202,10 +202,10 @@ void report::local_friendship_only(FriendDecl const* frend)
     }
 
     if (!def || !is_good_friend(frend, llvm::dyn_cast<NamedDecl>(def))) {
-        a.report(frend->getFriendLoc(), check_name, "TR19",
-                 "%0 can only be granted within a component")
-            << frend->getSourceRange()
-            << tag;
+        auto r = a.report(frend->getFriendLoc(), check_name, "TR19",
+                 "%0 can only be granted within a component");
+        r << frend->getSourceRange()
+          << tag;
     }
 }
 

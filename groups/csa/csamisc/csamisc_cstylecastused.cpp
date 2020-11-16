@@ -42,8 +42,8 @@ check_cast(Analyser& analyser, CStyleCastExpr const* expr)
           if (!expr->getBeginLoc().isMacroID() &&
               !expr->getSubExprAsWritten()->isNullPointerConstant(
                    *analyser.context(), Expr::NPC_ValueDependentIsNotNull)) {
-            analyser.report(expr, check_name, "CC01", "C-style cast is used")
-                << expr->getSourceRange();
+            auto report = analyser.report(expr, check_name, "CC01", "C-style cast is used");
+            report << expr->getSourceRange();
         }
       } break;
     }

@@ -48,9 +48,9 @@ void report::operator()()
         if (m.getFileID(parent->getBeginLoc()) ==
             m.getFileID(m.getSpellingLoc(assign->getOperatorLoc())) &&
             negate->getOperatorLoc().isMacroID()) {
-            a.report(assign->getOperatorLoc(), check_name, "AE01",
-                     "Assignment appears as top-level macro condition")
-                << SourceRange(assign->getBeginLoc(),
+            auto report = a.report(assign->getOperatorLoc(), check_name, "AE01",
+                     "Assignment appears as top-level macro condition");
+            report << SourceRange(assign->getBeginLoc(),
                                assign->getEndLoc());
         }
     });

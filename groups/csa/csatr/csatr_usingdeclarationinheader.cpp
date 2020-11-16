@@ -61,9 +61,9 @@ void report::operator()(UsingDecl const* decl)
         SourceLocation sl = decl->getLocation();
         if (!a.is_global_package() &&
             a.is_header(a.get_location(decl).file())) {
-            a.report(sl, check_name, "TR16",
-                            "Namespace level using declaration in header file")
-                << decl->getSourceRange();
+            auto report = a.report(sl, check_name, "TR16",
+                            "Namespace level using declaration in header file");
+            report << decl->getSourceRange();
         }
         set_ud(d.d_uds[m.getFileID(sl)], sl);
     }
@@ -84,7 +84,7 @@ void report::operator()()
     }
 
     for (const auto& id : d.d_uds) {
-        if (!a.is_header(m.getFilename(m.getLocForStartOfFile(id.first)))) {
+        if (!a.is_header(m.getFilename(m.getLocForStartOfFile(id.first)).str())) {
             const auto& il = d.d_ils[id.first];
             if (il.isValid() &&
                 m.isBeforeInTranslationUnit(id.second, il) &&

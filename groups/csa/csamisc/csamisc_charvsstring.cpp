@@ -45,10 +45,10 @@ static void check(Analyser& analyser,
             DeclRefExpr const* ref(llvm::dyn_cast<DeclRefExpr>(sub));
             if (ref && ref->getType().getCanonicalType() ==
                            analyser.context()->CharTy) {
-                analyser.report(args[index], check_name, "ADC01",
+                auto report = analyser.report(args[index], check_name, "ADC01",
                                 "Passing address of char '%0' where a "
-                                "null-terminated string may be expected")
-                    << ref->getDecl()->getName();
+                                "null-terminated string may be expected");
+                report << ref->getDecl()->getName();
             }
         }
     }

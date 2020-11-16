@@ -45,11 +45,12 @@ static void check(Analyser& analyser, BinaryOperator const* expr)
              analyser, expr->getLHS(), expr->getRHS(), expr->getOpcode()) ||
          is_addition(
              analyser, expr->getRHS(), expr->getLHS(), expr->getOpcode()))) {
-        analyser.report(expr->getOperatorLoc(), check_name, "SA01",
-                        "%0 integer %1 string literal")
-            << expr->getSourceRange()
-            << (expr->getOpcode() == BO_Add? "Adding": "Subtracting")
-            << (expr->getOpcode() == BO_Add? "to": "from");
+        auto report = analyser.report(expr->getOperatorLoc(), check_name, "SA01",
+                        "%0 integer %1 string literal");
+
+        report << expr->getSourceRange()
+               << (expr->getOpcode() == BO_Add? "Adding": "Subtracting")
+               << (expr->getOpcode() == BO_Add? "to": "from");
     }
 }
 

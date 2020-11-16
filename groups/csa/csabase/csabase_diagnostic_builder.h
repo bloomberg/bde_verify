@@ -5,6 +5,7 @@
 
 #include <csabase_debug.h>
 #include <clang/Basic/Diagnostic.h>
+#include <optional>
 
 // -----------------------------------------------------------------------------
 
@@ -13,24 +14,18 @@ namespace csabase
 class diagnostic_builder
 {
   public:
-    diagnostic_builder();
     diagnostic_builder(clang::DiagnosticBuilder other, bool always = true);
     diagnostic_builder& operator<<(long long argument);
     diagnostic_builder& operator<<(long argument);
+
     template <typename T>
     diagnostic_builder& operator<<(T const& argument);
     explicit operator bool() const;
 
   private:
-    bool empty_;
+    bool empty_ = true;
     clang::DiagnosticBuilder builder_;
 };
-
-inline
-diagnostic_builder::diagnostic_builder()
-: empty_(true), builder_(clang::DiagnosticBuilder::getEmpty())
-{
-}
 
 inline diagnostic_builder::diagnostic_builder(clang::DiagnosticBuilder other,
                                               bool                     always)
@@ -68,6 +63,15 @@ diagnostic_builder::operator bool() const
 {
     return !empty_;
 }
+}
+
+template <class T>
+std::optional<csabase::diagnostic_builder>& operator<<(std::optional<csabase::diagnostic_builder>& optional_builder, T const& argument)
+{
+    if (optional_builder) {
+        optional_builder.value() << argument;
+    }
+    return optional_builder;
 }
 
 #endif

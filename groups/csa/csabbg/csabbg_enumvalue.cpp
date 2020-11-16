@@ -19,9 +19,9 @@ static std::string const check_name("enum-value");
 static void enum_value(Analyser& analyser, EnumDecl const *decl)
 {
     if (analyser.is_component(decl) && decl->getNameAsString() == "Value") {
-        analyser.report(decl, check_name, "EV01",
-                        "Do not use 'Value' as enum name")
-            << decl->getDeclName();
+        auto report = analyser.report(decl, check_name, "EV01",
+                        "Do not use 'Value' as enum name");
+        report << decl->getDeclName();
     }
 }
 

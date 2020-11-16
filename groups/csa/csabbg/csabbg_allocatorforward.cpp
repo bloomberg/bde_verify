@@ -30,7 +30,6 @@
 #include <csaglb_includes.h>
 #include <llvm/ADT/APSInt.h>
 #include <llvm/ADT/Optional.h>
-#include <llvm/ADT/VariadicFunction.h>
 #include <llvm/Support/Casting.h>
 #include <utils/event.hpp>
 #include <utils/function.hpp>
@@ -671,10 +670,10 @@ void report::match_nested_allocator_trait(const BoundNodes& nodes)
     std::string type = qt.getAsString();
 
     if (contains_word(type, decl->getNameAsString()) == StringRef::npos) {
-        a.report(nodes.getNodeAs<CXXMethodDecl>("trait"),
+        auto report = a.report(nodes.getNodeAs<CXXMethodDecl>("trait"),
                          check_name, "BT01",
-                         "Trait declaration does not mention its class '%0'")
-            << decl->getNameAsString();
+                         "Trait declaration does not mention its class '%0'");
+        report << decl->getNameAsString();
     }
 
     const NamedDecl *nd = llvm::dyn_cast<NamedDecl>(decl->getCanonicalDecl());
@@ -1007,9 +1006,10 @@ void report::match_should_return_by_value(const BoundNodes& nodes)
             func->getParamDecl(0)->getOriginalType().getUnqualifiedType() !=
             func->getParamDecl(1)->getOriginalType().getUnqualifiedType()) &&
         !hasRVCognate(func)) {
-        a.report(func, check_name, "RV01",
-                 "Consider returning '%0' by value")
-            << p1->getPointeeType().getCanonicalType().getAsString();
+        auto report = a.report(func, check_name, "RV01",
+                 "Consider returning '%0' by value");
+        
+        report << p1->getPointeeType().getCanonicalType().getAsString();
         a.report(func->getParamDecl(0), check_name, "RV01",
                  "instead of through pointer parameter",
                  false, DiagnosticIDs::Note);
@@ -1316,10 +1316,9 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
                                                                record);
 
         if (array_member && records.count(rp) == 0) {
-            a.report(array_member, check_name, "WT01",
-                     "Cannot transform %0 because it has an array member %1")
-                << record
-                << array_member;
+            auto report = a.report(array_member, check_name, "WT01",
+                     "Cannot transform %0 because it has an array member %1");
+            report << record << array_member;
         }
 
         bool has_true_alloc_trait = d.decls_with_true_allocator_trait_.count(
@@ -1367,18 +1366,18 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
 
             if (has_public_copy_constructor(record)) {
                 if (!uses_allocator && has_true_alloc_trait) {
-                    a.report(record, check_name, "AT01",
+                    auto report = a.report(record, check_name, "AT01",
                              "Class %0 does not use allocators but has a "
-                             "positive allocator trait")
-                        << record;
+                             "positive allocator trait");
+                    report << record;
                 }
                 else if (uses_allocator &&
                          !has_true_alloc_trait &&
                          !has_dependent_alloc_trait) {
-                    a.report(record, check_name, "AT02",
+                    auto report = a.report(record, check_name, "AT02",
                              "Class %0 uses allocators but does not have an "
-                             "allocator trait")
-                        << record;
+                             "allocator trait");
+                    report << record;
                     if (do_transform) {
                         if (uses_allocator & a_Last) {
                             write_allocator_trait(record, true);
@@ -1418,32 +1417,32 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
 
                     if (d.allocator_members_.count(record)) {
                         if (base_with_allocator || field_with_allocator) {
-                            a.report(d.allocator_members_[record],
+                            auto report = a.report(d.allocator_members_[record],
                                      check_name, "AP01",
-                                     "Class %0 has unnecessary d_allocator_p")
-                                << record;
+                                     "Class %0 has unnecessary d_allocator_p");
+                            report << record;
                             if (base_with_allocator) {
-                                a.report(base_with_allocator->getBeginLoc(),
+                                auto report_2 = a.report(base_with_allocator->getBeginLoc(),
                                          check_name, "AP01",
                                          "Use allocator of base class %0",
-                                         false, DiagnosticIDs::Note)
-                                    << base_with_allocator->getType();
+                                         false, DiagnosticIDs::Note);
+                                report_2 << base_with_allocator->getType();
                             }
                             else {
-                                a.report(field_with_allocator,
+                                auto report_2 = a.report(field_with_allocator,
                                          check_name, "AP01",
                                          "Use allocator of field %0",
-                                         false, DiagnosticIDs::Note)
-                                    << field_with_allocator;
+                                         false, DiagnosticIDs::Note);
+                                report_2 << field_with_allocator;
                             }
                         }
                     }
                     else if (!base_with_allocator &&
                              !field_with_allocator &&
                              !d.allocator_methods_.count(record)) {
-                        a.report(record, check_name, "AP02",
-                                 "Class %0 needs d_allocator_p member")
-                            << record;
+                        auto report = a.report(record, check_name, "AP02",
+                                 "Class %0 needs d_allocator_p member");
+                        report << record;
                         if (do_transform) {
                             if (write_d_allocator_p_declaration(record)) {
                                 added_d_allocator.insert(record);
@@ -1458,9 +1457,9 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
                     }
 
                     if (!d.allocator_methods_.count(record)) {
-                        a.report(record, check_name, "AL01",
-                                 "Class %0 needs allocator() method")
-                            << record;
+                        auto report = a.report(record, check_name, "AL01",
+                                 "Class %0 needs allocator() method");
+                        report << record;
                         if (do_transform) {
                             //write_allocator_method_declaration(
                             //                           record,
@@ -1551,16 +1550,16 @@ void report::check_not_forwarded(data::Ctors::const_iterator begin,
             if (!found && !processed.count(key)) {
                 processed.insert(key);
                 if (decl->isUserProvided()) {
-                    a.report(decl, check_name, "AC01",
+                    auto report = a.report(decl, check_name, "AC01",
                              "Class %0 " + type +
-                             "constructor has no allocator-aware version")
-                        << decl;
+                             "constructor has no allocator-aware version");
+                    report << decl;
                 }
                 else {
-                    a.report(decl, check_name, "AC02",
+                    auto report = a.report(decl, check_name, "AC02",
                              "Class %0 implicit " + type +
-                             "constructor is not allocator-aware")
-                        << decl;
+                             "constructor is not allocator-aware");
+                    report << decl;
                 }
                 auto def = decl;
                 bool default_allocator =
@@ -1605,7 +1604,7 @@ void report::include(SourceLocation loc, llvm::StringRef name)
         if (FileName(f.second.d_fe->getName()).name() == name) {
             FileName src(f.first.getFileEntry()->getName());
             if (src.name() == ins.name() ||
-                a.is_component_header(src.name())) {
+                a.is_component_header(src.name().str())) {
                 d.added_[ins_loc.getFileID()].insert(name);
                 return;
             }
@@ -1619,7 +1618,7 @@ void report::include(SourceLocation loc, llvm::StringRef name)
             if (insert_after) {
                 ip = f.second.d_fullRange.getEnd();
                 FileName fn(f.second.d_fe->getName());
-                if (!a.is_component(fn.name()) && fn.name() > name) {
+                if (!a.is_component(fn.name().str()) && fn.name() > name) {
                     insert_after = false;
                     ip = f.second.d_fullRange.getBegin();
                     break;
@@ -1631,23 +1630,26 @@ void report::include(SourceLocation loc, llvm::StringRef name)
     std::string header = "#include <" + name.str() + ">\n";
     if (!ip.isValid()) {
         SourceLocation l = m.getLocForStartOfFile(m.getFileID(loc));
-        a.report(l, check_name, "AT02",
+        auto report = a.report(l, check_name, "AT02",
                  "Header needed for allocator trait\n%0",
-                 false, DiagnosticIDs::Note) << header;
+                 false, DiagnosticIDs::Note);
+        report << header;
         a.InsertTextBefore(l, header);
     }
     else if (insert_after) {
         SourceLocation l = a.get_line_range(ip).getEnd().getLocWithOffset(1);
-        a.report(l, check_name, "AT02",
+        auto report = a.report(l, check_name, "AT02",
                  "Header needed for allocator trait\n%0",
-                 false, DiagnosticIDs::Note) << header;
+                 false, DiagnosticIDs::Note);
+        report << header;
         a.ReplaceText(l, 0, header);
     }
     else {
         SourceLocation l = a.get_line_range(ip).getBegin();
-        a.report(l, check_name, "AT02",
+        auto report = a.report(l, check_name, "AT02",
                  "Header needed for allocator trait\n%0",
-                 false, DiagnosticIDs::Note) << header;
+                 false, DiagnosticIDs::Note);
+        report << header;
         a.InsertTextBefore(l, header);
     }
 
@@ -1706,9 +1708,12 @@ bool report::write_allocator_trait(const CXXRecordDecl *record, bool bslma)
                                                               << "\n" << spaces
        ;
 
-    a.report(ins_loc, check_name, "AT02",
+    auto report = a.report(ins_loc, check_name, "AT02",
              "Allocator trait for class %0%1",
-             false, DiagnosticIDs::Note) << record->getName() << ot.str();
+             false, DiagnosticIDs::Note);
+
+    report << record->getName() << ot.str();
+
     a.ReplaceText(ins_loc.getLocWithOffset(-end_spaces), end_spaces, ot.str());
     return true;
 }
@@ -1750,11 +1755,11 @@ bool report::write_allocator_method_declaration(const CXXRecordDecl    *record,
                                                               << "\n" << spaces
        ;
 
-    a.report(ins_loc, check_name, "AL01",
+    auto report = a.report(ins_loc, check_name, "AL01",
              "Allocator method declaration for class %0%1",
-             false, DiagnosticIDs::Note)
-        << record->getName()
-        << ot.str();
+             false, DiagnosticIDs::Note);
+    
+    report << record->getName() << ot.str();
     a.ReplaceText(ins_loc.getLocWithOffset(-end_spaces), end_spaces, ot.str());
     return true;
 }
@@ -1825,11 +1830,10 @@ bool report::write_allocator_method_definition(const CXXRecordDecl    *record,
        << "}"                                                 << "\n" << spaces
        ;
 
-    a.report(ins_loc, check_name, "AL01",
+    auto report = a.report(ins_loc, check_name, "AL01",
              "Allocator method definition for class %0%1",
-             false, DiagnosticIDs::Note)
-        << record->getName()
-        << ot.str();
+             false, DiagnosticIDs::Note);
+    report << record->getName() << ot.str();
     a.ReplaceText(ins_loc.getLocWithOffset(1), 0, ot.str());
     return true;
 }
@@ -1903,11 +1907,10 @@ bool report::write_in_class_allocator_method_definition(
        << "    }"                                             << "\n" << spaces
        ;
 
-    a.report(ins_loc, check_name, "AL01",
+    auto report = a.report(ins_loc, check_name, "AL01",
              "In-class allocator method definition for class %0%1",
-             false, DiagnosticIDs::Note)
-        << record->getName()
-        << ot.str();
+             false, DiagnosticIDs::Note);
+    report << record->getName() << ot.str();
     a.ReplaceText(ins_loc.getLocWithOffset(-end_spaces), end_spaces, ot.str());
     return true;
 }
@@ -1943,11 +1946,10 @@ bool report::write_d_allocator_p_declaration(const CXXRecordDecl *record)
                                                               << "\n" << spaces
        ;
 
-    a.report(ins_loc, check_name, "AP02",
+    auto report = a.report(ins_loc, check_name, "AP02",
              "Allocator member declaration for class %0%1",
-             false, DiagnosticIDs::Note)
-        << record->getName()
-        << ot.str();
+             false, DiagnosticIDs::Note);
+    report << record->getName() << ot.str();
     a.ReplaceText(ins_loc.getLocWithOffset(-end_spaces), end_spaces, ot.str());
     return true;
 }
@@ -2132,11 +2134,11 @@ bool report::write_ctor_with_allocator_definition(
                : "{ }") << "\n"                               << "\n" << spaces
        ;
 
-    a.report(ins_loc, check_name, up ? "AC01" : "AC02",
+    auto report = a.report(ins_loc, check_name, up ? "AC01" : "AC02",
              "Definition for version with allocator\n%1%0",
-             false, DiagnosticIDs::Note)
-        << ot.str()
-        << spaces;
+             false, DiagnosticIDs::Note);
+    
+    report << ot.str() << spaces;
     a.ReplaceText(ins_loc.getLocWithOffset(-end_spaces), end_spaces, ot.str());
     return true;
 }
@@ -2223,10 +2225,10 @@ bool report::write_ctor_with_allocator_declaration(
         return false;
     }
 
-    a.report(ins_loc, check_name, up ? "AC01" : "AC02",
+    auto report = a.report(ins_loc, check_name, up ? "AC01" : "AC02",
              "Declaration for version with allocator%0",
-             false, DiagnosticIDs::Note)
-        << ot.str();
+             false, DiagnosticIDs::Note);
+    report << ot.str();
     a.ReplaceText(ins_loc.getLocWithOffset(-end_spaces), end_spaces, ot.str());
     return true;
 }
@@ -2254,10 +2256,10 @@ bool report::write_assignment_declaration(const CXXRecordDecl *record)
                  << record->getName() << "& original);"       << "\n" << spaces
        ;
 
-    a.report(ins_loc, check_name, "AH01",
+    auto report = a.report(ins_loc, check_name, "AH01",
              "Declaration for assignment operator%0",
-             false, DiagnosticIDs::Note)
-        << ot.str();
+             false, DiagnosticIDs::Note);
+    report << ot.str();
     a.ReplaceText(ins_loc.getLocWithOffset(-end_spaces), end_spaces, ot.str());
     return true;
 }
@@ -2293,11 +2295,10 @@ bool report::write_assignment_definition(const CXXRecordDecl *record)
     }
     for (const auto *field : record->fields()) {
         if (field->getType()->isArrayType()) {
-            a.report(record, check_name, "AH01",
+            auto report = a.report(record, check_name, "AH01",
                      "Assignment for %0 not generated due to array member %1",
-                     false, DiagnosticIDs::Note)
-                << record
-                << field;
+                     false, DiagnosticIDs::Note);
+            report  << record << field;
             return false;
         }
         llvm::StringRef fn = field->getName();
@@ -2309,10 +2310,10 @@ bool report::write_assignment_definition(const CXXRecordDecl *record)
        << "}"                                                 << "\n" << spaces
        ;
 
-    a.report(ins_loc, check_name, "AH01",
+    auto report = a.report(ins_loc, check_name, "AH01",
              "Definition for assignment operator%0",
-             false, DiagnosticIDs::Note)
-        << ot.str();
+             false, DiagnosticIDs::Note);
+    report << ot.str();
     a.ReplaceText(ins_loc.getLocWithOffset(1), 0, ot.str());
     return true;
 }
@@ -2347,11 +2348,11 @@ bool report::write_in_class_assignment_definition(const CXXRecordDecl *record)
     }
     for (const auto *field : record->fields()) {
         if (field->getType()->isArrayType()) {
-            a.report(record, check_name, "AH01",
+            auto report = a.report(record, check_name, "AH01",
                      "Assignment for %0 not generated due to array member %1",
-                     false, DiagnosticIDs::Note)
-                << record
-                << field;
+                     false, DiagnosticIDs::Note);
+            
+            report << record << field;
             return false;
         }
         llvm::StringRef fn = field->getName();
@@ -2363,10 +2364,10 @@ bool report::write_in_class_assignment_definition(const CXXRecordDecl *record)
        << "    }"                                             << "\n" << spaces
        ;
 
-    a.report(ins_loc, check_name, "AH01",
+    auto report = a.report(ins_loc, check_name, "AH01",
              "In-class definition for assignment operator%0",
-             false, DiagnosticIDs::Note)
-        << ot.str();
+             false, DiagnosticIDs::Note);
+    report << ot.str();
     a.ReplaceText(ins_loc.getLocWithOffset(-end_spaces), end_spaces, ot.str());
     return true;
 }
@@ -2467,15 +2468,16 @@ void report::check_not_forwarded(const CXXCtorInitializer* init,
     }
 
     if (init->isBaseInitializer()) {
-        a.report(loc, check_name, "MA01",
-                 "Allocator not passed to base %0")
-            << init->getBaseClass()->getCanonicalTypeInternal().getAsString()
-            << range;
+        auto report = a.report(loc, check_name, "MA01",
+                 "Allocator not passed to base %0");
+        report << init->getBaseClass()->getCanonicalTypeInternal().getAsString()
+               << range;
     } else {
-        a.report(loc, check_name, "MA02",
-                 "Allocator not passed to member %0")
-            << init->getAnyMember()->getNameAsString()
-            << range;
+        auto report = a.report(loc, check_name, "MA02",
+                 "Allocator not passed to member %0");
+        
+        report << init->getAnyMember()->getNameAsString()
+               << range;
     }
 }
 
@@ -2553,7 +2555,7 @@ void report::check_wrong_parm(const CXXConstructExpr *expr)
 
             if (const MaterializeTemporaryExpr* mte =
                            llvm::dyn_cast<MaterializeTemporaryExpr>(arg)) {
-                arg = mte->GetTemporaryExpr();
+                arg = mte->getSubExpr();
                 continue;
             }
 
@@ -2589,14 +2591,14 @@ void report::check_wrong_parm(const CXXConstructExpr *expr)
             // pointer-to-allocator, report the problem if it is new.
 
             if (is_allocator(arg->getType())) {
-                a.report(arg->getExprLoc(), check_name, "AM01",
+                auto report = a.report(arg->getExprLoc(), check_name, "AM01",
                          "Allocator argument initializes "
                          "non-allocator %0 of type '%1' rather than "
-                         "allocator %2")
-                    << parm_name(wrongp, n - 1)
-                    << wrongp->getType().getAsString()
-                    << parm_name(allocp, n)
-                    << arg->getSourceRange();
+                         "allocator %2");
+                report << parm_name(wrongp, n - 1)
+                       << wrongp->getType().getAsString()
+                       << parm_name(allocp, n)
+                       << arg->getSourceRange();
             }
 
             break;  // Done.
@@ -2650,7 +2652,8 @@ void report::check_uses_allocator(const CXXConstructExpr *expr)
 
         if (const MaterializeTemporaryExpr *mte =
                 llvm::dyn_cast<MaterializeTemporaryExpr>(arg)) {
-            arg = mte->GetTemporaryExpr();
+
+            arg = mte->getSubExpr();
             continue;
         }
 
@@ -2701,9 +2704,10 @@ void report::check_uses_allocator(const CXXConstructExpr *expr)
                 // E.g., X x(bslma::Default::allocator());
                 break;
             }
-            a.report(arg->getExprLoc(), check_name, "AU01",
-                     "Verify whether allocator use is appropriate")
-                << arg->getSourceRange();
+            auto report = a.report(arg->getExprLoc(), check_name, "AU01",
+                     "Verify whether allocator use is appropriate");
+
+            report << arg->getSourceRange();
         }
 
         break;  // Done.

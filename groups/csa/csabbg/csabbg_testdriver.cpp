@@ -29,7 +29,6 @@
 #include <llvm/ADT/Optional.h>
 #include <llvm/ADT/SmallVector.h>
 #include <llvm/ADT/StringRef.h>
-#include <llvm/ADT/VariadicFunction.h>
 #include <llvm/Support/Casting.h>
 #include <llvm/Support/Regex.h>
 #include <stddef.h>
@@ -493,10 +492,10 @@ void report::get_function_names()
             }
         }
         else {
-            a.report(p.second.getBegin(), check_name, "TP25",
+            auto report = a.report(p.second.getBegin(), check_name, "TP25",
                      "Cannot find definition of class '%0' from "
-                     "@CLASSES section.")
-                << p.first;
+                     "@CLASSES section.");
+            report << p.first;
         }
     }
 }
@@ -566,15 +565,15 @@ void report::operator()()
         SourceRange bracket_range(getOffsetRange(plan_range, lb, rb - lb));
 
         if (number.empty()) {
-            a.report(bracket_range.getBegin(), check_name, "TP03",
-                     "Missing test number")
-                << bracket_range;
+            auto report = a.report(bracket_range.getBegin(), check_name, "TP03",
+                     "Missing test number");
+            report << bracket_range;
         }
 
         if (test_num == 0) {
-            a.report(bracket_range.getBegin(), check_name, "TP04",
-                     "Test number may not be 0")
-                << bracket_range;
+            auto report = a.report(bracket_range.getBegin(), check_name, "TP04",
+                     "Test number may not be 0");
+            report << bracket_range;
         }
 
         if (item.empty()) {
@@ -585,7 +584,7 @@ void report::operator()()
             d.d_tests_of_cases.insert(std::make_pair(test_num, item));
             d.d_cases_of_tests.insert(std::make_pair(item, test_num));
             if (tested_method.match(item, &matches)) {
-                ++d.d_names_in_plan[matches[1]];
+                ++d.d_names_in_plan[matches[1].str()];
             }
         }
 
@@ -603,16 +602,17 @@ void report::operator()()
     else {
         for (const auto &n : d.d_names_to_test) {
             if (n.second > d.d_names_in_plan[n.first]) {
-                a.report(
+                auto report = a.report(
                     plan_range.getBegin().getLocWithOffset(plan_pos),
                     check_name, "TP26",
                     "Tested %plural{1:class has|:classes have}0 "
                     "%plural{1:a|:%1}1 function%s1 named '%2' "
-                    "but the test plan has %plural{0:none|:%3}3")
-                << int(d.d_classes.size())
-                << int(n.second)
-                << n.first
-                << int(d.d_names_in_plan[n.first]);
+                    "but the test plan has %plural{0:none|:%3}3");
+                
+                report << int(d.d_classes.size())
+                       << int(n.second)
+                       << n.first
+                       << int(d.d_names_in_plan[n.first]);
             }
         }
     }
@@ -747,7 +747,7 @@ void report::operator()()
                 llvm::StringRef t = matches[2];
                 testing_pos = comment.find(t);
                 line_pos = testing_pos + t.size();
-                std::pair<size_t, size_t> m = mid_mismatch(t, banner_text);
+                std::pair<size_t, size_t> m = mid_mismatch(t.str(), banner_text.str());
                 if (m.first != t.size()) {
                     a.report(
                         cr.getBegin().getLocWithOffset(testing_pos + m.first),
@@ -758,11 +758,11 @@ void report::operator()()
                              false, DiagnosticIDs::Note);
                 }
             } else {
-                a.report(
+                auto report = a.report(
                         cr.getBegin().getLocWithOffset(comment.find('\n') + 1),
                         check_name, "TP22",
-                        "Test case title should be\n%0")
-                    << banner_text;
+                        "Test case title should be\n%0");
+                report << banner_text;
             }
         }
 
@@ -814,7 +814,7 @@ void report::operator()()
                 break;
             }
             typedef data::CasesOfTests::const_iterator Ci;
-            std::pair<Ci, Ci> be = d.d_cases_of_tests.equal_range(line);
+            std::pair<Ci, Ci> be = d.d_cases_of_tests.equal_range(line.str());
             Ci match_itr;
             for (match_itr = be.first; match_itr != be.second; ++match_itr) {
                 if (match_itr->second == case_value) {
@@ -828,21 +828,22 @@ void report::operator()()
                 size_t off = plan_pos;
                 off += plan.drop_front(off).find(line);
                 off = plan.rfind(']', off) - 1;
-                a.report(cr.getBegin().getLocWithOffset(line_pos),
+                auto report = a.report(cr.getBegin().getLocWithOffset(line_pos),
                          check_name, "TP08",
-                        "Test plan does not have case number %0 for this item")
-                    << case_value;
+                        "Test plan does not have case number %0 for this item");
+
+                report << case_value;
                 a.report(plan_range.getBegin().getLocWithOffset(off),
                          check_name, "TP08",
                          "Test plan item is",
                          false, DiagnosticIDs::Note);
             }
             else if (!negative && test_item.match(line)) {
-                a.report(cr.getBegin().getLocWithOffset(line_pos),
+                auto report = a.report(cr.getBegin().getLocWithOffset(line_pos),
                          check_name, "TP09",
                          "Test plan should contain this item from "
-                         "'Testing' section of case %0")
-                    << case_value;
+                         "'Testing' section of case %0");
+                report << case_value;
             }
         }
 
@@ -851,12 +852,13 @@ void report::operator()()
         for (Ci i = be.first; i != be.second; ++i) {
             if (comment.drop_front(testing_pos).find(i->second) ==
                 comment.npos) {
-                a.report(plan_range.getBegin().getLocWithOffset(
+                auto report = a.report(plan_range.getBegin().getLocWithOffset(
                          plan_pos + plan.drop_front(plan_pos).find(i->second)),
                          check_name, "TP06",
                          "'Testing' section of case %0 should contain this "
-                         "item from test plan")
-                    << case_value;
+                         "item from test plan");
+                
+                report << case_value;
             }
         }
     }
@@ -1044,10 +1046,11 @@ void report::check_banner(SourceLocation bl, llvm::StringRef s)
             a.report(bl, check_name, "TP18",
                      c ? "Incorrect test banner format"
                        : "Incorrect test banner format (not ALL CAPS)");
-            a.report(bl, check_name, "TP18",
+            auto report = a.report(bl, check_name, "TP18",
                      "Correct format is\n%0",
-                     false, DiagnosticIDs::Note)
-                << indent
+                     false, DiagnosticIDs::Note);
+                
+            report << indent
                  + (s[0] == '\n' ? "\"\\n\" " : "")
                  + "\"" + cappish(text) + "\" \"\\n\"\n"
                  + indent
@@ -1316,7 +1319,7 @@ void report::search(SourceLocation *best_loc,
                 // Record a better match whenever one is found.
                 if (distance < *best_distance) {
                     *best_distance = distance;
-                    std::pair<size_t, size_t> mm = mid_mismatch(s, needle);
+                    std::pair<size_t, size_t> mm = mid_mismatch(s.str(), needle.str());
                     *best_loc = r.getBegin().getLocWithOffset(mm.first);
                     *best_needle = needle;
                     // Return on an exact match.
@@ -1349,10 +1352,10 @@ void report::check_boilerplate()
     if (distance != 0) {
         a.report(loc, check_name, "TP19",
                  "Missing or malformed standard test driver section");
-        a.report(loc, check_name, "TP19",
+        auto report = a.report(loc, check_name, "TP19",
                  "One correct form (of several possible) is\n%0",
-                 false, DiagnosticIDs::Note)
-            << needle;
+                 false, DiagnosticIDs::Note);
+        report << needle;
     }
 
     needles.clear();
@@ -1367,10 +1370,10 @@ void report::check_boilerplate()
     if (distance != 0) {
         a.report(loc, check_name, "TP19",
                  "Missing or malformed standard test driver section");
-        a.report(loc, check_name, "TP19",
+        auto report = a.report(loc, check_name, "TP19",
                  "One correct form (of several possible) is\n%0",
-                 false, DiagnosticIDs::Note)
-            << needle;
+                 false, DiagnosticIDs::Note);
+        report << needle;
     }
 }
 

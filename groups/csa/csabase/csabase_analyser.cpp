@@ -299,7 +299,7 @@ bool csabase::Analyser::is_global_package(std::string const& pkg) const
 
 bool csabase::Analyser::is_system_header(llvm::StringRef file)
 {
-    auto i = is_system_header_.find(file);
+    auto i = is_system_header_.find(file.str());
     if (i != is_system_header_.end()) {
         return i->second;
     }
@@ -307,10 +307,10 @@ bool csabase::Analyser::is_system_header(llvm::StringRef file)
     const auto& hs = compiler().getPreprocessor().getHeaderSearchInfo();
     for (auto i = hs.system_dir_begin(); i != hs.system_dir_end(); ++i) {
         if (file.startswith(i->getName())) {
-            return is_system_header_[file] = true;
+            return is_system_header_[file.str()] = true;
         }
     }
-    return is_system_header_[file] = false;
+    return is_system_header_[file.str()] = false;
 }
 
 bool csabase::Analyser::is_system_header(SourceLocation sl)
@@ -401,7 +401,7 @@ bool csabase::Analyser::is_main() const
 
 // -----------------------------------------------------------------------------
 
-csabase::diagnostic_builder
+std::optional<csabase::diagnostic_builder>
 csabase::Analyser::report(SourceLocation where,
                           std::string const& check,
                           std::string const& tag,
@@ -424,7 +424,7 @@ csabase::Analyser::report(SourceLocation where,
         return csabase::diagnostic_builder(
             compiler_.getDiagnostics().Report(where, id), always);
     }
-    return csabase::diagnostic_builder();
+    return {};
 }
 
 // -----------------------------------------------------------------------------

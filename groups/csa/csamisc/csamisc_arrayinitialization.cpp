@@ -51,7 +51,7 @@ isDefaultValue(Analyser& analyser, InitListExpr const* expr, Expr const* init)
                 && llvm::dyn_cast<MaterializeTemporaryExpr>(ctor->getArg(0)))
             {
                 init = llvm::dyn_cast<MaterializeTemporaryExpr>(
-                    ctor->getArg(0))->GetTemporaryExpr();
+                    ctor->getArg(0))->getSubExpr();
             }
         }
     }
@@ -91,9 +91,9 @@ static void check(Analyser& analyser, InitListExpr const* expr)
             !isDefaultValue(
                  analyser, expr, expr->getInit(expr->getNumInits() - 1u)) &&
             analyser.attachment<reported>().reported_.insert(expr).second) {
-            analyser.report(expr, check_name, "II01",
-                    "Incomplete initialization with non-defaulted last value")
-                << expr->getInit(expr->getNumInits() - 1u)->getSourceRange();
+            auto report = analyser.report(expr, check_name, "II01",
+                    "Incomplete initialization with non-defaulted last value");
+            report << expr->getInit(expr->getNumInits() - 1u)->getSourceRange();
         }
     }
 }

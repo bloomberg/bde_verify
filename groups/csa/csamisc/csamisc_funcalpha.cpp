@@ -190,18 +190,18 @@ void report::check_order(std::pair<const FunctionDecl *, const Decl *> p)
                     }
                 }
                 if (!reset && q1 == q2) {
-                    d_analyser.report(
+                    auto r1 = d_analyser.report(
                             decl->getLocation(),
                             check_name, "FABC01",
-                            "Function '%0' not in alphanumeric order")
-                        << name.getAsString()
-                        << decl->getNameInfo().getSourceRange();
-                    d_analyser.report(nextf->getLocation(),
+                            "Function '%0' not in alphanumeric order");
+                    r1 << name.getAsString()
+                       << decl->getNameInfo().getSourceRange();
+                    auto r2 = d_analyser.report(nextf->getLocation(),
                                       check_name, "FABC01",
                                       "Next function is '%0'",
-                                      false, DiagnosticIDs::Note)
-                        << next_name.getAsString()
-                        << nextf->getNameInfo().getSourceRange();
+                                      false, DiagnosticIDs::Note);
+                    r2 << next_name.getAsString()
+                       << nextf->getNameInfo().getSourceRange();
                 }
             }
         }

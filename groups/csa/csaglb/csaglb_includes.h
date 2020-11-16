@@ -5,8 +5,12 @@
 #include <llvm/ADT/StringRef.h>
 #include <clang/Basic/SourceLocation.h>
 #include <clang/Lex/Token.h>
+#include <clang/Basic/FileManager.h>
+
 #include <map>
 #include <vector>
+#include <optional>
+
 
 // Maintain a "database" of included files, including their redundant include
 // guards if present, and including as well those inclusions that are skipped
@@ -30,7 +34,7 @@
 namespace csabase {
 struct IncludesData {
     struct Inclusion {
-        Inclusion() : d_fe(0) { }
+        Inclusion() : d_fe(nullptr) { }
 
         clang::SourceRange      d_fullRange;
             // The full range of the inclusion, including the include-guard

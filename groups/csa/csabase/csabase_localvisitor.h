@@ -116,7 +116,7 @@ public:
     void visit(clang::Stmt const* ptr);
 
 private:
-    std::auto_ptr<AbstractVisitor> visitor_;
+    std::unique_ptr<AbstractVisitor> visitor_;
 };
 
 #if defined(UTILS_CXX2011)

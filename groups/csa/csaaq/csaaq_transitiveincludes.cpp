@@ -357,7 +357,7 @@ std::string get_mapped(llvm::StringRef s)
     for (size_t rs = s.rfind('/'); rs != s.npos; rs = s.rfind('/', rs)) {
         auto i = mapped_files().find(s.substr(rs));
         if (i != mapped_files().end()) {
-            return i->second;
+            return i->second.str();
         }
     }
     return "";
@@ -717,8 +717,8 @@ std::string report::map_if_included(FileID fid, std::string name)
     auto i = if_included_map().find(name);
     if (i != if_included_map().end()) {
         for (const auto& m : i->second) {
-            if (d.d_all_includes.count(m)) {
-                return map_if_included(fid, m);
+            if (d.d_all_includes.count(m.str())) {
+                return map_if_included(fid, m.str());
             }
         }
     }
@@ -747,13 +747,13 @@ std::string report::file_for_location(SourceLocation sl, SourceLocation in)
     FileID top = fid;
     bool found = false;
     bool just_found = false;
-    std::string result = m.getFilename(sl);
+    std::string result = m.getFilename(sl).str();
 
     if (is_mapped(result)) {
         result = get_mapped(result);
     }
 
-    if (!d.d_includes[in_id].count(FileName(result).name())) {
+    if (!d.d_includes[in_id].count(FileName(result).name().str())) {
         for (auto& p : v) {
             SourceLocation  fl = m.getLocForStartOfFile(p.first);
             SourceLocation  tl = m.getLocForStartOfFile(top);
@@ -785,7 +785,7 @@ std::string report::file_for_location(SourceLocation sl, SourceLocation in)
                 }
             } else {
                 if (reexports(f, t) ||
-                    (just_found && a.is_component(ff.name()))) {
+                    (just_found && a.is_component(ff.name().str()))) {
                     top = p.first;
                 }
                 just_found = false;
@@ -825,11 +825,11 @@ void report::push_include(FileID fid, llvm::StringRef name, SourceLocation sl)
         push_include(fid, s, sl);
     }
     static llvm::Regex guard("^ *# *ifn?def  *INCLUDED_");
-    bool in_header = a.is_component_header(m.getFilename(sl));
+    bool in_header = a.is_component_header(m.getFilename(sl).str());
     for (FileID f : d.d_fileid_stack) {
         if (f == fid) {
-            d.d_includes[f].insert(name);
-            d.d_all_includes.insert(name);
+            d.d_includes[f].insert(name.str());
+            d.d_all_includes.insert(name.str());
         }
         else if (in_header && f == m.getMainFileID()) {
             auto t = std::make_tuple(fid, f, sl);
@@ -854,8 +854,8 @@ void report::push_include(FileID fid, llvm::StringRef name, SourceLocation sl)
                 }
                 d.d_fid_map[t] = sfl;
             }
-            d.d_includes[f].insert(name);
-            d.d_all_includes.insert(name);
+            d.d_includes[f].insert(name.str());
+            d.d_all_includes.insert(name.str());
         }
     }
 }
@@ -1004,9 +1004,11 @@ void report::operator()(SourceLocation        where,
     if (tn.startswith("BDE_BUILD_TARGET_") &&
         !a.is_component_header(std::string("bsls_buildtarget.h")) &&
         !d.d_all_includes.count("bsls_buildtarget.h")) {
-        a.report(token.getLocation(), check_name, "AQK02",
-                 "Use of %0 macro requires inclusion of <bsls_buildtarget.h>")
-            << tn;
+        auto builder = a.report(
+            token.getLocation(), check_name, "AQK02",
+            "Use of %0 macro requires inclusion of <bsls_buildtarget.h>");
+
+        builder << tn.str();
     }
 }
 
@@ -1026,9 +1028,10 @@ void report::operator()(const Token&          token,
     if (tn.startswith("BDE_BUILD_TARGET_") &&
         !a.is_component_header(std::string("bsls_buildtarget.h")) &&
         !d.d_all_includes.count("bsls_buildtarget.h")) {
-        a.report(token.getLocation(), check_name, "AQK02",
-                 "Use of %0 macro requires inclusion of <bsls_buildtarget.h>")
-            << tn;
+        auto builder = a.report(
+            token.getLocation(), check_name, "AQK02",
+            "Use of %0 macro requires inclusion of <bsls_buildtarget.h>");
+        builder << tn;
     }
 }
 
@@ -1093,7 +1096,7 @@ void report::require_file(std::string     name,
         return;
     }
 
-    if (a.is_standard_namespace(symbol)) {
+    if (a.is_standard_namespace(symbol.str())) {
         return;
     }
 
@@ -1105,7 +1108,7 @@ void report::require_file(std::string     name,
     name = fn.name();
 
     if (name == ff.name() ||
-        (is_top_level(ff.name()) && !a.is_component_header(ff.name())) ||
+        (is_top_level(ff.name()) && !a.is_component_header(ff.name().str())) ||
         is_skipped(ff.name())) {
         return;
     }
@@ -1121,7 +1124,7 @@ void report::require_file(std::string     name,
             return;
         }
         if (a.config()->reexports(
-                FileName(llvm::sys::path::filename(s)).name(), name)) {
+                FileName(llvm::sys::path::filename(s)).name().str(), name)) {
             return;
         }
     }
@@ -1129,10 +1132,11 @@ void report::require_file(std::string     name,
     if (!d.d_once[fid].count(name) /*||
         m.isBeforeInTranslationUnit(srcloc, d.d_once[fid][name])*/) {
         d.d_once[fid][name] = srcloc;
-        a.report(srcloc, check_name, "AQK01", "Need #include <%0> for '%1'")
-            << name
-            << symbol;
-        if (a.is_component_header(ff.name())) {
+        auto builder = a.report(
+            srcloc, check_name, "AQK01", "Need #include <%0> for '%1'");
+        builder << name << symbol;
+
+        if (a.is_component_header(ff.name().str())) {
             d.d_once[m.getMainFileID()][name] = srcloc;
         }
     }
@@ -1161,8 +1165,8 @@ void report::inc_for_decl(llvm::StringRef r, SourceLocation sl, const Decl *ds)
             SourceLocation rl = rb->getLocation();
             if (rl.isValid()) {
                 llvm::StringRef file = file_for_location(rl, sl);
-                skip = a.is_component(file) ||
-                       d.d_includes[m.getMainFileID()].count(file);
+                skip = a.is_component(file.str()) ||
+                       d.d_includes[m.getMainFileID()].count(file.str());
             }
             if (auto decl = llvm::dyn_cast<VarDecl>(*rb)) {
                 if (decl->isThisDeclarationADefinition()) {

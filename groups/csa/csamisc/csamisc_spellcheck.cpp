@@ -20,7 +20,6 @@
 #include <llvm/ADT/Optional.h>
 #include <llvm/ADT/SmallVector.h>
 #include <llvm/ADT/StringRef.h>
-#include <llvm/ADT/VariadicFunction.h>
 #include <llvm/Support/Regex.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -68,7 +67,7 @@ struct data
 void data::append(Analyser& analyser, SourceRange range)
 {
     SourceManager& m = analyser.manager();
-    data::Ranges& c = d_comments[m.getFilename(range.getBegin())];
+    data::Ranges& c = d_comments[m.getFilename(range.getBegin()).str()];
     if (c.size() != 0 && areConsecutive(m, c.back(), range)) {
         c.back().setEnd(range.getEnd());
     } else {
@@ -124,10 +123,10 @@ void report::operator()()
     aspell_config_replace(spell_config, "run-together", "true");
     AspellCanHaveError *possible_err = new_aspell_speller(spell_config);
     if (aspell_error_number(possible_err) != 0) {
-        a.report(m.getLocForStartOfFile(m.getMainFileID()), check_name, "SP02",
-                 "Cannot start spell checker: %0")
-            << aspell_error_message(possible_err);
-            return;                                                   // RETURN
+        auto report = a.report(m.getLocForStartOfFile(m.getMainFileID()), check_name, "SP02",
+                 "Cannot start spell checker: %0");
+        report << aspell_error_message(possible_err);
+        return;                                                         // RETURN
     }
     spell_checker = to_aspell_speller(possible_err);
     std::vector<std::string> good_words;
@@ -153,9 +152,9 @@ void report::operator()()
         const std::vector<SourceRange>& locs = b->second;
         if (limit == 0 || locs.size() < limit) {
             for (size_t j = 0; j < locs.size(); ++j) {
-                a.report(locs[j].getBegin(), check_name, "SP01",
-                         "Misspelled word '%0'")
-                    << b->first << locs[j];
+                auto report = a.report(locs[j].getBegin(), check_name, "SP01",
+                         "Misspelled word '%0'");
+                report << b->first << locs[j];
             }
         }
     }
@@ -366,9 +365,9 @@ void report::check_parameters()
     for (const auto& p : d.d_bad_parms) {
         if (limit == 0 || p.second.size() < limit) {
             for (const auto& l : p.second) {
-                a.report(l.location(), check_name, "SP03",
-                         "Parameter name contains misspelled word '%0'")
-                    << p.first;
+                auto report = a.report(l.location(), check_name, "SP03",
+                         "Parameter name contains misspelled word '%0'");
+                report << p.first;
             }
         }
     }

@@ -82,19 +82,19 @@ void report::operator()(const NamedDecl *decl)
         }
         const NamespaceDecl *nd = llvm::dyn_cast<NamespaceDecl>(dc);
         if (!nd) {
-            a.report(decl, check_name, "AQQ01",
-                     "Declaration in global, not ::%0 namespace", true)
-                << a.config()->toplevel_namespace();
+            auto report = a.report(decl, check_name, "AQQ01",
+                     "Declaration in global, not ::%0 namespace", true);
+            report << a.config()->toplevel_namespace();
         }
         else if (!nd->isAnonymousNamespace()) {
             std::string ns = nd->getNameAsString();
             if (!a.is_global_package(ns) &&
                 !a.is_standard_namespace(ns) &&
                 ns != a.config()->toplevel_namespace()) {
-                a.report(decl, check_name, "AQQ01",
-                         "Declaration in %0, not ::%1 namespace", true)
-                    << ns
-                    << a.config()->toplevel_namespace();
+                auto builder = a.report(decl, check_name, "AQQ01",
+                         "Declaration in %0, not ::%1 namespace", true);
+
+                builder.value() << ns << a.config()->toplevel_namespace();
             }
         }
     }

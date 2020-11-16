@@ -108,8 +108,8 @@ void report::set_lang(SourceLocation sl, LinkageSpecDecl::LanguageIDs lang)
     SourceLocation osl = sl;
     while (sl.isValid() && !get_local_linkage(sl)) {
         llvm::StringRef name(llvm::sys::path::filename(m.getFilename(sl)));
-        if (!special.count(name) && !d.d_types[name].second) {
-            d.d_types[name] = std::make_pair(osl, lang);
+        if (!special.count(name.str()) && !d.d_types[name.str()].second) {
+            d.d_types[name.str()] = std::make_pair(osl, lang);
         }
         sl = m.getIncludeLoc(m.getFileID(sl));
     }
@@ -169,14 +169,14 @@ void report::operator()()
 {
     for (auto& f : a.attachment<IncludesData>().d_inclusions) {
         FullSourceLoc fsl = f.first;
-        if (special.count(llvm::sys::path::filename(m.getFilename(fsl)))) {
+        if (special.count(llvm::sys::path::filename(m.getFilename(fsl)).str())) {
             continue;
         }
         llvm::StringRef file = a.get_source(f.second.d_file);
         const LinkageSpecDecl *lsd = get_linkage(fsl);
         if (!lsd ||
             lsd->getLanguage() != LinkageSpecDecl::lang_c ||
-            d.d_types[file].second != LinkageSpecDecl::lang_cxx) {
+            d.d_types[file.str()].second != LinkageSpecDecl::lang_cxx) {
             continue;
         }
         SourceLocation sl = fsl.getExpansionLoc();
@@ -187,10 +187,14 @@ void report::operator()()
         if (sl.isValid() && d.d_done.count(sl)) {
             continue;
         }
-        bool sys = m.isInSystemHeader(d.d_types[file].first);
-        d_analyser.report(f.second.d_file.getBegin(), check_name, "PC01",
-                         "C++ %0 included within C linkage specification")
-            << (sys ? "system header" : "header");
+        bool sys = m.isInSystemHeader(d.d_types[file.str()].first);
+
+        auto builder = d_analyser.report(
+            f.second.d_file.getBegin(), check_name, "PC01",
+            "C++ %0 included within C linkage specification");
+
+        builder << (sys ? "system header" : "header");
+
         d_analyser.report(lsd->getLocation(), check_name, "PC01",
                           "C linkage specification here",
                           false, DiagnosticIDs::Note);
@@ -201,7 +205,7 @@ void report::operator()()
                               false, DiagnosticIDs::Note);
         }
         if (!sys) {
-            d_analyser.report(d.d_types[file].first,
+            d_analyser.report(d.d_types[file.str()].first,
                               check_name, "PC01",
                               "Declaration with C++ linkage here",
                               false, DiagnosticIDs::Note);

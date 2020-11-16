@@ -56,9 +56,9 @@ check(Analyser& analyser, BinaryOperator const* expr)
         && (is_bool_comparison(expr->getLHS(), expr->getRHS())
             || is_bool_comparison(expr->getRHS(), expr->getLHS())))
     {
-        analyser.report(expr->getLHS(), check_name, "BC01",
-                        "Comparing a Boolean expression to a Boolean literal")
-            << expr->getSourceRange();
+        auto report = analyser.report(expr->getLHS(), check_name, "BC01",
+                        "Comparing a Boolean expression to a Boolean literal");
+        report << expr->getSourceRange();
     }
 }
 

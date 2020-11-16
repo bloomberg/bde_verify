@@ -34,10 +34,10 @@ void conversions(Analyser& analyser, const CXXConversionDecl* conv)
                     )
                 )
             ) {
-            analyser.report(conv, check_name, "CB01",
+            auto report = analyser.report(conv, check_name, "CB01",
                             "Consider using conversion to "
-                            "bsls::UnspecifiedBool<%0>::BoolType instead")
-                << conv->getParent()->getNameAsString();
+                            "bsls::UnspecifiedBool<%0>::BoolType instead");
+            report << conv->getParent()->getNameAsString();
         }
     }
 }

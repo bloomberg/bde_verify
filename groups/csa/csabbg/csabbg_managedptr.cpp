@@ -151,10 +151,11 @@ void report::operator()()
 
         if (ok1) {
             auto b = nodes.getNodeAs<BinaryOperator>("b");
-            a.report(e, check_name, tag = "MPOK01",
+            auto report = a.report(e, check_name, tag = "MPOK01",
                      "Shared pointer without deleter using default-assigned "
-                     "allocator variable")
-                << p->getSourceRange();
+                     "allocator variable");
+
+            report << p->getSourceRange();
             a.report(b->getLHS(), check_name, "MPOK01",
                      "Assignment is here",
                      false, DiagnosticIDs::Note);
@@ -162,34 +163,37 @@ void report::operator()()
 
         if (ok2) {
             auto v = nodes.getNodeAs<VarDecl>("v");
-            a.report(e, check_name, tag = "MPOK01",
+            auto report = a.report(e, check_name, tag = "MPOK01",
                      "Shared pointer without deleter using "
-                     "default-initialized allocator variable")
-                << p->getSourceRange();
+                     "default-initialized allocator variable");
+
+            report << p->getSourceRange();
             a.report(v, check_name, "MPOK01",
                      "Initialization is here",
                      false, DiagnosticIDs::Note);
         }
 
         if (ok3) {
-            a.report(e, check_name, tag = "MPOK01",
+            auto report = a.report(e, check_name, tag = "MPOK01",
                      "Shared pointer without deleter using default allocator "
-                     "directly")
-                << p->getSourceRange();
+                     "directly");
+
+            report << p->getSourceRange();
         }
 
         if (ok4) {
-            a.report(e, check_name, tag = "MPOK01",
-                     "Shared pointer should use allocator member as deleter")
-                << p->getSourceRange()
-                << l->getSourceRange();
+            auto report = a.report(e, check_name, tag = "MPOK01",
+                     "Shared pointer should use allocator member as deleter");
+            report << p->getSourceRange()
+                   << l->getSourceRange();
         }
 
         if (n1) {
-            a.report(e, check_name, tag = "MP01",
+            auto report = a.report(e, check_name, tag = "MP01",
                      "Shared pointer without deleter will use "
-                     "'operator delete'")
-                << n1->getSourceRange();
+                     "'operator delete'");
+            
+            report << n1->getSourceRange();
         }
 
         if (n2) {
@@ -202,18 +206,20 @@ void report::operator()()
                 l = ul->getSubExpr();
             }
             if (!isSame(p, l)) {
-                a.report(e, check_name, tag = "MP02",
-                         "Different allocator and deleter for shared pointer")
-                    << p->getSourceRange()
-                    << l->getSourceRange();
+                auto report = a.report(e, check_name, tag = "MP02",
+                         "Different allocator and deleter for shared pointer");
+                
+                report << p->getSourceRange()
+                       << l->getSourceRange();
             }
         }
 
         if (n3) {
-            a.report(e, check_name, tag = "MP03",
+            auto report = a.report(e, check_name, tag = "MP03",
                      "Deleter provided for non-placement allocation for "
-                     "shared pointer")
-                << n3->getSourceRange() << l->getSourceRange();
+                     "shared pointer");
+
+            report << n3->getSourceRange() << l->getSourceRange();
         }
 
         if (tag && ma) {

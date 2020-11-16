@@ -33,9 +33,9 @@ static void check(Analyser& analyser, CXXNewExpr const* expr)
                 bslma_allocator->getTypeForDecl()
                         ->getCanonicalTypeInternal() ==
                     pointee->getCanonicalTypeInternal()) {
-                analyser.report(placement, check_name, "ANP01",
-                        "Allocator new with pointer")
-                    << placement->getSourceRange();
+                auto report = analyser.report(placement, check_name, "ANP01",
+                        "Allocator new with pointer");
+                report << placement->getSourceRange();
             }
         }
     }

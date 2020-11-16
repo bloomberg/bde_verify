@@ -411,10 +411,10 @@ void report::process_parameter_list(PList          *pl,
         }
 
         if (!one_per_line && !all_on_one_line) {
-            a.report(bad, check_name, tagline,
+            auto report = a.report(bad, check_name, tagline,
                      "%0 parameters should be all on a "
-                     "single line or each on a separate line")
-                << type;
+                     "single line or each on a separate line");
+            report << type;
         }
         else if (one_per_line) {
             Location anr;
@@ -435,9 +435,10 @@ void report::process_parameter_list(PList          *pl,
                 if (parm->getIdentifier() &&
                     (i == 0 || anp.line() != an.line()) &&
                     an.column() != anr.column()) {
-                    a.report(an.location(), check_name, tagalign,
-                             "%0 parameter names should align vertically")
-                        << type;
+                    auto report = a.report(an.location(), check_name, tagalign,
+                             "%0 parameter names should align vertically");
+                    
+                    report << type;
                     a.report(anr.location(), check_name, tagalign,
                              "Rightmost name is here", false,
                              DiagnosticIDs::Note);
@@ -807,10 +808,11 @@ int report::process(Location l, bool greater, int lastdiff)
                 long_offset == exact_offset) {
                 a.report(l.location(), check_name, "IND01",
                          "Possibly mis-indented line");
-                a.report(l.location(), check_name, "IND01",
+                auto report = a.report(l.location(), check_name, "IND01",
                          "Correct version may be\n%0",
-                         false, DiagnosticIDs::Note)
-                    << expect;
+                         false, DiagnosticIDs::Note);
+                
+                report << expect;
             }
         }
         done.second = diff;
