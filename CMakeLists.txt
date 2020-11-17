@@ -7,6 +7,8 @@ set(BDE_VERIFY_VERSION_MINOR "3")
 set(BDE_VERIFY_VERSION_PATCH "15")
 set(BDE_VERIFY_VERSION "${BDE_VERIFY_VERSION_MAJOR}.${BDE_VERIFY_VERSION_MINOR}.${BDE_VERIFY_VERSION_PATCH}")
 
+option(HONOR_INSTALL_PREFIX "Install on the CMAKE_INSTALL_PREFIX, without changing it" OFF)
+
 add_subdirectory(bde-verify-vs)
 
 find_package(LLVM REQUIRED)
@@ -361,19 +363,21 @@ llvmlib(rt)
 llvmlib(tinfo)
 llvmlib(malloc)
 
+if (NOT HONOR_INSTALL_PREFIX)
+  string(REGEX REPLACE
+      "^.*[/\\]([^/\\]*)$"
+      "${CMAKE_CURRENT_SOURCE_DIR}/${CMAKE_SYSTEM_NAME}-\\1"
+      CMAKE_INSTALL_PREFIX
+      "/${CMAKE_CXX_COMPILER}"
+  )
+  string(REGEX REPLACE
+      "[.].*$"
+      ""
+      CMAKE_INSTALL_PREFIX
+      ${CMAKE_INSTALL_PREFIX}
+  )
+endif()
 message("install prefix = ${CMAKE_INSTALL_PREFIX}")
-string(REGEX REPLACE
-    "^.*[/\\]([^/\\]*)$"
-    "${CMAKE_CURRENT_SOURCE_DIR}/${CMAKE_SYSTEM_NAME}-\\1"
-    CMAKE_INSTALL_PREFIX
-    "/${CMAKE_CXX_COMPILER}"
-)
-string(REGEX REPLACE
-    "[.].*$"
-    ""
-    CMAKE_INSTALL_PREFIX
-    ${CMAKE_INSTALL_PREFIX}
-)
 
 install(TARGETS
     csabase
