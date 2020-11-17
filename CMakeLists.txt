@@ -378,6 +378,7 @@ if (NOT HONOR_INSTALL_PREFIX)
   )
 endif()
 message("install prefix = ${CMAKE_INSTALL_PREFIX}")
+message("If this seems wrong, turn HONOR_INSTALL_PREFIX ON or OFF")
 
 install(TARGETS
     csabase
