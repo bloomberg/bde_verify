@@ -2,7 +2,9 @@
 #ifndef INCLUDED_CSAGLB_INCLUDES
 #define INCLUDED_CSAGLB_INCLUDES
 
+#include <llvm/ADT/Optional.h>
 #include <llvm/ADT/StringRef.h>
+#include <clang/Basic/FileManager.h>
 #include <clang/Basic/SourceLocation.h>
 #include <clang/Lex/Token.h>
 #include <map>
@@ -30,21 +32,19 @@
 namespace csabase {
 struct IncludesData {
     struct Inclusion {
-        Inclusion() : d_fe(0) { }
-
-        clang::SourceRange      d_fullRange;
+        clang::SourceRange                  d_fullRange;
             // The full range of the inclusion, including the include-guard
             // section if present.
-        clang::SourceRange      d_guard;
+        clang::SourceRange                  d_guard;
             // The range of the include guard on the #ifndef line if present.
-        clang::SourceRange      d_file;
+        clang::SourceRange                  d_file;
             // The range of the file name, without bracketing <> or "".
-        clang::SourceRange      d_fullFile;
+        clang::SourceRange                  d_fullFile;
             // The range of the file name, with bracketing <> or "".
-        clang::SourceRange      d_definedGuard;
+        clang::SourceRange                  d_definedGuard;
             // The range of the guard definition, if present, including the
             // #define.
-        const clang::FileEntry *d_fe;
+        llvm::Optional<clang::FileEntryRef> d_fe;
             // The file entry for the included file, if supplied by an
             // InclusionDirective callback.
     };

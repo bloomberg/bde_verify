@@ -110,7 +110,7 @@ public:
 
     utils::event<decltype(&Base::FileChanged)> onPPFileChanged;
 
-    void FileSkipped(const clang::FileEntry            &ParentFile,
+    void FileSkipped(const clang::FileEntryRef         &SkippedFile,
                      const clang::Token                &FilenameTok,
                      clang::SrcMgr::CharacteristicKind  FileType)
     override;

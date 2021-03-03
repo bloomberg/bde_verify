@@ -7,6 +7,8 @@
 # complicated enough to warrant having a script rather than just
 # documentation.
 
+set -x
+
 OS=$(uname -s)
 
 if [ $# -lt 2 -o "${1:0:23}" != "-DCMAKE_INSTALL_PREFIX=" -o ! -d "${!#}" ]
@@ -45,24 +47,21 @@ Linux)
     L1=$GCCDIR/lib64
     L2=/usr/lib64
     L="-L $L1 -L $L2 -Wl,-R,$L1,-R,$L2 -fno-use-linker-plugin"
-    F="-D_GLIBCXX_USE_CXX11_ABI=0"
     targets="'X86'"
     ;;
 SunOS)
     L1=$GCCDIR/lib/sparcv9
     L2=/usr/lib/sparcv9
     L="-L $L1 -L $L2 -Wl,-R,$L1,-R,$L2"
-    F="-D_GLIBCXX_USE_CXX11_ABI=1"
     E=-DLIBXML2_LIBRARIES=/usr/lib/sparcv9/libxml2.so
     targets="'Sparc'"
     ;;
 Darwin)
     if ! which aspell > /dev/null; then
-        echo >&2 "Prerequisit 'aspell' is not installed."
+        echo >&2 "Prerequisite 'aspell' is not installed."
         echo >&2 "Try 'brew install aspell'."
         exit 1
     fi
-    W="-Wno-unused-function"
     targets="'X86'"
     ;;
 *)
@@ -71,16 +70,18 @@ Darwin)
     ;;
 esac
 
-W="-Wno-unused-function"
+W="-Wno-unused-function -Wno-redundant-move"
+F="-fPIC"
 
 cmake                                                                         \
     -DCMAKE_CXX_COMPILER="$CXX"                                               \
     -DCMAKE_C_COMPILER="$CC"                                                  \
     -DCMAKE_CXX_FLAGS="-m64 $L $W $F $CXXFLAGS"                               \
-    -DCMAKE_C_FLAGS="-m64 $L $W $F $CFLAGS"                                   \
+    -DCMAKE_C_FLAGS="-m64 $L $F $CFLAGS"                                      \
     -DCMAKE_EXE_LINKER_FLAGS="-m64 $L $W $F $LDFLAGS"                         \
     -DCMAKE_BUILD_TYPE=MinSizeRel                                             \
     -DLLVM_LIBDIR_SUFFIX=64                                                   \
     -DLLVM_TARGETS_TO_BUILD=$targets                                          \
     -DLLVM_ENABLE_TERMINFO=OFF                                                \
+    -DLLVM_ENABLE_LIBXML2=OFF                                                 \
     $E "$@"

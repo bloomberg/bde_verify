@@ -125,7 +125,7 @@ void report::operator()(SourceLocation              HashLoc,
     inclusion.d_file = key;
     inclusion.d_fullRange = SourceRange(HashLoc, FilenameRange.getEnd());
     if (File) {
-        inclusion.d_fe = File;
+        inclusion.d_fe = FileEntryRef(FileName, *File);
     }
 }
 

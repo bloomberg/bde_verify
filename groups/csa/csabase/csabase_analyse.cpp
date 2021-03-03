@@ -172,7 +172,7 @@ AnalyseConsumer::HandleTranslationUnit(ASTContext&)
         SourceManager& m = analyser_.manager();
         std::map<std::string, clang::tooling::Replacements> mr;
         for (const auto &r : analyser_.replacements()) {
-            auto &rs = mr[r.getFilePath()];
+            auto &rs = mr[r.getFilePath().str()];
             clang::tooling::Replacement shifted(
                 r.getFilePath(),
                 rs.getShiftedCodePosition(r.getOffset()),
@@ -207,7 +207,7 @@ AnalyseConsumer::HandleTranslationUnit(ASTContext&)
                 }
             }
             std::string rewritten_file =
-                analyser_.get_rewrite_file(fe->getName());
+                analyser_.get_rewrite_file(fe->getName().str());
             const int MAX_TRIES = 10;
             int tries;
             llvm::SmallVector<char, 256> path;
@@ -275,7 +275,7 @@ std::unique_ptr<ASTConsumer>
 PluginAction::CreateASTConsumer(CompilerInstance& compiler,
                                 llvm::StringRef source)
 {
-    return llvm::make_unique<AnalyseConsumer>(compiler, source, *this);
+    return std::make_unique<AnalyseConsumer>(compiler, source.str(), *this);
 }
 
 // -----------------------------------------------------------------------------
@@ -306,7 +306,7 @@ bool PluginAction::ParseArgs(CompilerInstance const& compiler,
             config_.push_back("load " + arg.substr(7).str());
         }
         else if (arg.startswith("config-line=")) {
-            config_.push_back(arg.substr(12));
+            config_.push_back(arg.substr(12).str());
         }
         else if (arg.startswith("tool=")) {
             tool_name_ = "[" + arg.substr(5).str() + "] ";

@@ -21,7 +21,7 @@ CXXFLAGS   += -m64 -fPIC -O3 -std=c++17
 CXXFLAGS   += -Wall -Wno-unused-local-typedefs -Wno-comment
 CXXFLAGS   += -Wno-ignored-attributes -Wno-unused-function
 CXXFLAGS   += -Wno-deprecated-declarations
-INCFLAGS   += -I$(PREFIX)/include -I/opt/swt/include
+INCFLAGS   += -I$(PREFIX)/include
 
 # Set up locations and flags for the compiler that will build bde_verify.
 ifeq ($(notdir $(CXX)),clang++)
@@ -31,13 +31,10 @@ ifeq ($(notdir $(CXX)),g++)
     CXXFLAGS   += -Wno-maybe-uninitialized
 endif
 
-# _GLIBCXX_USE_CXX11_ABI must match how the clang libraries were built
 ifeq ($(SYSTEM),Linux)
     AR          = /usr/bin/ar
-    CXXFLAGS   += -D_GLIBCXX_USE_CXX11_ABI=0
 else ifeq ($(SYSTEM),SunOS)
     AR          = /usr/ccs/bin/ar
-    CXXFLAGS   += -D_GLIBCXX_USE_CXX11_ABI=1
     CXXFLAGS   += -DBYTE_ORDER=BIG_ENDIAN
 endif
 

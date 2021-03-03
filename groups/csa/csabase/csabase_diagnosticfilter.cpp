@@ -46,7 +46,7 @@ csabase::DiagnosticFilter::DiagnosticFilter(Analyser const&    analyser,
             while (diffs.size() != 0) {
                 auto p = diffs.split('\n');
                 if (file.match(p.first, &matches)) {
-                    filename = matches[1];
+                    filename = matches[1].str();
                 }
                 else if (lines.match(p.first, &matches)) {
                     auto lc = matches[1].split(',');
@@ -119,7 +119,7 @@ csabase::DiagnosticFilter::HandleDiagnostic(DiagnosticsEngine::Level level,
             if (n != file.npos) {
                 file = file.drop_front(n + 1);
             }
-            auto fi = s_diff_lines.find(file);
+            auto fi = s_diff_lines.find(file.str());
             if (fi != s_diff_lines.end()) {
                 unsigned line = sm.getSpellingLineNumber(sl);
                 handle = fi->second.count(line);

@@ -84,12 +84,17 @@ else()
     add_definitions(-D__STDC_CONSTANT_MACROS)
     add_definitions(-DSPELL_CHECK=1)
 
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-use-linker-plugin")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-common")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-strict-aliasing")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-exceptions")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-comment")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-redundant-move")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-function")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-local-typedefs")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-comment")
 endif()
@@ -99,7 +104,6 @@ if(CMAKE_SYSTEM_NAME STREQUAL "SunOS")
     foreach(L
         ${GCCDIR}/lib/sparcv9
         $ENV{PREFIX}/lib64
-        /opt/swt/lib64
         /usr/lib/sparcv9
     )
         set(CMAKE_EXE_LINKER_FLAGS
@@ -109,7 +113,6 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     foreach(L
         ${GCCDIR}/lib64
         $ENV{PREFIX}/lib64
-        /opt/swt/lib64
         /usr/lib64
     )
         set(CMAKE_EXE_LINKER_FLAGS
@@ -133,7 +136,6 @@ include_directories(
     ${G}/csaglb
     ${LLVM_INCLUDE_DIRS}
     /opt/bb/include
-    /opt/swt/include
     /usr/local/include  # For aspell.h
 )
 
@@ -259,7 +261,6 @@ set(CMAKE_SKIP_RPATH ON)
 
 set(CMAKE_LIBRARY_PATH
     ${LLVM_LIBRARY_DIRS}
-    /opt/swt/lib64
     /opt/bb/lib64
     /usr/lib/sparcv9
     /usr/lib64
@@ -271,7 +272,6 @@ function(llvmlib name)
                  PATHS ${LLVM_LIBRARY_DIRS}
                        /lib64
                        /opt/bb/lib64
-                       /opt/swt/lib64
                        /usr/lib/sparcv9
                        /usr/lib64
     )
@@ -315,6 +315,7 @@ llvmlib(LLVMSparcCodeGen)
 llvmlib(LLVMSparcAsmParser)
 llvmlib(LLVMSparcDesc)
 llvmlib(LLVMSparcInfo)
+llvmlib(LLVMFrontendOpenMP)
 llvmlib(LLVMOption)
 llvmlib(LLVMX86AsmParser)
 llvmlib(LLVMX86CodeGen)
@@ -328,8 +329,8 @@ llvmlib(LLVMDebugInfoMSF)
 llvmlib(LLVMX86Desc)
 llvmlib(LLVMMCDisassembler)
 llvmlib(LLVMX86Info)
-llvmlib(LLVMX86Utils)
 llvmlib(LLVMCodeGen)
+llvmlib(LLVMCFGuard)
 llvmlib(LLVMTarget)
 llvmlib(LLVMCoroutines)
 llvmlib(LLVMipo)
@@ -344,6 +345,7 @@ llvmlib(LLVMTransformUtils)
 llvmlib(LLVMBitWriter)
 llvmlib(LLVMAnalysis)
 llvmlib(LLVMObject)
+llvmlib(LLVMTextAPI)
 llvmlib(LLVMMCParser)
 llvmlib(LLVMMC)
 llvmlib(LLVMBitReader)

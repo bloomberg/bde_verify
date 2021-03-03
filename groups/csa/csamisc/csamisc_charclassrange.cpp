@@ -57,14 +57,14 @@ void report::operator()(const CallExpr *expr)
     if (!f ||
         f->getNumParams() != 1 ||
         !f->getIdentifier() ||
-        !is.count(f->getName())) {
+        !is.count(f->getName().str())) {
         return;                                                       // RETURN
     }
     const DeclContext *dc = f->getParent();
     if (dc->isNamespace()) {
         const NamespaceDecl *ns = llvm::dyn_cast<NamespaceDecl>(dc);
         if (ns->isAnonymousNamespace() ||
-            !a.is_standard_namespace(ns->getName())) {
+            !a.is_standard_namespace(ns->getName().str())) {
             return;                                                   // RETURN
         }
     }

@@ -4,6 +4,7 @@
 #define INCLUDED_CSABASE_ANALYSER
 
 #include <clang/AST/ASTContext.h>
+#include <clang/AST/ParentMapContext.h>
 #include <clang/Basic/Diagnostic.h>
 #include <clang/Basic/SourceLocation.h>
 #include <clang/Tooling/Refactoring.h>

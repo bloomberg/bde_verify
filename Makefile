@@ -39,7 +39,7 @@ CXXFLAGS   += -Wno-ignored-attributes -Wno-unused-function
 CXXFLAGS   += -Wno-deprecated-declarations
 
 CXXFLAGS   += -DSPELL_CHECK=1
-INCFLAGS   += -I$(PREFIX)/include -I/opt/swt/include
+INCFLAGS   += -I$(PREFIX)/include
 
 GCCLOCALLIBDIRS = ${shell \
       $(GCCDIR)/bin/g++ -xc++ $(CXXFLAGS) -\#\#\# /dev/null 2>&1 | \
@@ -67,16 +67,13 @@ ifeq ($(notdir $(CXX)),g++)
     CXXFLAGS   += -Wno-maybe-uninitialized
 endif
 
-# _GLIBCXX_USE_CXX11_ABI must match how the clang libraries were built
 ifeq ($(SYSTEM),Linux)
     AR          = /usr/bin/ar
-    CXXFLAGS   += -D_GLIBCXX_USE_CXX11_ABI=0
     LIBDIRS     = $(LLVMDIR)/lib64                                            \
                   $(PREFIX)/lib64                                             \
                   $(GCCLOCALLIBDIRS)                                          \
                   /lib64                                                      \
-                  $(GCCOTHERLIBDIRS)                                          \
-                  /opt/swt/lib64
+                  $(GCCOTHERLIBDIRS)
     LDFLAGS    += -Wl,--enable-new-dtags
     LDFLAGS    += -Wl,-rpath,'$$ORIGIN/../../lib64'
     LDFLAGS    += $(foreach L,$(LIBDIRS),                                     \
@@ -86,12 +83,11 @@ ifeq ($(SYSTEM),Linux)
     endif
 else ifeq ($(SYSTEM),SunOS)
     AR          = /usr/ccs/bin/ar
-    CXXFLAGS   += -D_GLIBCXX_USE_CXX11_ABI=1
     CXXFLAGS   += -DBYTE_ORDER=BIG_ENDIAN
     LIBDIRS     = $(LLVMDIR)/lib64                                            \
                   $(PREFIX)/lib64                                             \
                   $(GCCLOCALLIBDIRS)                                          \
-                  $(GCCOTHERLIBDIRS)                                          \
+                  $(GCCOTHERLIBDIRS)
     LDFLAGS    += -Wl,-rpath,'$$ORIGIN/../../lib64'
     LDFLAGS    += $(foreach L,$(LIBDIRS),                                     \
                     -L$(abspath $(L)) -Wl,-rpath,$(abspath $(L)))
@@ -253,6 +249,7 @@ LIBS     =    -l$(LCB)                                                        \
               -lLLVMDebugInfoMSF                                              \
               -lLLVMMCDisassembler                                            \
               -lLLVMCodeGen                                                   \
+              -lLLVMCFGuard                                                   \
               -lLLVMTarget                                                    \
               -lLLVMCoroutines                                                \
               -lLLVMipo                                                       \
@@ -267,6 +264,7 @@ LIBS     =    -l$(LCB)                                                        \
               -lLLVMBitWriter                                                 \
               -lLLVMAnalysis                                                  \
               -lLLVMObject                                                    \
+              -lLLVMTextAPI                                                   \
               -lLLVMMCParser                                                  \
               -lLLVMMC                                                        \
               -lLLVMBitReader                                                 \
@@ -280,7 +278,6 @@ LIBS     =    -l$(LCB)                                                        \
               -lpthread                                                       \
               -ldl                                                            \
               -lz                                                             \
-              -lstdc++                                                        \
               -laspell                                                        \
               -lm                                                             \
               $(EXTRALIBS)
@@ -366,8 +363,9 @@ check: install $(CNAMES)
 check-current: install $(CCURNAME)
 
 $(CNAMES):
-	$(VERBOSE) $(MAKE) DESTDIR=$(DESTDIR) -C $(@D) \
-            -k --no-print-directory check
+#	$(VERBOSE) $(MAKE) DESTDIR=$(DESTDIR) -C $(@D) \
+#            -k --no-print-directory check
+	$(VERBOSE) $(MAKE) DESTDIR=$(DESTDIR) -C $(@D) -k
 
 run: install $(RNAMES)
 run-current: install $(RCURNAME)

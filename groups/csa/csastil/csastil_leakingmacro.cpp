@@ -113,7 +113,7 @@ static void onTranslationUnitDone(Analyser* analyser)
     onCloseFile(analyser,
                 SourceLocation(),
                 "",
-                m.getFilename(m.getLocForStartOfFile(m.getMainFileID())));
+                m.getFilename(m.getLocForStartOfFile(m.getMainFileID())).str());
 }
 
 // ----------------------------------------------------------------------------

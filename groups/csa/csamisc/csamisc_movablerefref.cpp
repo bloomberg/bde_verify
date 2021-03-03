@@ -19,7 +19,6 @@
 #include <csabase_util.h>
 #include <llvm/ADT/Optional.h>
 #include <llvm/ADT/StringRef.h>
-#include <llvm/ADT/VariadicFunction.h>
 #include <utils/event.hpp>
 #include <utils/function.hpp>
 #include <string>

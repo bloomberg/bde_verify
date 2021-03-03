@@ -13,7 +13,7 @@ namespace csabase
 class diagnostic_builder
 {
   public:
-    diagnostic_builder();
+    //diagnostic_builder();
     diagnostic_builder(clang::DiagnosticBuilder other, bool always = true);
     diagnostic_builder& operator<<(long long argument);
     diagnostic_builder& operator<<(long argument);
@@ -26,11 +26,13 @@ class diagnostic_builder
     clang::DiagnosticBuilder builder_;
 };
 
+#if 0
 inline
 diagnostic_builder::diagnostic_builder()
 : empty_(true), builder_(clang::DiagnosticBuilder::getEmpty())
 {
 }
+#endif
 
 inline diagnostic_builder::diagnostic_builder(clang::DiagnosticBuilder other,
                                               bool                     always)

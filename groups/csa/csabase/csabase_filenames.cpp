@@ -37,13 +37,13 @@ std::map<std::string, csabase::FileName> csabase::FileName::s_file_names_;
 
 void csabase::FileName::reset(llvm::StringRef sr)
 {
-    auto i = s_file_names_.find(sr);
+    auto i = s_file_names_.find(sr.str());
     if (i != s_file_names_.end()) {
         *this = i->second;
         return;                                                       // RETURN
     }
     if (sr.startswith("<")) {  // Not a real file
-        name_ = full_ = sr;
+        name_ = full_ = sr.str();
         tag_ = "<";
     }
     else {
@@ -51,7 +51,7 @@ void csabase::FileName::reset(llvm::StringRef sr)
 #ifdef _MSC_VER
 #define realpath(path, buf) _fullpath(buf, path, sizeof(buf))
 #endif
-        full_ = sr;
+        full_ = sr.str();
         const char *pc = realpath(full_.c_str(), buf);
         if (pc) {
             full_ = pc;
@@ -83,7 +83,7 @@ void csabase::FileName::reset(llvm::StringRef sr)
             // Typical non-library component file, e.g.,
             // "/some/path/applications/m_NAME/m_NAME_COMP.cpp".
             package_ = component_.substr(0, under2);
-            pkgdir_ = subdir(directory_, package_);
+            pkgdir_ = subdir(directory_, package_).str();
             tag_ = component_.substr(0, 1);
         }
         else if (under != component_.npos) {
@@ -91,14 +91,14 @@ void csabase::FileName::reset(llvm::StringRef sr)
             // "/some/path/groups/GRP/GRPPKG/GRPPKG_COMP.cpp".
             package_ = component_.substr(0, under);
             group_   = package_.substr(0, 3);
-            pkgdir_ = subdir(directory_, package_);
-            grpdir_ = subdir(pkgdir_, group_);
+            pkgdir_ = subdir(directory_, package_).str();
+            grpdir_ = subdir(pkgdir_, group_).str();
         }
         else {
             // Something else - don't look for package structure.
         }
     }
-    s_file_names_[sr] = *this;
+    s_file_names_[sr.str()] = *this;
 
 #if 0
     ERRS() << "component   " << component_; ERNL();

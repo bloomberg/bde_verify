@@ -139,8 +139,8 @@ void report::operator()(const FunctionDecl *decl)
         }
     }
     SourceLocation sl = m.getExpansionLoc(decl->getLocation());
-    if (a.is_header(m.getFilename(sl)) &&
-        !a.is_system_header(m.getFilename(sl)) &&
+    if (a.is_header(m.getFilename(sl).str()) &&
+        !a.is_system_header(m.getFilename(sl).str()) &&
         isFree(decl) &&
         !depends(sl, decl->getTypeSourceInfo()->getType())) {
         a.report(sl, check_name, "AQS01",

@@ -87,7 +87,7 @@ const LinkageSpecDecl *report::get_local_linkage(SourceLocation sl)
 
 void report::set_prop(SourceLocation sl, llvm::StringRef file)
 {
-    if (!d.d_prop[file].isValid()) {
+    if (!d.d_prop[file.str()].isValid()) {
         for (SourceLocation isl = sl;
              isl.isValid();
              isl = m.getIncludeLoc(m.getFileID(isl))) {
@@ -99,10 +99,10 @@ void report::set_prop(SourceLocation sl, llvm::StringRef file)
              isl.isValid();
              isl = m.getIncludeLoc(m.getFileID(isl))) {
             llvm::StringRef f = m.getFilename(isl);
-            if (d.d_prop[f].isValid()) {
+            if (d.d_prop[f.str()].isValid()) {
                 break;
             }
-            d.d_prop[f] = sl;
+            d.d_prop[f.str()] = sl;
         }
     }
 }
@@ -123,7 +123,7 @@ void report::operator()()
 
     for (auto& c : a.attachment<CommentData>().d_comments) {
         llvm::StringRef f = c.first;
-        if (!d.d_prop[f].isValid()) {
+        if (!d.d_prop[f.str()].isValid()) {
             for (auto r : c.second) {
                 llvm::StringRef s = a.get_source(r);
                 if (nsre.match(s, &matches)) {
@@ -147,7 +147,7 @@ void report::operator()()
 
     for (const auto& f : a.attachment<IncludesData>().d_inclusions) {
         FullSourceLoc fsl = f.first;
-        if (special.count(llvm::sys::path::filename(m.getFilename(fsl)))) {
+        if (special.count(llvm::sys::path::filename(m.getFilename(fsl)).str())) {
             continue;
         }
         SourceLocation         sl  = fsl.getExpansionLoc();
@@ -156,10 +156,10 @@ void report::operator()()
                                        : a.get_source(f.second.d_file);
         if (!lsd ||
             lsd->getLanguage() != LinkageSpecDecl::lang_c ||
-            !d.d_prop[file].isValid() ||
+            !d.d_prop[file.str()].isValid() ||
             a.is_system_header(sl) ||
             a.is_system_header(lsd) ||
-            a.is_system_header(d.d_prop[file])) {
+            a.is_system_header(d.d_prop[file.str()])) {
             continue;
         }
         a.report(sl, check_name, "IC01",
@@ -169,7 +169,7 @@ void report::operator()()
         a.report(lsd->getLocation(), check_name, "IC01",
                  "C linkage specification here",
                  true, DiagnosticIDs::Note);
-        a.report(d.d_prop[file], check_name, "IC01",
+        a.report(d.d_prop[file.str()], check_name, "IC01",
                  "'%0' evidence here",
                  true, DiagnosticIDs::Note)
             << ns;

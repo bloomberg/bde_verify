@@ -69,7 +69,7 @@ int cc1_main(ArrayRef<const char *> Argv, const char *Argv0, void *MainAddr)
     TextDiagnosticBuffer *DiagsBuffer = new TextDiagnosticBuffer;
     DiagnosticsEngine     Diags(DiagID, &*DiagOpts, DiagsBuffer);
     bool                  Success = CompilerInvocation::CreateFromArgs(
-        Clang->getInvocation(), Argv.begin(), Argv.end(), Diags);
+        Clang->getInvocation(), Argv, Diags);
 
     if (Clang->getHeaderSearchOpts().UseBuiltinIncludes &&
         Clang->getHeaderSearchOpts().ResourceDir.empty())
@@ -146,7 +146,7 @@ int csabase::run(int argc_, const char **argv_)
     std::set<std::string> defined, included;
 
     auto ins = [&](StringRef s, size_t i) {
-        scratch.push_back(s);
+        scratch.push_back(s.str());
         argv.insert(argv.begin() + i, scratch.back().data());
         return i + 1;
     };
@@ -186,27 +186,27 @@ int csabase::run(int argc_, const char **argv_)
         }
         else if (arg == "-D") {
             StringRef def = argv[i + 1];
-            defined.insert(def.split('=').first);
+            defined.insert(def.split('=').first.str());
             ++i;
         }
         else if (arg.startswith("-D")) {
-            defined.insert(arg.drop_front(2).split('=').first);
+            defined.insert(arg.drop_front(2).split('=').first.str());
         }
         else if (arg == "-U") {
             StringRef def = argv[i + 1];
-            defined.insert(def);
+            defined.insert(def.str());
             ++i;
         }
         else if (arg.startswith("-U")) {
-            defined.insert(arg.drop_front(2));
+            defined.insert(arg.drop_front(2).str());
         }
         else if (arg == "-I") {
             StringRef dir = argv[i + 1];
-            included.insert(dir);
+            included.insert(dir.str());
             ++i;
         }
         else if (arg.startswith("-I")) {
-            included.insert(arg.drop_front(2));
+            included.insert(arg.drop_front(2).str());
         }
         else if (after_dashes) {
             if (!Compilations) {
@@ -226,7 +226,7 @@ int csabase::run(int argc_, const char **argv_)
                                     def = cc.CommandLine[++j];
                                 }
                                 if (def.size() > 0 &&
-                                    defined.insert(def).second) {
+                                    defined.insert(def.str()).second) {
                                     i = ins("-D", i);
                                     i = ins(def, i);
                                 }
@@ -238,7 +238,7 @@ int csabase::run(int argc_, const char **argv_)
                                     dir = cc.CommandLine[++j];
                                 }
                                 if (dir.size() > 0 &&
-                                    included.insert(dir).second) {
+                                    included.insert(dir.str()).second) {
                                     i = ins("-I", i);
                                     if (sys::path::is_absolute(dir)) {
                                         i = ins(dir, i);
@@ -317,14 +317,14 @@ int csabase::run(int argc_, const char **argv_)
     }
 
     IntrusiveRefCntPtr<DiagnosticOptions> DiagOpts = new DiagnosticOptions;
-    std::unique_ptr<OptTable> Opts(createDriverOptTable());
+    const OptTable &Opts = getDriverOptTable();
     unsigned MissingIndex, MissingCount;
-    InputArgList Args = Opts->ParseArgs(argv, MissingIndex, MissingCount);
+    InputArgList Args = Opts.ParseArgs(argv, MissingIndex, MissingCount);
     (void)ParseDiagnosticArgs(*DiagOpts, Args);
 
     TextDiagnosticPrinter *DiagClient =
         new TextDiagnosticPrinter(errs(), &*DiagOpts);
-    DiagClient->setPrefix(ExFile);
+    DiagClient->setPrefix(ExFile.str());
 
     IntrusiveRefCntPtr<DiagnosticIDs> DiagID(new DiagnosticIDs());
 
