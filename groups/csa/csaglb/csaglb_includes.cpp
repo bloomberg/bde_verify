@@ -95,11 +95,19 @@ void report::operator()(SourceLocation Loc, SourceLocation IfLoc)
                 inclusion.d_definedGuard = OffRange(10);
             }
             if (!inclusion.d_fe) {
-                const DirectoryLookup *dl = 0;
-                inclusion.d_fe = p.LookupFile(fsl,
-                         a.get_source(inclusion.d_file),
-                         a.get_source(inclusion.d_fullFile)[0] == '<',
-                         0, 0, dl, 0, 0, 0, 0, 0);
+                const DirectoryLookup *curDir = 0;
+                inclusion.d_fe =
+                    p.LookupFile(fsl,
+                                 a.get_source(inclusion.d_file),
+                                 a.get_source(inclusion.d_fullFile)[0] == '<',
+                                 nullptr,
+                                 nullptr,
+                                 curDir,
+                                 nullptr,
+                                 nullptr,
+                                 nullptr,
+                                 nullptr,
+                                 nullptr);
             }
         }
     }
@@ -119,13 +127,31 @@ void report::operator()(SourceLocation              HashLoc,
 {
     SourceRange key(FilenameRange.getBegin().getLocWithOffset(1),
                     FilenameRange.getEnd().getLocWithOffset(-2));
-    IncludesData::Inclusion& inclusion =
-        d.d_inclusions[FullSourceLoc(key.getBegin(), m)];
+
+    FullSourceLoc fsl(key.getBegin(), m);
+
+    if (d.d_inclusions.count(fsl)) {
+        return;
+    }
+    IncludesData::Inclusion& inclusion = d.d_inclusions[fsl];
     inclusion.d_fullFile = FilenameRange.getAsRange();
     inclusion.d_file = key;
     inclusion.d_fullRange = SourceRange(HashLoc, FilenameRange.getEnd());
     if (File) {
-        inclusion.d_fe = FileEntryRef(FileName, *File);
+        // inclusion.d_fe = FileEntryRef(FileName, *File);
+        const DirectoryLookup *curDir = 0;
+        inclusion.d_fe =
+            p.LookupFile(fsl,
+                         a.get_source(inclusion.d_file),
+                         a.get_source(inclusion.d_fullFile)[0] == '<',
+                         nullptr,
+                         nullptr,
+                         curDir,
+                         nullptr,
+                         nullptr,
+                         nullptr,
+                         nullptr,
+                         nullptr);
     }
 }
 

@@ -7,11 +7,31 @@ set(BDE_VERIFY_VERSION_MINOR "3")
 set(BDE_VERIFY_VERSION_PATCH "18")
 set(BDE_VERIFY_VERSION "${BDE_VERIFY_VERSION_MAJOR}.${BDE_VERIFY_VERSION_MINOR}.${BDE_VERIFY_VERSION_PATCH}")
 
-add_subdirectory(bde-verify-vs)
+if(MSVC)
+    add_subdirectory(bde-verify-vs)
+endif()
 
-find_package(LLVM REQUIRED)
+find_package(LLVM REQUIRED CONFIG)
+message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
+message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
+
+include_directories(${LLVM_INCLUDE_DIRS})
+link_directories(${LLVM_LIBRARY_DIRS})
+add_definitions(${LLVM_DEFINITIONS})
+
+set(CMAKE_EXE_LINKER_FLAGS ${LLVM_LD_FLAGS_STRING})
+set(CMAKE_POSITION_INDEPENDENT_CODE On)
+
+if (NOT ${LLVM_ENABLE_EH})
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-exceptions")
+endif()
+
+if (NOT ${LLVM_ENABLE_RTTI})
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti")
+endif()
+
 set(CLANG_RESOURCE_DIR
-    "${LLVM_INSTALL_PREFIX}/lib/clang/${LLVM_PACKAGE_VERSION}"
+    "${LLVM_INSTALL_PREFIX}/lib64/clang/${LLVM_PACKAGE_VERSION}"
     CACHE PATH "Clang resource directory")
 file(GLOB CLANG_RESOURCE_FILES "${CLANG_RESOURCE_DIR}/include/*.*")
 
@@ -80,23 +100,20 @@ else()
         add_compile_options("-Wno-mismatched-tags")
     endif()
 
-    add_definitions(-D__STDC_LIMIT_MACROS)
-    add_definitions(-D__STDC_CONSTANT_MACROS)
     add_definitions(-DSPELL_CHECK=1)
 
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-use-linker-plugin")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-common")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-strict-aliasing")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-exceptions")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-comment")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-redundant-move")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-function")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-local-typedefs")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-comment")
+    #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-use-linker-plugin")
+    #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-common")
+    #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-strict-aliasing")
+    #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-exceptions")
+    #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti")
+    #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64")
+    #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+    #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-comment")
+    #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations")
+    #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-redundant-move")
+    #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-function")
+    #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-local-typedefs")
 endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "SunOS")
@@ -106,8 +123,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "SunOS")
         $ENV{PREFIX}/lib64
         /usr/lib/sparcv9
     )
-        set(CMAKE_EXE_LINKER_FLAGS
-            "${CMAKE_EXE_LINKER_FLAGS} -Wl,-L,${L},-R,${L}")
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-L,${L},-R,${L}")
     endforeach(L)
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     foreach(L
@@ -115,8 +131,7 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
         $ENV{PREFIX}/lib64
         /usr/lib64
     )
-        set(CMAKE_EXE_LINKER_FLAGS
-            "${CMAKE_EXE_LINKER_FLAGS} -Wl,-L,${L},-rpath,${L}")
+        set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -Wl,-L,${L},-rpath,${L}")
     endforeach(L)
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility-inlines-hidden")
@@ -134,7 +149,6 @@ set(G ${CMAKE_CURRENT_SOURCE_DIR}/groups/csa)
 include_directories(
     ${G}/csabase
     ${G}/csaglb
-    ${LLVM_INCLUDE_DIRS}
     /opt/bb/include
     /usr/local/include  # For aspell.h
 )
@@ -161,7 +175,6 @@ add_library(csabase
     ${G}/csabase/csabase_visitor.cpp
 )
 
-target_compile_features(csabase PUBLIC cxx_auto_type)
 target_compile_definitions(csabase PRIVATE
                            BDE_VERIFY_VERSION="${BDE_VERIFY_VERSION}")
 
@@ -255,8 +268,6 @@ add_executable(bde_verify_bin
     ${G}/csaxform/csaxform_refactor_config.cpp
 )
 
-target_compile_features(bde_verify_bin PUBLIC cxx_auto_type)
-
 set(CMAKE_SKIP_RPATH ON)
 
 set(CMAKE_LIBRARY_PATH
@@ -270,8 +281,8 @@ function(llvmlib name)
     find_library(LIB${name}
                  NAMES ${name}
                  PATHS ${LLVM_LIBRARY_DIRS}
-                       /lib64
                        /opt/bb/lib64
+                       /lib64
                        /usr/lib/sparcv9
                        /usr/lib64
     )

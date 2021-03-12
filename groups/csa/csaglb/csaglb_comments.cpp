@@ -24,6 +24,7 @@ void CommentData::append(Analyser& analyser, SourceRange range)
     SourceManager& m = analyser.manager();
     d_allComments.emplace_back(range);
     CommentData::Ranges& c = d_comments[m.getFilename(range.getBegin()).str()];
+
     if (c.size() != 0 && areConsecutive(m, c.back(), range)) {
         c.back().setEnd(range.getEnd());
     } else {

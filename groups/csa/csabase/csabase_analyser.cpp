@@ -424,7 +424,7 @@ csabase::Analyser::report(SourceLocation where,
         return csabase::diagnostic_builder(
             compiler_.getDiagnostics().Report(where, id), always);
     }
-    return compiler_.getDiagnostics().Report(0);
+    return csabase::diagnostic_builder();
 }
 
 // -----------------------------------------------------------------------------

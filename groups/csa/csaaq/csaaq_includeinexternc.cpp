@@ -77,11 +77,11 @@ const LinkageSpecDecl *report::get_local_linkage(SourceLocation sl)
     for (const auto& r : d.d_linkages) {
         if (!m.isBeforeInTranslationUnit(sl, r.first.getBegin()) &&
             !m.isBeforeInTranslationUnit(r.first.getEnd(), sl) &&
-            m.getFileID(m.getExpansionLoc(sl)) ==
-            m.getFileID(m.getExpansionLoc(r.first.getBegin()))) {
-            result = r.second;
+            (m.getFileID(m.getExpansionLoc(sl)) ==
+                m.getFileID(m.getExpansionLoc(r.first.getBegin())))) {
+                result = r.second;
+            }
         }
-    }
     return result;
 }
 
@@ -95,6 +95,7 @@ void report::set_prop(SourceLocation sl, llvm::StringRef file)
                 return;
             }
         }
+
         for (SourceLocation isl = sl;
              isl.isValid();
              isl = m.getIncludeLoc(m.getFileID(isl))) {
@@ -150,10 +151,13 @@ void report::operator()()
         if (special.count(llvm::sys::path::filename(m.getFilename(fsl)).str())) {
             continue;
         }
+
         SourceLocation         sl  = fsl.getExpansionLoc();
+
         const LinkageSpecDecl *lsd = get_local_linkage(sl);
         StringRef              file = f.second.d_fe ? f.second.d_fe->getName()
                                        : a.get_source(f.second.d_file);
+
         if (!lsd ||
             lsd->getLanguage() != LinkageSpecDecl::lang_c ||
             !d.d_prop[file.str()].isValid() ||
