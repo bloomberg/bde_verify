@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.16)
 
 project(bde_verify)
 
@@ -7,20 +7,31 @@ set(BDE_VERIFY_VERSION_MINOR "3")
 set(BDE_VERIFY_VERSION_PATCH "18")
 set(BDE_VERIFY_VERSION "${BDE_VERIFY_VERSION_MAJOR}.${BDE_VERIFY_VERSION_MINOR}.${BDE_VERIFY_VERSION_PATCH}")
 
-if(MSVC)
-    add_subdirectory(bde-verify-vs)
+if(CMAKE_SIZEOF_VOID_P EQUAL 4)
+    message(FATAL_ERROR "No support for 32 bit build.")
 endif()
 
-find_package(LLVM REQUIRED CONFIG)
+# Discovering llvm, clang and clang tools.
+if (DEFINED ENV{DISTRIBUTION_REFROOT})
+    set(LLVM_INSTALL_PATH "$ENV{DISTRIBUTION_REFROOT}/opt/bb/lib/llvm-11.0"
+        CACHE STRING "Path to llvm installation")
+elseif(DEFINED ENV{LLVM_INSTALL_PATH})
+    set(LLVM_INSTALL_PATH "$ENV{LLVM_INSTALL_PATH}"
+        CACHE STRING "Path to llvm installation")
+elseif()
+    message(FATAL_ERROR "No LLVM installation found")
+endif()
+
+list(APPEND CMAKE_PREFIX_PATH "${LLVM_INSTALL_PATH}/lib64/cmake/clang")
+
+find_package(Clang REQUIRED)
+find_package(clangmetatool REQUIRED)
+
+# Clang will transitively find llvm.
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
-
-include_directories(${LLVM_INCLUDE_DIRS})
-link_directories(${LLVM_LIBRARY_DIRS})
-add_definitions(${LLVM_DEFINITIONS})
-
-set(CMAKE_EXE_LINKER_FLAGS ${LLVM_LD_FLAGS_STRING})
-set(CMAKE_POSITION_INDEPENDENT_CODE On)
+message(STATUS "Found Clang ${CLANG_PACKAGE_VERSION}")
+message(STATUS "Found Clang include ${CLANG_INCLUDE_DIRS}")
 
 if (NOT ${LLVM_ENABLE_EH})
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-exceptions")
@@ -30,12 +41,17 @@ if (NOT ${LLVM_ENABLE_RTTI})
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti")
 endif()
 
+set(CMAKE_EXE_LINKER_FLAGS ${LLVM_LD_FLAGS_STRING})
+add_definitions(${LLVM_DEFINITIONS})
+
 set(CLANG_RESOURCE_DIR
     "${LLVM_INSTALL_PREFIX}/lib64/clang/${LLVM_PACKAGE_VERSION}"
     CACHE PATH "Clang resource directory")
 file(GLOB CLANG_RESOURCE_FILES "${CLANG_RESOURCE_DIR}/include/*.*")
 
 if(MSVC)
+    add_subdirectory(bde-verify-vs)
+
     add_definitions(
         "/wd4141"
         "/wd4146"
@@ -100,48 +116,6 @@ else()
         add_compile_options("-Wno-mismatched-tags")
     endif()
 
-    add_definitions(-DSPELL_CHECK=1)
-
-    #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-use-linker-plugin")
-    #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-common")
-    #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-strict-aliasing")
-    #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-exceptions")
-    #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti")
-    #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64")
-    #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
-    #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-comment")
-    #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations")
-    #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-redundant-move")
-    #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-function")
-    #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-local-typedefs")
-endif()
-
-if(CMAKE_SYSTEM_NAME STREQUAL "SunOS")
-    add_definitions(-DBYTE_ORDER=BIG_ENDIAN)
-    foreach(L
-        ${GCCDIR}/lib/sparcv9
-        $ENV{PREFIX}/lib64
-        /usr/lib/sparcv9
-    )
-        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-L,${L},-R,${L}")
-    endforeach(L)
-elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    foreach(L
-        ${GCCDIR}/lib64
-        $ENV{PREFIX}/lib64
-        /usr/lib64
-    )
-        set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -Wl,-L,${L},-rpath,${L}")
-    endforeach(L)
-elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility-inlines-hidden")
-    foreach(L
-        ${LLVM_INSTALL_PREFIX}/lib64
-        /usr/local/lib
-    )
-        set(CMAKE_EXE_LINKER_FLAGS
-            "${CMAKE_EXE_LINKER_FLAGS} -Wl,-L,${L},-rpath,${L}")
-    endforeach(L)
 endif()
 
 set(G ${CMAKE_CURRENT_SOURCE_DIR}/groups/csa)
@@ -149,8 +123,6 @@ set(G ${CMAKE_CURRENT_SOURCE_DIR}/groups/csa)
 include_directories(
     ${G}/csabase
     ${G}/csaglb
-    /opt/bb/include
-    /usr/local/include  # For aspell.h
 )
 
 add_library(csabase
@@ -175,8 +147,8 @@ add_library(csabase
     ${G}/csabase/csabase_visitor.cpp
 )
 
-target_compile_definitions(csabase PRIVATE
-                           BDE_VERIFY_VERSION="${BDE_VERIFY_VERSION}")
+target_compile_definitions(csabase PUBLIC BDE_VERIFY_VERSION="${BDE_VERIFY_VERSION}")
+target_include_directories(csabase PUBLIC ${CLANG_INCLUDE_DIRS})
 
 if(MSVC)
     set(RC ${CMAKE_CURRENT_SOURCE_DIR}/bde-verify-vs/bde_verify_bin.rc)
@@ -268,8 +240,6 @@ add_executable(bde_verify_bin
     ${G}/csaxform/csaxform_refactor_config.cpp
 )
 
-set(CMAKE_SKIP_RPATH ON)
-
 set(CMAKE_LIBRARY_PATH
     ${LLVM_LIBRARY_DIRS}
     /opt/bb/lib64
@@ -277,103 +247,24 @@ set(CMAKE_LIBRARY_PATH
     /usr/lib64
 )
 
-function(llvmlib name)
-    find_library(LIB${name}
-                 NAMES ${name}
-                 PATHS ${LLVM_LIBRARY_DIRS}
-                       /opt/bb/lib64
-                       /lib64
-                       /usr/lib/sparcv9
-                       /usr/lib64
-    )
-    if(LIB${name})
-        target_link_libraries(bde_verify_bin ${LIB${name}})
-    endif()
-endfunction(llvmlib)
 
-target_link_libraries(bde_verify_bin csabase ${system_libs})
+#target_link_libraries(bde_verify_bin csabase ${system_libs})
+target_include_directories(csabase PUBLIC ${CLANG_INCLUDE_DIRS})
+target_link_libraries(bde_verify_bin 
+                          csabase
+                          clangTooling
+                          clangFrontend
+                          clangFrontendTool)
 
-llvmlib(clangFrontendTool)
-llvmlib(clangCodeGen)
-llvmlib(clangARCMigrate)
-llvmlib(clangRewriteFrontend)
-llvmlib(clangStaticAnalyzerFrontend)
-llvmlib(clangFrontend)
-llvmlib(clangSerialization)
-llvmlib(clangDriver)
-llvmlib(clangParse)
-llvmlib(clangSema)
-llvmlib(clangEdit)
-llvmlib(clangStaticAnalyzerCheckers)
-llvmlib(clangStaticAnalyzerCore)
-llvmlib(clangAnalysis)
-llvmlib(clangTooling)
-llvmlib(clangToolingCore)
-llvmlib(clangASTMatchers)
-llvmlib(clangRewrite)
-llvmlib(clangAST)
-llvmlib(clangLex)
-llvmlib(clangBasic)
-llvmlib(clangCrossTU)
-llvmlib(clangIndex)
-llvmlib(LLVMLTO)
-llvmlib(LLVMPasses)
-llvmlib(LLVMAggressiveInstCombine)
-llvmlib(LLVMObjCARCOpts)
-llvmlib(LLVMDebugInfoPDB)
-llvmlib(LLVMCoverage)
-llvmlib(LLVMSparcCodeGen)
-llvmlib(LLVMSparcAsmParser)
-llvmlib(LLVMSparcDesc)
-llvmlib(LLVMSparcInfo)
-llvmlib(LLVMFrontendOpenMP)
-llvmlib(LLVMOption)
-llvmlib(LLVMX86AsmParser)
-llvmlib(LLVMX86CodeGen)
-llvmlib(LLVMGlobalISel)
-llvmlib(LLVMSelectionDAG)
-llvmlib(LLVMAsmPrinter)
-llvmlib(LLVMDebugInfoDWARF)
-llvmlib(LLVMBitstreamReader)
-llvmlib(LLVMDebugInfoCodeView)
-llvmlib(LLVMDebugInfoMSF)
-llvmlib(LLVMX86Desc)
-llvmlib(LLVMMCDisassembler)
-llvmlib(LLVMX86Info)
-llvmlib(LLVMCodeGen)
-llvmlib(LLVMCFGuard)
-llvmlib(LLVMTarget)
-llvmlib(LLVMCoroutines)
-llvmlib(LLVMipo)
-llvmlib(LLVMInstrumentation)
-llvmlib(LLVMVectorize)
-llvmlib(LLVMScalarOpts)
-llvmlib(LLVMLinker)
-llvmlib(LLVMIRReader)
-llvmlib(LLVMAsmParser)
-llvmlib(LLVMInstCombine)
-llvmlib(LLVMTransformUtils)
-llvmlib(LLVMBitWriter)
-llvmlib(LLVMAnalysis)
-llvmlib(LLVMObject)
-llvmlib(LLVMTextAPI)
-llvmlib(LLVMMCParser)
-llvmlib(LLVMMC)
-llvmlib(LLVMBitReader)
-llvmlib(LLVMProfileData)
-llvmlib(LLVMCore)
-llvmlib(LLVMBinaryFormat)
-llvmlib(LLVMRemarks)
-llvmlib(LLVMSupport)
-llvmlib(LLVMDemangle)
-llvmlib(ncurses)
-llvmlib(pthread)
-llvmlib(dl)
-llvmlib(z)
-llvmlib(aspell)
-llvmlib(rt)
-llvmlib(tinfo)
-llvmlib(malloc)
+# Finding additional packages.
+if (DEFINED ENV{DISTRIBUTION_REFROOT})
+    #add_definitions(-DSPELL_CHECK=1)
+    target_include_directories(bde_verify_bin PUBLIC "$ENV{DISTRIBUTION_REFROOT}/opt/bb/include")
+    #target_link_libraries(bde_verify_bin aspell)
+else()
+    # TODO: Speculate on having aspell library available.
+endif()
+
 
 message("install prefix = ${CMAKE_INSTALL_PREFIX}")
 string(REGEX REPLACE

@@ -65,6 +65,11 @@ int cc1_main(ArrayRef<const char *> Argv, const char *Argv0, void *MainAddr)
     std::unique_ptr<CompilerInstance> Clang(new CompilerInstance());
     IntrusiveRefCntPtr<DiagnosticIDs> DiagID(new DiagnosticIDs());
 
+    // Initialize targets first, so that --version shows registered targets.
+    //InitializeNativeTarget();
+    //InitializeNativeTargetAsmPrinter();
+    //InitializeNativeTargetAsmParser();
+
     IntrusiveRefCntPtr<DiagnosticOptions> DiagOpts = new DiagnosticOptions();
     TextDiagnosticBuffer *DiagsBuffer = new TextDiagnosticBuffer;
     DiagnosticsEngine     Diags(DiagID, &*DiagOpts, DiagsBuffer);
@@ -271,6 +276,8 @@ int csabase::run(int argc_, const char **argv_)
             }
         }
     }
+
+    //InitializeNativeTarget();
 
     BumpPtrAllocator Alloc;
     StringSaver Saver(Alloc);
