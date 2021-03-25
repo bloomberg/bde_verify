@@ -1,7 +1,7 @@
 Source: bde-verify
 Section: unknown
 Priority: extra
-Maintainer: Hyman Rosen <hrosen4@bloomberg.net>
+Maintainer: Oleg Subbotin <osubbotin@bloomberg.net>
 Build-Depends: gcc-build-base,
                binutils,
                coreutils,
