@@ -268,6 +268,7 @@ std::pair<size_t, size_t> bad_wrap_pos(llvm::StringRef text, size_t ll)
     // no such word, return a pair of 'npos'.
 {
     size_t offset = 0;
+
     for (;;) {
         size_t b = text.find("// ", offset);
         if (b == text.npos) {
@@ -321,7 +322,10 @@ std::pair<size_t, size_t> bad_wrap_pos(llvm::StringRef text, size_t ll)
             return std::make_pair(nextb + 3, i - 1);
         }
     }
-    return std::make_pair(text.npos, text.npos);
+
+    // Using llvm::StringPos::npos in this location triggers compiler error.
+    size_t localNpos = llvm::StringRef::npos;
+    return std::make_pair(localNpos, localNpos);
 }
 
 llvm::Regex display("^( *//[.][.])$", llvm::Regex::Newline);

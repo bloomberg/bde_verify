@@ -41,7 +41,6 @@ if (NOT ${LLVM_ENABLE_RTTI})
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti")
 endif()
 
-set(CMAKE_EXE_LINKER_FLAGS ${LLVM_LD_FLAGS_STRING})
 add_definitions(${LLVM_DEFINITIONS})
 
 set(CLANG_RESOURCE_DIR
@@ -256,15 +255,24 @@ target_link_libraries(bde_verify_bin
                           clangFrontend
                           clangFrontendTool)
 
-# Finding additional packages.
+# Find aspell library.
 if (DEFINED ENV{DISTRIBUTION_REFROOT})
-    #add_definitions(-DSPELL_CHECK=1)
-    target_include_directories(bde_verify_bin PUBLIC "$ENV{DISTRIBUTION_REFROOT}/opt/bb/include")
-    #target_link_libraries(bde_verify_bin aspell)
+    find_library(aspell_LIB
+                 NAMES aspell
+                 PATHS "$ENV{DISTRIBUTION_REFROOT}/opt/bb/lib64")
 else()
-    # TODO: Speculate on having aspell library available.
+    find_library(aspell_LIB
+                 NAMES aspell)
 endif()
 
+if (aspell_LIB)
+    message(STATUS "Found aspell library. Spell checks enabled.")
+    add_definitions(-DSPELL_CHECK=1)
+    if (DEFINED ENV{DISTRIBUTION_REFROOT})
+        target_include_directories(bde_verify_bin PUBLIC "$ENV{DISTRIBUTION_REFROOT}/opt/bb/include")
+    endif()
+    target_link_libraries(bde_verify_bin ${aspell_LIB})
+endif()
 
 message("install prefix = ${CMAKE_INSTALL_PREFIX}")
 string(REGEX REPLACE
