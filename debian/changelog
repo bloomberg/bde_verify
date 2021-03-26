@@ -1,3 +1,16 @@
+bde-verify (1.3.16) unstable; urgency=low
+
+  * cb2f17f Merge pull request #57 from osubbotin/transitive-release
+  * b1644d7 Ownership transition changes.
+  * e690d49 Update README.md
+  * 8a95aa4 Merge pull request #55 from hrosen4/tag-location_drqs-153093040
+  * 89b46e6 Don't require // IMPLICIT to be in column 69
+  * 60c4d76 Merge pull request #54 from hrosen4/deal-with-default-args
+  * 132235e Ignore deleted constructors.
+  * ecc9983 Deal with default arguments (e.g., NullableValue)
+
+ -- Oleg Subbotin <osubbotin@bloomberg.net>  Fri, 26 Mar 2021 15:03:07 -0400
+
 bde-verify (1.3.15) unstable; urgency=low
 
   * 007a0f3 Merge pull request #53 from hrosen4/fix-for-dpkg
