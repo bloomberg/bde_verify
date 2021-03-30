@@ -75,18 +75,24 @@ comments::comments(Analyser& analyser)
 
 bool comments::isReset(SourceRange range)
 {
-    if (d_manager.getPresumedLineNumber(range.getBegin()) == 1) {
+    if (FullSourceLoc(range.getBegin(), d_manager).getFileOffset() < 4) {
         return false;                                                 // RETURN
     }
-    llvm::StringRef comment = d_analyser.get_source(
-        SourceRange(d_analyser.get_line_range(range.getBegin())
-                        .getBegin()
-                        .getLocWithOffset(-4),
-                    range.getEnd()),
-        true);
+
+    llvm::StringRef comment =
+        d_analyser.get_source(
+                SourceRange(d_analyser.get_line_range(range.getBegin())
+                                      .getBegin()
+                                      .getLocWithOffset(-4),
+                            range.getEnd()),
+                true);
 
     // A comment with a blank line before it starts a new section.  (A blank
     // line after doesn't, because that's just a function contract.)
+    if (comment.size() < 2) {
+        return false;                                                 // RETURN
+    }
+
     return comment.drop_front(2).startswith("\n\n") ||
            comment.drop_front(2).startswith("\r\r") ||
            comment.startswith("\r\n\r\n");

@@ -17,7 +17,7 @@ LIBCSABASE  = lib$(LCB).a
 # Set up location of clang headers and libraries needed by bde_verify.
 INCFLAGS   += -I$(LLVMDIR)/include
 
-CXXFLAGS   += -m64 -fPIC -O3 -std=c++11
+CXXFLAGS   += -m64 -fPIC -O3 -std=c++17
 CXXFLAGS   += -Wall -Wno-unused-local-typedefs -Wno-comment
 CXXFLAGS   += -Wno-ignored-attributes -Wno-unused-function
 CXXFLAGS   += -Wno-deprecated-declarations
@@ -41,7 +41,7 @@ else ifeq ($(SYSTEM),SunOS)
     CXXFLAGS   += -DBYTE_ORDER=BIG_ENDIAN
 endif
 
-CXXFLAGS   += -DBDE_VERIFY_VERSION='"1.3.16"'
+CXXFLAGS   += -DBDE_VERIFY_VERSION='"1.3.17"'
 
 OBJ        := $(SYSTEM)-$(notdir $(CXX))
 
