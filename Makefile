@@ -31,9 +31,9 @@ CSAGLBDIR   = groups/csa/csaglb
 
 # Set up location of clang headers and libraries needed by bde_verify.
 INCFLAGS   += -I$(LLVMDIR)/include
-LDFLAGS    += -std=c++11 -L$(CSABASEDIR)/$(OBJ) -fno-use-linker-plugin
+LDFLAGS    += -std=c++17 -L$(CSABASEDIR)/$(OBJ) -fno-use-linker-plugin
 
-CXXFLAGS   += -m64 -fPIC -O3 -std=c++11
+CXXFLAGS   += -m64 -fPIC -O3 -std=c++17
 CXXFLAGS   += -Wall -Wno-unused-local-typedefs -Wno-comment
 CXXFLAGS   += -Wno-ignored-attributes -Wno-unused-function
 CXXFLAGS   += -Wno-deprecated-declarations
@@ -84,10 +84,6 @@ ifeq ($(SYSTEM),Linux)
     ifneq (,$(wildcard $(foreach L,$(LIBDIRS),$(L)/libtinfo.so)))
         EXTRALIBS += -ltinfo
     endif
-    SPARC_LIBS = -lLLVMSparcCodeGen                                           \
-                 -lLLVMSparcAsmParser                                         \
-                 -lLLVMSparcDesc                                              \
-                 -lLLVMSparcInfo
 else ifeq ($(SYSTEM),SunOS)
     AR          = /usr/ccs/bin/ar
     CXXFLAGS   += -D_GLIBCXX_USE_CXX11_ABI=1
@@ -96,7 +92,6 @@ else ifeq ($(SYSTEM),SunOS)
                   $(PREFIX)/lib64                                             \
                   $(GCCLOCALLIBDIRS)                                          \
                   $(GCCOTHERLIBDIRS)                                          \
-                  /opt/swt/lib64
     LDFLAGS    += -Wl,-rpath,'$$ORIGIN/../../lib64'
     LDFLAGS    += $(foreach L,$(LIBDIRS),                                     \
                     -L$(abspath $(L)) -Wl,-rpath,$(abspath $(L)))
@@ -107,10 +102,6 @@ else ifeq ($(SYSTEM),SunOS)
     ifneq (,$(wildcard $(foreach L,$(LIBDIRS),$(L)/libmalloc.so)))
         EXTRALIBS += -lmalloc
     endif
-    SPARC_LIBS = -lLLVMSparcCodeGen                                           \
-                 -lLLVMSparcAsmParser                                         \
-                 -lLLVMSparcDesc                                              \
-                 -lLLVMSparcInfo
 else ifeq ($(SYSTEM),Darwin)
     AR          = /usr/bin/ar
     LIBDIRS     = $(LLVMDIR)/lib64                                            \
@@ -252,10 +243,7 @@ LIBS     =    -l$(LCB)                                                        \
               -lLLVMObjCARCOpts                                               \
               -lLLVMDebugInfoPDB                                              \
               -lLLVMCoverage                                                  \
-	      $(SPARC_LIBS)                                                   \
               -lLLVMOption                                                    \
-              -lLLVMX86AsmParser                                              \
-              -lLLVMX86CodeGen                                                \
               -lLLVMGlobalISel                                                \
               -lLLVMSelectionDAG                                              \
               -lLLVMAsmPrinter                                                \
@@ -263,10 +251,7 @@ LIBS     =    -l$(LCB)                                                        \
               -lLLVMBitstreamReader                                           \
               -lLLVMDebugInfoCodeView                                         \
               -lLLVMDebugInfoMSF                                              \
-              -lLLVMX86Desc                                                   \
               -lLLVMMCDisassembler                                            \
-              -lLLVMX86Info                                                   \
-              -lLLVMX86Utils                                                  \
               -lLLVMCodeGen                                                   \
               -lLLVMTarget                                                    \
               -lLLVMCoroutines                                                \

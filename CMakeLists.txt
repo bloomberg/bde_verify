@@ -4,7 +4,7 @@ project(bde_verify)
 
 set(BDE_VERIFY_VERSION_MAJOR "1")
 set(BDE_VERIFY_VERSION_MINOR "3")
-set(BDE_VERIFY_VERSION_PATCH "16")
+set(BDE_VERIFY_VERSION_PATCH "17")
 set(BDE_VERIFY_VERSION "${BDE_VERIFY_VERSION_MAJOR}.${BDE_VERIFY_VERSION_MINOR}.${BDE_VERIFY_VERSION_PATCH}")
 
 add_subdirectory(bde-verify-vs)
@@ -91,6 +91,7 @@ else()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-local-typedefs")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-comment")
 endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "SunOS")

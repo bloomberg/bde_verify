@@ -154,13 +154,13 @@ class Analyser : public Attachments
 private:
     Analyser(Analyser const&);
     void operator= (Analyser const&);
-        
-    std::auto_ptr<Config>                 d_config;
+
+    std::unique_ptr<Config>               d_config;
     std::string                           tool_name_;
     std::string                           diagnose_;
     clang::CompilerInstance&              compiler_;
     clang::SourceManager const&           d_source_manager;
-    std::auto_ptr<Visitor>                visitor_;
+    std::unique_ptr<Visitor>              visitor_;
     clang::ASTContext*                    context_;
     clang::Rewriter*                      rewriter_;
     std::string                           toplevel_;
