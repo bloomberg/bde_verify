@@ -78,7 +78,7 @@ endif()
 # Configure csabase (aka bde-verify) library
 set(G ${CMAKE_CURRENT_SOURCE_DIR}/groups/csa)
 
-add_library(bde_verify
+add_library(bde-verify
     ${G}/csabase/csabase_abstractvisitor.cpp
     ${G}/csabase/csabase_analyse.cpp
     ${G}/csabase/csabase_analyser.cpp
@@ -100,13 +100,13 @@ add_library(bde_verify
     ${G}/csabase/csabase_visitor.cpp
 )
 
-target_compile_definitions(bde_verify PUBLIC BDE_VERIFY_VERSION="${BDE_VERIFY_VERSION}")
+target_compile_definitions(bde-verify PUBLIC BDE_VERIFY_VERSION="${BDE_VERIFY_VERSION}")
 target_include_directories(
-  bde_verify
+  bde-verify
   SYSTEM PRIVATE
   ${CLANG_INCLUDE_DIRS}
 )
-llvm_update_compile_flags(bde_verify)
+llvm_update_compile_flags(bde-verify)
 
 if(MSVC)
     set(RC ${CMAKE_CURRENT_SOURCE_DIR}/bde-verify-vs/bde_verify_bin.rc)
@@ -215,7 +215,7 @@ target_include_directories(bde_verify_bin
 )
 
 target_link_libraries(bde_verify_bin
-                          bde_verify
+                          bde-verify
                           clangTooling
                           clangFrontend
                           clangFrontendTool)
@@ -258,7 +258,7 @@ set_property(TARGET bde_verify_bin
 message(STATUS "Install prefix = ${CMAKE_INSTALL_PREFIX}")
 
 install(TARGETS
-    bde_verify
+    bde-verify
     ARCHIVE DESTINATION lib64
     COMPONENT bde-verify-dev
 )
