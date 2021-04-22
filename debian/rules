@@ -1,13 +1,95 @@
 #!/usr/bin/make -f
 # -*- makefile -*-
-include $(DISTRIBUTION_REFROOT)/opt/bb/share/bbtoolchain-cmake-debhelper/bbtoolchain-cmake-debhelper-macros.mk
+include $(DISTRIBUTION_REFROOT)/opt/bb/share/gcc-build-base/gcc-build-base.mk
+
+PKG_CONFIG_EXECUTABLE=$(DISTRIBUTION_REFROOT)$(LIBDIR_64BIT)/bin/pkg-config
 
 LLVMDIR ?= $(DISTRIBUTION_REFROOT)$(LIBDIR_32BIT)/llvm-11.0
 DEBHELPER_CMAKE_ARGS = -DClang_DIR=$(LLVMDIR)/lib64/cmake/clang/
-#LDFLAGS:=-L$(DISTRIBUTION_REFROOT)$(LIBDIR_64BIT) $(BLOOMBERG_RPATH_64BIT)
 
-$(eval $(call BB_DEBHELPER_BIARCH_BUILD,64))
-$(eval $(call BB_DEBHELPER_PACKAGE,bde-verify, bde-verify))
-$(eval $(call BB_DEBHELPER_PACKAGE,libbde-verify-dev, bde-verify-dev))
+CFLAGS:=$(CFLAGS_SET_64BIT) $(CFLAGS)
+CXXFLAGS:=$(CXXFLAGS_SET_64BIT) -Wno-unused-local-typedef $(CXXFLAGS)
+LDFLAGS:=$(LDFLAGS_SET_64BIT) $(LDFLAGS)
 
-include $(DISTRIBUTION_REFROOT)/opt/bb/share/bbtoolchain-cmake-debhelper/bbtoolchain-cmake-debhelper-rules.mk
+ifeq ($(DEB_HOST_ARCH),amd64)
+
+else ifeq ($(DEB_HOST_ARCH),solaris10-sparc)
+
+### Solaris
+#CXXFLAGS:=$(CXXFLAGS) -Wno-attributes
+#LDFLAGS:=$(LDFLAGS) -Wl,-z,relax=comdat -L$(DISTRIBUTION_REFROOT)$(LIBDIR_64BIT) -lstdc++
+#CMAKE_CXX_STANDARD:=-DCMAKE_CXX_STANDARD=17 -DCMAKE_CXX_STANDARD_REQUIRED=1
+
+else
+$(error DEB_HOST_ARCH '$(DEB_HOST_ARCH)' not supported)
+endif
+
+clean:
+	rm -rf build debian/bde-verify debian/bde-verify-dev
+
+build/configure-stamp:
+	 mkdir -p build
+	 cd build && \
+		 cmake \
+		   -DCMAKE_BUILD_TYPE=Release \
+		   -DCMAKE_INSTALL_PREFIX='$(PREFIX)' \
+		   -DCMAKE_PREFIX_PATH='$(PREFIX)' \
+		   -DPKG_CONFIG_EXECUTABLE=$(PKG_CONFIG_EXECUTABLE) \
+		   -DCMAKE_C_COMPILER='$(CC)' \
+		   -DCMAKE_CXX_COMPILER='$(CXX)' \
+		   -DCMAKE_C_FLAGS='$(CFLAGS)' \
+  		   $(CMAKE_CXX_STANDARD) \
+		   -DCMAKE_CXX_EXTENSIONS=0 \
+		   -DCMAKE_CXX_FLAGS='$(CXXFLAGS)' \
+		   -DCMAKE_CXX_LINK_FLAGS='$(LDFLAGS)' \
+		   -DCMAKE_POSITION_INDEPENDENT_CODE=1 \
+		   -DCMAKE_MODULE_LINKER_FLAGS='$(LDFLAGS)' \
+		   -DCMAKE_SHARED_LINKER_FLAGS='$(LDFLAGS)' \
+		   -DCMAKE_EXE_LINKER_FLAGS='$(LDFLAGS)' \
+		   $(DEBHELPER_CMAKE_ARGS) \
+		   -G Ninja \
+	       ../
+	 touch $@
+
+build/build-stamp: build/configure-stamp
+	cmake --build ./build -v
+	touch $@
+
+DESTDIR:=debian/bde-verify
+DEVDESTDIR:=debian/bde-verify-dev
+
+build/install-stamp: build/build-stamp
+	mkdir -p $(DESTDIR)
+	(cd build && \
+        DESTDIR=$(abspath .)/$(DESTDIR) \
+        cmake -DCOMPONENT=bde-verify -P cmake_install.cmake;)
+	mkdir -p $(DEVDESTDIR)
+	( cd build && \
+        DESTDIR=$(abspath .)/$(DEVDESTDIR) \
+        cmake -DCOMPONENT=bde-verify-dev -P cmake_install.cmake;)
+	touch $@
+
+build/binary-stamp: build/install-stamp
+	mkdir -p $(DESTDIR)/DEBIAN
+	dpkg-gencontrol -pbde-verify -P$(DESTDIR)
+	dpkg-deb -b $(DESTDIR) ..
+	
+	mkdir -p $(DEVDESTDIR)/DEBIAN
+	dpkg-gencontrol -plibbde-verify-dev -P$(DEVDESTDIR)
+	dpkg-deb -b $(DEVDESTDIR) ..
+	touch $@
+
+build: build-arch build-indep
+
+build-indep:
+
+build-arch: build/build-stamp
+
+binary: binary-arch binary-indep
+
+binary-indep:
+
+binary-arch: build/binary-stamp
+
+.PHONY: clean build build-indep build-arch binary binary-indep binary-arch
+

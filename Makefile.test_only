@@ -2,18 +2,6 @@
 
 SYSTEM     := $(shell uname -s)
 
-ifeq ($(notdir $(CXX)),g++)
-GCCDIR     ?= $(patsubst %/bin/g++,%,$(shell which $(CXX)))
-else
-GCCDIR     ?= $(patsubst %/bin/g++,%,$(shell which g++))
-endif
-
-ifeq ($(notdir $(CXX)),clang++)
-CLANG      ?= $(CXX)
-else
-CLANG      ?= $(firstword $(wildcard $(LLVMDIR)/bin/clang++) clang++)
-endif
-
 BDE_VERIFY_DIR := $(shell /bin/pwd)
 
 # All the Makefiles below the checks directory.

@@ -4,10 +4,10 @@ Priority: extra
 Maintainer: Oleg Subbotin <osubbotin@bloomberg.net>
 Build-Depends: 
     gcc-build-base,
-    plink-cmake-toolchain,
     cmake,
     ninja,
-    bbtoolchain-cmake-debhelper,
+    pkg-config,
+    gcc-build-base,
     cmake-import-pkgconfig-targets,
     aspell,
     aspell-en,
