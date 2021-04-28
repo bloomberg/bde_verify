@@ -26,13 +26,13 @@ check: $(CNAMES)
 check-current: $(CCURNAME)
 
 $(CNAMES):
-	$(VERBOSE) $(MAKE) DEST_DIR=$(DEST_DIR) -C $(@D) -k
+	$(VERBOSE) $(MAKE) DESTDIR=$(DESTDIR) -C $(@D) -k
 
 run: $(RNAMES)
 run-current: $(RCURNAME)
 
 $(RNAMES):
-	$(VERBOSE) $(MAKE) DEST_DIR=$(DEST_DIR) -C $(@D) -k --no-print-directory run
+	$(VERBOSE) $(MAKE) DESTDIR=$(DESTDIR) -C $(@D) -k --no-print-directory run
 
 ## ----------------------------------------------------------------------------
 ## Copyright (C) 2014 Bloomberg Finance L.P.

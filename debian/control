@@ -8,6 +8,7 @@ Build-Depends:
     ninja,
     pkg-config,
     gcc-build-base,
+    plink-cmake-toolchain,
     cmake-import-pkgconfig-targets,
     aspell,
     aspell-en,

@@ -4,8 +4,8 @@ VERBOSE    ?= @
 SHELL      ?= bash
 SYSTEM      = $(shell uname -s)
 COMPILER   ?= g++
-BDEVERIFY  ?= $(DEST_DIR)/bin/bde_verify
-EXE        ?= $(DEST_DIR)/libexec/bde-verify/bde_verify_bin
+BDEVERIFY  ?= $(DESTDIR)/bin/bde_verify
+EXE        ?= $(DESTDIR)/libexec/bde-verify/bde_verify_bin
 
 ALL ?= off
 

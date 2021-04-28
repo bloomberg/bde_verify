@@ -263,8 +263,6 @@ endif()
 # Used transitively by LLVM/Clang
 # TODO: This is the easiest way to link with static zlib and tinfo in the internal dev environment.
 # For external builds, there 3 lines can be commented out.
-message(STATUS "Module path:" "${CMAKE_MODULE_PATH}")
-
 find_package(ImportPkgConfigTargets REQUIRED)
 import_pkgconfig_targets(zlib tinfo)
 add_library(z ALIAS zlib)
