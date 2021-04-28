@@ -4,13 +4,32 @@ project(bde_verify)
 
 set(BDE_VERIFY_VERSION_MAJOR "1")
 set(BDE_VERIFY_VERSION_MINOR "3")
-set(BDE_VERIFY_VERSION_PATCH "18")
+set(BDE_VERIFY_VERSION_PATCH "19")
 set(BDE_VERIFY_VERSION "${BDE_VERIFY_VERSION_MAJOR}.${BDE_VERIFY_VERSION_MINOR}.${BDE_VERIFY_VERSION_PATCH}")
 
 # Only support 64 bit build.
 if(CMAKE_SIZEOF_VOID_P EQUAL 4)
     message(FATAL_ERROR "No support for 32 bit build.")
 endif()
+
+if(NOT DEFINED DISTRIBUTION_REFROOT)
+    if(DEFINED ENV{DISTRIBUTION_REFROOT})
+        set(DISTRIBUTION_REFROOT "$ENV{DISTRIBUTION_REFROOT}/" CACHE STRING "BB Dpkg root set from environment variable.")
+    else()
+        get_filename_component(REFROOT ${CMAKE_CURRENT_LIST_DIR}/../../../../ REALPATH)
+        set(DISTRIBUTION_REFROOT ${REFROOT}/ CACHE STRING "BB Dpkg root set from toolchain file location.")
+    endif()
+endif()
+
+list(PREPEND CMAKE_MODULE_PATH ${DISTRIBUTION_REFROOT}/opt/bb/share/cmake)
+list(PREPEND CMAKE_SYSTEM_PREFIX_PATH ${DISTRIBUTION_REFROOT}/opt/bb)
+
+find_program(PKG_CONFIG_EXECUTABLE pkg-config PATHS
+  ${DISTRIBUTION_REFROOT}/opt/bb/lib64/bin
+  /opt/bb/lib64/bin
+  NO_SYSTEM_ENVIRONMENT_PATH)
+
+set_property(GLOBAL PROPERTY FIND_LIBRARY_USE_LIB64_PATHS True)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -244,6 +263,8 @@ endif()
 # Used transitively by LLVM/Clang
 # TODO: This is the easiest way to link with static zlib and tinfo in the internal dev environment.
 # For external builds, there 3 lines can be commented out.
+message(STATUS "Module path:" "${CMAKE_MODULE_PATH}")
+
 find_package(ImportPkgConfigTargets REQUIRED)
 import_pkgconfig_targets(zlib tinfo)
 add_library(z ALIAS zlib)
@@ -251,9 +272,9 @@ target_link_libraries(bde_verify_bin z)
 
 # For this application we need to setup RPATH for build and install runtime respectively
 set_property(TARGET bde_verify_bin
-             APPEND PROPERTY BUILD_RPATH "${DISTRIBUTION_REFROOT}${CMAKE_PREFIX_PATH}/lib64")
+             APPEND PROPERTY BUILD_RPATH "${DISTRIBUTION_REFROOT}/opt/bb/lib64")
 set_property(TARGET bde_verify_bin
-             APPEND PROPERTY INSTALL_RPATH  "${CMAKE_PREFIX_PATH}/lib64")
+    APPEND PROPERTY INSTALL_RPATH  "${CMAKE_INSTALL_PREFIX}/lib64")
 
 message(STATUS "Install prefix = ${CMAKE_INSTALL_PREFIX}")
 
