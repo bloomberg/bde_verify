@@ -21,14 +21,6 @@ if(NOT DEFINED DISTRIBUTION_REFROOT)
     endif()
 endif()
 
-list(PREPEND CMAKE_MODULE_PATH ${DISTRIBUTION_REFROOT}/opt/bb/share/cmake)
-list(PREPEND CMAKE_SYSTEM_PREFIX_PATH ${DISTRIBUTION_REFROOT}/opt/bb)
-
-find_program(PKG_CONFIG_EXECUTABLE pkg-config PATHS
-  ${DISTRIBUTION_REFROOT}/opt/bb/lib64/bin
-  /opt/bb/lib64/bin
-  NO_SYSTEM_ENVIRONMENT_PATH)
-
 set_property(GLOBAL PROPERTY FIND_LIBRARY_USE_LIB64_PATHS True)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -47,7 +39,7 @@ include(AddLLVM)
 link_directories(${LLVM_LIBRARY_DIRS})
 
 set(CLANG_RESOURCE_DIR
-    "${LLVM_INSTALL_PREFIX}/lib64/clang/${LLVM_PACKAGE_VERSION}"
+    "${Clang_DIR}/../../clang/${LLVM_PACKAGE_VERSION}"
     CACHE PATH "Clang resource directory")
 file(GLOB CLANG_RESOURCE_FILES "${CLANG_RESOURCE_DIR}/include/*.*")
 
@@ -120,11 +112,7 @@ add_library(bde-verify
 )
 
 target_compile_definitions(bde-verify PUBLIC BDE_VERIFY_VERSION="${BDE_VERIFY_VERSION}")
-target_include_directories(
-  bde-verify
-  SYSTEM PRIVATE
-  ${CLANG_INCLUDE_DIRS}
-)
+target_include_directories(bde-verify SYSTEM PRIVATE ${CLANG_INCLUDE_DIRS})
 llvm_update_compile_flags(bde-verify)
 
 if(MSVC)
@@ -222,37 +210,24 @@ add_executable(bde_verify_bin
     ${G}/csaxform/csaxform_refactor_config.cpp
 )
 
-set(CMAKE_LIBRARY_PATH
-    /opt/bb/lib64
-#    /usr/lib/sparcv9
-#    /usr/lib64
-)
-
-target_include_directories(bde_verify_bin
-                           SYSTEM PRIVATE
-                               ${CLANG_INCLUDE_DIRS}
-)
+target_include_directories(bde_verify_bin SYSTEM PRIVATE ${CLANG_INCLUDE_DIRS})
 
 target_link_libraries(bde_verify_bin
-                          bde-verify
-                          clangTooling
-                          clangFrontend
-                          clangFrontendTool)
+    bde-verify
+    clangTooling
+    clangFrontend
+    clangFrontendTool
+)
 llvm_update_compile_flags(bde_verify_bin)
 
 # Find aspell library.
-find_library(libaspell_LIB
-             NAMES aspell
-             HINTS ${CMAKE_SYSTEM_PREFIX_PATH})
-
-find_file(libaspell_INC
-          NAMES aspell.h
-          HINTS ${CMAKE_SYSTEM_PREFIX_PATH})
+find_library(libaspell_LIB NAMES aspell HINTS ${CMAKE_SYSTEM_PREFIX_PATH})
+find_file(libaspell_INC NAMES aspell.h HINTS ${CMAKE_SYSTEM_PREFIX_PATH})
 
 if (libaspell_LIB AND libaspell_INC)
     message(STATUS "Found aspell library. Spell checks enabled : ${libaspell_LIB}")
 
-    get_filename_component(libaspell_INCLUDE_DIR  ${libaspell_INC} DIRECTORY)
+    get_filename_component(libaspell_INCLUDE_DIR ${libaspell_INC} DIRECTORY)
 
     add_definitions(-DSPELL_CHECK=1)
     target_include_directories(bde_verify_bin SYSTEM PRIVATE ${libaspell_INCLUDE_DIR})
@@ -260,26 +235,17 @@ if (libaspell_LIB AND libaspell_INC)
 endif()
 
 
-# Used transitively by LLVM/Clang
-# TODO: This is the easiest way to link with static zlib and tinfo in the internal dev environment.
-# For external builds, there 3 lines can be commented out.
-find_package(ImportPkgConfigTargets REQUIRED)
-import_pkgconfig_targets(zlib tinfo)
-add_library(z ALIAS zlib)
-target_link_libraries(bde_verify_bin z)
-
 # For this application we need to setup RPATH for build and install runtime respectively
 set_property(TARGET bde_verify_bin
-             APPEND PROPERTY BUILD_RPATH "${DISTRIBUTION_REFROOT}/opt/bb/lib64")
+    APPEND PROPERTY BUILD_RPATH "${DISTRIBUTION_REFROOT}/opt/bb/lib64")
 set_property(TARGET bde_verify_bin
-    APPEND PROPERTY INSTALL_RPATH  "${CMAKE_INSTALL_PREFIX}/lib64")
+    APPEND PROPERTY INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib64")
 
 message(STATUS "Install prefix = ${CMAKE_INSTALL_PREFIX}")
 
-install(TARGETS
-    bde-verify
-    ARCHIVE DESTINATION lib64
-    COMPONENT bde-verify-dev
+install(TARGETS bde-verify
+        ARCHIVE DESTINATION lib64
+        COMPONENT bde-verify-dev
 )
 
 file(GLOB headers "${G}/csabase/csabase_*.h" "${G}/csaglb/csaglb_*.h")
@@ -293,24 +259,19 @@ install(FILES ${headers}
         COMPONENT bde-verify-dev
 )
 
-install(TARGETS
-    bde_verify_bin
-    RUNTIME DESTINATION libexec/bde-verify
-    COMPONENT bde-verify
+install(TARGETS bde_verify_bin
+        RUNTIME DESTINATION libexec/bde-verify
+        COMPONENT bde-verify
 )
 
-install(PROGRAMS
-    scripts/bde_verify${SCRIPT}
-    scripts/check_bos${SCRIPT}
-    DESTINATION bin
-    COMPONENT bde-verify
+install(PROGRAMS scripts/bde_verify${SCRIPT} scripts/check_bos${SCRIPT}
+        DESTINATION bin
+        COMPONENT bde-verify
 )
 
-install(FILES
-    bde.cfg
-    bde_verify.cfg
-    DESTINATION etc/bde-verify
-    COMPONENT bde-verify
+install(FILES bde.cfg bde_verify.cfg
+        DESTINATION etc/bde-verify
+        COMPONENT bde-verify
 )
 
 install(FILES ${CLANG_RESOURCE_FILES}

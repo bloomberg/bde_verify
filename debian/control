@@ -1,32 +1,35 @@
 Source: bde-verify
-Section: unknown
+Section: devel
 Priority: extra
 Maintainer: Oleg Subbotin <osubbotin@bloomberg.net>
-Build-Depends: 
-    gcc-build-base,
+Build-Depends:
+    cmake-debhelper,
     cmake,
-    ninja,
     pkg-config,
-    gcc-build-base,
     plink-cmake-toolchain,
-    cmake-import-pkgconfig-targets,
+    gcc-build-base,
     aspell,
     aspell-en,
-    clang-11.0,
     llvm-11.0,
+    clang-11.0,
     libclang-11.0-dev,
     libncurses5-dev,
-    libtinfo5,
     libz-dev
 Standards-Version: 3.8.4
 
 Package: bde-verify
 Architecture: amd64 solaris10-sparc
 Description: bde_verify
-Depends: ${libgcc-Depends}, ${libstdcpp-Depends},
-         coreutils, perl, aspell, aspell-en
+Depends: ${libgcc-Depends},
+         ${libstdcpp-Depends},
+         coreutils,
+         perl,
+         aspell,
+         aspell-en,
+         libz1,
+         libncurses5
 
 Package: libbde-verify-dev
-Depends: llvm-11.0
+Depends: llvm-11.0-dev
 Architecture: amd64 solaris10-sparc
 Description: bde_verify base library and headers
