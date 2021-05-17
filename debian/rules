@@ -3,6 +3,7 @@
 include $(DISTRIBUTION_REFROOT)/opt/bb/share/cmake-debhelper/cmake-debhelper-macros.mk
 include $(DISTRIBUTION_REFROOT)/opt/bb/share/gcc-build-base/gcc-build-base.mk
 
+CMAKE=$(DISTRIBUTION_REFROOT)/opt/bb/bin/cmake
 LLVM_LIBDIR_64BIT:=$(DISTRIBUTION_REFROOT)$(LIBDIR_32BIT)/llvm-11.0/lib64
 
 DEBHELPER_CMAKE_ARGS:=\
@@ -16,14 +17,14 @@ $(eval $(call DEBHELPER_BIARCH_BUILD,64))
 
 BB_DEBHELPER_BUILD_TARGETS+=debian/bde-verify-stamp
 debian/bde-verify-stamp: debian/build64-stamp
-	$(MAKE) -C build64 install INSTALL_COMPONENT=bde-verify \
-	  DESTDIR=$(abspath .)/debian/bde-verify
+	DESTDIR=$(abspath .)/debian/bde-verify \
+	$(CMAKE) --install build64 --component bde-verify
 	touch $@
 
 BB_DEBHELPER_BUILD_TARGETS+=debian/libbde-verify-dev-stamp
 debian/libbde-verify-dev-stamp: debian/build64-stamp
-	$(MAKE) -C build64 install INSTALL_COMPONENT=bde-verify-dev \
-	  DESTDIR=$(abspath .)/debian/libbde-verify-dev
+	DESTDIR=$(abspath .)/debian/libbde-verify-dev \
+	$(CMAKE) --install build64 --component bde-verify-dev
 	touch $@
 
 define BINARY_PACKAGE
