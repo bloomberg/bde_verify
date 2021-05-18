@@ -1,16 +1,17 @@
-// csafmt_longlines.t.cpp                                              -*-C++-*-
-// csafmt_longlines.t.cpp                                              -*-C++-*-
-                                                                              //
-// csafmt_longlines.t.cpp                                               -*-C++-*-
 // csafmt_longlines.t.cpp                                             -*-C++-*-
+// csafmt_longlines.t.cpp                                              -*-C++-*-
 // csafmt_longlines.t.cpp                                               -*-C++-*-
-// csafmt_longlines.t.cpp                                              -*-C++-*-
-// csafmt_longlines.t.cpp                                              -*-C++-*-
+// csafmt_longlines.t.cpp                                            0123456789
+// csafmt_longlines.t.cpp                                            01234567890
+// csafmt_longlines.t.cpp                                            012345678901
+// csafmt_longlines.t.cpp                                            0123456789012
+// csafmt_longlines.t.cpp                                            01234567890123
+                                                                              //
 
 // http://blogs.msdn.com/b/vcblog/archive/2014/06/11/c-11-14-feature-tables-for-visual-studio-14-ctp1.aspx
 
 // BDE_VERIFY pragma: -LL01
-// csafmt_longlines.t.cpp                                               -*-C++-*-
+// csafmt_longlines.t.cpp                                            01234567890123
 
 // ----------------------------------------------------------------------------
 // Copyright (C) 2014 Bloomberg Finance L.P.

@@ -10,7 +10,7 @@
 #include <clang/AST/RecursiveASTVisitor.h>
 // IWYU pragma: no_include <clang/AST/DeclNodes.inc>
 // IWYU pragma: no_include <clang/AST/StmtNodes.inc>
-// IWYU pragma: no_include <clang/AST/TypeNodes.def>
+// IWYU pragma: no_include <clang/AST/TypeNodes.inc>
 #include <clang/AST/Stmt.h>
 #include <clang/AST/TypeLoc.h>
 #include <clang/Basic/Diagnostic.h>

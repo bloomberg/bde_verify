@@ -273,7 +273,7 @@ void report::operator()()
                         std::string r = a.get_source(SourceRange(
                             mi->getReplacementToken(0).getLocation(),
                             mi->getReplacementToken(mi->getNumTokens() - 1)
-                                .getEndLoc()));
+                                .getEndLoc())).str();
                         if (r.npos == r.find('\n')) {
                             s_matched[Tags[Macro]][s] = r;
                         }
@@ -293,7 +293,7 @@ void report::operator()()
                 !r->getTemplateSpecializationKind() &&
                 !r->getTypedefNameForAnonDecl()) {
                 std::string s = r->getQualifiedNameAsString();
-                s = clean_name(s, s);
+                s = clean_name(s, s).str();
                 if (d.d_ns[Tags[Class]].emplace(s).second) {
                     a.report(r, check_name, "DD01",
                              "Found " + Tags[Class] + " " + s);
@@ -321,7 +321,7 @@ void report::operator()()
                 clang::AS_private != e->getAccess() &&
                 e->hasNameForLinkage()) {
                 std::string s = e->getQualifiedNameAsString();
-                s = clean_name(s, s);
+                s = clean_name(s, s).str();
                 if (d.d_ns[Tags[Enum]].emplace(s).second) {
                     a.report(e, check_name, "DD01",
                              "Found " + Tags[Enum] + " " + s);
@@ -359,7 +359,7 @@ void report::operator()()
                     s = r->getQualifiedNameAsString() + "::" +
                         l->getName().str();
                 }
-                s = clean_name(s, s);
+                s = clean_name(s, s).str();
                 if (d.d_ns[Tags[Literal]].emplace(s).second) {
                     a.report(l, check_name, "DD01",
                              "Found " + Tags[Literal] + " " + s);
@@ -386,7 +386,7 @@ void report::operator()()
             if (a.is_component(t->getLocation()) &&
                 t->isThisDeclarationADefinition()) {
                 std::string s = t->getQualifiedNameAsString();
-                s = clean_name(s, s);
+                s = clean_name(s, s).str();
                 if (d.d_ns[Tags[Template]].emplace(s).second) {
                     a.report(t, check_name, "DD01",
                              "Found " + Tags[Template] + " " + s);
@@ -407,10 +407,10 @@ void report::operator()()
             auto t = nodes.getNodeAs<TypedefNameDecl>(Tags[Typedef]);
             if (a.is_component(t->getLocation())) {
                 std::string s = t->getQualifiedNameAsString();
-                s = clean_name(s, s);
+                s = clean_name(s, s).str();
                 if (d.d_ns[Tags[Typedef]].emplace(s).second) {
                     std::string y = t->getUnderlyingType().getAsString();
-                    y = clean_name(y, y);
+                    y = clean_name(y, y).str();
                     s_matched[Tags[Typedef]][s] = y;
                     a.report(t, check_name, "DD01",
                              "Found " + Tags[Typedef] + " " + s);
@@ -447,8 +447,8 @@ void report::operator()()
         for (int t = 0; t < NTags; ++t) {
             for (llvm::StringRef i : s_names[0][Tags[t]]) {
                 std::string bm =
-                    s_matched[Tags[t]].count(i)
-                        ? s_matched[Tags[t]][i]
+                    s_matched[Tags[t]].count(i.str())
+                        ? s_matched[Tags[t]][i.str()]
                         : best_match(i, s_names[1][Tags[t]]).str();
                 if (bm.size() == 0) {
                     if (t == Typedef) {
@@ -458,7 +458,7 @@ void report::operator()()
                     bm = "@@@/* Need replacement for " + i.str() + " */";
                 }
                 else if (t == Literal) {
-                    bm = prefer_e(bm, s_names[1][Tags[t]]);
+                    bm = prefer_e(bm, s_names[1][Tags[t]]).str();
                 }
                 f << " \\\n                name(" << i << "," << bm << ")";
             }

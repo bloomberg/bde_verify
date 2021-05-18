@@ -84,7 +84,7 @@ void report::operator()()
     }
 
     for (const auto& id : d.d_uds) {
-        if (!a.is_header(m.getFilename(m.getLocForStartOfFile(id.first)))) {
+        if (!a.is_header(m.getFilename(m.getLocForStartOfFile(id.first)).str())) {
             const auto& il = d.d_ils[id.first];
             if (il.isValid() &&
                 m.isBeforeInTranslationUnit(id.second, il) &&

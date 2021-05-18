@@ -104,7 +104,7 @@ void report::operator()()
     for (const auto &p : d.d_friends) {
         const auto &f = p.second;
         SourceLocation sl = f->getLocation();
-        if (sl.isMacroID() || !a.is_header(m.getFilename(sl))) {
+        if (sl.isMacroID() || !a.is_header(m.getFilename(sl).str())) {
             continue;
         }
         const Decl *decl = friendOf(f);

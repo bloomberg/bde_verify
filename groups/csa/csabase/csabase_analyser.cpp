@@ -227,18 +227,18 @@ bool csabase::Analyser::is_header(std::string const& path) const
 void csabase::Analyser::toplevel(std::string const& path)
 {
     FileName fn(path);
-    toplevel_ = fn.full();
-    prefix_ = fn.full();
+    toplevel_ = fn.full().str();
+    prefix_ = fn.full().str();
     for (int i = 0; i < NSS; ++i) {
         if (fn.extension().equals(source_suffixes[i])) {
-            prefix_ = fn.prefix();
+            prefix_ = fn.prefix().str();
             break;
         }
     }
-    directory_ = fn.directory();
-    package_ = fn.package();
-    group_ = fn.group();
-    component_ = fn.component();
+    directory_ = fn.directory().str();
+    package_ = fn.package().str();
+    group_ = fn.group().str();
+    component_ = fn.component().str();
 }
 
 bool csabase::Analyser::is_toplevel(std::string const& name) const
@@ -299,7 +299,7 @@ bool csabase::Analyser::is_global_package(std::string const& pkg) const
 
 bool csabase::Analyser::is_system_header(llvm::StringRef file)
 {
-    auto i = is_system_header_.find(file);
+    auto i = is_system_header_.find(file.str());
     if (i != is_system_header_.end()) {
         return i->second;
     }
@@ -307,10 +307,10 @@ bool csabase::Analyser::is_system_header(llvm::StringRef file)
     const auto& hs = compiler().getPreprocessor().getHeaderSearchInfo();
     for (auto i = hs.system_dir_begin(); i != hs.system_dir_end(); ++i) {
         if (file.startswith(i->getName())) {
-            return is_system_header_[file] = true;
+            return is_system_header_[file.str()] = true;
         }
     }
-    return is_system_header_[file] = false;
+    return is_system_header_[file.str()] = false;
 }
 
 bool csabase::Analyser::is_system_header(SourceLocation sl)

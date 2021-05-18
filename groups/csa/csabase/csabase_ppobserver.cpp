@@ -256,13 +256,13 @@ void csabase::PPObserver::EndOfMainFile()
 
 // -----------------------------------------------------------------------------
 
-void csabase::PPObserver::FileSkipped(FileEntry const& file,
+void csabase::PPObserver::FileSkipped(FileEntryRef const& file,
                                       Token const& token,
                                       SrcMgr::CharacteristicKind kind)
 {
     onPPFileSkipped(file, token, kind);
 
-    do_skip_file(files_.empty()? std::string(): files_.top(), file.getName());
+    do_skip_file(files_.empty()? std::string(): files_.top(), file.getName().str());
 }
 
 // -----------------------------------------------------------------------------
@@ -272,7 +272,7 @@ bool csabase::PPObserver::FileNotFound(llvm::StringRef name,
 {
     onPPFileNotFound(name, path);
 
-    do_file_not_found(name);
+    do_file_not_found(name.str());
     return false;
 }
 
@@ -283,7 +283,7 @@ csabase::PPObserver::Ident(SourceLocation location, llvm::StringRef ident)
 {
     onPPIdent(location, ident);
 
-    do_ident(location, ident);
+    do_ident(location, ident.str());
 }
 
 // -----------------------------------------------------------------------------
@@ -334,23 +334,23 @@ static bool handle_bv_pragma(const SourceManager&  m,
         } else if (!matches[3].empty()) {                 // pop
             c->pop_suppress(l);
         } else if (!matches[5].empty()) {                 // suppress
-            c->suppress(matches[5], l, true);
+            c->suppress(matches[5].str(), l, true);
         } else if (!matches[7].empty()) {                 // unsuppress
-            c->suppress(matches[7], l, false);
+            c->suppress(matches[7].str(), l, false);
         } else if (!matches[8].empty()) {                 // set
-            c->set_bv_value(l, matches[9], matches[10]);
+            c->set_bv_value(l, matches[9].str(), matches[10].str());
         } else if (!matches[11].empty()) {                // append
-            std::string old = c->value(matches[12], l);
+            std::string old = c->value(matches[12].str(), l);
             std::string sp = old.size() > 0 ? " " : "";
-            c->set_bv_value(l, matches[12], old + sp + matches[13].str());
+            c->set_bv_value(l, matches[12].str(), old + sp + matches[13].str());
         } else if (!matches[14].empty()) {                // prepend
-            std::string old = c->value(matches[15], l);
+            std::string old = c->value(matches[15].str(), l);
             std::string sp = old.size() > 0 ? " " : "";
-            c->set_bv_value(l, matches[15], matches[16].str() + old + sp);
+            c->set_bv_value(l, matches[15].str(), matches[16].str() + old + sp);
         } else if (!matches[17].empty()) {
             FileName including_file(m.getFilename(l));
             FileName reexported_file(matches[18]);
-            c->set_reexports(including_file.name(), reexported_file.name());
+            c->set_reexports(including_file.name().str(), reexported_file.name().str());
         }
         return true;                                                  // RETURN
     }
@@ -382,7 +382,7 @@ void csabase::PPObserver::PragmaComment(SourceLocation location,
 {
     onPPPragmaComment(location, id, value);
 
-    do_pragma(location, value);
+    do_pragma(location, value.str());
 }
 
 void csabase::PPObserver::PragmaDetectMismatch(SourceLocation loc,
@@ -450,7 +450,7 @@ void csabase::PPObserver::PragmaMessage(SourceLocation location,
 {
     onPPPragmaMessage(location, nmspc, kind, value);
 
-    do_pragma(location, value);
+    do_pragma(location, value.str());
 }
 
 // -----------------------------------------------------------------------------
@@ -576,7 +576,7 @@ void csabase::PPObserver::InclusionDirective(
                            FilenameRange, File, SearchPath, RelativePath,
                            Imported, FileType);
 
-    do_include_file(HashLoc, IsAngled, FileName);
+    do_include_file(HashLoc, IsAngled, FileName.str());
     //-dk:TODO make constructive use of this...
 }
 

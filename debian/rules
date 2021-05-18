@@ -1,61 +1,47 @@
 #!/usr/bin/make -f
 # -*- makefile -*-
+include $(DISTRIBUTION_REFROOT)/opt/bb/share/cmake-debhelper/cmake-debhelper-macros.mk
 include $(DISTRIBUTION_REFROOT)/opt/bb/share/gcc-build-base/gcc-build-base.mk
 
-PREFIX  ?= /opt/bb
-TMPDIR  ?= /tmp
-LLVMDIR ?= $(DISTRIBUTION_REFROOT)$(LIBDIR_32BIT)/llvm-9.0
-CLANG   ?= $(DISTRIBUTION_REFROOT)$(LIBDIR_32BIT)/llvm-9.0/bin/clang++
+CMAKE=$(DISTRIBUTION_REFROOT)/opt/bb/bin/cmake
+LLVM_LIBDIR_64BIT:=$(DISTRIBUTION_REFROOT)$(LIBDIR_32BIT)/llvm-11.0/lib64
 
-build: build-arch
+DEBHELPER_CMAKE_ARGS:=\
+  -DCMAKE_BUILD_TYPE=Release \
+  -DLLVM_DIR=$(LLVM_LIBDIR_64BIT)/cmake/llvm \
+  -DClang_DIR=$(LLVM_LIBDIR_64BIT)/cmake/clang
 
-build-arch: debian/build-stamp
+DEBHELPER_CMAKE_EXTRA_CXXFLAGS:=-Wno-unused-local-typedef
 
-binary: binary-arch
+$(eval $(call DEBHELPER_BIARCH_BUILD,64))
 
-binary-arch: debian/binary-stamp
-
-debian/build-stamp:
-	+$(MAKE)
+BB_DEBHELPER_BUILD_TARGETS+=debian/bde-verify-stamp
+debian/bde-verify-stamp: debian/build64-stamp
+	DESTDIR=$(abspath .)/debian/bde-verify \
+	$(CMAKE) --install build64 --component bde-verify
 	touch $@
 
-debian/install-bin-stamp: debian/build-stamp
-	$(MAKE) DESTDIR=$(abspath debian/tmp/bin$(PREFIX)) install-bin
+BB_DEBHELPER_BUILD_TARGETS+=debian/libbde-verify-dev-stamp
+debian/libbde-verify-dev-stamp: debian/build64-stamp
+	DESTDIR=$(abspath .)/debian/libbde-verify-dev \
+	$(CMAKE) --install build64 --component bde-verify-dev
 	touch $@
 
-debian/install-dev-stamp: debian/build-stamp
-	$(MAKE) DESTDIR=$(abspath debian/tmp/dev$(PREFIX)) install-dev
-	touch $@
+define BINARY_PACKAGE
 
-debian/install-stamp: debian/install-bin-stamp debian/install-dev-stamp
-	touch $@
+BB_DEBHELPER_CLEAN_TARGETS+=clean-$(1)
+clean-$(1):
+	rm -f debian/$(1)-binary-stamp
+	bb-dh-clean --package $(1)
 
-debian/binary-bin-stamp: debian/install-bin-stamp
-	mkdir -p debian/tmp/bin/DEBIAN
-	dpkg-gencontrol -pbde-verify -Pdebian/tmp/bin
-	dpkg-deb -b debian/tmp/bin $(TMPDIR)
-	touch $@
+BB_DEBHELPER_BINARY_TARGETS+=debian/$(1)-binary-stamp
+debian/$(1)-binary-stamp:
+	bb-dh-binary --package $(1)
+	touch $$@
 
-debian/binary-dev-stamp: debian/install-dev-stamp
-	mkdir -p debian/tmp/dev/DEBIAN
-	dpkg-gencontrol -plibbde-verify-dev -Pdebian/tmp/dev
-	dpkg-deb -b debian/tmp/dev $(TMPDIR)
-	touch $@
+endef
 
-debian/binary-stamp: debian/binary-bin-stamp debian/binary-dev-stamp
-	touch $@
+$(eval $(call BINARY_PACKAGE,bde-verify))
+$(eval $(call BINARY_PACKAGE,libbde-verify-dev))
 
-.EXPORT_ALL_VARIABLES:
-
-clean:
-	rm -rf debian/tmp                                                         \
-           debian/files                                                       \
-           debian/build-stamp                                                 \
-           debian/install-bin-stamp                                           \
-           debian/install-dev-stamp                                           \
-           debian/install-stamp                                               \
-           debian/binary-bin-stamp                                            \
-           debian/binary-dev-stamp                                            \
-           debian/binary-stamp
-
-.PHONY: clean build build-arch binary binary-arch
+include $(DISTRIBUTION_REFROOT)/opt/bb/share/cmake-debhelper/cmake-debhelper-rules.mk

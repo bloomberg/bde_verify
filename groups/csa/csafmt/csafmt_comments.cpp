@@ -112,7 +112,7 @@ void report::check_fvs(SourceRange range, llvm::StringRef comment)
     llvm::StringRef s;
     while (fvs.match(s = comment.drop_front(offset), &matches)) {
         llvm::StringRef text = matches[0];
-        std::pair<size_t, size_t> mm = mid_match(s, text);
+        std::pair<size_t, size_t> mm = mid_match(s.str(), text.str());
         size_t matchpos = offset + mm.first;
         offset = matchpos + text.size();
         a.report(range.getBegin().getLocWithOffset(matchpos),
@@ -136,7 +136,7 @@ void report::check_pp(SourceRange range, llvm::StringRef comment)
     llvm::StringRef s;
     while (pp.match(s = comment.drop_front(offset), &matches)) {
         llvm::StringRef text = matches[0];
-        std::pair<size_t, size_t> mm = mid_match(s, text);
+        std::pair<size_t, size_t> mm = mid_match(s.str(), text.str());
         size_t matchpos = offset + mm.first;
         offset = matchpos + text.size();
         a.report(range.getBegin().getLocWithOffset(matchpos),
@@ -160,7 +160,7 @@ void report::check_mr(SourceRange range, llvm::StringRef comment)
     llvm::StringRef s;
     while (mr.match(s = comment.drop_front(offset), &matches)) {
         llvm::StringRef text = matches[0];
-        std::pair<size_t, size_t> mm = mid_match(s, text);
+        std::pair<size_t, size_t> mm = mid_match(s.str(), text.str());
         size_t matchpos = offset + mm.first;
         offset = matchpos + text.size();
         a.report(range.getBegin().getLocWithOffset(matchpos),
@@ -228,7 +228,7 @@ void report::check_bubble(SourceRange range, llvm::StringRef comment)
 
     while (good_bubble.match(s = comment.drop_front(offset), &matches)) {
         llvm::StringRef text = matches[0];
-        std::pair<size_t, size_t> mm = mid_match(s, text);
+        std::pair<size_t, size_t> mm = mid_match(s.str(), text.str());
         size_t matchpos = offset + mm.first;
         offset = matchpos + text.size();
         if (matches[1].size() < left_offset) {
@@ -246,7 +246,7 @@ void report::check_bubble(SourceRange range, llvm::StringRef comment)
     offset = 0;
     while (bad_bubble.match(s = comment.drop_front(offset), &matches)) {
         llvm::StringRef text = matches[0];
-        std::pair<size_t, size_t> mm = mid_match(s, text);
+        std::pair<size_t, size_t> mm = mid_match(s.str(), text.str());
         size_t matchpos = offset + mm.first;
         offset = matchpos + matches[1].size();
 
@@ -268,6 +268,7 @@ std::pair<size_t, size_t> bad_wrap_pos(llvm::StringRef text, size_t ll)
     // no such word, return a pair of 'npos'.
 {
     size_t offset = 0;
+
     for (;;) {
         size_t b = text.find("// ", offset);
         if (b == text.npos) {
@@ -321,7 +322,10 @@ std::pair<size_t, size_t> bad_wrap_pos(llvm::StringRef text, size_t ll)
             return std::make_pair(nextb + 3, i - 1);
         }
     }
-    return std::make_pair(text.npos, text.npos);
+
+    // Using llvm::StringPos::npos in this location triggers compiler error.
+    size_t localNpos = llvm::StringRef::npos;
+    return std::make_pair(localNpos, localNpos);
 }
 
 llvm::Regex display("^( *//[.][.])$", llvm::Regex::Newline);
@@ -337,7 +341,7 @@ void get_displays(llvm::StringRef text,
     displays->clear();
     while (display.match(s = text.drop_front(offset), &matches)) {
         llvm::StringRef d = matches[0];
-        std::pair<size_t, size_t> mm = mid_match(s, d);
+        std::pair<size_t, size_t> mm = mid_match(s.str(), d.str());
         size_t matchpos = offset + mm.first;
         offset = matchpos + d.size();
 
@@ -374,7 +378,7 @@ void report::check_wrapped(SourceRange range, llvm::StringRef comment)
         a.config()->value("wrap_slack", range.getBegin()).c_str(), 0, 10);
     while (block_comment.match(s = comment.drop_front(offset), &matches)) {
         llvm::StringRef text = matches[0];
-        std::pair<size_t, size_t> mm = mid_match(s, text);
+        std::pair<size_t, size_t> mm = mid_match(s.str(), text.str());
         size_t matchpos = offset + mm.first;
         offset = matchpos + text.size();
 
@@ -445,14 +449,14 @@ void report::check_purpose(SourceRange range, llvm::StringRef comment)
     llvm::StringRef s;
     while (loose_purpose.match(s = comment.drop_front(offset), &matches)) {
         llvm::StringRef text = matches[0];
-        std::pair<size_t, size_t> mm = mid_match(s, text);
+        std::pair<size_t, size_t> mm = mid_match(s.str(), text.str());
         size_t matchpos = offset + mm.first;
         offset = matchpos + text.size();
 
         if (!strict_purpose.match(text)) {
             std::string expected =
                 "//@PURPOSE: " + matches[1].trim().str() + ".";
-            std::pair<size_t, size_t> mm = mid_mismatch(text, expected);
+            std::pair<size_t, size_t> mm = mid_mismatch(text.str(), expected);
             a.report(range.getBegin().getLocWithOffset(matchpos + mm.first),
                      check_name, "PRP01",
                      "Invalid format for @PURPOSE line")

@@ -10,18 +10,19 @@ EXE        ?= $(DESTDIR)/libexec/bde-verify/bde_verify_bin
 ALL ?= off
 
 define CHECKARGS
-    -cc=$(CXX)                                                                \
-    -exe=$(EXE)                                                               \
-    -nodefdef                                                                 \
-    -config=/dev/null                                                         \
-    -cl='namespace bde_verify'                                                \
-    -cl='all $(ALL)'                                                          \
-    $(foreach N,$(CHECKNAME),-cl='check $(N) on')                             \
-    -Wno-string-plus-int                                                      \
-    -std=c++11                                                                \
-    -D_X86INTRIN_H_INCLUDED                                                   \
-    -D__USE_XOPEN2K8                                                          \
-    -I $(BDE_VERIFY_DIR)/checks/include                                       \
+    -cc=$(CXX)                                      \
+    -exe=$(EXE)                                     \
+    -nodefdef                                       \
+    -config=/dev/null                               \
+    -cl='namespace bde_verify'                      \
+    -cl='all $(ALL)'                                \
+    $(foreach N,$(CHECKNAME),-cl='check $(N) on')   \
+    -Wno-string-plus-int                            \
+    -Wno-non-c-typedef-for-linkage                  \
+    -std=c++17                                      \
+    -D_X86INTRIN_H_INCLUDED                         \
+    -D__USE_XOPEN2K8                                \
+    -I $(BDE_VERIFY_DIR)/checks/include             \
     $(BDE_VERIFY_ARGS)
 endef
 

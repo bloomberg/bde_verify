@@ -4,6 +4,7 @@
 #define FRAMEWORK_DIAGNOSTIC_BUILDER_HPP
 
 #include <csabase_debug.h>
+#include <clang/Basic/LLVM.h>
 #include <clang/Basic/Diagnostic.h>
 
 // -----------------------------------------------------------------------------
@@ -13,7 +14,7 @@ namespace csabase
 class diagnostic_builder
 {
   public:
-    diagnostic_builder();
+    diagnostic_builder() = default;
     diagnostic_builder(clang::DiagnosticBuilder other, bool always = true);
     diagnostic_builder& operator<<(long long argument);
     diagnostic_builder& operator<<(long argument);
@@ -22,22 +23,16 @@ class diagnostic_builder
     explicit operator bool() const;
 
   private:
-    bool empty_;
-    clang::DiagnosticBuilder builder_;
+    llvm::Optional<clang::DiagnosticBuilder> builder_;
 };
 
-inline
-diagnostic_builder::diagnostic_builder()
-: empty_(true), builder_(clang::DiagnosticBuilder::getEmpty())
-{
-}
 
 inline diagnostic_builder::diagnostic_builder(clang::DiagnosticBuilder other,
                                               bool                     always)
-: empty_(false), builder_(other)
+: builder_(other)
 {
     if (always) {
-        builder_.setForceEmit();
+        builder_->setForceEmit();
     }
 }
 
@@ -57,8 +52,8 @@ template <typename T>
 inline
 diagnostic_builder& diagnostic_builder::operator<<(T const& argument)
 {
-    if (!empty_) {
-        builder_ << argument;
+    if (builder_) {
+        *builder_ << argument;
     }
     return *this;
 }
@@ -66,7 +61,7 @@ diagnostic_builder& diagnostic_builder::operator<<(T const& argument)
 inline
 diagnostic_builder::operator bool() const
 {
-    return !empty_;
+    return *builder_;
 }
 }
 
