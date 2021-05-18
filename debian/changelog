@@ -1,3 +1,22 @@
+bde-verify (1.3.19) unstable; urgency=low
+
+  * f0eb8f4 Merge pull request #59 from osubbotin/review/bv-llvm11
+  * 5dc007b Fix dpkg content
+  * df9b976 Fix string conversion check for string_views.
+  * 3c86446 Fix dpkg build.
+  * d7686cf Remove obsolete files.
+  * 534f885 Update build instructions.
+  * f720f79 Fine tune CML.
+  * df832cc Use gcc build base in dpkg rules.
+  * 67a2195 Rename targets to work with cmake install.
+  * b1029fe Working build/dpkg build
+  * dc4a188 Dpkg build tweaks.
+  * 48ecc01 dpkg build mods
+  * fbb29fc Add clean CMake build, test output.
+  * bd072f6 Preliminary clang11 changes - builds but crashes on some tests
+
+ -- osubbotin <osubbotin@bloomberg.net>  Tue, 18 May 2021 10:09:45 -0400
+
 bde-verify (1.3.18) unstable; urgency=low
 
   * 67f37e5 Bump version to 1.3.18
