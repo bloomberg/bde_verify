@@ -38,12 +38,12 @@ else:
     sys.exit("Specify -t bb_cppverify or -t bde_verify in SPHINXOPTS.")
 
 author = u'Hyman Rosen'
-copyright = u'2018, Bloomberg LP'
+copyright = u'2021, Bloomberg LP'
 
 # The short X.Y version
-version = u'1.3.19'
+version = u'1.3.20'
 # The full version, including alpha/beta/rc tags
-release = u'1.3.19'
+release = u'1.3.20'
 
 # -- General configuration ---------------------------------------------------
 
