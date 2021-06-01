@@ -71,7 +71,8 @@ void report::operator()()
         decl(forEachDescendant(
             cxxMemberCallExpr(
                 on(hasType(typedefDecl(matchesName("::bsl::string")))),
-                callee(cxxMethodDecl(matchesName("operator basic_string"))))
+                callee(cxxMethodDecl(allOf(unless(matchesName("operator basic_string_view")),
+                                           matchesName("operator basic_string")))))
                 .bind("e"))),
         &m2);
 
