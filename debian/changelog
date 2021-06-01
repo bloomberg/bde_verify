@@ -1,3 +1,11 @@
+bde-verify (1.3.20) unstable; urgency=low
+
+  * 280e921 Add test for ST02 check.
+  * d767728 Merge pull request #60 from osubbotin/review/drqs-164537632
+  * 3974b96 Fix ST02 check.
+
+ -- Oleg Subbotin <osubbotin@bloomberg.net>  Tue, 1 Jun 2021 12:18:48 -0400
+
 bde-verify (1.3.19) unstable; urgency=low
 
   * f0eb8f4 Merge pull request #59 from osubbotin/review/bv-llvm11
