@@ -23,6 +23,8 @@
 using namespace csabase;
 using namespace clang;
 
+using namespace std::placeholders;
+
 // -----------------------------------------------------------------------------
 
 csabase::AbstractVisitor::~AbstractVisitor()
@@ -66,7 +68,7 @@ void csabase::AbstractVisitor::visit_context(DeclContext const* context)
     std::for_each(
         context->decls_begin(),
         context->decls_end(),
-        std::bind1st(std::mem_fun(&AbstractVisitor::visit_decl), this));
+        std::bind(&AbstractVisitor::visit_decl, this, _1));
 }
 
 // -----------------------------------------------------------------------------
@@ -164,7 +166,7 @@ csabase::AbstractVisitor::visit_children(Stmt::child_range const& range)
     std::for_each(
         range.begin(),
         range.end(),
-        std::bind1st(std::mem_fun(&AbstractVisitor::visit_stmt), this));
+        std::bind(&AbstractVisitor::visit_stmt, this, _1));
 }
 
 template <typename Children>
@@ -173,7 +175,7 @@ void csabase::AbstractVisitor::visit_children(Children const& children)
     std::for_each(
         children.begin(),
         children.end(),
-        std::bind1st(std::mem_fun(&AbstractVisitor::visit_stmt), this));
+        std::bind(&AbstractVisitor::visit_stmt, this, _1));
 }
 
 // -----------------------------------------------------------------------------
@@ -191,7 +193,7 @@ static void process_stmt(AbstractVisitor* visitor, DeclStmt* stmt)
     std::for_each(
         stmt->decl_begin(),
         stmt->decl_end(),
-        std::bind1st(std::mem_fun(&AbstractVisitor::visit_decl), visitor));
+        std::bind(&AbstractVisitor::visit_decl, visitor, _1));
 }
 
 // -----------------------------------------------------------------------------
