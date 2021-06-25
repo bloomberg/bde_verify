@@ -84,6 +84,29 @@ struct has_prefix
     std::string d_prefix;
 };
 
+template <typename Predicate>
+struct LogicalNot
+{
+    LogicalNot(Predicate const& predicate)
+        : d_predicate(predicate)
+    {
+    }
+
+    template <typename Argument>
+    bool operator()(Argument const& argument)
+    {
+        return !static_cast<bool>(d_predicate(argument));
+    }
+
+    Predicate d_predicate;
+};
+
+template <typename Predicate>
+static LogicalNot<Predicate> logical_not(Predicate const& predicate)
+{
+    return LogicalNot<Predicate>(predicate);
+}
+
 }
 
 // ----------------------------------------------------------------------------
@@ -351,12 +374,12 @@ struct report : public Report<data>
         }
 
         data::headers_t::const_iterator end = std::find_if(
-            it, headers.end(), std::not1(std::ptr_fun(&is_component)));
+            it, headers.end(), logical_not(&is_component));
         data::headers_t::const_iterator package_end = std::find_if(
-            it, end, std::not1(has_prefix(a.package() + "_")));
+            it, end, logical_not(has_prefix(a.package() + "_")));
         check_order("Package", it, package_end, end);
         data::headers_t::const_iterator group_end =
-            std::find_if(it, end, std::not1(has_prefix(a.group())));
+            std::find_if(it, end, logical_not(has_prefix(a.group())));
         check_order("Group", package_end, group_end, end);
         check_order("Component", group_end, end);
 
