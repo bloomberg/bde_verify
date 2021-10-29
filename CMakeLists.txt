@@ -206,6 +206,7 @@ add_executable(bde_verify_bin
     ${G}/csatr/csatr_packagename.cpp
     ${G}/csatr/csatr_usingdeclarationinheader.cpp
     ${G}/csatr/csatr_usingdirectiveinheader.cpp
+    ${G}/csaxform/csaxform_precon.cpp
     ${G}/csaxform/csaxform_refactor.cpp
     ${G}/csaxform/csaxform_refactor_config.cpp
 )
