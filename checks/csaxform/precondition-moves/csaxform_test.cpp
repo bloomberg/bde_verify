@@ -37,3 +37,10 @@ void testFunc3(int p1, int p2, int p3)
     BSLS_ASSERT(p2 > 31);
     BSLS_ASSERT(p3 > 32);
 }
+
+void testFunc4(int p1, int p2, int p3)
+{
+    BSLS_REVIEW(p1 > 40);
+    BSLS_REVIEW_OPT(p2 > 41);
+    BSLS_REVIEW_SAFE(p3 > 42);
+}

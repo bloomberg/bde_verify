@@ -167,8 +167,7 @@ usage: $0 [options] [additional compiler options] file.cpp ...
             Certain $nm checks optionally produce rewritten files
             containing corrections or changes to the input files.
             To enable rewriting, specify this option, and rewritten
-            files will be placed in the specified {directory} with
-            '-rewritten' affixed to their names.
+            files will be placed in the specified {directory}.
 
     -rewrite-file {file}
             For those $nm checks that produce rewritten files, use

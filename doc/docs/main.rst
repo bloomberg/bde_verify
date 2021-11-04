@@ -43,7 +43,7 @@ Usage Examples
 |bv| -cl 'all off' -cl 'check headline on' -rewrite-dir my/rw/dir my_comp.cpp
     Run |bv| using defaults, with all but the 'headline' checks disabled.
     If the first line of the file is malformed, produce a corrected version
-    named ``my/rw/dir/my_comp.cpp-rewritten``.
+    named ``my/rw/dir/my_comp.cpp``.
 
 Description
 -----------
@@ -64,9 +64,8 @@ permission from Dietmar to visit those pages.)
    https://github.com/dietmarkuehl/coolyser/wiki/Overview
 
 If the ``-rewrite-dir dir`` option is specified, |bv| will make some suggested
-changes by itself and place the modified files in the specified directory with
-``-rewritten`` appended to the file names. (Not much rewriting is being done
-yet; we plan to increase this over time.)
+changes by itself and place the modified files in the specified directory. (Not
+much rewriting is being done yet; we plan to increase this over time.)
 
 |Bv| is supported on SunOS, Linux, and Windows. In the BloombergLP development
 environment, running ``/opt/bb/bin/`` |bv| will launch the appropriate
@@ -248,10 +247,10 @@ Command-line Options
 +-----------------------+-----------------------------------------------------+
 | | -rewrite-dir        | Certain |bv| checks can create modified files       |
 |   *directory*         | that contain suggested changes.  These files are    |
-| | -rewrite            | created with the name *file*-\ ``rewritten`` in the |
-|   *directory*         | given *directory* if this option is specified.  If  |
-| | -rd *directory*     | this option is not specified, no rewritten files    |
-|                       | are created.                                        |
+| | -rewrite            | created with the name *file* in the given           |
+|   *directory*         | *directory* if this option is specified.  If this   |
+| | -rd *directory*     | option is not specified, no rewritten files are     |
+|                       | created.                                            |
 +-----------------------+-----------------------------------------------------+
 | | -rewrite-file       | Certain |bv| checks can create modified files       |
 |   *file*              | that contain suggested changes.  If this option is  |

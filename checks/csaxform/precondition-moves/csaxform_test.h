@@ -1,6 +1,7 @@
 // csaxform_test.h                                                    -*-C++-*-
 
 #include <bsls_assert.h>
+#include <bsls_review.h>
 
 class Test {
   private:
@@ -31,6 +32,8 @@ void testFunc1a(int);
 void testFunc2(int p1, int p2);
 
 void testFunc3(int p1, int p2, int p3);
+
+void testFunc4(int p1, int p2, int p3);
 
 template <class TYPE>
 void testTFunc1(const TYPE& p1);

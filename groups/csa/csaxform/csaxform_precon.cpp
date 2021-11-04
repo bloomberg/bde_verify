@@ -382,7 +382,10 @@ void report::operator()(Token const& token,
         auto s = Lexer::getSpelling(token, m, a.context()->getLangOpts());
         if (0 == strcmp(s.data(), "BSLS_ASSERT") ||
             0 == strcmp(s.data(), "BSLS_ASSERT_OPT") ||
-            0 == strcmp(s.data(), "BSLS_ASSERT_SAFE")) {
+            0 == strcmp(s.data(), "BSLS_ASSERT_SAFE") ||
+            0 == strcmp(s.data(), "BSLS_REVIEW") ||
+            0 == strcmp(s.data(), "BSLS_REVIEW_OPT") ||
+            0 == strcmp(s.data(), "BSLS_REVIEW_SAFE") ) {
             d.d_asserts.push_back(r);
         }
     }

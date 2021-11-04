@@ -713,7 +713,7 @@ csabase::Analyser::get_rewrite_file(std::string file)
     llvm::SmallVector<char, 512> path(
         rewrite_dir_.begin(), rewrite_dir_.end());
     llvm::sys::path::append(path, llvm::sys::path::filename(file));
-    return std::string(path.begin(), path.end()) + "-rewritten";
+    return std::string(path.begin(), path.end());
 }
 
 // ----------------------------------------------------------------------------
