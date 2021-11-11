@@ -172,9 +172,9 @@ void report::copy_assert(const FunctionDecl *to,
                      macroParams.substr(pos))
                         .str();
     d.d_insertions[ins] += s;
-    a.report(ip, check_name, "CA01",
-             "Copying assertion to contract location")
-        << assertion;
+    //a.report(ip, check_name, "CA01",
+    //         "Copying assertion to contract location")
+    //    << assertion;
 }
 
 bool report::do_template(const TemplateDecl *t,
@@ -322,17 +322,17 @@ void report::operator()()
         auto fd = p.first;
         auto cd = fd->getCanonicalDecl();
         if (check_compatible_parameters(p.first, cd)) {
-            copy_assert(cd, p.second, "BSLS_CONTRACTS_PRE");
+            copy_assert(cd, p.second, "BSLS_CONTRACT_PRE");
         }
-#if 0
         // This code modifies the assertion at the implementation location.
         // For initial check functionality this replacement is not required.
         else {
-            copy_assert(fd, p.second, "IMPL_CONTRACT_");
-            a.report(cd, check_name, "CA03",
+            //copy_assert(fd, p.second, "IMPL_CONTRACT_");
+            a.report(cd, check_name, "CA01",
                      "Cannot copy contract here due to mismatched parameters")
                 << fd;
         }
+#if 0
         a.InsertTextBefore(p.second.getBegin(), "TRANSFERRED_");
         a.report(p.second.getBegin(), check_name, "CA02",
                  "Marking assertion as copied to contract");
@@ -359,13 +359,13 @@ void report::operator()()
 
             for (auto &id : a.attachment<IncludesData>().d_inclusions) {
                 if (fileId == id.first.getFileID()) {
-                    std::string macroDef = "#ifndef BSLS_CONTRACTS_PRE\n"
-                                           "#define BSLS_CONTRACTS_PRE(X)\n"
+                    std::string macroDef = "#ifndef BSLS_CONTRACT_PRE\n"
+                                           "#define BSLS_CONTRACT_PRE(X)\n"
                                            "#endif\n\n";
                     a.InsertTextBefore(id.second.d_fullRange.getBegin(),
                                        macroDef);
-                    a.report(p.first.location(), check_name, "CA01",
-                             "Need to generate the macro");
+                    //a.report(p.first.location(), check_name, "CA01",
+                    //         "Need to generate the macro");
                     break;
                 }
             }
