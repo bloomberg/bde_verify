@@ -31,6 +31,12 @@ namespace bde_verify
         template <typename T>
         void swap(TemplateTypenameBad<T>&, TemplateTypenameBad<T>&);
 
+        template <class t_T>
+        void swap2(TemplateTypenameBad<t_T>&, TemplateTypenameBad<t_T>&);
+
+        template <class t_Type>
+        void swap3(TemplateTypenameBad<t_Type>&, TemplateTypenameBad<t_Type>&);
+
         template <class TT>
         class TemplateTypenameGood
         {
@@ -41,6 +47,9 @@ namespace bde_verify
 
         template <class TT>
         void swap(TemplateTypenameGood<TT>&, TemplateTypenameGood<TT>&);
+
+        template <class t_TT>
+        void swap2(TemplateTypenameGood<t_TT>&, TemplateTypenameGood<t_TT>&);
     }
 }
 
@@ -50,11 +59,19 @@ bde_verify::csastil::swap(TemplateTypenameBad<TT>&, TemplateTypenameBad<TT>&)
 {
 }
 
+template <typename t_TT>
+inline void
+bde_verify::csastil::swap2(TemplateTypenameBad<t_TT>&,
+                           TemplateTypenameBad<t_TT>&)
+{
+}
+
 namespace bde_verify
 {
     namespace csastil
     {
         template <typename AA, class BB, typename CC> void foo();
+        template <class t_A, class t_Bb, class t_CC> void boo();
     }
 }
 

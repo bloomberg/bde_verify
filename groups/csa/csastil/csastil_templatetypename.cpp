@@ -156,13 +156,26 @@ void report::checkTemplateParameters(TemplateParameterList const* parms)
                  }
             }
             if (parm->getIdentifier()) {
-                if (parm->getName().size() == 1) {
-                    d_analyser.report(parm, check_name, "TY02",
-                        "Template parameter uses single-letter name");
-                }
-                if (!all_upper.match(parm->getName())) {
-                    d_analyser.report(parm, check_name, "TY03",
-                        "Template parameter is not in ALL_CAPS format");
+                llvm::StringRef name = parm->getName();
+                if (!name.startswith("t_")) {
+                    if (name.size() == 1) {
+                        d_analyser.report(parm, check_name, "TY02",
+                            "Template parameter uses single-letter name");
+                    }
+                    if (!all_upper.match(name)) {
+                        d_analyser.report(parm, check_name, "TY03",
+                            "Template parameter is not in ALL_CAPS format");
+                    }
+                } else {
+                    name = name.drop_front(2);
+                    if (name.size() == 1) {
+                        d_analyser.report(parm, check_name, "TY04",
+                           "Template parameter uses single-letter name after 't_'");
+                    }
+                    if (!all_upper.match(name)) {
+                        d_analyser.report(parm, check_name, "TY05",
+                            "Template parameter is not in ALL_CAPS format after 't_'");
+                    }
                 }
             }
         }

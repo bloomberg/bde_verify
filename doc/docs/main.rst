@@ -1579,6 +1579,10 @@ may be removed in the future.)  We welcome suggestions for additional checks.
      Use of single-letter template parameter names.
    * ``TY03``
      Use of non ``ALL_CAPS`` template parameter names.
+   * ``TY04``
+     Use of single-letter template parameter names after ``t_`` prefix.
+   * ``TY05``
+     Use of non ``ALL_CAPS`` template parameter names after ``t_`` prefix.
 
 .. only:: bde_verify
 

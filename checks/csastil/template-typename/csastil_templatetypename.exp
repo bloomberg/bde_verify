@@ -21,18 +21,33 @@ In file included from csastil_templatetypename.t.cpp:3:
         template <typename T>
                            ^
 ./csastil_templatetypename.t.h:31:28: warning: TY02: Template parameter uses single-letter name
-./csastil_templatetypename.t.h:38:29: warning: TY02: Template parameter uses single-letter name
+./csastil_templatetypename.t.h:34:25: warning: TY04: Template parameter uses single-letter name after 't_'
+        template <class t_T>
+                        ^
+./csastil_templatetypename.t.h:37:25: warning: TY05: Template parameter is not in ALL_CAPS format after 't_'
+        template <class t_Type>
+                        ^
+./csastil_templatetypename.t.h:44:29: warning: TY02: Template parameter uses single-letter name
             template <class S> TemplateTypenameGood();
                             ^
-./csastil_templatetypename.t.h:47:20: warning: TY01: Template parameter uses 'typename' instead of 'class'
+./csastil_templatetypename.t.h:56:20: warning: TY01: Template parameter uses 'typename' instead of 'class'
 template <typename TT>
                    ^
-./csastil_templatetypename.t.h:57:28: warning: TY01: Template parameter uses 'typename' instead of 'class'
+./csastil_templatetypename.t.h:62:20: warning: TY01: Template parameter uses 'typename' instead of 'class'
+template <typename t_TT>
+                   ^
+./csastil_templatetypename.t.h:73:28: warning: TY01: Template parameter uses 'typename' instead of 'class'
         template <typename AA, class BB, typename CC> void foo();
                            ^
-./csastil_templatetypename.t.h:57:51: warning: TY01: Template parameter uses 'typename' instead of 'class'
+./csastil_templatetypename.t.h:73:51: warning: TY01: Template parameter uses 'typename' instead of 'class'
         template <typename AA, class BB, typename CC> void foo();
                                                   ^
+./csastil_templatetypename.t.h:74:25: warning: TY04: Template parameter uses single-letter name after 't_'
+        template <class t_A, class t_Bb, class t_CC> void boo();
+                        ^
+./csastil_templatetypename.t.h:74:36: warning: TY05: Template parameter is not in ALL_CAPS format after 't_'
+        template <class t_A, class t_Bb, class t_CC> void boo();
+                                   ^
 csastil_templatetypename.t.cpp:6:20: warning: TY01: Template parameter uses 'typename' instead of 'class'
 template <typename T>
                    ^
@@ -80,4 +95,4 @@ template <typename PP>
 csastil_templatetypename.t.cpp:67:20: warning: TY01: Template parameter uses 'typename' instead of 'class'
 template <typename OO>
                    ^
-31 warnings generated.
+36 warnings generated.
