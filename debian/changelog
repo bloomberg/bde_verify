@@ -1,3 +1,9 @@
+bde-verify (1.3.24) unstable; urgency=low
+
+  * 2431aed Add logic to handle t_ prefix in template parameter names (#65)
+
+ -- osubbotin <osubbotin@bloomberg.net>  Tue, 30 Aug 2022 16:12:02 -0400
+
 bde-verify (1.3.23) unstable; urgency=low
 
   * dfac365 Fix macro name. (#64)
