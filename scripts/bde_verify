@@ -458,7 +458,8 @@ if ($system eq "Darwin") {
     my $struct = pack('LLLL', 0, 0, 0, 0);
     syscall(195, 4, $struct);
 } else {
-    syscall($system eq 'Linux' ? 160 : 128, 4, pack('LL', 0, 0));
+    my $struct = pack('LL', 0, 0);
+    syscall($system eq 'Linux' ? 160 : 128, 4, $struct);
 }
 exec @command;
 
