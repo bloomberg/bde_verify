@@ -277,8 +277,9 @@ void Word::set(std::vector<ParmInfo>* parm_info,
     offset = position;
     is_quoted = single_quoted;
     is_specify = !single_quoted &&
-                 (s.equals_lower("specify") || s.equals_lower("specified"));
-    is_optionally = !single_quoted && s.equals_lower("optionally");
+                 (s.equals_insensitive("specify") ||
+                      s.equals_insensitive("specified"));
+    is_optionally = !single_quoted && s.equals_insensitive("optionally");
 
     parm = parms.size();
     for (size_t i = 0; i < parms.size(); ++i) {
@@ -304,7 +305,7 @@ void Word::set(std::vector<ParmInfo>* parm_info,
 
     is_noise = false;
     for (size_t i = 0; !is_noise && i < noise.size(); ++i) {
-        is_noise = noise[i].equals_lower(s);
+        is_noise = noise[i].equals_insensitive(s);
     }
 
     if (parm < parm_info->size()) {

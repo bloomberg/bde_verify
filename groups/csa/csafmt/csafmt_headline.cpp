@@ -39,7 +39,7 @@ static void open_file(Analyser& analyser,
     std::string filename = fn.name().str();
     if (analyser.is_component_header(name) || analyser.is_toplevel(name)) {
         const SourceManager &m = analyser.manager();
-        llvm::StringRef buf = m.getBuffer(m.getFileID(where))->getBuffer();
+        llvm::StringRef buf = m.getBufferData(m.getFileID(where));
         if (buf.size() == 0) {
             return;
         }
@@ -53,7 +53,7 @@ static void open_file(Analyser& analyser,
 
         if (   !buf.equals(expectcpp)
             && !buf.equals(expectc)
-            && buf.find_lower("GENERATED") == buf.npos) {
+            && buf.find_insensitive("GENERATED") == buf.npos) {
             std::pair<size_t, size_t> mcpp = mid_mismatch(buf.str(), expectcpp);
             std::pair<size_t, size_t> mc = mid_mismatch(buf.str(), expectc);
             std::pair<size_t, size_t> m;

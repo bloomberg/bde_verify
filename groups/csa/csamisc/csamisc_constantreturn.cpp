@@ -1,5 +1,9 @@
 // csamisc_constantreturn.cpp                                         -*-C++-*-
 
+#include <llvm/ADT/APSInt.h>
+#include <llvm/ADT/Optional.h>
+#include <llvm/Support/Casting.h>
+
 #include <clang/AST/Decl.h>
 #include <clang/AST/DeclarationName.h>
 #include <clang/AST/Expr.h>
@@ -8,11 +12,11 @@
 #include <clang/AST/StmtIterator.h>
 #include <clang/Basic/Diagnostic.h>
 #include <clang/Basic/SourceLocation.h>
+
 #include <csabase_analyser.h>
 #include <csabase_diagnostic_builder.h>
 #include <csabase_registercheck.h>
-#include <llvm/ADT/APSInt.h>
-#include <llvm/Support/Casting.h>
+
 #include <iterator>
 #include <string>
 
@@ -43,15 +47,15 @@ static void check(Analyser& analyser, FunctionDecl const* decl)
         {
             ReturnStmt* ret(llvm::dyn_cast<ReturnStmt>(stmt));
             Expr* expr(ret->getRetValue());
-            llvm::APSInt result;
+            llvm::Optional<llvm::APSInt> result;
             if (!expr->isValueDependent() &&
-                expr->isIntegerConstantExpr(result, *analyser.context()))
+                (result = expr->getIntegerConstantExpr(*analyser.context())))
             {
                 analyser.report(expr, check_name, "CR01",
                                 "Function '%0' has only one statement which "
                                 "returns the constant '%1'")
                     << decl->getNameAsString()
-                    << result.toString(10)
+                    << toString(*result, 10)
                     << decl->getNameInfo().getSourceRange();
                 for (FunctionDecl::redecl_iterator it(decl->redecls_begin()),
                      end(decl->redecls_end());
@@ -62,7 +66,7 @@ static void check(Analyser& analyser, FunctionDecl const* decl)
                                     "returns the constant %1)", false,
                                     DiagnosticIDs::Note)
                         << decl->getNameAsString()
-                        << result.toString(10)
+                        << toString(*result, 10)
                         << decl->getNameInfo().getSourceRange();
                 }
             }

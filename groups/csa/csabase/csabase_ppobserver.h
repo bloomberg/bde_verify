@@ -219,9 +219,9 @@ public:
     utils::event<decltype(&Base::PragmaOpenCLExtension)>
                                                      onPPPragmaOpenCLExtension;
 
-    void PragmaWarning(clang::SourceLocation Loc,
-                       llvm::StringRef       WarningSpec,
-                       llvm::ArrayRef<int>   Ids)
+    void PragmaWarning(clang::SourceLocation        Loc,
+                       Base::PragmaWarningSpecifier WarningSpec,
+                       llvm::ArrayRef<int>          Ids)
     override;
 
     utils::event<decltype(&Base::PragmaWarning)> onPPPragmaWarning;

@@ -571,24 +571,24 @@ void report::operator()()
         bool saysPublic    = false;
         bool saysPrivate   = false;
         bool saysProtected = false;
-        if (comment.startswith_lower("public ")) {
+        if (comment.startswith_insensitive("public ")) {
             comment    = comment.drop_front(6).trim();
             saysPublic = true;
         }
-        else if (comment.startswith_lower("private ")) {
+        else if (comment.startswith_insensitive("private ")) {
             comment     = comment.drop_front(7).trim();
             saysPrivate = true;
         }
-        else if (comment.startswith_lower("protected ")) {
+        else if (comment.startswith_insensitive("protected ")) {
             comment       = comment.drop_front(9).trim();
             saysProtected = true;
         }
-        if (comment.startswith_lower("instance ")) {
+        if (comment.startswith_insensitive("instance ")) {
             comment = comment.drop_front(8).trim();
         }
         if (comment.size() && std::isupper(comment[0] & 0xFFU)) {
             for (const auto& tag : tags) {
-                if (tag.tag.size() && comment.equals_lower(tag.tag)) {
+                if (tag.tag.size() && comment.equals_insensitive(tag.tag)) {
                     auto type = tag.type;
                     if (saysPublic) {
                         type = TagInfo::TagTypes(type | TagInfo::BitPublic);

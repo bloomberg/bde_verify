@@ -15,7 +15,7 @@ Supported Platforms:
 - MacOS (Darwin)
 
 Prerequesites: 
-- llvm/clang 11.0 (see below for instructions)
+- llvm/clang 14.0 (see below for instructions)
 - gcc >= 7 (Linux and SunOS)
 - Clang >= 9 (Darwin/MacOS)
 - Visual Studio >= 2015 (Windows)
@@ -24,7 +24,7 @@ Prerequesites:
 - gnu make
 - aspell (package `libaspell-dev`)
 
-Bde_verify incorporates llvm/clang-11.0 libraries.  These may already be
+Bde_verify incorporates llvm/clang-14.0 libraries.  These may already be
 installed on the build machine.  If not, they can be installed (in the
 Bloomberg environment) using dpkg, or built from source on Windows.
 
@@ -46,7 +46,7 @@ Bloomberg environment) using dpkg, or built from source on Windows.
 #### Configure bde-verify (bbcmake)
     cd $BVSRC
     mkdir _build; cd _build
-    bbcmake -64 -G Ninja -DClang_DIR=${DISTRIBUTION_REFROOT}/opt/bb/lib/llvm-11.0/lib64/cmake/clang/  ../
+    bbcmake -64 -G Ninja -DClang_DIR=${DISTRIBUTION_REFROOT}/opt/bb/lib/llvm-14.0/lib64/cmake/clang/  ../
 
 Alternatively, with plain cmake:
 

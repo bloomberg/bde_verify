@@ -4,7 +4,7 @@ include $(DISTRIBUTION_REFROOT)/opt/bb/share/cmake-debhelper/cmake-debhelper-mac
 include $(DISTRIBUTION_REFROOT)/opt/bb/share/gcc-build-base/gcc-build-base.mk
 
 CMAKE=$(DISTRIBUTION_REFROOT)/opt/bb/bin/cmake
-LLVM_LIBDIR_64BIT:=$(DISTRIBUTION_REFROOT)$(LIBDIR_32BIT)/llvm-11.0/lib64
+LLVM_LIBDIR_64BIT:=$(DISTRIBUTION_REFROOT)$(LIBDIR_32BIT)/llvm-14.0/lib64
 
 DEBHELPER_CMAKE_ARGS:=\
   -DCMAKE_BUILD_TYPE=Release \

@@ -437,7 +437,7 @@ void report::operator()()
             file = "refactor.cfg";
         }
         std::error_code ec;
-        llvm::raw_fd_ostream f(file, ec, llvm::sys::fs::F_Append);
+        llvm::raw_fd_ostream f(file, ec, llvm::sys::fs::OF_Append);
         if (ec) {
             ERRS() << "File error " << file << " " << ec.message() << "\n";
             return;

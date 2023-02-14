@@ -78,11 +78,11 @@ void Word::set(llvm::StringRef s, size_t position)
     is_period        = s.equals(".");
     is_question_mark = s.equals("?");
     is_semicolon     = s.equals(";");
-    is_copyright     = s.equals_lower("copyright");
-    is_that          = s.equals_lower("that");
-    is_which         = s.equals_lower("which");
+    is_copyright     = s.equals_insensitive("copyright");
+    is_that          = s.equals_insensitive("that");
+    is_which         = s.equals_insensitive("which");
     is_preposition   = prepositions.count(s) || s.endswith("ing");
-    is_of            = s.equals_lower("of");
+    is_of            = s.equals_insensitive("of");
     is_punct         = s.size() == 1 && !std::isalpha(s[0] & 0xFF);
 }
 

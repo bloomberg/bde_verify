@@ -427,7 +427,7 @@ void csabase::PPObserver::PragmaOpenCLExtension(SourceLocation nameloc,
 }
 
 void csabase::PPObserver::PragmaWarning(SourceLocation loc,
-                                        llvm::StringRef warningspec,
+                                        PragmaWarningSpecifier warningspec,
                                         llvm::ArrayRef<int> ids)
 {
     onPPPragmaWarning(loc, warningspec, ids);

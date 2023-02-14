@@ -128,7 +128,7 @@ bool report::is_good_friend(const FriendDecl *frend, const NamedDecl *def)
     FileName ff(m.getFilename(frend->getLocation()));
     FileName df(m.getFilename(def->getLocation()));
 
-    if (llvm::StringRef(dn).startswith_lower(fn)) {
+    if (llvm::StringRef(dn).startswith_insensitive(fn)) {
         return true;
     }
 

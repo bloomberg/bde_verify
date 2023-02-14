@@ -1082,9 +1082,9 @@ void report::match_no_print(const BoundNodes& nodes)
     for (const Stmt *s = quiet;
          const CaseStmt *cs = a.get_parent<CaseStmt>(s);
          s = cs) {
-        llvm::APSInt val;
-        if (cs->getLHS()->isIntegerConstantExpr(val, *a.context()) &&
-            !val.isStrictlyPositive()) {
+        llvm::Optional<llvm::APSInt> val;
+        if ((val = cs->getLHS()->getIntegerConstantExpr(*a.context())) &&
+            !val.getValue().isStrictlyPositive()) {
             return;                                                   // RETURN
         }
     }

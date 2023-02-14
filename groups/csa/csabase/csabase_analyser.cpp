@@ -680,8 +680,8 @@ bool csabase::Analyser::is_generated(SourceLocation loc) const
     FileID fid = d_source_manager.getFileID(loc);
     llvm::StringRef buf = d_source_manager.getBufferData(fid);
     llvm::StringRef first_line = buf.split('\n').first;
-    if (first_line.find_lower("do not edit") != first_line.npos &&
-        first_line.find_lower("generated") != first_line.npos) {
+    if (first_line.find_insensitive("do not edit") != first_line.npos &&
+        first_line.find_insensitive("generated") != first_line.npos) {
         return true;                                                  // RETURN
     }
 

@@ -71,7 +71,7 @@ void report::operator()(SourceLocation Loc, SourceLocation IfLoc)
 
     SmallVector<StringRef, 16> matches;
     if (guarded_include_initial.match(a.get_source_line(IfLoc), &matches) &&
-        !(matches[1].drop_front(9).equals_lower(
+        !(matches[1].drop_front(9).equals_insensitive(
             sys::path::stem(m.getFilename(Loc))))) {
         StringRef gi = a.get_source(SourceRange(IfLoc, Loc));
         if (guarded_include.match(gi, &matches)) {
@@ -102,7 +102,7 @@ void report::operator()(SourceLocation Loc, SourceLocation IfLoc)
                                  a.get_source(inclusion.d_fullFile)[0] == '<',
                                  nullptr,
                                  nullptr,
-                                 curDir,
+                                 &curDir,
                                  nullptr,
                                  nullptr,
                                  nullptr,
@@ -146,7 +146,7 @@ void report::operator()(SourceLocation              HashLoc,
                          a.get_source(inclusion.d_fullFile)[0] == '<',
                          nullptr,
                          nullptr,
-                         curDir,
+                         &curDir,
                          nullptr,
                          nullptr,
                          nullptr,

@@ -50,12 +50,12 @@ void files::operator()(SourceLocation     loc,
                        std::string const &file)
 {
     const SourceManager &m = d_analyser.manager();
-    const llvm::MemoryBuffer *buf = m.getBuffer(m.getFileID(loc));
-    const char *b = buf->getBufferStart();
-    const char *e = buf->getBufferEnd();
+    const llvm::StringRef buf = m.getBufferData(m.getFileID(loc));
+    const char *b = buf.begin();
+    const char *e = buf.end();
 
     const char *begin = 0;
-    for (const char *s = b; s <= e; ++s) {
+    for (const char *s = b; s < e; ++s) {
         if (!(*s & 0x80)) {
             if (begin != 0) {
                 SourceRange bad(getOffsetRange(loc, begin - b, s - begin - 1));

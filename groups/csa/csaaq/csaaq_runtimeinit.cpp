@@ -79,8 +79,9 @@ void report::operator()(const VarDecl *decl)
         decl->hasInit() &&
         !decl->getType()->isDependentType() &&
         !decl->getInit()->isValueDependent() &&
-        !decl->checkInitIsICE() &&
-        !decl->getInit()->EvaluateAsInitializer(v, *a.context(), decl, n)) {
+        !decl->checkForConstantInitialization(n) &&
+        !decl->getInit()->EvaluateAsInitializer(v, *a.context(),
+                                                decl, n, true)) {
         d.d_inits.insert(decl);
     }
 }

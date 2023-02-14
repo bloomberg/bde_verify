@@ -42,10 +42,10 @@ using namespace llvm::opt;
 
 namespace {
 void
-LLVMErrorHandler(void *UserData, const std::string& Message, bool GenCrashDiag)
+LLVMErrorHandler(void *UserData, const char* Reason, bool GenCrashDiag)
 {
     DiagnosticsEngine &Diags = *static_cast<DiagnosticsEngine*>(UserData);
-    Diags.Report(diag::err_fe_error_backend) << Message;
+    Diags.Report(diag::err_fe_error_backend) << Reason;
     sys::RunInterruptHandlers();
     exit(GenCrashDiag ? 70 : 1);
 }
