@@ -319,7 +319,7 @@ const file_info include_pairs[] = {
       "postypes.h",       "_GLIBCXX_POSTYPES_H"      },
     { "bsl_ios.h",        "INCLUDED_BSL_IOS",
       "ios_base.h",       "_IOS_BASE_H"              },
-    { "bsl_memory.h",     "INCLUDED_BSL_MEORY",
+    { "bsl_memory.h",     "INCLUDED_BSL_MEMORY",
       "auto_ptr.h",       "_BACKWARD_AUTO_PTR_H"     },
 
     // 'bsl_' equivalents for 'bslstl_' files
