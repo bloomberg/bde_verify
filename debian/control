@@ -30,6 +30,6 @@ Depends: ${libgcc-Depends},
          libncurses5
 
 Package: libbde-verify-dev
-Depends: llvm-11.0-dev
+Depends: llvm-14.0-dev
 Architecture: amd64 solaris10-sparc
 Description: bde_verify base library and headers
