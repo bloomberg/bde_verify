@@ -54,7 +54,7 @@ Alternatively, with plain cmake:
     mkdir _build; cd _build
     export CXX=${DISTRIBUTION_REFROOT}/opt/bb/bin/g++
     export CC=${DISTRIBUTION_REFROOT}/opt/bb/bin/gcc
-    cmake -G Ninja -DCMAKE_INSTALL_PREFIX=/opt/bb -DClang_DIR=${DISTRIBUTION_REFROOT}/opt/bb/lib/llvm-11.0/lib64/cmake/clang/ -DCMAKE_C_FLAGS=-m64 -DCMAKE_CXX_FLAGS=-m64 -DCMAKE_BUILD_TYPE=RELEASE ../
+    cmake -G Ninja -DCMAKE_INSTALL_PREFIX=/opt/bb -DClang_DIR=${DISTRIBUTION_REFROOT}/opt/bb/lib/llvm-14.0/lib64/cmake/clang/ -DCMAKE_C_FLAGS=-m64 -DCMAKE_CXX_FLAGS=-m64 -DCMAKE_BUILD_TYPE=RELEASE ../
 
 #### Build & install bde-verify
 
@@ -84,8 +84,8 @@ Note: this requires a great deal of free disk space.
     # Clone the LLVM/Clang repositories
     git clone https://github.com/llvm/llvm-project.git ${LCSRC} 
     cd ${LCSRC}
-    # Checkout llvm-11 release tag
-    git checkout tags/llvmorg-11.0.1 -b llvm11
+    # Checkout llvmorg-14.0.1 
+    git checkout tags/llvmorg-14.0.1 -b llvm14
 
 Building LLVM/Clang
 ===================
